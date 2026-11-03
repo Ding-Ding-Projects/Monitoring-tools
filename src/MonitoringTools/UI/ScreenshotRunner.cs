@@ -161,23 +161,21 @@ namespace MonitoringTools.UI
         {
             await Task.Delay(waitMs);
             w.UpdateLayout();
-            if (!(w.Content is FrameworkElement el) || el.ActualWidth < 1) return;
-            var margin = el.Margin;
-            double width = el.ActualWidth + margin.Left + margin.Right, height = el.ActualHeight + margin.Top + margin.Bottom;
+            if (w == null || w.ActualWidth < 1) return;
+            // Render the window itself: its own (0,0) is the frame, so drop shadows inside the
+            // window's margins land where they belong and nothing is cropped or shifted.
+            double width = w.ActualWidth, height = w.ActualHeight;
             const double scale = 2;
+            int pw = (int)Math.Ceiling(width * scale), ph = (int)Math.Ceiling(height * scale);
+            var raw = new RenderTargetBitmap(pw, ph, 96 * scale, 96 * scale, PixelFormats.Pbgra32);
+            raw.Render(w);
             var dv = new DrawingVisual();
             using (var dc = dv.RenderOpen())
             {
                 dc.DrawRectangle(new SolidColorBrush(Color.FromRgb(0x08, 0x09, 0x0C)), null, new Rect(0, 0, width, height));
-                var brush = new VisualBrush(el)
-                {
-                    Stretch = Stretch.Fill,
-                    ViewboxUnits = BrushMappingMode.Absolute,
-                    Viewbox = new Rect(-margin.Left, -margin.Top, width, height)
-                };
-                dc.DrawRectangle(brush, null, new Rect(0, 0, width, height));
+                dc.DrawImage(raw, new Rect(0, 0, width, height));
             }
-            var bmp = new RenderTargetBitmap((int)Math.Ceiling(width * scale), (int)Math.Ceiling(height * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
+            var bmp = new RenderTargetBitmap(pw, ph, 96 * scale, 96 * scale, PixelFormats.Pbgra32);
             bmp.Render(dv);
             var file = name + ".png";
             Demo.SavePng(bmp, Path.Combine(_dir, file));
