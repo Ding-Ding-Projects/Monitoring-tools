@@ -226,7 +226,7 @@ namespace MonitoringTools.UI
             foreach (var (cmd, what) in new[]
             {
                 (":mp4", "video or audio to MP4"), (":gif", "video to animated GIF"), (":mp3", "extract or convert audio"),
-                (":webp", "image to WebP"), (":png", "image or first frame to PNG"), (":push", "pre-dew and push the repo"),
+                (":webp", "image to WebP"), (":png", "image or first frame to PNG"), (":push", "commit and push the repo"),
             }.Concat(s.Shortcuts.Select(x => (":" + x.Name, string.IsNullOrWhiteSpace(x.Description) ? "your shortcut" : x.Description))))
             {
                 var item = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 18, 10) };
@@ -340,7 +340,7 @@ namespace MonitoringTools.UI
             var root = PageRoot("Shortcuts", "Shortcuts and scripts",
                 "Make your own :commands. Copy any path or text with :name on the end and your batch or PowerShell script runs with it.");
 
-            // pre-dew message for :push
+            // commit message for :push
             var push = new StackPanel();
             push.Children.Add(CardTitle(":push message", "Built in. Stages everything, commits with this message and pushes the current branch."));
             var pr = new StackPanel { Orientation = Orientation.Horizontal };
@@ -523,6 +523,7 @@ namespace MonitoringTools.UI
         {
             var s = Settings.Current;
             var root = PageRoot("Network", "Network and DNS", "The offline dialog stays on top until the line comes back or you dismiss it.");
+            root.Children.Add(PublicIpCard());
             var a = new StackPanel();
             a.Children.Add(Switch("Network alerts", "Show the dialog when the internet drops.", s.NetworkEnabled, v => s.NetworkEnabled = v));
             a.Children.Add(Choice("Check every", new[] { ("2 s", 2), ("3 s", 3), ("5 s", 5), ("10 s", 10) }, s.ProbeIntervalSeconds, v => s.ProbeIntervalSeconds = v));
@@ -938,6 +939,80 @@ namespace MonitoringTools.UI
             root.Children.Add(ActivityCard(100, _activityFilter, _activityFilter == null ? "Everything" : _activityFilter.ToString()));
             root.Children.Add(Ui.Button("Open log folder", () => ActionProvider.Shell(Log.Folder), "Btn.Ghost", Icons.Lines));
             return root;
+        }
+
+        // -------------------------------------------------------------- public IP
+
+        private FrameworkElement PublicIpCard()
+        {
+            var s = Settings.Current;
+            var h = App.PublicIp.History;
+            var sp = new StackPanel();
+            var head = new Grid();
+            head.Children.Add(CardTitle("Public IP", h.Current == null
+                ? (App.PublicIp.LastError != null ? "Not checked yet: " + App.PublicIp.LastError : "Checking shortly…")
+                : $"Last checked {h.LastChecked:HH:mm}. Every change pops a dialog and is committed to the history repository."));
+            var check = Ui.Button("Check now", async () => { await App.PublicIp.CheckAsync(); Navigate("network", animate: false); }, "Btn.Ghost", Icons.Restart);
+            check.HorizontalAlignment = HorizontalAlignment.Right; check.VerticalAlignment = VerticalAlignment.Top;
+            head.Children.Add(check);
+            sp.Children.Add(head);
+
+            if (h.Current != null)
+            {
+                var cur = h.Records.FirstOrDefault(r => r.Ip == h.Current);
+                var big = new WrapPanel { Margin = new Thickness(0, 0, 0, 14) };
+                big.Children.Add(new TextBlock { Text = h.Current, FontFamily = Ui.Font("F.Mono"), FontSize = 24, FontWeight = FontWeights.SemiBold, Foreground = Ui.Res("B.Violet"), Margin = new Thickness(0, 0, 14, 0) });
+                if (cur != null) big.Children.Add(new TextBlock { Text = string.Join(" · ", new[] { cur.Org, cur.Place }.Where(x => !string.IsNullOrWhiteSpace(x))), Style = Ui.Style("T.Body"), VerticalAlignment = VerticalAlignment.Center });
+                sp.Children.Add(big);
+
+                // history table: IP, first seen, last seen, times, network
+                var g = new Grid();
+                foreach (var w in new[] { 1.3, 1.2, 1.2, 0.5, 2.0 }) g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(w, GridUnitType.Star) });
+                void Cell(string text, int row, int col, Brush fg, bool mono = true)
+                {
+                    var t = new TextBlock { Text = text, Foreground = fg, FontSize = 12, FontFamily = Ui.Font(mono ? "F.Mono" : "F.Body"), Margin = new Thickness(0, 0, 10, 8), TextTrimming = TextTrimming.CharacterEllipsis };
+                    Grid.SetRow(t, row); Grid.SetColumn(t, col); g.Children.Add(t);
+                }
+                g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                int c = 0;
+                foreach (var label in new[] { "IP", "First seen", "Last seen", "Times", "Network" }) Cell(label, 0, c++, Ui.Res("B.TextMute"), false);
+                int r0 = 1;
+                foreach (var rec in h.Records.Take(12))
+                {
+                    g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    var now = rec.Ip == h.Current;
+                    Cell(rec.Ip, r0, 0, Ui.Res(now ? "B.Violet" : "B.Text"));
+                    Cell(rec.FirstSeen.ToString("MMM d HH:mm"), r0, 1, Ui.Res("B.TextSoft"));
+                    Cell(now ? "now" : rec.LastSeen.ToString("MMM d HH:mm"), r0, 2, Ui.Res(now ? "B.Mint" : "B.TextSoft"));
+                    Cell(rec.Times.ToString(), r0, 3, Ui.Res("B.TextSoft"));
+                    Cell(rec.Org ?? "", r0, 4, Ui.Res("B.TextMute"), false);
+                    r0++;
+                }
+                sp.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(14, 12, 14, 4), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), Child = g, Margin = new Thickness(0, 0, 0, 14) });
+            }
+
+            sp.Children.Add(Switch("Watch the public IP", "Checks every few minutes and right after the network changes.", s.PublicIpEnabled, v => s.PublicIpEnabled = v, "B.Violet"));
+            sp.Children.Add(Choice("Check every", new[] { ("1 min", 1), ("5 min", 5), ("15 min", 15), ("60 min", 60) }, s.PublicIpIntervalMinutes, v => s.PublicIpIntervalMinutes = v));
+
+            sp.Children.Add(Ui.Mono("HISTORY REPOSITORY", Ui.Res("B.TextMute"), 11));
+            var repo = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+            repo.Children.Add(Ui.Mono(Net.PublicIpMonitor.RepoDir, Ui.Res("B.TextSoft")));
+            sp.Children.Add(repo);
+            var remoteRow = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };
+            var remote = Input(s.IpHistoryRemote, 380, "Optional git remote URL, for example https://github.com/you/ip-history.git");
+            remoteRow.Children.Add(remote);
+            var status = Ui.Mono("", Ui.Res("B.TextMute"), 11);
+            remoteRow.Children.Add(Ui.Button("Save remote", () => { s.IpHistoryRemote = remote.Text.Trim(); Settings.Save(); status.Text = "Saved. The next change pushes there."; }, "Btn.Ghost"));
+            remoteRow.Children.Add(Ui.Button("Push now", async () =>
+            {
+                status.Text = "Pushing…";
+                var (code, all) = await Net.PublicIpMonitor.PushNowAsync();
+                status.Text = code == 0 ? "Pushed." : "Push failed: " + ActionProvider.Tail(all, 1);
+            }, "Btn.Ghost", Icons.Git));
+            remoteRow.Children.Add(Ui.Button("Open folder", () => ActionProvider.Shell(Net.PublicIpMonitor.RepoDir), "Btn.Ghost", Icons.Folder));
+            sp.Children.Add(remoteRow);
+            sp.Children.Add(status);
+            return Card(sp, "#FF3A2F5A");
         }
 
         // -------------------------------------------------------------- command playground

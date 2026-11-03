@@ -1,6 +1,8 @@
+*.user
+*.zip
+.deps/
+.vs/
 bin/
+dist/
 obj/
 out/
-*.user
-.vs/
-*.zip

@@ -18,7 +18,7 @@ namespace MonitoringTools.UI
     /// writes an index.json, then exits. CI runs this on a Windows runner after the build.
     /// Nothing is installed and settings are never saved.
     /// </summary>
-    public static class Huishots
+    public static class ScreenshotRunner
     {
         private static string _dir;
         private static readonly List<object> Index = new List<object>();

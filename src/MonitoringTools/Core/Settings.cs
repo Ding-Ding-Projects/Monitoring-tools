@@ -20,6 +20,12 @@ namespace MonitoringTools.Core
         public int ProbeIntervalSeconds { get; set; } = 3;
         public int FailuresBeforeAlert { get; set; } = 2;
 
+        // Public IP watch and its git history
+        public bool PublicIpEnabled { get; set; } = true;
+        public int PublicIpIntervalMinutes { get; set; } = 5;
+        public string IpHistoryRepo { get; set; } = "";
+        public string IpHistoryRemote { get; set; } = "";
+
         // Game mode
         public bool GameModeEnabled { get; set; } = true;
         public bool GameModeFullscreen { get; set; } = true;

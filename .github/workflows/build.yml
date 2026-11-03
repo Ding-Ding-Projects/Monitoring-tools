@@ -1,8 +1,10 @@
 name: Build and release
 
-# Every push to main builds on Windows, renders screenshots of the real app,
-# publishes the next patch release (v1.0.0, v1.0.1, ...) and deploys the
-# project site to GitHub Pages. Pull requests only build and screenshot.
+# Every push to main: fetch pinned dependencies, build through build-installer.bat with every
+# dependency bundled, render screenshots of the real app and commit them back to the repository,
+# publish the next normal release (v1.0.0, v1.0.1, ...) and deploy the project site.
+# Commits made here use GITHUB_TOKEN, which does not start another run, so nothing loops.
+# Pull requests only build and render screenshots.
 
 on:
   push:
@@ -44,54 +46,96 @@ jobs:
           "version=$next" >> $env:GITHUB_OUTPUT
           Write-Host "Next version: $next"
 
-      - name: Publish single-file exe
+      - name: Cache fetched dependencies
+        uses: actions/cache@v4
+        with:
+          path: .deps/cache
+          key: deps-${{ hashFiles('deps/manifest.json') }}
+
+      - name: Build installer (build-installer.bat)
+        shell: cmd
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SILENT: "1"
+        run: call build-installer.bat ${{ steps.ver.outputs.version }}
+
+      - name: Check the bundle landed in the exe
         shell: pwsh
         run: |
-          dotnet publish src/MonitoringTools/MonitoringTools.csproj -c Release -r win-x64 --self-contained true `
-            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
-            -p:DebugType=none -p:Version=${{ steps.ver.outputs.version }} -o out
-          Get-ChildItem out
+          $exe = Get-Item out/MonitoringTools.exe
+          Write-Host ("MonitoringTools.exe is {0:N1} MB" -f ($exe.Length / 1MB))
+          Get-ChildItem .deps/ffmpeg | Format-Table Name, Length
 
       - name: Render screenshots
-        id: shots
         continue-on-error: true
         shell: pwsh
         run: |
-          $p = Start-Process -FilePath out/MonitoringTools.exe -ArgumentList '--screenshots', "$PWD/huishots" -PassThru
+          $p = Start-Process -FilePath out/MonitoringTools.exe -ArgumentList '--screenshots', "$PWD/screenshots" -PassThru
           if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "Screenshot run timed out" }
-          Get-ChildItem huishots | Format-Table Name, Length
-          if (Test-Path huishots/error.txt) { Get-Content huishots/error.txt; throw "Screenshot run failed" }
-          if (-not (Test-Path huishots/index.json)) { throw "No screenshots were written" }
-          Compress-Archive -Path huishots/* -DestinationPath MonitoringTools-screenshots.zip
-
-      - name: Package
-        shell: pwsh
-        run: Compress-Archive -Path out/MonitoringTools.exe -DestinationPath MonitoringTools-win-x64.zip
+          Get-ChildItem screenshots | Format-Table Name, Length
+          if (Test-Path screenshots/error.txt) { Get-Content screenshots/error.txt; throw "Screenshot run failed" }
+          if (-not (Test-Path screenshots/index.json)) { throw "No screenshots were written" }
+          Compress-Archive -Path screenshots/* -DestinationPath dist/MonitoringTools-screenshots.zip
 
       - uses: actions/upload-artifact@v4
         with:
           name: MonitoringTools-win-x64
           path: |
-            out/MonitoringTools.exe
-            MonitoringTools-win-x64.zip
+            dist/MonitoringTools-Setup.exe
+            dist/MonitoringTools-win-x64.zip
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: huishots
-          path: huishots
+          name: screenshots
+          path: screenshots
           if-no-files-found: warn
 
-      - name: Tag and release
+      - name: Commit refreshed screenshots
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path screenshots/index.json)) { Write-Host "No screenshots to commit"; exit 0 }
+          New-Item -ItemType Directory -Force docs/screenshots | Out-Null
+          Remove-Item docs/screenshots/* -Force -ErrorAction SilentlyContinue
+          Copy-Item screenshots/* docs/screenshots/
+          git config user.name "Claude Fable 5.1"
+          git config user.email "noreply@anthropic.com"
+          git add docs/screenshots
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) { Write-Host "Screenshots unchanged"; exit 0 }
+          $lines = @(
+            "Refresh screenshots for v${{ steps.ver.outputs.version }}",
+            "",
+            "Fresh pictures of the real app, rendered by the build machine, which never",
+            "blinks and never says cheese.",
+            "重新影過啲截圖：部機唔使擺甫士，次次都影得咁靚仔。",
+            "",
+            "Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+          )
+          $lines -join "`n" | Set-Content -Encoding utf8NoBOM commit-message.txt
+          git commit -q -F commit-message.txt
+          Remove-Item commit-message.txt
+          git pull --rebase -q origin main
+          git push origin HEAD:main
+
+      - name: Publish release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $tag = "v${{ steps.ver.outputs.version }}"
-          $assets = @('out/MonitoringTools.exe', 'MonitoringTools-win-x64.zip')
-          if (Test-Path MonitoringTools-screenshots.zip) { $assets += 'MonitoringTools-screenshots.zip' }
-          gh release create $tag @assets --target "${{ github.sha }}" --title "Monitoring Tools $tag" --generate-notes
+          $assets = @('dist/MonitoringTools-Setup.exe', 'dist/MonitoringTools-win-x64.zip', 'out/MonitoringTools.exe')
+          if (Test-Path dist/MonitoringTools-screenshots.zip) { $assets += 'dist/MonitoringTools-screenshots.zip' }
+          $size = "{0:N0} MB" -f ((Get-Item dist/MonitoringTools-Setup.exe).Length / 1MB)
+          $notes = "Setup and portable exe are $size each: FFmpeg, FFprobe and portable Git are bundled inside, so conversion and pushing work offline with nothing else to install."
+          gh release create $tag @assets --target "${{ github.sha }}" --title "Monitoring Tools $tag" --generate-notes --notes "$notes"
+          # Read the release back: it must be a normal release with every asset attached.
+          $r = gh release view $tag --json isDraft,isPrerelease,tagName,assets | ConvertFrom-Json
+          if ($r.isDraft -or $r.isPrerelease) { throw "Release $tag is a draft or prerelease" }
+          foreach ($a in $assets) { if (-not ($r.assets.name -contains (Split-Path $a -Leaf))) { throw "Release $tag is missing $a" } }
+          Write-Host "Release $tag verified: normal release with $($r.assets.Count) assets"
 
   pages:
     needs: windows
@@ -108,8 +152,8 @@ jobs:
       - uses: actions/download-artifact@v4
         continue-on-error: true
         with:
-          name: huishots
-          path: site/huishots
+          name: screenshots
+          path: site/screenshots
 
       - uses: actions/configure-pages@v5
 

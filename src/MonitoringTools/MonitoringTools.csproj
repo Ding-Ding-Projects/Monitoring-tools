@@ -28,4 +28,15 @@
     <Resource Include="Assets\app.ico" />
   </ItemGroup>
 
+  <!-- Bundled dependencies fetched by download-dependencies (pinned and digest-verified).
+       They are embedded so the single exe works offline; BundledTools extracts them on first use. -->
+  <PropertyGroup>
+    <DepsDir>$(MSBuildThisFileDirectory)..\..\.deps\</DepsDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(DepsDir)ffmpeg\*.exe;$(DepsDir)ffmpeg\*.dll" LogicalName="bundled/ffmpeg/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="$(DepsDir)cache\MinGit-*-64-bit.zip" LogicalName="bundled/mingit.zip" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)..\..\deps\manifest.json" LogicalName="bundled/manifest.json" />
+  </ItemGroup>
+
 </Project>

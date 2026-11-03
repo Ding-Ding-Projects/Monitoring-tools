@@ -288,7 +288,7 @@ namespace MonitoringTools.UI
 
             // A repository folder (or a file in one) can be pushed
             if (GitPush.FindRepoRoot(f) != null)
-                l.Add(new ToastAction { Label = ":push", Chip = true, Tip = "Pre-dew everything and push. Same as copying the path with :push on the end.", HandsOff = true, Run = () => App.Toasts.StartPush(f) });
+                l.Add(new ToastAction { Label = ":push", Chip = true, Tip = "Commit everything and push. Same as copying the path with :push on the end.", HandsOff = true, Run = () => App.Toasts.StartPush(f) });
 
             if (kind == FileKind.Folder) BatchChips(SafeFiles(f), l, f);
             else

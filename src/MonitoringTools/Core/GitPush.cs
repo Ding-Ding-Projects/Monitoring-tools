@@ -109,11 +109,15 @@ namespace MonitoringTools.Core
 
         private static bool HasGit() => Git(Environment.CurrentDirectory, "--version").Code == 0;
 
-        private static (int Code, string Out, string All) Git(string dir, string args)
+        private static string _gitExe;
+        /// <summary>The bundled MinGit unless this build has none, then the machine's git.</summary>
+        public static string GitExe => _gitExe ??= BundledTools.ResolveGit().Path ?? "git";
+
+        public static (int Code, string Out, string All) Git(string dir, string args)
         {
             try
             {
-                var psi = new ProcessStartInfo("git", args)
+                var psi = new ProcessStartInfo(GitExe, args)
                 {
                     WorkingDirectory = dir, UseShellExecute = false, CreateNoWindow = true,
                     RedirectStandardOutput = true, RedirectStandardError = true,

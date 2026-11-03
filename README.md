@@ -1,8 +1,11 @@
 # Monitoring Tools
 
-**[Project site and screenshots](https://ding-ding-projects.github.io/Monitoring-tools/)** · **[Download](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/latest/download/MonitoringTools.exe)**
+**[Project site and screenshots](https://ding-ding-projects.github.io/Monitoring-tools/)** · **[Download](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/latest/download/MonitoringTools-Setup.exe)**
 
 A small Windows background service with a tray icon and a modern, animated UI. It watches your clipboard and your internet connection, and turns copied paths into one-step commands.
+
+![Clipboard toast](docs/screenshots/toast-link.png)
+![Control centre](docs/screenshots/control-overview.png)
 
 ## Features
 
@@ -57,7 +60,7 @@ On by default. Popups are held back while Roblox, Minecraft, League of Legends, 
 
 ## Install
 
-Every push to `main` builds on Windows and publishes the next release automatically. Download `MonitoringTools.exe` from the latest release and run it. It copies itself to `%LOCALAPPDATA%\Programs\MonitoringTools`, registers start-up and appears in the tray. Settings, logs and scripts live in `%LOCALAPPDATA%\MonitoringTools`.
+Every push to `main` builds on Windows and publishes the next release automatically. Download `MonitoringTools-Setup.exe` from the latest release and run it. FFmpeg, FFprobe and portable Git are bundled inside, so nothing else needs installing and conversion works offline. It copies itself to `%LOCALAPPDATA%\Programs\MonitoringTools`, registers start-up and appears in the tray. Settings, logs and scripts live in `%LOCALAPPDATA%\MonitoringTools`.
 
 To remove it, right-click the tray icon and choose **Uninstall service**.
 
@@ -71,10 +74,20 @@ Every build renders the real app on a Windows runner (`MonitoringTools.exe --scr
 
 ## Build
 
-Requires the .NET 8 SDK.
+```
+download-dependencies.bat      fetch pinned, digest-verified dependencies into .deps\ (also installs a .NET 8 SDK if missing)
+build.bat [version]            build out\MonitoringTools.exe with every dependency bundled
+build-installer.bat [version]  build dist\MonitoringTools-Setup.exe and a zip
+```
 
-```
-dotnet publish src/MonitoringTools/MonitoringTools.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
-```
+Dependencies are pinned in `deps/manifest.json` with SHA-256 digests. On Linux or macOS, `download-dependencies.sh` fetches the same files for cross-building.
+
+## Public IP history
+
+When the public IP address changes, a dialog shows the old and new address, and the change is committed to a local git repository (`%LOCALAPPDATA%\MonitoringTools\ip-history`) as `ip-history.md` and `history.json`, with first seen and last seen times for every address. Set a remote in the control centre to push the history automatically. Lookups use ipinfo.io, with api.ipify.org as a fallback.
+
+## Licenses of bundled tools
+
+FFmpeg (GPL build from BtbN/FFmpeg-Builds, includes libx264) and Git for Windows MinGit (GPL-2.0) ship inside the app unmodified; their sources are available from those projects.
 
 The design for every surface lives in the project's design canvas; the app implements the same "Graphite Signal" look.

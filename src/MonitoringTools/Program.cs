@@ -20,7 +20,7 @@ namespace MonitoringTools
                 var shotIdx = Array.IndexOf(args, "--screenshots");
                 if (shotIdx >= 0)
                 {
-                    App.ScreenshotDir = shotIdx + 1 < args.Length ? args[shotIdx + 1] : "huishots";
+                    App.ScreenshotDir = shotIdx + 1 < args.Length ? args[shotIdx + 1] : "screenshots";
                     var demo = new App();
                     demo.InitializeComponent();
                     return demo.Run();

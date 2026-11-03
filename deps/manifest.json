@@ -1,0 +1,29 @@
+{
+  "_comment": "Pinned dependencies bundled into the app. download-dependencies verifies every archive against sha256. An empty sha256 means the pin is not recorded yet: the script prints the digest it saw and fails, and the value is then recorded here.",
+  "dependencies": [
+    {
+      "name": "ffmpeg",
+      "purpose": "Video, audio and image conversion and media details (ffmpeg.exe, ffprobe.exe and their shared libraries)",
+      "license": "GPL-3.0-or-later (FFmpeg with libx264); source: https://github.com/BtbN/FFmpeg-Builds",
+      "repository": "BtbN/FFmpeg-Builds",
+      "tag": "autobuild-2026-11-02-12-51",
+      "assetPattern": "^ffmpeg-n7\\.1.*-win64-gpl-shared-7\\.1\\.zip$",
+      "asset": "",
+      "sha256": "",
+      "extract": { "bin/*": "" },
+      "target": "ffmpeg"
+    },
+    {
+      "name": "mingit",
+      "purpose": "Portable Git for :push and the public IP history repository",
+      "license": "GPL-2.0 (Git for Windows); source: https://github.com/git-for-windows/git",
+      "repository": "git-for-windows/git",
+      "tag": "v2.56.0.windows.4",
+      "assetPattern": "^MinGit-[0-9.]+-64-bit\\.zip$",
+      "asset": "",
+      "sha256": "",
+      "extract": { "*": "" },
+      "target": "mingit"
+    }
+  ]
+}

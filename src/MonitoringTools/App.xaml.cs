@@ -16,6 +16,7 @@ namespace MonitoringTools
     {
         public static ClipboardWatcher Clip { get; private set; }
         public static NetworkMonitor Net { get; private set; }
+        public static PublicIpMonitor PublicIp { get; private set; }
         public static GameDetector Games { get; private set; }
         public static ToastManager Toasts { get; private set; }
         public static TrayIcon Tray { get; private set; }
@@ -45,11 +46,12 @@ namespace MonitoringTools
             Toasts = new ToastManager();
             Tray = new TrayIcon();
             Net = new NetworkMonitor();
+            PublicIp = new PublicIpMonitor();
 
             if (ScreenshotDir != null)
             {
                 // No watchers, no install, no saved settings: just render and leave.
-                Dispatcher.BeginInvoke(new Action(async () => await Huishots.RunAsync(ScreenshotDir)), DispatcherPriority.ApplicationIdle);
+                Dispatcher.BeginInvoke(new Action(async () => await ScreenshotRunner.RunAsync(ScreenshotDir)), DispatcherPriority.ApplicationIdle);
                 return;
             }
 
@@ -58,6 +60,7 @@ namespace MonitoringTools
 
             Clip.Changed += OnClipboard;
             Net.StateChanged += OnNetworkState;
+            PublicIp.Changed += (prev, cur) => { if (!ShouldSuppress && Settings.Current.PublicIpEnabled) Toasts.ShowIpChanged(prev, cur); };
             Games.GamingChanged += gaming =>
             {
                 Tray.Refresh();
@@ -67,6 +70,7 @@ namespace MonitoringTools
             Games.Start();
             Clip.Start();
             Net.Start();
+            PublicIp.Start();
             Tray.Refresh();
 
             ListenForSignal(ServiceHost.QuitEventName, () => Quit(ServiceHost.ExitQuit));
@@ -137,6 +141,7 @@ namespace MonitoringTools
                 _offlineDeferred = false;
                 _dismissedCause = null;
                 Activity.OutageEnded();
+                PublicIp.CheckSoon();
                 if (_offline != null) { _offline.ShowRestored(state); _offline = null; }
                 return;
             }
@@ -179,6 +184,7 @@ namespace MonitoringTools
         {
             try { Clip?.Dispose(); } catch { }
             try { Net?.Dispose(); } catch { }
+            try { PublicIp?.Dispose(); } catch { }
             try { Tray?.Dispose(); } catch { }
             Log.Info("Agent exiting with " + code);
             Shutdown(code);

@@ -50,10 +50,28 @@ namespace MonitoringTools.Media
     {
         private static readonly Regex DurationRx = new Regex(@"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", RegexOptions.Compiled);
 
+        /// <summary>Where the FFmpeg in use came from: bundled, settings or machine. Shown in the control centre.</summary>
+        public static string FfmpegOrigin { get; private set; }
+        /// <summary>Every place the last lookup searched, so a missing tool shows exactly where nobody found it.</summary>
+        public static List<string> FfmpegSearched { get; } = new List<string>();
+
         public static string FindFfmpeg()
         {
+            FfmpegSearched.Clear();
+            // Bundled first, always: the app carries its own FFmpeg.
+            FfmpegSearched.Add("bundled FFmpeg inside the app");
+            try
+            {
+                var dir = BundledTools.FfmpegFolder();
+                var exe = dir == null ? null : Path.Combine(dir, "ffmpeg.exe");
+                if (exe != null && File.Exists(exe)) { FfmpegOrigin = "bundled"; return exe; }
+                if (dir == null) FfmpegSearched[^1] += " (this build carries none)";
+            }
+            catch (Exception ex) { FfmpegSearched[^1] += $" ({ex.Message})"; }
+
             var s = Settings.Current.FfmpegPath;
-            if (!string.IsNullOrWhiteSpace(s) && File.Exists(s)) return s;
+            if (!string.IsNullOrWhiteSpace(s)) { FfmpegSearched.Add(s); if (File.Exists(s)) { FfmpegOrigin = "settings"; return s; } }
+            FfmpegOrigin = "machine";
 
             var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var candidates = new[]
@@ -66,13 +84,15 @@ namespace MonitoringTools.Media
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "scoop", "shims", "ffmpeg.exe"),
                 @"C:\ProgramData\chocolatey\bin\ffmpeg.exe",
             };
-            foreach (var c in candidates) if (File.Exists(c)) return c;
+            foreach (var c in candidates) { FfmpegSearched.Add(c); if (File.Exists(c)) return c; }
 
             foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(';'))
             {
                 try
                 {
+                    if (dir.Trim().Length == 0) continue;
                     var p = Path.Combine(dir.Trim().Trim('"'), "ffmpeg.exe");
+                    FfmpegSearched.Add(p);
                     if (File.Exists(p)) return p;
                 }
                 catch { }
@@ -83,15 +103,17 @@ namespace MonitoringTools.Media
                 var pkgs = Path.Combine(local, "Microsoft", "WinGet", "Packages");
                 if (Directory.Exists(pkgs))
                 {
+                    FfmpegSearched.Add(Path.Combine(pkgs, "**", "ffmpeg.exe"));
                     var hit = Directory.EnumerateFiles(pkgs, "ffmpeg.exe", SearchOption.AllDirectories).FirstOrDefault();
                     if (hit != null) return hit;
                 }
             }
             catch { }
+            FfmpegOrigin = null;
             return null;
         }
 
-        /// <summary>Installs FFmpeg with winget, then resolves the path.</summary>
+        /// <summary>Fallback for builds without the bundle: obtains FFmpeg with winget, then resolves the path.</summary>
         public static async Task<string> InstallFfmpegAsync()
         {
             return await Task.Run(() =>

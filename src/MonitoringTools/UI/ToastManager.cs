@@ -217,7 +217,7 @@ namespace MonitoringTools.UI
             else if (docker == DockerFileKind.Dockerfile) w.SetHint("Dockerfile. Hover to build an image from it.");
             else if (kind == FileKind.Video || kind == FileKind.Audio || kind == FileKind.Image)
                 w.SetHint($"Drag it anywhere. Or copy it again with :{Formats.SuggestedFor(kind, Path.GetExtension(f)).FirstOrDefault() ?? "mp4"} on the end to convert.");
-            else if (GitPush.FindRepoRoot(f) != null) w.SetHint("Inside a git repository. Copy it with :push on the end to pre-dew and push.");
+            else if (GitPush.FindRepoRoot(f) != null) w.SetHint("Inside a git repository. Copy it with :push on the end to commit and push.");
         }
 
         private static FrameworkElement Thumb(string file)
@@ -318,6 +318,36 @@ namespace MonitoringTools.UI
             return w;
         }
 
+        // -------------------------------------------------------------- public IP change
+
+        public ToastWindow ShowIpChanged(Net.IpRecord previous, Net.IpRecord current)
+        {
+            var w = new ToastWindow();
+            w.SetAccent(Ui.C("C.Violet"), Ui.C("C.VioletWash"));
+            w.SetHeader(Icons.Globe, "Public IP changed", current.Org ?? "");
+            var body = new StackPanel();
+            var row = new WrapPanel();
+            row.Children.Add(new TextBlock { Text = previous.Ip, FontFamily = Ui.Font("F.Mono"), FontSize = 15, Foreground = Ui.Res("B.TextMute"), TextDecorations = TextDecorations.Strikethrough, VerticalAlignment = VerticalAlignment.Center });
+            row.Children.Add(new ContentControl { Content = Ui.Icon("M5 12h14M13 6l6 6-6 6", Ui.Res("B.Violet"), 16), Margin = new Thickness(10, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center });
+            row.Children.Add(new TextBlock { Text = current.Ip, FontFamily = Ui.Font("F.Mono"), FontSize = 18, FontWeight = FontWeights.SemiBold, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center });
+            body.Children.Add(row);
+            var since = previous.LastSeen - previous.FirstSeen;
+            var detail = $"{(string.IsNullOrEmpty(current.Place) ? "" : current.Place + " · ")}{(current.Times > 1 ? $"seen {current.Times} times before" : "new address")}";
+            body.Children.Add(Ui.Mono(detail, Ui.Res("B.TextSoft")));
+            body.Children.Add(Ui.Mono($"previous held {(since.TotalHours >= 1 ? $"{(int)since.TotalHours} h {since.Minutes} m" : $"{(int)since.TotalMinutes} m")} · last seen {previous.LastSeen:HH:mm}", Ui.Res("B.TextMute"), 11));
+            w.SetBody(body);
+            w.SetHint("Saved to the IP history repository with first and last seen times.");
+            w.SetActions(new List<ToastAction>
+            {
+                new ToastAction { Label = "Copy new IP", Icon = Icons.Clipboard, Primary = true, Run = () => ClipboardWatcher.SetText(current.Ip), Done = "Copied" },
+                new ToastAction { Label = "History", Icon = Icons.Lines, HandsOff = true, Run = () => App.Current.OpenControlCentre("network") },
+                new ToastAction { Label = "Open repository", Icon = Icons.Git, Run = () => ActionProvider.Shell(Net.PublicIpMonitor.RepoDir), Done = "Opened" },
+            });
+            w.StartTimer(15);
+            Present(w);
+            return w;
+        }
+
         // -------------------------------------------------------------- conversion jobs
 
         public ToastWindow ShowJob(ConversionJob job)
@@ -391,15 +421,24 @@ namespace MonitoringTools.UI
         private void FfmpegMissing(ToastWindow w, ConversionJob job)
         {
             w.SetAccent(Amber, Ui.C("C.AmberWash"));
-            w.SetHeader(Icons.Bolt, "FFmpeg not found", "");
-            w.SetBody(Ui.Text("Conversion needs FFmpeg. Install it once with winget and this job starts by itself."));
+            // Release builds carry FFmpeg inside; this only shows for a build without the bundle,
+            // and it says exactly where it looked so a dead bundle is obvious.
+            w.SetHeader(Icons.Bolt, "FFmpeg is missing from this build", "");
+            var searched = string.Join("\n", Converter.FfmpegSearched.Take(6)) + (Converter.FfmpegSearched.Count > 6 ? $"\n+{Converter.FfmpegSearched.Count - 6} more places" : "");
+            var body = new StackPanel();
+            body.Children.Add(Ui.Text("This copy does not carry its bundled FFmpeg. It can fetch it now and then run this job."));
+            var where = Ui.Mono("Searched:\n" + searched, Ui.Res("B.TextMute"), 11);
+            where.Margin = new Thickness(0, 8, 0, 0);
+            where.MaxHeight = 120;
+            body.Children.Add(where);
+            w.SetBody(body);
             w.SetActions(new List<ToastAction>
             {
-                new ToastAction { Label = "Install FFmpeg", Primary = true, HandsOff = true, Run = () => ShowTask("Installing FFmpeg", "winget · Gyan.FFmpeg", async () =>
+                new ToastAction { Label = "Fetch FFmpeg", Primary = true, HandsOff = true, Run = () => ShowTask("Fetching FFmpeg", "winget · Gyan.FFmpeg", async () =>
                     {
                         var path = await Converter.InstallFfmpegAsync();
-                        if (path != null) { Converter.Start(job.Source, job.Format.Id); return (true, "FFmpeg installed", path); }
-                        return (false, "Install did not finish", "Run: winget install Gyan.FFmpeg, or pick ffmpeg.exe in the control centre.");
+                        if (path != null) { Converter.Start(job.Source, job.Format.Id); return (true, "FFmpeg ready", path); }
+                        return (false, "Fetching did not finish", "Get the release build, which carries FFmpeg inside, or pick ffmpeg.exe below.");
                     }) },
                 new ToastAction { Label = "Pick ffmpeg.exe", HandsOff = true, Run = () =>
                     {
@@ -442,7 +481,7 @@ namespace MonitoringTools.UI
                 try { r = await work(report); }
                 catch (Exception ex) { r = (false, "Failed", ex.Message); }
                 w.TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-                Activity.Add(title.StartsWith(":") ? ActivityKind.Shortcut : title.StartsWith("Pre-dew") ? ActivityKind.Push : title.StartsWith("docker") ? ActivityKind.Docker : ActivityKind.Service,
+                Activity.Add(title.StartsWith(":") ? ActivityKind.Shortcut : title.StartsWith("Commit") ? ActivityKind.Push : title.StartsWith("docker") ? ActivityKind.Docker : ActivityKind.Service,
                     $"{title} · {r.Summary}", ActionProvider.Tail(r.Detail, 1), r.Ok);
                 if (!r.Ok) w.SetAccent(Amber, Ui.C("C.AmberWash"));
                 w.SetHeader(r.Ok ? Icons.Check : Icons.Bolt, r.Summary, subtitle);
@@ -467,7 +506,7 @@ namespace MonitoringTools.UI
                 return;
             }
             var root = GitPush.FindRepoRoot(path);
-            ShowTask("Pre-dew and push", root == null ? path : Path.GetFileName(root), async () =>
+            ShowTask("Commit and push", root == null ? path : Path.GetFileName(root), async () =>
             {
                 var r = await GitPush.RunAsync(path, null);
                 var detail = r.Message != null ? $"\"{r.Message}\"\n{r.Detail}" : r.Detail;

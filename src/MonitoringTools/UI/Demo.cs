@@ -116,9 +116,9 @@ namespace MonitoringTools.UI
             st.Stages.Add(new Stage { Name = "Internet", Result = StageResult.Ok, Value = "by IP" });
             st.Details.Add(("Adapter", "Wi-Fi · Intel Wi-Fi 6E AX211"));
             st.Details.Add(("Network", "Home-5G"));
-            st.Details.Add(("IPv4", "192.168.1.42"));
-            st.Details.Add(("Gateway", "192.168.1.1"));
-            st.Details.Add(("DNS servers", "192.168.1.1"));
+            st.Details.Add(("IPv4", "10.0.0.42"));
+            st.Details.Add(("Gateway", "10.0.0.1"));
+            st.Details.Add(("DNS servers", "10.0.0.1"));
             return st;
         }
 
@@ -173,7 +173,7 @@ namespace MonitoringTools.UI
             Activity.Seed(new[]
             {
                 new ActivityEntry { At = now.AddMinutes(-2), Kind = ActivityKind.Convert, Title = "launch-teaser.mov → launch-teaser.mp4", Detail = "412 MB → 96 MB" },
-                new ActivityEntry { At = now.AddMinutes(-9), Kind = ActivityKind.Push, Title = "Pre-dew and push · Committed 3 files and pushed main", Detail = "Update my-repo on 2026-11-03 at 16:20" },
+                new ActivityEntry { At = now.AddMinutes(-9), Kind = ActivityKind.Push, Title = "Commit and push · Committed 3 files and pushed main", Detail = "Update my-repo on 2026-11-03 at 16:20" },
                 new ActivityEntry { At = now.AddMinutes(-14), Kind = ActivityKind.Shortcut, Title = ":backup · :backup finished in 1.8 s", Detail = "Copied 12 files to D:\\Backup" },
                 new ActivityEntry { At = now.AddMinutes(-31), Kind = ActivityKind.Network, Title = "Back online", Detail = "down 2 m 14 s · Internet connection lost", Ok = true },
                 new ActivityEntry { At = now.AddMinutes(-33), Kind = ActivityKind.Network, Title = "Connection lost", Detail = "DNS lookups failing", Ok = false },
