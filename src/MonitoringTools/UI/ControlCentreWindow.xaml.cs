@@ -14,6 +14,7 @@ using Rectangle = System.Windows.Shapes.Rectangle;
 using MonitoringTools.Clip;
 using MonitoringTools.Core;
 using MonitoringTools.Media;
+using MonitoringTools.Minecraft;
 
 namespace MonitoringTools.UI
 {
@@ -29,6 +30,7 @@ namespace MonitoringTools.UI
             ("network", "Network and DNS", Icons.Wifi),
             ("game", "Game mode", Icons.Game),
             ("conversion", "Conversion", Icons.Bolt),
+            ("minecraft", "Minecraft servers", Icons.Box),
             ("service", "Service", Icons.Shield),
             ("about", "About and updates", Icons.Globe),
         };
@@ -58,6 +60,8 @@ namespace MonitoringTools.UI
             App.Net.Sampled += () => { if (_current == "overview" && IsActive) Navigate(_current, animate: false); };
             Loaded += (s, e) => Navigate("overview");
             CommandPalette.Attach(this);
+            ServerManager.Output += OnServerOutput;
+            Closed += (s, e) => ServerManager.Output -= OnServerOutput;
             RefreshStatus();
         }
 
@@ -88,6 +92,7 @@ namespace MonitoringTools.UI
                 "conversion" => ConversionPage(),
                 "service" => ServicePage(),
                 "activity" => ActivityPage(),
+                "minecraft" => MinecraftPage(),
                 "about" => AboutPage(),
                 _ => OverviewPage(),
             };

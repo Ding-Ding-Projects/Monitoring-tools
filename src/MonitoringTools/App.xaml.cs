@@ -193,6 +193,7 @@ namespace MonitoringTools
 
         public void Quit(int code)
         {
+            try { Minecraft.ServerManager.StopAllLocal(); } catch { }
             try { Clip?.Dispose(); } catch { }
             try { Net?.Dispose(); } catch { }
             try { PublicIp?.Dispose(); } catch { }

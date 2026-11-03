@@ -19,10 +19,11 @@ for. Items move up as they ship; nothing here is claimed as done until it is in 
 - Portable desktop companion of the project site and docs (`MonitoringTools-Site.exe`)
 - Portable desktop build tool: Build, Build and run, Build installer over the batch entrypoints (`MonitoringTools-BuildTool.exe`)
 - `build.bat`, `build-installer.bat`, `download-dependencies.bat`/`.sh`, CI screenshots and releases
+- Minecraft servers, first slice: Java edition from the official version catalogue (releases, snapshots, beta, alpha), SHA-1 verified server jars, a verified Temurin runtime, explicit EULA consent, four targets (this computer, Docker here, SSH host, Docker over SSH) with host-key approval, start, stop and restart, console, a typed command builder, server.properties controls, plugin and mod install
 
 ## In progress
 
-- Minecraft server creator and manager (local process, local Docker, SSH process, SSH Docker)
+- Minecraft servers: Bedrock edition, a world generator with seed preview, and a recorded acceptance check per target on real hardware
 
 ## Still to build from the shared app requirements
 

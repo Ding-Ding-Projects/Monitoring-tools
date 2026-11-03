@@ -103,6 +103,7 @@ namespace MonitoringTools.UI
             Page("network", "Network and DNS", Icons.Wifi, "Public IP history, DNS profiles, alerts");
             Page("game", "Game mode", Icons.Game, "Watched games and fullscreen");
             Page("conversion", "Conversion", Icons.Bolt, "Command playground, FFmpeg, formats");
+            Page("minecraft", "Minecraft servers", Icons.Box, "Create and run servers here, in Docker or over SSH");
             Page("service", "Service", Icons.Shield, "Start-up, administrator rights, uninstall");
             Page("about", "About and updates", Icons.Globe, "Version, bundled tools, update check");
 

@@ -107,7 +107,7 @@ namespace MonitoringTools.UI
                 var cc = new ControlCentreWindow { Width = 1180, Height = 820 };
                 cc.Show();
                 await Task.Delay(1200);
-                foreach (var page in new[] { "overview", "activity", "history", "clipboard", "shortcuts", "network", "game", "conversion", "service", "about" })
+                foreach (var page in new[] { "overview", "activity", "history", "clipboard", "shortcuts", "network", "game", "conversion", "minecraft", "service", "about" })
                 {
                     cc.Navigate(page);
                     await Shot(cc, "control-" + page, "Control centre: " + page, 1300);
