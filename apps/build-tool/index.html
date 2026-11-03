@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'">
+<title>Monitoring Tools Build Tool</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="titlebar">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7CF2C2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
+  <span>Monitoring Tools · Build tool</span>
+  <button class="kbd" id="palette-open" aria-label="Open the command palette">Ctrl+Shift+F</button>
+</header>
+
+<main>
+  <section class="left">
+    <div class="eyebrow">Repository</div>
+    <div class="repo" id="repo" aria-live="polite">Looking for the repository…</div>
+    <button class="ghost small" id="pick">Choose folder…</button>
+
+    <label for="version" class="label">Version</label>
+    <input id="version" value="1.0.0-dev" spellcheck="false" aria-describedby="version-hint">
+    <div class="hint" id="version-hint">Passed to the build as-is. Use a version like 1.2.3.</div>
+
+    <button class="action primary" id="act-build" data-action="build">Build<small>build.bat → out\MonitoringTools.exe</small></button>
+    <button class="action" id="act-run" data-action="run">Build and run<small>then install and start it for this user</small></button>
+    <button class="action" id="act-installer" data-action="installer">Build installer<small>build-installer.bat → dist\MonitoringTools-Setup.exe</small></button>
+  </section>
+
+  <section class="right">
+    <div class="phases" id="phases" role="list" aria-label="Build phases"></div>
+    <pre class="log" id="log" aria-live="off" tabindex="0" aria-label="Build output"></pre>
+    <div class="footer">
+      <button class="danger" id="cancel" disabled>Cancel</button>
+      <span id="status" role="status">Ready.</span>
+      <span class="grow"></span>
+      <button class="ghost small" id="open-out" hidden>Show output</button>
+      <button class="ghost small" id="retry" hidden>Run again</button>
+    </div>
+  </section>
+</main>
+
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+  <div class="box">
+    <div class="bar">
+      <input id="pq" type="search" placeholder="Search actions" aria-label="Search actions" autocomplete="off">
+      <button class="flag" id="pregex" aria-pressed="false" title="Regex mode">.*</button>
+    </div>
+    <ul id="plist" role="listbox" aria-label="Results"></ul>
+  </div>
+</div>
+<script src="renderer.js"></script>
+</body>
+</html>

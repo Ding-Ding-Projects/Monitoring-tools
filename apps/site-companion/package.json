@@ -1,0 +1,28 @@
+{
+  "name": "monitoring-tools-site",
+  "productName": "Monitoring Tools Site",
+  "version": "1.0.0",
+  "description": "The Monitoring Tools project site and documentation as a portable desktop app that works offline.",
+  "main": "main.js",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "prepare-content": "node prepare.js",
+    "start": "node prepare.js && electron .",
+    "dist": "node prepare.js && electron-builder --win portable --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "45.2.2",
+    "electron-builder": "26.18.0",
+    "marked": "18.1.3"
+  },
+  "build": {
+    "appId": "dev.dingding.monitoringtools.site",
+    "productName": "Monitoring Tools Site",
+    "artifactName": "MonitoringTools-Site.exe",
+    "directories": { "output": "dist" },
+    "files": ["main.js", "content/**/*"],
+    "win": { "target": "portable", "icon": "../../src/MonitoringTools/Assets/app.ico", "signAndEditExecutable": false },
+    "portable": { "unpackDirName": "MonitoringToolsSite" }
+  }
+}

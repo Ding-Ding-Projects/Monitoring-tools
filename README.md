@@ -80,6 +80,8 @@ build.bat [version]            build out\MonitoringTools.exe with every dependen
 build-installer.bat [version]  build dist\MonitoringTools-Setup.exe and a zip
 ```
 
+Prefer a window? `MonitoringTools-BuildTool.exe` (in every release, source in `apps/build-tool`) runs the same entrypoints with Build, Build and run, and Build installer, showing each phase, the live log, the real exit code and a cancel button. `MonitoringTools-Site.exe` (source in `apps/site-companion`) is this project's site and documentation as an offline desktop app.
+
 Dependencies are pinned in `deps/manifest.json` with SHA-256 digests. On Linux or macOS, `download-dependencies.sh` fetches the same files for cross-building.
 
 ## Public IP history

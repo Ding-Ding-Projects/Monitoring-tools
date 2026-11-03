@@ -1,0 +1,26 @@
+{
+  "name": "monitoring-tools-build-tool",
+  "productName": "Monitoring Tools Build Tool",
+  "version": "1.0.0",
+  "description": "Build, build and run, or build the installer for Monitoring Tools through its build.bat and build-installer.bat entrypoints.",
+  "main": "main.js",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "45.2.2",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "dev.dingding.monitoringtools.buildtool",
+    "productName": "Monitoring Tools Build Tool",
+    "artifactName": "MonitoringTools-BuildTool.exe",
+    "directories": { "output": "dist" },
+    "files": ["main.js", "preload.js", "index.html", "renderer.js", "styles.css"],
+    "win": { "target": "portable", "icon": "../../src/MonitoringTools/Assets/app.ico", "signAndEditExecutable": false },
+    "portable": { "unpackDirName": "MonitoringToolsBuildTool" }
+  }
+}

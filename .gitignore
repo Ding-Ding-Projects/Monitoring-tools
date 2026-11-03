@@ -6,3 +6,6 @@ bin/
 dist/
 obj/
 out/
+apps/*/node_modules/
+apps/*/dist/
+apps/site-companion/content/

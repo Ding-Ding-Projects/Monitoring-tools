@@ -119,6 +119,32 @@ jobs:
           git pull --rebase -q origin main
           git push origin HEAD:main
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build the desktop build tool and site companion
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          foreach ($app in 'build-tool', 'site-companion') {
+            Push-Location apps/$app
+            npm ci --no-audit --no-fund
+            npm pkg set version=${{ steps.ver.outputs.version }}
+            npm run dist
+            if ($LASTEXITCODE -ne 0) { throw "$app failed to build" }
+            Get-ChildItem dist/*.exe | ForEach-Object { Write-Host ("{0} {1:N1} MB" -f $_.Name, ($_.Length / 1MB)); Copy-Item $_.FullName ../../dist/ }
+            Pop-Location
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-tools
+          path: |
+            dist/MonitoringTools-BuildTool.exe
+            dist/MonitoringTools-Site.exe
+
       - name: Publish release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
@@ -126,10 +152,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $tag = "v${{ steps.ver.outputs.version }}"
-          $assets = @('dist/MonitoringTools-Setup.exe', 'dist/MonitoringTools-win-x64.zip', 'out/MonitoringTools.exe')
+          $assets = @('dist/MonitoringTools-Setup.exe', 'dist/MonitoringTools-win-x64.zip', 'out/MonitoringTools.exe', 'dist/MonitoringTools-BuildTool.exe', 'dist/MonitoringTools-Site.exe')
           if (Test-Path dist/MonitoringTools-screenshots.zip) { $assets += 'dist/MonitoringTools-screenshots.zip' }
           $size = "{0:N0} MB" -f ((Get-Item dist/MonitoringTools-Setup.exe).Length / 1MB)
-          $notes = "Setup and portable exe are $size each: FFmpeg, FFprobe and portable Git are bundled inside, so conversion and pushing work offline with nothing else to install."
+          $notes = "Setup and portable exe are $size each: FFmpeg, FFprobe and portable Git are bundled inside, so conversion and pushing work offline with nothing else to install. MonitoringTools-BuildTool.exe is a portable desktop front end for build.bat and build-installer.bat; MonitoringTools-Site.exe is the project site and documentation as a portable offline app."
           gh release create $tag @assets --target "${{ github.sha }}" --title "Monitoring Tools $tag" --generate-notes --notes "$notes"
           # Read the release back: it must be a normal release with every asset attached.
           $r = gh release view $tag --json isDraft,isPrerelease,tagName,assets | ConvertFrom-Json
