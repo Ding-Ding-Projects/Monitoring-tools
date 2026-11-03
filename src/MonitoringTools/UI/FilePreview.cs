@@ -188,10 +188,11 @@ namespace MonitoringTools.UI
             {
                 double ratio = thumb.PixelHeight > 0 ? (double)thumb.PixelWidth / thumb.PixelHeight : 1.6;
                 bool square = kind == FileKind.Audio || Math.Abs(ratio - 1) < 0.05;
+                double h = square ? 120 : Math.Clamp(364 / ratio, 90, 200);
                 var frame = new Border
                 {
-                    Height = square ? 120 : Math.Clamp(364 / ratio, 90, 200),
-                    Width = square ? 120 : double.NaN,
+                    Height = h,
+                    Width = square ? 120 : Math.Min(364, h * ratio),
                     HorizontalAlignment = HorizontalAlignment.Left,
                     CornerRadius = new CornerRadius(12),
                     Background = new ImageBrush(thumb) { Stretch = Stretch.UniformToFill },

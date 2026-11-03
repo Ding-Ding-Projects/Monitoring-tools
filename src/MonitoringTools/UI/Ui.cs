@@ -73,6 +73,7 @@ namespace MonitoringTools.UI
             return new Border
             {
                 Width = box, Height = box, CornerRadius = new CornerRadius(box * 0.29),
+                HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center,
                 Background = wash,
                 Child = Icon(data, stroke, icon)
             };

@@ -172,7 +172,7 @@ namespace MonitoringTools.UI
         private static void Pulse(ScaleTransform s, UIElement ring, double delay)
         {
             var d = TimeSpan.FromMilliseconds(2000);
-            var grow = new DoubleAnimation(1, 1.9, d) { RepeatBehavior = RepeatBehavior.Forever, BeginTime = TimeSpan.FromMilliseconds(delay), EasingFunction = Ui.Out };
+            var grow = new DoubleAnimation(1, 1.4, d) { RepeatBehavior = RepeatBehavior.Forever, BeginTime = TimeSpan.FromMilliseconds(delay), EasingFunction = Ui.Out };
             s.BeginAnimation(ScaleTransform.ScaleXProperty, grow);
             s.BeginAnimation(ScaleTransform.ScaleYProperty, grow);
             ring.BeginAnimation(OpacityProperty, new DoubleAnimation(0.7, 0, d) { RepeatBehavior = RepeatBehavior.Forever, BeginTime = TimeSpan.FromMilliseconds(delay) });

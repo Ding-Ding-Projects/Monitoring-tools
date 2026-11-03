@@ -49,7 +49,6 @@ namespace MonitoringTools
             if (ScreenshotDir != null)
             {
                 // No watchers, no install, no saved settings: just render and leave.
-                Settings.Current.GameModeEnabled = false;
                 Dispatcher.BeginInvoke(new Action(async () => await Huishots.RunAsync(ScreenshotDir)), DispatcherPriority.ApplicationIdle);
                 return;
             }

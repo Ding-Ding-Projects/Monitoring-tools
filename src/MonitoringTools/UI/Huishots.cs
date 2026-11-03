@@ -31,6 +31,7 @@ namespace MonitoringTools.UI
             try
             {
                 Settings.Current.ToastSeconds = 600; // keep toasts on screen while we capture
+                SetCursorPos(0, 0);
                 Demo.SeedLivedIn();
                 var s = Demo.EnsureSamples();
 
@@ -122,6 +123,9 @@ namespace MonitoringTools.UI
             App.Current.Shutdown(code);
         }
 
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetCursorPos(int x, int y);
+
         private static async Task Toast(string name, string caption, ToastWindow w, int wait = 1300)
         {
             w.ExpandNow();
@@ -143,8 +147,13 @@ namespace MonitoringTools.UI
             using (var dc = dv.RenderOpen())
             {
                 dc.DrawRectangle(new SolidColorBrush(Color.FromRgb(0x08, 0x09, 0x0C)), null, new Rect(0, 0, width, height));
-                dc.DrawRectangle(new VisualBrush(el) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top },
-                    null, new Rect(margin.Left, margin.Top, el.ActualWidth, el.ActualHeight));
+                var brush = new VisualBrush(el)
+                {
+                    Stretch = Stretch.Fill,
+                    ViewboxUnits = BrushMappingMode.Absolute,
+                    Viewbox = new Rect(-margin.Left, -margin.Top, width, height)
+                };
+                dc.DrawRectangle(brush, null, new Rect(0, 0, width, height));
             }
             var bmp = new RenderTargetBitmap((int)Math.Ceiling(width * scale), (int)Math.Ceiling(height * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
             bmp.Render(dv);

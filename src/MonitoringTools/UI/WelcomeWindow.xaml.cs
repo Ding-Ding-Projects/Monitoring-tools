@@ -30,7 +30,9 @@ namespace MonitoringTools.UI
         private void Card(string title, string body, string icon, string button, Action act, bool primary = false, string edge = null)
         {
             var sp = new StackPanel();
-            sp.Children.Add(Ui.IconChip(icon, Ui.Res("B.Mint"), Ui.Res("B.MintWash"), 36, 18));
+            var chip = Ui.IconChip(icon, Ui.Res("B.Mint"), Ui.Res("B.MintWash"), 36, 18);
+            chip.HorizontalAlignment = HorizontalAlignment.Left;
+            sp.Children.Add(chip);
             sp.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 17, Margin = new Thickness(0, 14, 0, 6) });
             sp.Children.Add(new TextBlock { Text = body, Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), LineHeight = 19, MinHeight = 58 });
             var b = Ui.Button(button, act, primary ? "Btn.Accent" : "Btn.Ghost");
