@@ -42,6 +42,8 @@ namespace MonitoringTools
             AppDomain.CurrentDomain.UnhandledException += (s, ex) => Log.Error("Unhandled", ex.ExceptionObject as Exception);
 
             Settings.Load();
+            PersonalWording.LoadCache();
+            WordingLayer.Install();
             Games = new GameDetector();
             Toasts = new ToastManager();
             Tray = new TrayIcon();

@@ -119,6 +119,10 @@ namespace MonitoringTools.UI
             Toggle("Any fullscreen app counts", "game", () => s.GameModeFullscreen, v => s.GameModeFullscreen = v);
             Toggle("Sound effects", "clipboard", () => s.SoundsEnabled, v => s.SoundsEnabled = v);
             Toggle("Start with Windows", "service", () => s.StartWithWindows, v => { s.StartWithWindows = v; ServiceHost.ApplyAutostart(); });
+            Choice("Volume", "clipboard", new[] { ("Low", 0.3), ("Medium", 0.6), ("Full", 1.0) }, () => s.SoundVolume, v => s.SoundVolume = v);
+            list.Add(new Item { Group = "Settings", Title = "Personal wording", Detail = PersonalWording.Active ? $"Loaded, {PersonalWording.Count} phrases" : "No file loaded", Icon = Icons.Text, Page = "service", Run = () => Go("service", "Personal wording") });
+            Act("Choose a personal wording file", Icons.Text, () => WordingLayer.PickAndApply(App.Current.MainWindow));
+            if (PersonalWording.Active) Act("Clear personal wording", Icons.Restart, PersonalWording.Clear);
 
             Act("Test connection now", Icons.Wifi, () => App.Net.ProbeNow());
             Act("Check public IP now", Icons.Globe, async () => { await App.PublicIp.CheckAsync(); Go("network", "Public IP"); });

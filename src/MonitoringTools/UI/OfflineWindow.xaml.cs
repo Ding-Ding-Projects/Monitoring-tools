@@ -167,6 +167,7 @@ namespace MonitoringTools.UI
             BarScale.BeginAnimation(ScaleTransform.ScaleXProperty,
                 new DoubleAnimation(0.08, 1, TimeSpan.FromMilliseconds(1400)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase() });
             _clock.Start();
+            Sounds.Play(Cue.Warning);
         }
 
         private static void Pulse(ScaleTransform s, UIElement ring, double delay)
@@ -204,6 +205,7 @@ namespace MonitoringTools.UI
         public void ShowRestored(NetworkState s)
         {
             _restored = true;
+            Sounds.Play(Cue.Restored);
             var mint = Ui.C("C.Mint");
             foreach (var b in new[] { Ring1Brush, Ring2Brush, BarBrush }) Ui.ColorTo(b, mint, 400);
             Ui.ColorTo(EdgeBrush, Color.FromRgb(0x1F, 0x4A, 0x3A), 400);

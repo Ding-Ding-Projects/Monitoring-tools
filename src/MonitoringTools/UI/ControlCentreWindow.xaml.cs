@@ -321,6 +321,12 @@ namespace MonitoringTools.UI
             a.Children.Add(Choice("History size", new[] { ("20", 20), ("50", 50), ("100", 100) }, s.HistorySize, v => s.HistorySize = v));
             root.Children.Add(Card(a));
 
+            var snd = new StackPanel();
+            snd.Children.Add(CardTitle("Sound effects", "Short cues when an action finishes, fails, or the connection drops and returns. Quiet during Windows quiet time, presentations and games."));
+            snd.Children.Add(Switch("Sound effects", null, s.SoundsEnabled, v => { s.SoundsEnabled = v; if (v) Sounds.Play(Cue.Success); }));
+            snd.Children.Add(Choice("Volume", new[] { ("Low", 0.3), ("Medium", 0.6), ("Full", 1.0) }, s.SoundVolume, v => { s.SoundVolume = v; Sounds.Play(Cue.Success); }));
+            root.Children.Add(Card(snd));
+
             var m = new StackPanel();
             m.Children.Add(CardTitle("Media folder", "Saved clipboard images, audio and text go here."));
             var row = new StackPanel { Orientation = Orientation.Horizontal };
@@ -727,6 +733,21 @@ namespace MonitoringTools.UI
             b.Children.Add(Ui.Button("Open settings file", () => ActionProvider.Reveal(Path.Combine(Settings.DataDir, "settings.json")), "Btn.Ghost", Icons.File));
             b.Children.Add(Ui.Button("Quit until next sign-in", () => App.Current.Quit(ServiceHost.ExitQuit), "Btn.Ghost", Icons.Power));
             root.Children.Add(Card(b));
+
+            var pw = new StackPanel();
+            pw.Children.Add(CardTitle("Personal wording", "Optional. A local JSON file that swaps ordinary phrases in on-screen text for your own words. Drop it on any window, or choose it here. It never leaves this computer; paths, commands and code are never changed."));
+            pw.Children.Add(new TextBlock
+            {
+                Text = PersonalWording.Active ? $"Loaded: {PersonalWording.Count} phrases" : "No file loaded. The app shows its original wording.",
+                Style = Ui.Style("T.Body"), Foreground = Ui.Res(PersonalWording.Active ? "B.Mint" : "B.TextMute"), Margin = new Thickness(0, 0, 0, 10)
+            });
+            var pwRow = new WrapPanel();
+            pwRow.Children.Add(Ui.Button(PersonalWording.Active ? "Replace file…" : "Choose file…", () => { WordingLayer.PickAndApply(this); Navigate("service", animate: false); }, "Btn.Accent", Icons.Text));
+            if (PersonalWording.Active)
+                pwRow.Children.Add(Ui.Button("Clear and restore original wording", () => { PersonalWording.Clear(); Navigate("service", animate: false); }, "Btn.Ghost", Icons.Restart));
+            pw.Children.Add(pwRow);
+            pw.Children.Add(Ui.Mono("Format: {schemaVersion: 1, entries: {ordinary phrase: your words}} · up to 256 KiB", Ui.Res("B.TextMute"), 11));
+            root.Children.Add(Card(pw));
 
             var u = new StackPanel();
             u.Children.Add(CardTitle("Uninstall", "Stops the service, removes it from start-up and deletes the program."));

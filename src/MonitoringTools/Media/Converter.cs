@@ -402,6 +402,7 @@ namespace MonitoringTools.Media
             Activity.Add(ActivityKind.Convert,
                 job.Failed ? $"{Path.GetFileName(job.Source)} to {job.Format.Label} failed" : $"{Path.GetFileName(job.Source)} → {Path.GetFileName(job.Output)}",
                 job.Failed ? error : $"{UI.Ui.Bytes(job.SourceBytes)} → {UI.Ui.Bytes(job.OutputBytes)}", !job.Failed);
+            Sounds.Play(job.Failed ? (job.Error == "Cancelled" ? Cue.Success : Cue.Warning) : Cue.Complete);
             job.Raise();
         }
     }

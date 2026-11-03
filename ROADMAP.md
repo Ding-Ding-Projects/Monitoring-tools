@@ -14,12 +14,12 @@ for. Items move up as they ship; nothing here is claimed as done until it is in 
 - Bundled FFmpeg, FFprobe and portable Git, pinned and digest-verified
 - First-run setup wizard (real setup actions, Back/Next, save and resume, optional steps)
 - `Ctrl+Shift+F` command palette in the app and on the project site
+- Action sound effects (Windows sounds) with an off switch and volume, quiet during quiet time and games
+- Personal wording file: Settings upload and drop on any window, validated in full, with a celebration
 - `build.bat`, `build-installer.bat`, `download-dependencies.bat`/`.sh`, CI screenshots and releases
 
 ## In progress
 
-- Short action sound effects with an off switch, volume and quiet hours respected
-- Personal wording file: upload in Settings and drop anywhere on a window, with a short celebration
 - Desktop companion of the project site (single portable exe built by CI)
 - Desktop build tool with Build, Build and run, and Build installer over the batch entrypoints
 - Minecraft server creator and manager (local process, local Docker, SSH process, SSH Docker)

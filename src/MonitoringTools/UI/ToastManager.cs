@@ -345,6 +345,7 @@ namespace MonitoringTools.UI
             });
             w.StartTimer(15);
             Present(w);
+            Sounds.Play(Cue.Success);
             return w;
         }
 
@@ -481,6 +482,7 @@ namespace MonitoringTools.UI
                 try { r = await work(report); }
                 catch (Exception ex) { r = (false, "Failed", ex.Message); }
                 w.TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                Sounds.Play(r.Ok ? Cue.Complete : Cue.Warning);
                 Activity.Add(title.StartsWith(":") ? ActivityKind.Shortcut : title.StartsWith("Commit") ? ActivityKind.Push : title.StartsWith("docker") ? ActivityKind.Docker : ActivityKind.Service,
                     $"{title} · {r.Summary}", ActionProvider.Tail(r.Detail, 1), r.Ok);
                 if (!r.Ok) w.SetAccent(Amber, Ui.C("C.AmberWash"));

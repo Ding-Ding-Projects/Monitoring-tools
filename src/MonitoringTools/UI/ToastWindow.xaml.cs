@@ -127,6 +127,7 @@ namespace MonitoringTools.UI
             {
                 a.Run?.Invoke();
                 if (a.HandsOff) { CloseAnimated(); return; }
+                Sounds.Play(Cue.Success);
                 b.Content = new StackPanel
                 {
                     Orientation = Orientation.Horizontal,
@@ -143,6 +144,7 @@ namespace MonitoringTools.UI
             catch (Exception ex)
             {
                 Log.Warn($"Action '{a.Label}' failed: {ex.Message}");
+                Sounds.Play(Cue.Warning);
                 b.Content = "Failed";
                 b.Foreground = Ui.Res("B.Amber");
                 TipText.Text = ex.Message;
