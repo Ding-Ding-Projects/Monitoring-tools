@@ -1,0 +1,212 @@
+[
+  {
+    "file": "toast-markdown.png",
+    "caption": "Markdown copied, hovered",
+    "width": 872,
+    "height": 820
+  },
+  {
+    "file": "toast-link.png",
+    "caption": "Link with tracking parameters",
+    "width": 872,
+    "height": 536
+  },
+  {
+    "file": "toast-image-file.png",
+    "caption": "Image file with a rich preview",
+    "width": 872,
+    "height": 1130
+  },
+  {
+    "file": "toast-csv.png",
+    "caption": "CSV file preview",
+    "width": 872,
+    "height": 816
+  },
+  {
+    "file": "toast-quoted-path.png",
+    "caption": "Path copied with quotes",
+    "width": 872,
+    "height": 1068
+  },
+  {
+    "file": "toast-compose.png",
+    "caption": "Docker Compose file",
+    "width": 872,
+    "height": 950
+  },
+  {
+    "file": "toast-folder.png",
+    "caption": "Folder with batch conversion chips",
+    "width": 872,
+    "height": 896
+  },
+  {
+    "file": "toast-multi.png",
+    "caption": "Several files at once",
+    "width": 872,
+    "height": 766
+  },
+  {
+    "file": "toast-bitmap.png",
+    "caption": "Screenshot on the clipboard",
+    "width": 872,
+    "height": 722
+  },
+  {
+    "file": "toast-color.png",
+    "caption": "Color value",
+    "width": 872,
+    "height": 534
+  },
+  {
+    "file": "toast-base64.png",
+    "caption": "Base64 text",
+    "width": 872,
+    "height": 522
+  },
+  {
+    "file": "toast-converting.png",
+    "caption": "Converting with :mp4",
+    "width": 872,
+    "height": 464
+  },
+  {
+    "file": "offline-dialog.png",
+    "caption": "Internet connection lost",
+    "width": 1048,
+    "height": 1194
+  },
+  {
+    "file": "tray-menu.png",
+    "caption": "Tray right-click menu",
+    "width": 744,
+    "height": 1576
+  },
+  {
+    "file": "setup-start.png",
+    "caption": "Setup wizard: start-up",
+    "width": 1560,
+    "height": 1280
+  },
+  {
+    "file": "setup-connection.png",
+    "caption": "Setup wizard: internet watch",
+    "width": 1560,
+    "height": 1280
+  },
+  {
+    "file": "setup-done.png",
+    "caption": "Setup wizard: summary",
+    "width": 1560,
+    "height": 1280
+  },
+  {
+    "file": "command-palette.png",
+    "caption": "Command palette (Ctrl\u002BShift\u002BF)",
+    "width": 1360,
+    "height": 1120
+  },
+  {
+    "file": "toast-public-ip.png",
+    "caption": "Public IP changed",
+    "width": 872,
+    "height": 590
+  },
+  {
+    "file": "welcome.png",
+    "caption": "Welcome tour",
+    "width": 2080,
+    "height": 1576
+  },
+  {
+    "file": "control-overview.png",
+    "caption": "Control centre: overview",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-activity.png",
+    "caption": "Control centre: activity",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-history.png",
+    "caption": "Control centre: history",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-clipboard.png",
+    "caption": "Control centre: clipboard",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-shortcuts.png",
+    "caption": "Control centre: shortcuts",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-network.png",
+    "caption": "Control centre: network",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-game.png",
+    "caption": "Control centre: game",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-conversion.png",
+    "caption": "Control centre: conversion",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-service.png",
+    "caption": "Control centre: service",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-about.png",
+    "caption": "Control centre: about",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "filetools-move.png",
+    "caption": "File tools: move and copy",
+    "width": 1040,
+    "height": 924
+  },
+  {
+    "file": "filetools-base64.png",
+    "caption": "File tools: Base64",
+    "width": 1040,
+    "height": 924
+  },
+  {
+    "file": "filetools-encrypt.png",
+    "caption": "File tools: encrypt",
+    "width": 1040,
+    "height": 1044
+  },
+  {
+    "file": "commit-template.png",
+    "caption": "First :push asks for a commit message",
+    "width": 1040,
+    "height": 850
+  },
+  {
+    "file": "uninstall-confirm.png",
+    "caption": "Uninstall confirmation",
+    "width": 960,
+    "height": 622
+  }
+]
