@@ -195,7 +195,7 @@ namespace MonitoringTools.UI
         private static TextBox Input(string text, double width = double.NaN, string hint = null)
         {
             var t = new TextBox { Style = Ui.Style("Input"), Text = text ?? "", Margin = new Thickness(0, 0, 8, 8), ToolTip = hint };
-            if (!double.IsNaN(width)) t.Width = width;
+            if (!double.IsNaN(width)) { t.Width = width; t.HorizontalAlignment = HorizontalAlignment.Left; }
             return t;
         }
 

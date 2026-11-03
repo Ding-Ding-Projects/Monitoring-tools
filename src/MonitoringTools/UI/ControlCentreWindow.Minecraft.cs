@@ -196,6 +196,7 @@ namespace MonitoringTools.UI
             var verNote = Ui.Mono(d.Version == null ? "No version chosen yet." : "Chosen: " + d.Version, Ui.Res(d.Version == null ? "B.TextMute" : "B.Mint"), 11);
             sp.Children.Add(filter);
             sp.Children.Add(new ScrollViewer { Content = list, MaxHeight = 140, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+            verNote.Margin = new Thickness(0, 8, 0, 4);
             sp.Children.Add(verNote);
             async void Versions()
             {
