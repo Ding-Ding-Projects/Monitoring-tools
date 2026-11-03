@@ -32,8 +32,11 @@ function Get-AssetUrl($dep) {
     $rel = Invoke-RestMethod -Uri $api -Headers $headers
     $asset = $rel.assets | Where-Object {
         if ($dep.asset) { $_.name -eq $dep.asset } else { $_.name -match $dep.assetPattern }
-    } | Select-Object -First 1
-    if (-not $asset) { throw "No asset matching '$($dep.assetPattern)' in $($dep.repository) $($dep.tag)" }
+    } | Sort-Object name | Select-Object -First 1
+    if (-not $asset) {
+        $names = ($rel.assets | Where-Object { $_.name -match 'win64' } | ForEach-Object { $_.name }) -join ', '
+        throw "No asset matching '$($dep.assetPattern)' in $($dep.repository) $($dep.tag). Windows assets there: $names"
+    }
     return $asset
 }
 
