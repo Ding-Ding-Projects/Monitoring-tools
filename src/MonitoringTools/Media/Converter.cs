@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -130,6 +131,61 @@ namespace MonitoringTools.Media
             App.Toasts.ShowJob(job);
             _ = RunAsync(job);
             return job;
+        }
+
+        /// <summary>Files a format can be made from: video targets take video, audio targets take audio and video, image targets take images.</summary>
+        public static bool Compatible(string file, FormatSpec f)
+        {
+            var k = ClipItem.Classify(file);
+            if (string.Equals(Path.GetExtension(file).TrimStart('.'), f.Extension.TrimStart('.'), StringComparison.OrdinalIgnoreCase)) return false;
+            return f.Kind switch
+            {
+                TargetKind.Video => k == FileKind.Video || (f.Id == "mp4" && k == FileKind.Audio),
+                TargetKind.Audio => k == FileKind.Audio || k == FileKind.Video,
+                TargetKind.Image => k == FileKind.Image || (f.Id == "gif" && k == FileKind.Video),
+                _ => false
+            };
+        }
+
+        public static List<string> CompatibleIn(string folder, string formatId)
+        {
+            var f = Formats.Find(formatId);
+            if (f == null) return new List<string>();
+            try
+            {
+                return Directory.EnumerateFiles(folder).Where(p => Compatible(p, f))
+                    .OrderBy(p => p, StringComparer.OrdinalIgnoreCase).ToList();
+            }
+            catch { return new List<string>(); }
+        }
+
+        /// <summary>Converts several files one after another under a single toast.</summary>
+        public static void StartBatch(IList<string> files, string formatId, string label = null)
+        {
+            var f = Formats.Find(formatId);
+            if (f == null) return;
+            var list = files.Where(p => File.Exists(p) && Compatible(p, f)).ToList();
+            var title = $"Batch to {f.Label}";
+            var sub = label != null ? Path.GetFileName(label.TrimEnd('\\')) : $"{list.Count} files";
+            if (list.Count == 0)
+            {
+                App.Toasts.ShowNotice(title, $"No files in {sub} can be converted to {f.Label}.", App.Toasts.Amber, 5, icon: UI.Icons.Bolt);
+                return;
+            }
+            App.Toasts.ShowTask(title, sub, async report =>
+            {
+                int ok = 0;
+                var errors = new List<string>();
+                for (int i = 0; i < list.Count; i++)
+                {
+                    report($"{i + 1} of {list.Count} · {Path.GetFileName(list[i])}");
+                    var job = new ConversionJob { Source = list[i], Format = f, Output = OutputPathFor(list[i], f), SourceBytes = new FileInfo(list[i]).Length };
+                    await RunAsync(job);
+                    if (job.Error == "ffmpeg-missing") return (false, "FFmpeg not found", "Install it from the control centre (Conversion), then copy the folder with :" + formatId + " again.");
+                    if (job.Failed) errors.Add($"{Path.GetFileName(list[i])}: {UI.ActionProvider.Tail(job.Error, 1)}"); else ok++;
+                }
+                return (errors.Count == 0, $"Converted {ok} of {list.Count} to {f.Label}", errors.Count == 0 ? $"Saved next to the originals in {sub}." : string.Join("\n", errors));
+            });
         }
 
         /// <summary>Saves a clipboard bitmap to disk, then converts when needed.</summary>

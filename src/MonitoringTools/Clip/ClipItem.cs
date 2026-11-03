@@ -134,7 +134,8 @@ namespace MonitoringTools.Clip
             }
 
             if (!Media.Formats.IsKnown(fmt)) return null;
-            if (path.Length < 3 || !File.Exists(path)) return null;
+            // a folder converts every compatible file inside it
+            if (path.Length < 3 || (!File.Exists(path) && !Directory.Exists(path))) return null;
             return new QuickCommand { Kind = CommandKind.Convert, SourcePath = Path.GetFullPath(path), Format = fmt };
         }
 

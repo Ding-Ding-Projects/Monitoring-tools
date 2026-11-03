@@ -180,6 +180,7 @@ namespace MonitoringTools.UI
                 list.MaxHeight = 110;
                 w.SetBody(list);
                 ToastWindow.EnableDrag(list, () => FileDrop(item.Files));
+                w.SetHint("Drag the list out to drop all of them. Hover to move, copy, delete, encode or encrypt.");
                 return;
             }
 
@@ -194,21 +195,15 @@ namespace MonitoringTools.UI
             var title = docker == DockerFileKind.Compose ? "Compose file" : docker == DockerFileKind.Dockerfile ? "Dockerfile" : KindLabel(kind);
             w.SetHeader(docker != DockerFileKind.None ? Icons.Box : KindIcon(kind), title, meta);
 
-            var body = new Grid();
-            body.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            body.ColumnDefinitions.Add(new ColumnDefinition());
-            if (kind == FileKind.Image)
-            {
-                var thumb = Thumb(f);
-                if (thumb != null) body.Children.Add(thumb);
-            }
+            // Rich preview first (thumbnail, text head, folder or zip listing), filled in asynchronously
+            var body = new StackPanel();
+            body.Children.Add(FilePreview.Build(f, null));
             var dir = Path.GetDirectoryName(f.TrimEnd('\\'));
             var path = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, LineHeight = 19, VerticalAlignment = VerticalAlignment.Center };
             if (item.HadQuotes) path.Inlines.Add(new Run("\"") { Foreground = Ui.Res("B.Amber") });
             if (!string.IsNullOrEmpty(dir)) path.Inlines.Add(new Run(dir.TrimEnd('\\') + "\\"));
             path.Inlines.Add(new Run(Path.GetFileName(f.TrimEnd('\\'))) { Foreground = Ui.Res("B.Text"), FontWeight = FontWeights.Medium });
             if (item.HadQuotes) path.Inlines.Add(new Run("\"") { Foreground = Ui.Res("B.Amber") });
-            Grid.SetColumn(path, 1);
             body.Children.Add(path);
             w.SetBody(body);
             ToastWindow.EnableDrag(body, () => FileDrop(item.Files));
@@ -414,10 +409,13 @@ namespace MonitoringTools.UI
         // -------------------------------------------------------------- generic background task toast
 
         public void ShowTask(string title, string subtitle, Func<Task<(bool Ok, string Summary, string Detail)>> work)
+            => ShowTask(title, subtitle, _ => work());
+
+        public void ShowTask(string title, string subtitle, Func<Action<string>, Task<(bool Ok, string Summary, string Detail)>> work)
         {
             if (App.ShouldSuppress)
             {
-                _ = work().ContinueWith(t => Log.Info($"{title} (game mode, no toast): {(t.IsFaulted ? t.Exception?.GetBaseException().Message : t.Result.Summary)}"));
+                _ = work(_ => { }).ContinueWith(t => Log.Info($"{title} (game mode, no toast): {(t.IsFaulted ? t.Exception?.GetBaseException().Message : t.Result.Summary)}"));
                 return;
             }
             var w = new ToastWindow();
@@ -435,7 +433,8 @@ namespace MonitoringTools.UI
             async Task Finish()
             {
                 (bool Ok, string Summary, string Detail) r;
-                try { r = await work(); }
+                Action<string> report = text => w.Dispatcher.BeginInvoke(new Action(() => detail.Text = text));
+                try { r = await work(report); }
                 catch (Exception ex) { r = (false, "Failed", ex.Message); }
                 w.TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
                 if (!r.Ok) w.SetAccent(Amber, Ui.C("C.AmberWash"));

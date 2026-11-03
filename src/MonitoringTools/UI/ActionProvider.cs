@@ -51,6 +51,21 @@ namespace MonitoringTools.UI
         private static void TextActions(string text, List<ToastAction> l)
         {
             var t = text ?? "";
+            if (FileOps.LooksBase64(t))
+            {
+                var decoded = FileOps.DecodeToText(t);
+                if (decoded != null)
+                    l.Add(A("Decode Base64", Icons.Code, () => Set(decoded), primary: true, done: "Decoded"));
+                else
+                    l.Add(A("Decode to file", Icons.File, () =>
+                    {
+                        FileOps.TryDecode(t, out var bytes);
+                        var p = FileOps.Unique(Path.Combine(Settings.Current.ResolvedMediaFolder, "Decoded " + DateTime.Now.ToString("yyyy-MM-dd HHmmss") + GuessExt(bytes)));
+                        File.WriteAllBytes(p, bytes);
+                        Reveal(p);
+                    }, primary: true, done: "Saved"));
+            }
+            l.Add(A("Encode Base64", null, () => Set(FileOps.EncodeText(t)), done: "Encoded"));
             l.Add(A("Search web", Icons.Globe, () => Markdown.Open("https://www.bing.com/search?q=" + Uri.EscapeDataString(t.Trim().Length > 300 ? t.Trim()[..300] : t.Trim()))));
             if (t != t.Trim() || Regex.IsMatch(t, @"[ \t]{2,}"))
                 l.Add(A("Tidy spaces", Icons.Lines, () => Set(Regex.Replace(t.Trim(), @"[ \t]{2,}", " ")), done: "Tidied"));
@@ -208,70 +223,112 @@ namespace MonitoringTools.UI
             var f = item.FirstFile;
             var kind = item.FirstFileKind;
             bool many = item.Files.Length > 1;
+            var files = item.Files;
 
-            // Quote fixes come first: they are the most common reason to paste a path somewhere else.
+            // Order is priority: the toast shows the first four buttons and tucks the rest behind More.
             if (item.IsPathText && item.HadQuotes)
-                l.Add(A("Remove quotes", null, () => Set(string.Join(Environment.NewLine, item.Files)), primary: true, done: "Unquoted"));
-            else
-                l.Add(A(item.IsPathText ? "Add quotes" : "Copy as path", null, () => Set(string.Join(Environment.NewLine, item.Files.Select(p => $"\"{p}\""))), done: "Copied"));
+                l.Add(A("Remove quotes", null, () => Set(string.Join(Environment.NewLine, files)), primary: true, done: "Unquoted"));
 
-            if (!many)
+            if (many)
             {
-                if (kind == FileKind.Folder)
-                {
-                    l.Add(A("Open", Icons.Folder, () => Shell(f), primary: !item.HadQuotes, done: "Opened"));
-                    l.Add(A("Terminal here", Icons.Code, () => Terminal(f), done: "Opened"));
-                }
-                else
-                {
-                    l.Add(A("Open", Icons.Play, () => Shell(f), primary: !item.HadQuotes, done: "Opened"));
-                    l.Add(A("Show in folder", Icons.Folder, () => Reveal(f), done: "Shown"));
-                }
-                if (!item.IsPathText) l.Add(A("Copy path text", null, () => Set(f), done: "Copied"));
-                l.Add(A("Copy name", null, () => Set(Path.GetFileName(f.TrimEnd('\\'))), done: "Copied"));
-                if (f.Contains('\\')) l.Add(A("Forward slashes", null, () => Set(f.Replace('\\', '/')), done: "Copied"));
-                if (item.IsPathText) l.Add(A("Copy as file", Icons.Clipboard, () => ClipboardWatcher.SetFiles(f), done: "Copied"));
+                l.Add(new ToastAction { Label = "Move to…", Icon = Icons.Folder, Primary = !item.HadQuotes, HandsOff = true, Run = () => FileToolsWindow.MoveOrCopy(files, move: true) });
+                l.Add(new ToastAction { Label = "Copy to…", Icon = Icons.Clipboard, HandsOff = true, Run = () => FileToolsWindow.MoveOrCopy(files, move: false) });
+                l.Add(new ToastAction { Label = "Delete", Icon = Icons.Trash, HandsOff = true, Run = () => FileToolsWindow.ConfirmRecycle(files) });
+                l.Add(new ToastAction { Label = "File tools", Icon = Icons.Shield, HandsOff = true, Tip = "Base64 and password encryption for all of them", Run = () => FileToolsWindow.Open(files) });
+                l.Add(A("Show in folder", Icons.Folder, () => Reveal(f), done: "Shown"));
+                l.Add(A("Copy names", null, () => Set(string.Join(Environment.NewLine, files.Select(p => Path.GetFileName(p.TrimEnd('\\'))))), done: "Copied"));
+                l.Add(A(item.IsPathText ? "Add quotes" : "Copy as paths", null, () => Set(string.Join(Environment.NewLine, files.Select(p => $"\"{p}\""))), done: "Copied"));
+                BatchChips(files, l);
+                return;
+            }
 
-                // Docker files explain what each button will do before you press it
-                foreach (var d in DockerActions.For(f))
+            bool encrypted = kind != FileKind.Folder && FileOps.IsEncrypted(f);
+            if (encrypted)
+                l.Add(new ToastAction { Label = "Decrypt…", Icon = Icons.Shield, Primary = true, HandsOff = true, Run = () => FileToolsWindow.Open(files, "encrypt") });
+
+            foreach (var d in DockerActions.For(f))
+            {
+                var da = d;
+                l.Add(new ToastAction
                 {
-                    var da = d;
-                    l.Add(new ToastAction
+                    Label = da.Label, Icon = Icons.Box, Primary = da.Primary && !item.HadQuotes, Tip = da.Explain, HandsOff = !da.InTerminal,
+                    Run = () =>
                     {
-                        Label = da.Label, Icon = Icons.Box, Primary = false, Tip = da.Explain, HandsOff = !da.InTerminal,
-                        Run = () =>
+                        if (da.InTerminal) { DockerActions.OpenInTerminal(f, da); return; }
+                        App.Toasts.ShowTask("docker " + da.Label.ToLowerInvariant(), Path.GetFileName(f), async () =>
                         {
-                            if (da.InTerminal) { DockerActions.OpenInTerminal(f, da); return; }
-                            App.Toasts.ShowTask("docker " + da.Label.ToLowerInvariant(), Path.GetFileName(f), async () =>
-                            {
-                                var (code, output) = await DockerActions.RunAsync(f, da);
-                                return (code == 0, code == 0 ? da.Label + " finished" : da.Label + " failed", Tail(output));
-                            });
-                        }
-                    });
-                }
+                            var (code, output) = await DockerActions.RunAsync(f, da);
+                            return (code == 0, code == 0 ? da.Label + " finished" : da.Label + " failed", Tail(output));
+                        });
+                    }
+                });
+            }
 
-                // A repository folder (or a file in one) can be pushed
-                if (GitPush.FindRepoRoot(f) != null)
-                    l.Add(new ToastAction { Label = ":push", Chip = true, Tip = "Pre-dew everything and push. Same as copying the path with :push on the end.", HandsOff = true, Run = () => App.Toasts.StartPush(f) });
+            bool primaryTaken = item.HadQuotes || encrypted || DockerActions.Detect(f) != DockerFileKind.None;
+            if (kind == FileKind.Folder)
+            {
+                l.Add(A("Open", Icons.Folder, () => Shell(f), primary: !primaryTaken, done: "Opened"));
+                l.Add(A("Terminal here", Icons.Code, () => Terminal(f), done: "Opened"));
+            }
+            else
+            {
+                var app = FileOps.DefaultAppName(f);
+                l.Add(A(app != null ? $"Open in {app}" : "Open", Icons.Play, () => Shell(f), primary: !primaryTaken, done: "Opened"));
+                l.Add(A("Show in folder", Icons.Folder, () => Reveal(f), done: "Shown"));
+            }
+            l.Add(new ToastAction { Label = "File tools", Icon = Icons.Shield, HandsOff = true, Tip = "Move, copy, delete, Base64 and password encryption", Run = () => FileToolsWindow.Open(files) });
+            if (kind != FileKind.Folder)
+                l.Add(new ToastAction { Label = "Open with…", HandsOff = true, Run = () => FileOps.OpenWithPicker(f) });
+            if (!item.HadQuotes)
+                l.Add(A(item.IsPathText ? "Add quotes" : "Copy as path", null, () => Set($"\"{f}\""), done: "Copied"));
+            if (!item.IsPathText) l.Add(A("Copy path text", null, () => Set(f), done: "Copied"));
+            l.Add(A("Copy name", null, () => Set(Path.GetFileName(f.TrimEnd('\\'))), done: "Copied"));
+            if (f.Contains('\\')) l.Add(A("Forward slashes", null, () => Set(f.Replace('\\', '/')), done: "Copied"));
+            if (item.IsPathText) l.Add(A("Copy as file", Icons.Clipboard, () => ClipboardWatcher.SetFiles(f), done: "Copied"));
 
-                // Media files: quick command chips, same as typing ":mp4" after the path
+            // A repository folder (or a file in one) can be pushed
+            if (GitPush.FindRepoRoot(f) != null)
+                l.Add(new ToastAction { Label = ":push", Chip = true, Tip = "Pre-dew everything and push. Same as copying the path with :push on the end.", HandsOff = true, Run = () => App.Toasts.StartPush(f) });
+
+            if (kind == FileKind.Folder) BatchChips(SafeFiles(f), l, f);
+            else
                 foreach (var fmt in Formats.SuggestedFor(kind, Path.GetExtension(f)))
                 {
                     var id = fmt;
                     l.Add(new ToastAction { Label = ":" + id, Chip = true, Tip = $"Convert to {Formats.Find(id)?.Label}. Or copy the path with :{id} on the end.", HandsOff = true, Run = () => Converter.Start(f, id) });
                 }
 
-                foreach (var s in Settings.Current.Shortcuts)
-                {
-                    var sc = s;
-                    l.Add(new ToastAction { Label = ":" + sc.Name, Chip = true, Tip = string.IsNullOrWhiteSpace(sc.Description) ? "Your shortcut" : sc.Description, HandsOff = true, Run = () => App.Toasts.RunShortcut(sc, f) });
-                }
-            }
-            else
+            foreach (var s in Settings.Current.Shortcuts)
             {
-                l.Add(A("Show in folder", Icons.Folder, () => Reveal(f), done: "Shown"));
-                l.Add(A("Copy names", null, () => Set(string.Join(Environment.NewLine, item.Files.Select(p => Path.GetFileName(p.TrimEnd('\\'))))), done: "Copied"));
+                var sc = s;
+                l.Add(new ToastAction { Label = ":" + sc.Name, Chip = true, Tip = string.IsNullOrWhiteSpace(sc.Description) ? "Your shortcut" : sc.Description, HandsOff = true, Run = () => App.Toasts.RunShortcut(sc, f) });
+            }
+        }
+
+        private static string[] SafeFiles(string folder)
+        {
+            try { return Directory.EnumerateFiles(folder).Take(2000).ToArray(); } catch { return Array.Empty<string>(); }
+        }
+
+        /// <summary>Batch conversion chips for a selection or a folder: only formats at least one file can become.</summary>
+        private static void BatchChips(string[] files, List<ToastAction> l, string folder = null)
+        {
+            var kinds = files.Select(ClipItem.Classify).Where(k => k == FileKind.Video || k == FileKind.Audio || k == FileKind.Image).Distinct().ToList();
+            if (kinds.Count == 0) return;
+            var ids = kinds.SelectMany(k => Formats.SuggestedFor(k, null)).Distinct().Take(8).ToList();
+            foreach (var id in ids)
+            {
+                var spec = Formats.Find(id);
+                int n = files.Count(p => Converter.Compatible(p, spec));
+                if (n == 0) continue;
+                var fid = id;
+                l.Add(new ToastAction
+                {
+                    Label = ":" + id, Chip = true, HandsOff = true,
+                    Tip = folder != null ? $"Convert {n} file{(n == 1 ? "" : "s")} in this folder to {spec.Label}. Same as copying the folder with :{id} on the end."
+                                         : $"Convert {n} of these to {spec.Label}",
+                    Run = () => Converter.StartBatch(files, fid, folder)
+                });
             }
         }
 
@@ -338,6 +395,21 @@ namespace MonitoringTools.UI
             var p = Path.Combine(dir, "Clipboard " + DateTime.Now.ToString("yyyy-MM-dd HHmmss") + ext);
             File.WriteAllText(p, text, new UTF8Encoding(false));
             return p;
+        }
+
+        /// <summary>Sniffs common magic numbers so a decoded blob gets a sensible extension.</summary>
+        public static string GuessExt(byte[] b)
+        {
+            if (b == null || b.Length < 4) return ".bin";
+            if (b[0] == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47) return ".png";
+            if (b[0] == 0xFF && b[1] == 0xD8) return ".jpg";
+            if (b[0] == 0x47 && b[1] == 0x49 && b[2] == 0x46) return ".gif";
+            if (b[0] == 0x25 && b[1] == 0x50 && b[2] == 0x44 && b[3] == 0x46) return ".pdf";
+            if (b[0] == 0x50 && b[1] == 0x4B) return ".zip";
+            if (b.Length > 12 && b[0] == 0x52 && b[1] == 0x49 && b[2] == 0x46 && b[3] == 0x46 && b[8] == 0x57 && b[9] == 0x45) return ".webp";
+            if (b.Length > 8 && b[4] == 0x66 && b[5] == 0x74 && b[6] == 0x79 && b[7] == 0x70) return ".mp4";
+            if (b[0] == 0x49 && b[1] == 0x44 && b[2] == 0x33) return ".mp3";
+            return ".bin";
         }
 
         public static string Tail(string s, int lines = 6)

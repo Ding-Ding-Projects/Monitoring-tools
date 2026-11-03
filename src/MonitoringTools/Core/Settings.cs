@@ -34,6 +34,9 @@ namespace MonitoringTools.Core
         public List<Shortcut> Shortcuts { get; set; } = new List<Shortcut>();
         public string CommitTemplate { get; set; } = "";
 
+        // File tools
+        public List<string> RecentFolders { get; set; } = new List<string>();
+
         // DNS profiles
         public List<DnsProfile> DnsProfiles { get; set; } = DnsProfile.Defaults();
 

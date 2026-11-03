@@ -5,11 +5,14 @@ A small Windows background service with a tray icon and a modern, animated UI. I
 ## Features
 
 **Clipboard toasts**
-- A toast slides into the bottom-right corner for every copy, stays for 3 seconds and holds while you hover.
+- A toast slides into the bottom-right corner for every copy, stays for 3 seconds and holds while you hover. It shows four actions up front and keeps the rest behind **More**.
 - Hovering reveals actions tailored to what you copied:
   - **Text and Markdown**: rendered Markdown preview, copy as plain text, case changes, tidy spaces, join lines, search, translate, save as a file.
   - **Links**: open, open in a private window, copy domain, strip tracking parameters, copy as a Markdown link.
-  - **Files and folders**: open, show in folder, copy name, forward slashes, terminal here. Paths copied with quotes (Explorer "Copy as path") offer **Remove quotes**; unquoted ones offer **Add quotes**.
+  - **Files and folders**: rich previews (video frames, PDF and document thumbnails, album art, the first lines of text and code, rendered Markdown, CSV tables, folder and zip listings, plus duration, resolution and codecs for media). **Open in** the file's default app, **Open with…**, show in folder, copy name, forward slashes, terminal here. Paths copied with quotes (Explorer "Copy as path") offer **Remove quotes**; unquoted ones offer **Add quotes**.
+  - **Several files at once**: move to, copy to, delete to the Recycle Bin, and batch conversion chips.
+  - **File tools sheet**: one tab each for move and copy, batch Base64 encode and decode (plus copy as Base64 text or a data URI), and password encryption (AES-256-GCM, `.mtenc` files next to the originals).
+  - **Base64 text** on the clipboard offers decode; any text offers encode.
   - **Images, video and audio**: save, convert and quick command chips such as `:mp4`, `:gif`, `:mp3`, `:webp`. Drag the preview out of the toast into any drop target.
   - **Docker**: a copied `compose.yaml` / `docker-compose.yml` offers up, down, pull, restart and logs; a `Dockerfile` offers build and build-and-run. Each button explains what it will do.
   - **JSON, colors, email addresses** get their own previews and actions.
@@ -24,6 +27,7 @@ Copy a path with a command on the end and it runs as soon as it lands on the cli
 D:\Footage\clip.mov:mp4        converts next to the original, same name
 "C:\Music\take 3.wav":mp3      quotes are fine
 C:\Code\my-repo:push            stages, commits with your default message and pushes
+D:\Footage:mp4                  converts every compatible file in the folder
 ```
 
 Formats: `mp4 mov mkv webm avi gif mp3 wav flac m4a ogg opus png jpg webp bmp tiff avif ico`. Existing files are never overwritten. Conversion uses FFmpeg; if it is missing, the toast offers to install it with winget.
@@ -51,7 +55,7 @@ On by default. Popups are held back while Roblox, Minecraft, League of Legends, 
 
 ## Install
 
-Download `MonitoringTools.exe` from the latest release and run it. It copies itself to `%LOCALAPPDATA%\Programs\MonitoringTools`, registers start-up and appears in the tray. Settings, logs and scripts live in `%LOCALAPPDATA%\MonitoringTools`.
+Every push to `main` builds on Windows and publishes the next release automatically. Download `MonitoringTools.exe` from the latest release and run it. It copies itself to `%LOCALAPPDATA%\Programs\MonitoringTools`, registers start-up and appears in the tray. Settings, logs and scripts live in `%LOCALAPPDATA%\MonitoringTools`.
 
 To remove it, right-click the tray icon and choose **Uninstall service**.
 

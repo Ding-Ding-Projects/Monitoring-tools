@@ -1,31 +1,50 @@
-name: Build
+name: Build and release
+
+# Every push to main builds on Windows and publishes the next patch release
+# (v1.0.0, v1.0.1, ...). Pull requests only build.
 
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
+      - name: Work out the next version
+        id: ver
+        shell: pwsh
+        run: |
+          git fetch --tags --force
+          $tags = git tag --list 'v*' | Where-Object { $_ -match '^v\d+\.\d+\.\d+$' } |
+                  ForEach-Object { [version]($_.TrimStart('v')) } | Sort-Object -Descending
+          if ($tags) { $l = $tags[0]; $next = "{0}.{1}.{2}" -f $l.Major, $l.Minor, ($l.Build + 1) } else { $next = "1.0.0" }
+          "version=$next" >> $env:GITHUB_OUTPUT
+          Write-Host "Next version: $next"
 
       - name: Publish single-file exe
         shell: pwsh
         run: |
           dotnet publish src/MonitoringTools/MonitoringTools.csproj -c Release -r win-x64 --self-contained true `
             -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
-            -p:DebugType=none -o out
+            -p:DebugType=none -p:Version=${{ steps.ver.outputs.version }} -o out
           Get-ChildItem out
 
       - name: Package
@@ -39,9 +58,12 @@ jobs:
             out/MonitoringTools.exe
             MonitoringTools-win-x64.zip
 
-      - name: Release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Tag and release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "${{ github.ref_name }}" out/MonitoringTools.exe MonitoringTools-win-x64.zip --title "Monitoring Tools ${{ github.ref_name }}" --generate-notes
+        run: |
+          $tag = "v${{ steps.ver.outputs.version }}"
+          gh release create $tag out/MonitoringTools.exe MonitoringTools-win-x64.zip `
+            --target "${{ github.sha }}" --title "Monitoring Tools $tag" --generate-notes

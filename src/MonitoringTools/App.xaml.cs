@@ -97,7 +97,10 @@ namespace MonitoringTools
                 var c = item.Command;
                 switch (c.Kind)
                 {
-                    case CommandKind.Convert: Converter.Start(c.SourcePath, c.Format); break;
+                    case CommandKind.Convert:
+                        if (System.IO.Directory.Exists(c.SourcePath)) Converter.StartBatch(Converter.CompatibleIn(c.SourcePath, c.Format), c.Format, c.SourcePath);
+                        else Converter.Start(c.SourcePath, c.Format);
+                        break;
                     case CommandKind.Push: Toasts.StartPush(c.SourcePath); break;
                     case CommandKind.Custom:
                         var sc = Shortcuts.Find(c.Format);

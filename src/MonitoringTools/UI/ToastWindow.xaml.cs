@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -70,18 +71,45 @@ namespace MonitoringTools.UI
             ChipsPanel.Children.Clear();
             _hasActions = actions != null && actions.Count > 0;
             if (!_hasActions) return;
-            foreach (var a in actions)
+
+            // Keep the toast calm: four buttons and one row of chips up front, the rest behind More.
+            const int maxButtons = 4, maxChips = 7;
+            var buttons = actions.Where(a => !a.Chip).OrderByDescending(a => a.Primary).ToList();
+            var chips = actions.Where(a => a.Chip).ToList();
+            var overflow = new WrapPanel { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 2, 0, 0) };
+            var host = (Panel)ActionsPanel.Parent;
+            host.Children.Insert(host.Children.IndexOf(ChipsPanel) + 1, overflow);
+
+            Button Make(ToastAction a)
             {
                 var style = a.Chip ? "Btn.Chip" : a.Primary ? "Btn.Accent" : "Btn.Ghost";
                 var b = Ui.Button(a.Label, null, style, a.Chip ? null : a.Icon);
-                var act = a;
-                b.Click += (s, e) => RunAction(b, act);
+                b.Click += (s, e) => RunAction(b, a);
                 if (!string.IsNullOrEmpty(a.Tip))
                 {
-                    b.MouseEnter += (s, e) => TipText.Text = act.Tip;
+                    b.MouseEnter += (s, e) => TipText.Text = a.Tip;
                     b.MouseLeave += (s, e) => TipText.Text = "";
                 }
-                (a.Chip ? ChipsPanel : ActionsPanel).Children.Add(b);
+                return b;
+            }
+
+            foreach (var a in buttons.Take(maxButtons)) ActionsPanel.Children.Add(Make(a));
+            foreach (var a in chips.Take(maxChips)) ChipsPanel.Children.Add(Make(a));
+            var rest = buttons.Skip(maxButtons).Concat(chips.Skip(maxChips)).ToList();
+            foreach (var a in rest) overflow.Children.Add(Make(a));
+
+            if (rest.Count > 0)
+            {
+                var more = Ui.Button($"More · {rest.Count}", null, "Btn.Ghost");
+                more.Foreground = Ui.Res("B.TextMute");
+                more.Click += (s, e) =>
+                {
+                    bool open = overflow.Visibility != Visibility.Visible;
+                    overflow.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+                    more.Content = open ? "Less" : $"More · {rest.Count}";
+                    if (open) { int i = 0; foreach (FrameworkElement c in overflow.Children) Ui.Rise(c, i++ * 22, 8, 280); }
+                };
+                ActionsPanel.Children.Add(more);
             }
         }
 
