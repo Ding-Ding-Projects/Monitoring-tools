@@ -1,0 +1,47 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish single-file exe
+        shell: pwsh
+        run: |
+          dotnet publish src/MonitoringTools/MonitoringTools.csproj -c Release -r win-x64 --self-contained true `
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
+            -p:DebugType=none -o out
+          Get-ChildItem out
+
+      - name: Package
+        shell: pwsh
+        run: Compress-Archive -Path out/MonitoringTools.exe -DestinationPath MonitoringTools-win-x64.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MonitoringTools-win-x64
+          path: |
+            out/MonitoringTools.exe
+            MonitoringTools-win-x64.zip
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "${{ github.ref_name }}" out/MonitoringTools.exe MonitoringTools-win-x64.zip --title "Monitoring Tools ${{ github.ref_name }}" --generate-notes

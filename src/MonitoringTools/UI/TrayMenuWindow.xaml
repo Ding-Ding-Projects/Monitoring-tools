@@ -1,0 +1,19 @@
+<Window x:Class="MonitoringTools.UI.TrayMenuWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize"
+        SizeToContent="Height" Width="372" UseLayoutRounding="True" Title="Monitoring Tools menu">
+    <Grid x:Name="Root" Margin="16,12,16,22" RenderTransformOrigin="1,1">
+        <Grid.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform x:Name="RootScale"/>
+                <TranslateTransform x:Name="RootShift"/>
+            </TransformGroup>
+        </Grid.RenderTransform>
+        <Border CornerRadius="16" Background="{StaticResource B.Surface}" BorderBrush="{StaticResource B.Line}" BorderThickness="1"
+                Effect="{StaticResource Fx.Shadow}" Padding="8">
+            <StackPanel x:Name="Rows"/>
+        </Border>
+    </Grid>
+</Window>
