@@ -122,6 +122,7 @@ namespace MonitoringTools.UI
             }
 
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
+            CommandPalette.Attach(this);
             Loaded += (s, e) =>
             {
                 RootScale.ScaleX = RootScale.ScaleY = 0.94;

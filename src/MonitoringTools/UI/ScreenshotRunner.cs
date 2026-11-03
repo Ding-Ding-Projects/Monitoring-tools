@@ -75,6 +75,28 @@ namespace MonitoringTools.UI
                 await Shot(menu, "tray-menu", "Tray right-click menu", 1400);
                 menu.Close();
 
+                // setup wizard: first, a middle and the last step
+                var wiz = new SetupWizardWindow();
+                wiz.Show();
+                await Shot(wiz, "setup-start", "Setup wizard: start-up", 1500);
+                wiz.GoTo(2);
+                await Shot(wiz, "setup-connection", "Setup wizard: internet watch", 1100);
+                wiz.GoTo(6);
+                await Shot(wiz, "setup-done", "Setup wizard: summary", 1100);
+                wiz.Close();
+                Settings.Current.OnboardingStep = 0;
+
+                // command palette
+                CommandPalette.Open();
+                await Shot(CommandPalette.Current, "command-palette", "Command palette (Ctrl+Shift+F)", 900);
+                CommandPalette.Current?.Close();
+
+                // public IP change dialog
+                var ipw = App.Toasts.ShowIpChanged(
+                    new Net.IpRecord { Ip = "203.0.113.24", FirstSeen = DateTime.Now.AddHours(-6), LastSeen = DateTime.Now.AddMinutes(-1), Org = "AS64500 Example Fibre", City = "Toronto", Country = "CA" },
+                    new Net.IpRecord { Ip = "198.51.100.77", FirstSeen = DateTime.Now, LastSeen = DateTime.Now, Org = "AS64500 Example Fibre", City = "Toronto", Country = "CA", Times = 2 });
+                await Toast("toast-public-ip", "Public IP changed", ipw);
+
                 // welcome tour
                 var welcome = new WelcomeWindow();
                 welcome.Show();

@@ -48,6 +48,8 @@ namespace MonitoringTools.UI
             // primary
             Rows.Children.Add(Row(Icons.Monitor, "Open control centre", "double-click", () => App.Current.OpenControlCentre(null)));
             Rows.Children.Add(Row(Icons.Clipboard, "Clipboard history", $"{App.History.Items.Count} kept", () => App.Current.OpenControlCentre("history")));
+            Rows.Children.Add(Row(Icons.Lines, "Command palette", "Ctrl+Shift+F", () => CommandPalette.Open()));
+            Rows.Children.Add(Row(Icons.Play, Settings.Current.OnboardingDone ? "Run setup again" : "Continue setup", null, () => App.Current.ShowSetup()));
             Rows.Children.Add(Row(Icons.Play, "Take the tour", null, () => App.Current.ShowWelcome()));
             Rows.Children.Add(Row(Icons.Code, "Shortcuts and scripts", $"{s.Shortcuts.Count}", () => App.Current.OpenControlCentre("shortcuts")));
             Rows.Children.Add(Row(Icons.Wifi, "Test connection now", App.Net.Current?.Online == false ? "offline" : "online", () =>

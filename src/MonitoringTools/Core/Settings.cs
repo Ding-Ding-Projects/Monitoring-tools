@@ -46,6 +46,13 @@ namespace MonitoringTools.Core
         // DNS profiles
         public List<DnsProfile> DnsProfiles { get; set; } = DnsProfile.Defaults();
 
+        // First-run setup, palette and sound
+        public int OnboardingStep { get; set; } = 0;
+        public bool OnboardingDone { get; set; } = false;
+        public bool PaletteFullWindow { get; set; } = false;
+        public bool SoundsEnabled { get; set; } = true;
+        public double SoundVolume { get; set; } = 0.6;
+
         // Service
         public bool StartWithWindows { get; set; } = true;
         public bool RunElevated { get; set; } = false;

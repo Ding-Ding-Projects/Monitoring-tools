@@ -4,12 +4,12 @@
     {
       "name": "ffmpeg",
       "purpose": "Video, audio and image conversion and media details (ffmpeg.exe, ffprobe.exe and their shared libraries)",
-      "license": "GPL-3.0-or-later (FFmpeg with libx264); source: https://github.com/BtbN/FFmpeg-Builds",
+      "license": "GPL-3.0-or-later (FFmpeg master build N-128293-gb034eb5e7e with libx264); source: https://github.com/BtbN/FFmpeg-Builds",
       "repository": "BtbN/FFmpeg-Builds",
       "tag": "autobuild-2026-11-02-12-51",
       "assetPattern": "win64-gpl-shared.*\\.zip$",
-      "asset": "",
-      "sha256": "",
+      "asset": "ffmpeg-N-128293-gb034eb5e7e-win64-gpl-shared.zip",
+      "sha256": "8aeae9ecc5051f2d44c721b6b2c762c1f76531e748955f6f2ff6f2bcb73fe2fc",
       "extract": {
         "bin/*": ""
       },

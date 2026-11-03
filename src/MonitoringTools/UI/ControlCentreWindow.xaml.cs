@@ -57,6 +57,7 @@ namespace MonitoringTools.UI
             Activity.Changed += () => { if (_current == "activity" || _current == "overview") Navigate(_current, animate: false); };
             App.Net.Sampled += () => { if (_current == "overview" && IsActive) Navigate(_current, animate: false); };
             Loaded += (s, e) => Navigate("overview");
+            CommandPalette.Attach(this);
             RefreshStatus();
         }
 
@@ -743,6 +744,48 @@ namespace MonitoringTools.UI
             }, "Btn.Danger", Icons.Trash));
             root.Children.Add(Card(u, "#FF4A2525"));
             return root;
+        }
+
+        // -------------------------------------------------------------- teleport
+
+        /// <summary>Scrolls to the control labelled <paramref name="label"/> on the current page and flashes it.</summary>
+        public void Teleport(string label)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var target = Find(Page, label);
+                if (target == null) return;
+                FrameworkElement host = target;
+                for (var p = VisualTreeHelper.GetParent(target) as FrameworkElement; p != null && p != Page; p = VisualTreeHelper.GetParent(p) as FrameworkElement)
+                    if (p is Border b && b.CornerRadius.TopLeft >= 12) { host = b; break; }
+                host.BringIntoView();
+                (target as FrameworkElement)?.Focus();
+                var ring = host as Border;
+                if (ring != null)
+                {
+                    var old = ring.BorderBrush;
+                    var flash = new SolidColorBrush(Ui.C("C.Mint"));
+                    ring.BorderBrush = flash;
+                    var fade = new ColorAnimation(Ui.C("C.Line"), TimeSpan.FromMilliseconds(1600)) { BeginTime = TimeSpan.FromMilliseconds(600) };
+                    fade.Completed += (s, e) => ring.BorderBrush = old;
+                    flash.BeginAnimation(SolidColorBrush.ColorProperty, fade);
+                }
+                Ui.Rise(target, 0, 6, 300);
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+
+        private static FrameworkElement Find(DependencyObject root, string label)
+        {
+            int n = VisualTreeHelper.GetChildrenCount(root);
+            for (int i = 0; i < n; i++)
+            {
+                var c = VisualTreeHelper.GetChild(root, i);
+                if (c is TextBlock t && string.Equals(t.Text, label, StringComparison.OrdinalIgnoreCase)) return t;
+                if (c is Button b && b.Content is string bs && bs.StartsWith(label, StringComparison.OrdinalIgnoreCase)) return b;
+                var deeper = Find(c, label);
+                if (deeper != null) return deeper;
+            }
+            return null;
         }
 
         // -------------------------------------------------------------- live data cards

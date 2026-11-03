@@ -80,7 +80,8 @@ namespace MonitoringTools
             if (File.Exists(flag))
             {
                 try { File.Delete(flag); } catch { }
-                ShowWelcome();
+                // First run: the setup wizard does the real setup; the tour stays one click away in the tray.
+                if (!Settings.Current.OnboardingDone) ShowSetup(); else ShowWelcome();
             }
         }
 
@@ -161,6 +162,14 @@ namespace MonitoringTools
             _offline = new OfflineWindow(state);
             _offline.Dismissed += () => { _offline = null; _dismissedCause = state.Cause; };
             _offline.Show();
+        }
+
+        public void ShowSetup() => new SetupWizardWindow().Show();
+
+        public void OpenControlCentre(string section, string highlight)
+        {
+            OpenControlCentre(section);
+            if (highlight != null) _centre?.Teleport(highlight);
         }
 
         public void OpenControlCentre(string section)
