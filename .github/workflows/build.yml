@@ -1,7 +1,8 @@
 name: Build and release
 
-# Every push to main builds on Windows and publishes the next patch release
-# (v1.0.0, v1.0.1, ...). Pull requests only build.
+# Every push to main builds on Windows, renders screenshots of the real app,
+# publishes the next patch release (v1.0.0, v1.0.1, ...) and deploys the
+# project site to GitHub Pages. Pull requests only build and screenshot.
 
 on:
   push:
@@ -11,6 +12,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -19,6 +22,8 @@ concurrency:
 jobs:
   windows:
     runs-on: windows-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,6 +52,18 @@ jobs:
             -p:DebugType=none -p:Version=${{ steps.ver.outputs.version }} -o out
           Get-ChildItem out
 
+      - name: Render screenshots
+        id: shots
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath out/MonitoringTools.exe -ArgumentList '--screenshots', "$PWD/huishots" -PassThru
+          if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "Screenshot run timed out" }
+          Get-ChildItem huishots | Format-Table Name, Length
+          if (Test-Path huishots/error.txt) { Get-Content huishots/error.txt; throw "Screenshot run failed" }
+          if (-not (Test-Path huishots/index.json)) { throw "No screenshots were written" }
+          Compress-Archive -Path huishots/* -DestinationPath MonitoringTools-screenshots.zip
+
       - name: Package
         shell: pwsh
         run: Compress-Archive -Path out/MonitoringTools.exe -DestinationPath MonitoringTools-win-x64.zip
@@ -58,6 +75,13 @@ jobs:
             out/MonitoringTools.exe
             MonitoringTools-win-x64.zip
 
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: huishots
+          path: huishots
+          if-no-files-found: warn
+
       - name: Tag and release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
@@ -65,5 +89,33 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $tag = "v${{ steps.ver.outputs.version }}"
-          gh release create $tag out/MonitoringTools.exe MonitoringTools-win-x64.zip `
-            --target "${{ github.sha }}" --title "Monitoring Tools $tag" --generate-notes
+          $assets = @('out/MonitoringTools.exe', 'MonitoringTools-win-x64.zip')
+          if (Test-Path MonitoringTools-screenshots.zip) { $assets += 'MonitoringTools-screenshots.zip' }
+          gh release create $tag @assets --target "${{ github.sha }}" --title "Monitoring Tools $tag" --generate-notes
+
+  pages:
+    needs: windows
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Pages must be switched on once in the repository settings (Source: GitHub Actions).
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: huishots
+          path: site/huishots
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

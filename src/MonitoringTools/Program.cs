@@ -17,6 +17,14 @@ namespace MonitoringTools
                 if (args.Contains("--elevate-on")) return ServiceHost.ElevateHelper(true);
                 if (args.Contains("--elevate-off")) return ServiceHost.ElevateHelper(false);
                 if (args.Contains("--agent")) return RunAgent();
+                var shotIdx = Array.IndexOf(args, "--screenshots");
+                if (shotIdx >= 0)
+                {
+                    App.ScreenshotDir = shotIdx + 1 < args.Length ? args[shotIdx + 1] : "huishots";
+                    var demo = new App();
+                    demo.InitializeComponent();
+                    return demo.Run();
+                }
 
                 // Launched by hand (double-click, Start menu, explorer relaunch)
                 if (!ServiceHost.IsRunningInstalled)

@@ -57,7 +57,18 @@ namespace MonitoringTools.Net
     public sealed class NetworkMonitor : IDisposable
     {
         public event Action<NetworkState> StateChanged;
+        public event Action Sampled;
         public NetworkState Current { get; private set; }
+        public DateTime StartedAt { get; } = DateTime.Now;
+        public int ProbeCount { get; private set; }
+
+        /// <summary>Recent probe results for the latency chart: gateway and DNS milliseconds (-1 when silent or failed).</summary>
+        public readonly List<(DateTime At, long Gateway, long Dns, bool Online)> Samples = new List<(DateTime, long, long, bool)>();
+
+        public void Seed(IEnumerable<(DateTime, long, long, bool)> samples)
+        {
+            lock (Samples) Samples.AddRange(samples);
+        }
 
         private readonly HttpClient _http;
         private CancellationTokenSource _cts;
@@ -91,6 +102,13 @@ namespace MonitoringTools.Net
                 NetworkState state;
                 try { state = await Probe(); }
                 catch (Exception ex) { Log.Warn("Probe crashed: " + ex.Message); state = new NetworkState { Online = true }; }
+                ProbeCount++;
+                lock (Samples)
+                {
+                    Samples.Add((DateTime.Now, state.GatewayMs, state.DnsMs, state.Online));
+                    while (Samples.Count > 120) Samples.RemoveAt(0);
+                }
+                Application.Current?.Dispatcher.BeginInvoke(new Action(() => Sampled?.Invoke()));
 
                 if (state.Online)
                 {

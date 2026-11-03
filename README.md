@@ -1,5 +1,7 @@
 # Monitoring Tools
 
+**[Project site and screenshots](https://ding-ding-projects.github.io/Monitoring-tools/)** · **[Download](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/latest/download/MonitoringTools.exe)**
+
 A small Windows background service with a tray icon and a modern, animated UI. It watches your clipboard and your internet connection, and turns copied paths into one-step commands.
 
 ## Features
@@ -58,6 +60,14 @@ On by default. Popups are held back while Roblox, Minecraft, League of Legends, 
 Every push to `main` builds on Windows and publishes the next release automatically. Download `MonitoringTools.exe` from the latest release and run it. It copies itself to `%LOCALAPPDATA%\Programs\MonitoringTools`, registers start-up and appears in the tray. Settings, logs and scripts live in `%LOCALAPPDATA%\MonitoringTools`.
 
 To remove it, right-click the tray icon and choose **Uninstall service**.
+
+## Control centre
+
+Overview with live latency, uptime and outage history; an activity feed of conversions, pushes, shortcuts and file jobs; clipboard history; a command playground that explains what `path:format` will do before it runs; settings for every feature; and an about page with an update check. A welcome tour with **Try it** buttons opens on first run and from the tray menu.
+
+## Screenshots
+
+Every build renders the real app on a Windows runner (`MonitoringTools.exe --screenshots <folder>`), attaches the images to the release and publishes them on the project site.
 
 ## Build
 

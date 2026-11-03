@@ -82,6 +82,7 @@ namespace MonitoringTools.UI
             int ok = r.Count(x => x.Ok);
             var fails = r.Where(x => !x.Ok).ToList();
             var line = fails.Count == 0 ? $"✓ {verb} {ok} {(ok == 1 ? "item" : "items")}" : $"{verb} {ok} of {r.Count} · {Path.GetFileName(fails[0].Source)}: {fails[0].Error}";
+            Activity.Add(ActivityKind.Files, line.TrimStart('✓', ' '), reveal, fails.Count == 0);
             if (status != null)
             {
                 status.Text = line;

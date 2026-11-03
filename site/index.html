@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoring Tools for Windows</title>
+<meta name="description" content="Clipboard toasts, internet watch and one-step quick commands for Windows. A small tray service with a modern, animated UI.">
+<meta property="og:title" content="Monitoring Tools for Windows">
+<meta property="og:description" content="Clipboard toasts, internet watch and quick commands like :mp4 and :push.">
+<meta property="og:image" content="huishots/toast-link.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%2314161B'/%3E%3Cpath d='M3 12h4l3-7 4 14 3-7h4' fill='none' stroke='%237CF2C2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#08090C;--window:#0D0F13;--surface:#14161B;--raised:#1A1D23;--sunken:#0F1115;
+  --line:#262A33;--line-strong:#2E333D;--text:#E8EAED;--soft:#C9CDD4;--mute:#9AA1AD;
+  --mint:#7CF2C2;--mint-ink:#062018;--mint-wash:#1D2A26;--amber:#FFB547;--violet:#B9A2FF;--blue:#8AB4FF;
+  --display:'Space Grotesk',system-ui,sans-serif;--body:Inter,system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ground);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--mint)}a:hover{color:#B5FFE0}
+img{max-width:100%;display:block}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.12em;color:var(--mint);text-transform:uppercase}
+h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.02em;margin:0}
+h1{font-size:clamp(40px,7vw,76px);line-height:1.02}
+h2{font-size:clamp(30px,4.4vw,46px);line-height:1.08}
+h3{font-size:20px}
+p{margin:0}
+.mute{color:var(--mute)}
+code,.mono{font-family:var(--mono)}
+
+/* nav */
+nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);background:rgba(8,9,12,.72);border-bottom:1px solid rgba(38,42,51,.6)}
+nav .wrap{display:flex;align-items:center;gap:20px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:17px;color:var(--text);text-decoration:none}
+.brand svg{flex:none}
+nav .links{margin-left:auto;display:flex;gap:22px;align-items:center}
+nav .links a{color:var(--soft);text-decoration:none;font-size:14px}
+nav .links a:hover{color:var(--text)}
+@media (max-width:720px){nav .links a.hide-sm{display:none}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:10px;height:48px;padding:0 22px;border-radius:14px;font-weight:600;font-size:15px;text-decoration:none;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--mint);color:var(--mint-ink)}
+.btn.primary:hover{background:#9CF7D2;color:var(--mint-ink);transform:translateY(-2px)}
+.btn.ghost{background:var(--raised);color:var(--text);border:1px solid var(--line-strong)}
+.btn.ghost:hover{color:var(--text);transform:translateY(-2px)}
+.btn.small{height:38px;padding:0 16px;font-size:14px;border-radius:11px}
+
+/* hero */
+.hero{padding:88px 0 40px;position:relative;overflow:hidden}
+.hero .glow{position:absolute;inset:-20% -10% auto auto;width:720px;height:720px;background:radial-gradient(circle at center,rgba(124,242,194,.16),transparent 62%);pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;position:relative}
+.hero p.lead{font-size:19px;color:var(--soft);max-width:540px;margin-top:22px}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+.hero .meta{margin-top:18px;font-family:var(--mono);font-size:12px;color:var(--mute)}
+.stack{position:relative;min-height:440px}
+.stack img{position:absolute;right:0;width:min(440px,100%);border-radius:18px;transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.stack img:nth-child(1){top:0;transform:translateX(-36px) rotate(-1.5deg)}
+.stack img:nth-child(2){top:150px;z-index:2}
+.stack img:nth-child(3){top:300px;transform:translateX(-20px) rotate(1deg)}
+.stack:hover img:nth-child(1){transform:translateX(-56px) rotate(-3deg)}
+.stack:hover img:nth-child(3){transform:translateX(-40px) rotate(2deg)}
+@media (max-width:900px){.hero-grid{grid-template-columns:1fr}.stack{min-height:520px}}
+
+/* sections */
+section{padding:84px 0;border-top:1px solid rgba(38,42,51,.55)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.split.flip > :first-child{order:2}
+@media (max-width:900px){.split{grid-template-columns:1fr;gap:32px}.split.flip > :first-child{order:0}}
+.copy p{color:var(--soft);font-size:17px;margin-top:16px;max-width:520px}
+.shot{border-radius:20px;border:1px solid var(--line);background:var(--surface);overflow:hidden}
+.points{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:12px}
+.points li{display:flex;gap:12px;color:var(--soft)}
+.points li::before{content:"";flex:none;width:8px;height:8px;margin-top:9px;border-radius:4px;background:var(--mint);box-shadow:0 0 0 4px rgba(124,242,194,.14)}
+.amber .points li::before{background:var(--amber);box-shadow:0 0 0 4px rgba(255,181,71,.14)}
+.violet .points li::before{background:var(--violet);box-shadow:0 0 0 4px rgba(185,162,255,.14)}
+.amber .eyebrow{color:var(--amber)}.violet .eyebrow{color:var(--violet)}
+
+/* commands */
+.terminal{background:var(--sunken);border:1px solid var(--line);border-radius:18px;padding:22px 24px;font-family:var(--mono);font-size:14px;line-height:2;overflow-x:auto}
+.terminal .row{display:flex;gap:18px;white-space:nowrap}
+.terminal .p{color:var(--soft)}
+.terminal .c{color:var(--mint)}
+.terminal .n{color:var(--mute);margin-left:auto;padding-left:24px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.chip{font-family:var(--mono);font-size:13px;padding:5px 11px;border-radius:9px;background:var(--mint-wash);border:1px solid #2B4A3F;color:var(--mint)}
+
+/* feature grid */
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:36px}
+@media (max-width:900px){.grid3{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px;transition:transform .3s cubic-bezier(.34,1.56,.64,1),border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:var(--line-strong)}
+.card p{color:var(--mute);font-size:15px;margin-top:8px}
+.ico{width:40px;height:40px;border-radius:12px;background:var(--mint-wash);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+
+/* gallery */
+.gallery{columns:3 320px;column-gap:16px;margin-top:36px}
+.gallery figure{break-inside:avoid;margin:0 0 16px;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;cursor:zoom-in;transition:border-color .2s}
+.gallery figure:hover{border-color:var(--line-strong)}
+.gallery figcaption{padding:10px 14px;font-size:13px;color:var(--mute)}
+.lightbox{position:fixed;inset:0;background:rgba(4,5,7,.88);display:none;align-items:center;justify-content:center;padding:24px;z-index:50;cursor:zoom-out}
+.lightbox.open{display:flex}
+.lightbox img{max-height:92vh;width:auto;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+
+/* footer */
+footer{padding:56px 0 72px;border-top:1px solid rgba(38,42,51,.55)}
+footer .wrap{display:flex;gap:24px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.cta-band{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+
+/* motion */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.stack img,.card,.btn{transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7CF2C2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
+      Monitoring Tools
+    </a>
+    <div class="links">
+      <a class="hide-sm" href="#clipboard">Clipboard</a>
+      <a class="hide-sm" href="#commands">Commands</a>
+      <a class="hide-sm" href="#network">Network</a>
+      <a class="hide-sm" href="#gallery">Screenshots</a>
+      <a class="btn primary small" href="https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/latest/download/MonitoringTools.exe">Download</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="glow"></div>
+  <div class="wrap hero-grid">
+    <div class="reveal">
+      <div class="eyebrow">For Windows 10 and 11</div>
+      <h1 style="margin-top:14px">Your clipboard, your connection, one quiet tray icon.</h1>
+      <p class="lead">Monitoring Tools shows what you just copied with actions made for it, tells you exactly why the internet dropped, and turns <span class="mono" style="color:var(--mint)">path:mp4</span> into a finished file.</p>
+      <div class="ctas">
+        <a class="btn primary" href="https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/latest/download/MonitoringTools.exe">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+          Download for Windows
+        </a>
+        <a class="btn ghost" href="https://github.com/Ding-Ding-Projects/Monitoring-tools">View the source</a>
+      </div>
+      <div class="meta" id="version">Single exe · installs per user · no admin needed</div>
+    </div>
+    <div class="stack reveal" aria-hidden="true">
+      <img src="huishots/toast-markdown.png" alt="" loading="eager">
+      <img src="huishots/toast-image-file.png" alt="" loading="eager">
+      <img src="huishots/toast-converting.png" alt="" loading="eager">
+    </div>
+  </div>
+</header>
+
+<section id="clipboard">
+  <div class="wrap split">
+    <div class="copy reveal">
+      <div class="eyebrow">Clipboard toasts</div>
+      <h2 style="margin-top:12px">Every copy, previewed. Hover and it stays.</h2>
+      <p>A toast slides into the corner for three seconds. Point at it and it holds, showing four actions picked for what you copied, with the rest one click away.</p>
+      <ul class="points">
+        <li>Markdown renders, links open privately or lose their tracking, JSON pretty-prints, colors convert.</li>
+        <li>File paths get real previews: video frames, PDFs, album art, code, CSV tables, folders and zips.</li>
+        <li>Paths copied with quotes get a one-click Remove quotes.</li>
+        <li>Drag the preview straight out into chat apps, editors or Explorer.</li>
+      </ul>
+    </div>
+    <img class="shot reveal" src="huishots/toast-link.png" alt="A link toast with Open, Open private, Copy domain and Strip tracking actions" loading="lazy">
+  </div>
+</section>
+
+<section id="commands">
+  <div class="wrap split flip">
+    <div class="copy reveal">
+      <div class="eyebrow">Quick commands</div>
+      <h2 style="margin-top:12px">Copy a path. Add a word. Done.</h2>
+      <p>The command runs the moment it lands on the clipboard. Conversions keep the folder and name, and never overwrite anything.</p>
+      <div class="chips">
+        <span class="chip">:mp4</span><span class="chip">:gif</span><span class="chip">:webm</span><span class="chip">:mp3</span><span class="chip">:wav</span>
+        <span class="chip">:flac</span><span class="chip">:png</span><span class="chip">:jpg</span><span class="chip">:webp</span><span class="chip">:avif</span><span class="chip">:ico</span><span class="chip">:push</span>
+      </div>
+      <ul class="points">
+        <li>A folder path converts every compatible file inside it.</li>
+        <li><span class="mono">:push</span> stages, commits with your message template and pushes.</li>
+        <li>Write your own <span class="mono">:name</span> commands as batch or PowerShell scripts in the built-in editor.</li>
+      </ul>
+    </div>
+    <div class="reveal">
+      <div class="terminal" role="img" aria-label="Examples of quick commands">
+        <div class="row"><span class="p">D:\Footage\clip.mov</span><span class="c">:mp4</span><span class="n">clip.mp4 beside it</span></div>
+        <div class="row"><span class="p">"C:\Music\take 3.wav"</span><span class="c">:mp3</span><span class="n">quotes are fine</span></div>
+        <div class="row"><span class="p">D:\Exports</span><span class="c">:webp</span><span class="n">the whole folder</span></div>
+        <div class="row"><span class="p">C:\Code\my-repo</span><span class="c">:push</span><span class="n">commit and push</span></div>
+        <div class="row"><span class="p">C:\Reports\q3.xlsx</span><span class="c">:backup</span><span class="n">your own script</span></div>
+      </div>
+      <img class="shot" style="margin-top:16px" src="huishots/control-conversion.png" alt="The command playground explaining what a command will do" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section id="network" class="amber">
+  <div class="wrap split">
+    <div class="copy reveal">
+      <div class="eyebrow">Internet watch</div>
+      <h2 style="margin-top:12px">Not just "no internet". Where, and what to press.</h2>
+      <p>A probe ladder checks the adapter, the IP address, the router, DNS and the open internet, so the dialog can say exactly which one broke. It stays on top until the line is back.</p>
+      <ul class="points">
+        <li>One press for <span class="mono">ipconfig</span> release, renew and DNS flush.</li>
+        <li>Switch DNS to Google, Cloudflare, Quad9, OpenDNS or your own saved profile.</li>
+        <li>Spots captive portals and opens the sign-in page.</li>
+      </ul>
+    </div>
+    <img class="shot reveal" src="huishots/offline-dialog.png" alt="The internet lost dialog showing a DNS failure, details and fixes" loading="lazy">
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="reveal" style="max-width:640px">
+      <div class="eyebrow">And the rest</div>
+      <h2 style="margin-top:12px">Small things that add up.</h2>
+    </div>
+    <div class="grid3">
+      <div class="card reveal"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7CF2C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg></div><h3>File tools</h3><p>Move, copy, delete to the Recycle Bin, batch Base64 and password encryption with AES-256-GCM.</p></div>
+      <div class="card reveal"><div class="ico" style="background:#1E1A2C"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B9A2FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9h4M8 7v4M15 10h.01M18 8h.01M5 5h14a3 3 0 0 1 3 3l-1 8a3 3 0 0 1-5 1.5L14 16h-4l-2 1.5A3 3 0 0 1 3 16L2 8a3 3 0 0 1 3-3z"/></svg></div><h3>Game mode</h3><p>On by default. Roblox, Minecraft, League and fullscreen apps keep the screen; popups wait.</p></div>
+      <div class="card reveal"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7CF2C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></div><h3>Docker aware</h3><p>Copy a compose file or Dockerfile and get up, down, pull, logs or build, each explained first.</p></div>
+      <div class="card reveal"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7CF2C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg></div><h3>Control centre</h3><p>Live latency, outage history, an activity feed, clipboard history and every setting in one place.</p></div>
+      <div class="card reveal"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7CF2C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg></div><h3>Runs like a service</h3><p>Starts at sign-in, restarts itself after a crash, optional elevated mode, uninstall from the tray.</p></div>
+      <div class="card reveal"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7CF2C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10v4H7zM4 5h16v16H4z"/></svg></div><h3>Private by design</h3><p>History stays in memory. Password manager copies are skipped. No accounts, no telemetry.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="gallery">
+  <div class="wrap">
+    <div class="reveal" style="max-width:680px">
+      <div class="eyebrow">Screenshots</div>
+      <h2 style="margin-top:12px">Rendered from the real app on every release.</h2>
+      <p class="mute" style="margin-top:14px">The build runs the app in a screenshot mode on a Windows machine, so these always match the current version.</p>
+    </div>
+    <div class="gallery" id="gallery-grid"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:block">
+    <div class="cta-band reveal">
+      <div>
+        <h2 style="font-size:32px">Give it a minute in your tray.</h2>
+        <p class="mute" style="margin-top:8px">Run the exe once. Right-click the tray icon to uninstall any time.</p>
+      </div>
+      <a class="btn primary" href="https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/latest/download/MonitoringTools.exe">Download for Windows</a>
+    </div>
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-top:32px" class="mute">
+      <span>Monitoring Tools · Ding-Ding-Projects</span>
+      <span><a href="https://github.com/Ding-Ding-Projects/Monitoring-tools">GitHub</a> · <a href="https://github.com/Ding-Ding-Projects/Monitoring-tools/releases">Releases</a></span>
+    </div>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Screenshot"><img alt=""></div>
+
+<script>
+(function () {
+  // reveal on scroll
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) {
+    es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 }) : null;
+  function watch(el) { if (io) io.observe(el); else el.classList.add('in'); }
+  document.querySelectorAll('.reveal').forEach(watch);
+
+  // gallery from the screenshot index written by the build
+  var grid = document.getElementById('gallery-grid');
+  var box = document.getElementById('lightbox');
+  var boxImg = box.querySelector('img');
+  box.addEventListener('click', function () { box.classList.remove('open'); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') box.classList.remove('open'); });
+  fetch('huishots/index.json').then(function (r) { return r.ok ? r.json() : []; }).then(function (list) {
+    list.forEach(function (s) {
+      var f = document.createElement('figure');
+      f.className = 'reveal';
+      var img = document.createElement('img');
+      img.src = 'huishots/' + s.file; img.alt = s.caption; img.loading = 'lazy';
+      var cap = document.createElement('figcaption'); cap.textContent = s.caption;
+      f.appendChild(img); f.appendChild(cap);
+      f.addEventListener('click', function () { boxImg.src = img.src; boxImg.alt = s.caption; box.classList.add('open'); });
+      grid.appendChild(f); watch(f);
+    });
+  }).catch(function () {});
+
+  // latest version label
+  fetch('https://api.github.com/repos/Ding-Ding-Projects/Monitoring-tools/releases/latest')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) { if (j && j.tag_name) document.getElementById('version').textContent = 'Latest ' + j.tag_name + ' · single exe · installs per user · no admin needed'; })
+    .catch(function () {});
+})();
+</script>
+</body>
+</html>

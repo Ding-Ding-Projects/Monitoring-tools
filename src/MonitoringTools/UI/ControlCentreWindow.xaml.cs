@@ -8,6 +8,9 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using Line = System.Windows.Shapes.Line;
+using Polyline = System.Windows.Shapes.Polyline;
+using Rectangle = System.Windows.Shapes.Rectangle;
 using MonitoringTools.Clip;
 using MonitoringTools.Core;
 using MonitoringTools.Media;
@@ -19,6 +22,7 @@ namespace MonitoringTools.UI
         private readonly (string Id, string Label, string Icon)[] _sections =
         {
             ("overview", "Overview", Icons.Pulse),
+            ("activity", "Activity", Icons.Lines),
             ("history", "Clipboard history", Icons.Clipboard),
             ("clipboard", "Clipboard", Icons.Text),
             ("shortcuts", "Shortcuts and scripts", Icons.Code),
@@ -26,6 +30,7 @@ namespace MonitoringTools.UI
             ("game", "Game mode", Icons.Game),
             ("conversion", "Conversion", Icons.Bolt),
             ("service", "Service", Icons.Shield),
+            ("about", "About and updates", Icons.Globe),
         };
         private string _current;
         private Shortcut _editing;
@@ -49,6 +54,8 @@ namespace MonitoringTools.UI
                 Ui.Rise(b, 60 + i++ * 35, 8);
             }
             App.History.Updated += () => { if (_current == "history" || _current == "overview") Navigate(_current, animate: false); };
+            Activity.Changed += () => { if (_current == "activity" || _current == "overview") Navigate(_current, animate: false); };
+            App.Net.Sampled += () => { if (_current == "overview" && IsActive) Navigate(_current, animate: false); };
             Loaded += (s, e) => Navigate("overview");
             RefreshStatus();
         }
@@ -79,6 +86,8 @@ namespace MonitoringTools.UI
                 "game" => GamePage(),
                 "conversion" => ConversionPage(),
                 "service" => ServicePage(),
+                "activity" => ActivityPage(),
+                "about" => AboutPage(),
                 _ => OverviewPage(),
             };
             Page.Content = page;
@@ -204,6 +213,13 @@ namespace MonitoringTools.UI
             root.Children.Add(tiles);
 
             // quick command cheat sheet
+            root.Children.Add(LiveCard());
+
+            var lists = new UniformGrid { Columns = 2, Margin = new Thickness(0, 0, -14, 0) };
+            lists.Children.Add(Wrap(OutagesCard(4)));
+            lists.Children.Add(Wrap(ActivityCard(5, null, "Latest activity")));
+            root.Children.Add(lists);
+
             var cheat = new StackPanel();
             cheat.Children.Add(CardTitle("Quick commands", "Copy a path with a command on the end. The command runs the moment it lands on the clipboard."));
             var g = new WrapPanel();
@@ -628,6 +644,7 @@ namespace MonitoringTools.UI
         {
             var s = Settings.Current;
             var root = PageRoot("Conversion", "Quick conversion", "Copy a file path, add :format on the end, and the converted file appears next to it with the same name.");
+            root.Children.Add(Playground());
             var ff = Converter.FindFfmpeg();
             var a = new StackPanel();
             a.Children.Add(CardTitle("FFmpeg", ff == null ? "Not found. Video and audio conversion needs it." : ff));
@@ -725,6 +742,331 @@ namespace MonitoringTools.UI
             }, "Btn.Danger", Icons.Trash));
             root.Children.Add(Card(u, "#FF4A2525"));
             return root;
+        }
+
+        // -------------------------------------------------------------- live data cards
+
+        private static FrameworkElement Wrap(FrameworkElement card)
+        {
+            card.Margin = new Thickness(0, 0, 14, 14);
+            return card;
+        }
+
+        private FrameworkElement LiveCard()
+        {
+            var net = App.Net;
+            List<(DateTime At, long Gateway, long Dns, bool Online)> samples;
+            lock (net.Samples) samples = net.Samples.ToList();
+            var up = DateTime.Now - net.StartedAt;
+            var gws = samples.Where(x => x.Gateway >= 0).Select(x => x.Gateway).ToList();
+            var dnss = samples.Where(x => x.Dns >= 0).Select(x => x.Dns).ToList();
+
+            var sp = new StackPanel();
+            var head = new Grid();
+            head.Children.Add(CardTitle("Live", "Every probe of the last few minutes. Gaps are failed checks."));
+            var legend = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top };
+            legend.Children.Add(Dot(Ui.Res("B.Mint"))); legend.Children.Add(Ui.Mono("gateway", Ui.Res("B.TextMute"), 11));
+            legend.Children.Add(new Border { Width = 14 });
+            legend.Children.Add(Dot(new SolidColorBrush(Color.FromRgb(0x8A, 0xB4, 0xFF)))); legend.Children.Add(Ui.Mono("dns", Ui.Res("B.TextMute"), 11));
+            head.Children.Add(legend);
+            sp.Children.Add(head);
+
+            var stats = new UniformGrid { Columns = 5, Margin = new Thickness(0, 0, 0, 14) };
+            stats.Children.Add(Stat("Uptime", up.TotalHours >= 1 ? $"{(int)up.TotalHours} h {up.Minutes} m" : $"{up.Minutes} m {up.Seconds:00} s"));
+            stats.Children.Add(Stat("Probes", net.ProbeCount > 0 ? net.ProbeCount.ToString("N0") : samples.Count.ToString("N0")));
+            stats.Children.Add(Stat("Copies today", App.History.Today.ToString("N0")));
+            stats.Children.Add(Stat("Gateway avg", gws.Count > 0 ? $"{gws.Average():0} ms" : "–"));
+            stats.Children.Add(Stat("DNS avg", dnss.Count > 0 ? $"{dnss.Average():0} ms" : "–"));
+            sp.Children.Add(stats);
+            sp.Children.Add(Chart(samples));
+            return Card(sp);
+        }
+
+        private static FrameworkElement Dot(Brush b) => new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = b, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center };
+
+        private static FrameworkElement Stat(string label, string value)
+        {
+            var sp = new StackPanel();
+            sp.Children.Add(new TextBlock { Text = label, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
+            sp.Children.Add(new TextBlock { Text = value, Style = Ui.Style("T.Title"), FontSize = 18, Margin = new Thickness(0, 4, 0, 0) });
+            return sp;
+        }
+
+        /// <summary>Latency sparkline: drawn on a fixed 600×96 canvas and stretched to the card's width.</summary>
+        private static FrameworkElement Chart(List<(DateTime At, long Gateway, long Dns, bool Online)> samples)
+        {
+            const double W = 600, H = 96;
+            var canvas = new Canvas { Width = W, Height = H };
+            for (int i = 1; i <= 3; i++)
+                canvas.Children.Add(new Line { X1 = 0, X2 = W, Y1 = H * i / 4, Y2 = H * i / 4, Stroke = Ui.Res("B.Line"), StrokeThickness = 1, StrokeDashArray = new DoubleCollection { 2, 4 } });
+
+            if (samples.Count < 2)
+            {
+                var wait = Ui.Mono("collecting the first probes…", Ui.Res("B.TextMute"), 11);
+                Canvas.SetLeft(wait, 8); Canvas.SetTop(wait, H / 2 - 8);
+                canvas.Children.Add(wait);
+            }
+            else
+            {
+                long max = Math.Max(10, samples.Select(x => Math.Max(x.Gateway, x.Dns)).Max());
+                double step = W / Math.Max(1, samples.Count - 1);
+                for (int i = 0; i < samples.Count; i++)
+                    if (!samples[i].Online)
+                    {
+                        var r = new Rectangle { Width = Math.Max(step, 3), Height = H, Fill = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xB5, 0x47)) };
+                        Canvas.SetLeft(r, i * step - step / 2);
+                        canvas.Children.Add(r);
+                    }
+                void Series(Func<(DateTime At, long Gateway, long Dns, bool Online), long> pick, Brush stroke, double thick)
+                {
+                    PointCollection pts = null;
+                    for (int i = 0; i < samples.Count; i++)
+                    {
+                        var v = pick(samples[i]);
+                        if (v < 0)
+                        {
+                            if (pts != null && pts.Count > 1) canvas.Children.Add(new Polyline { Points = pts, Stroke = stroke, StrokeThickness = thick, StrokeLineJoin = PenLineJoin.Round });
+                            pts = null; continue;
+                        }
+                        pts ??= new PointCollection();
+                        pts.Add(new Point(i * step, H - 6 - (H - 12) * Math.Min(1, v / (double)max)));
+                    }
+                    if (pts != null && pts.Count > 1) canvas.Children.Add(new Polyline { Points = pts, Stroke = stroke, StrokeThickness = thick, StrokeLineJoin = PenLineJoin.Round });
+                }
+                Series(x => x.Dns, new SolidColorBrush(Color.FromRgb(0x8A, 0xB4, 0xFF)), 1.6);
+                Series(x => x.Gateway, Ui.Res("B.Mint"), 2.2);
+                var top = Ui.Mono($"{max} ms", Ui.Res("B.TextMute"), 10);
+                Canvas.SetLeft(top, W - 44); Canvas.SetTop(top, 2);
+                canvas.Children.Add(top);
+            }
+            return new Border
+            {
+                Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(10), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1),
+                Child = new Viewbox { Stretch = Stretch.Fill, Height = 110, Child = canvas }
+            };
+        }
+
+        private static FrameworkElement OutagesCard(int n)
+        {
+            var sp = new StackPanel();
+            var list = Activity.RecentOutages(n);
+            sp.Children.Add(CardTitle("Outages", list.Count == 0 ? "None since the service started. Nice and quiet." : null));
+            foreach (var o in list)
+            {
+                var g = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                g.ColumnDefinitions.Add(new ColumnDefinition());
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                g.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 6, 12, 0), VerticalAlignment = VerticalAlignment.Top, Background = Ui.Res(o.End == null ? "B.Amber" : "B.TextMute") });
+                var mid = new StackPanel();
+                mid.Children.Add(new TextBlock { Text = o.Cause ?? "Connection lost", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
+                mid.Children.Add(Ui.Mono($"{o.Start:ddd HH:mm}{(o.End == null ? " · ongoing" : "")}", Ui.Res("B.TextMute"), 11));
+                Grid.SetColumn(mid, 1); g.Children.Add(mid);
+                var len = Ui.Mono(o.Length.TotalHours >= 1 ? $"{(int)o.Length.TotalHours} h {o.Length.Minutes} m" : $"{(int)o.Length.TotalMinutes} m {o.Length.Seconds:00} s", Ui.Res(o.End == null ? "B.Amber" : "B.TextSoft"));
+                Grid.SetColumn(len, 2); g.Children.Add(len);
+                sp.Children.Add(g);
+            }
+            return Card(sp);
+        }
+
+        private static string KindIcon(ActivityKind k) => k switch
+        {
+            ActivityKind.Convert => Icons.Bolt, ActivityKind.Push => Icons.Git, ActivityKind.Shortcut => Icons.Code,
+            ActivityKind.Files => Icons.File, ActivityKind.Network => Icons.Wifi, ActivityKind.Docker => Icons.Box, _ => Icons.Shield
+        };
+
+        private static FrameworkElement ActivityRow(ActivityEntry e)
+        {
+            var g = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            g.ColumnDefinitions.Add(new ColumnDefinition());
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var accent = e.Ok ? Ui.Res("B.Mint") : Ui.Res("B.Amber");
+            var wash = e.Ok ? Ui.Res("B.MintWash") : Ui.Res("B.AmberWash");
+            g.Children.Add(Ui.IconChip(KindIcon(e.Kind), accent, wash, 28, 14));
+            var mid = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
+            mid.Children.Add(new TextBlock { Text = e.Title, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
+            if (!string.IsNullOrWhiteSpace(e.Detail)) mid.Children.Add(new TextBlock { Text = e.Detail, Style = Ui.Style("T.Mono"), FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis });
+            Grid.SetColumn(mid, 1); g.Children.Add(mid);
+            var when = Ui.Mono(Ago(e.At), Ui.Res("B.TextMute"), 11);
+            when.VerticalAlignment = VerticalAlignment.Center;
+            Grid.SetColumn(when, 2); g.Children.Add(when);
+            return g;
+        }
+
+        private static string Ago(DateTime t)
+        {
+            var d = DateTime.Now - t;
+            if (d.TotalSeconds < 60) return "now";
+            if (d.TotalMinutes < 60) return $"{(int)d.TotalMinutes} m ago";
+            if (d.TotalHours < 24) return $"{(int)d.TotalHours} h ago";
+            return t.ToString("MMM d");
+        }
+
+        private static FrameworkElement ActivityCard(int n, ActivityKind? kind, string title)
+        {
+            var sp = new StackPanel();
+            var list = Activity.Recent(n, kind);
+            sp.Children.Add(CardTitle(title, list.Count == 0 ? "Conversions, pushes, shortcuts, file jobs and outages show up here." : null));
+            foreach (var e in list) sp.Children.Add(ActivityRow(e));
+            return Card(sp);
+        }
+
+        private ActivityKind? _activityFilter;
+
+        private FrameworkElement ActivityPage()
+        {
+            var root = PageRoot("Activity", "What it has been doing", "Kept in memory while the service runs. The log folder keeps the full record.");
+            var chips = new WrapPanel { Margin = new Thickness(0, 0, 0, 14) };
+            void Chip(string label, ActivityKind? k)
+            {
+                var b = Ui.Button(label, () => { _activityFilter = k; Navigate("activity", animate: false); }, "Btn.Chip");
+                bool on = _activityFilter == k;
+                b.Background = on ? Ui.Res("B.Mint") : Ui.Res("B.Raised");
+                b.Foreground = on ? Ui.Res("B.MintInk") : Ui.Res("B.TextSoft");
+                b.BorderBrush = on ? Ui.Res("B.Mint") : Ui.Res("B.LineStrong");
+                chips.Children.Add(b);
+            }
+            Chip("All", null);
+            Chip("Conversions", ActivityKind.Convert);
+            Chip("Pushes", ActivityKind.Push);
+            Chip("Shortcuts", ActivityKind.Shortcut);
+            Chip("Files", ActivityKind.Files);
+            Chip("Network", ActivityKind.Network);
+            Chip("Docker", ActivityKind.Docker);
+            root.Children.Add(chips);
+            root.Children.Add(ActivityCard(100, _activityFilter, _activityFilter == null ? "Everything" : _activityFilter.ToString()));
+            root.Children.Add(Ui.Button("Open log folder", () => ActionProvider.Shell(Log.Folder), "Btn.Ghost", Icons.Lines));
+            return root;
+        }
+
+        // -------------------------------------------------------------- command playground
+
+        private string _playText = @"D:\Footage\clip.mov:mp4";
+
+        private FrameworkElement Playground()
+        {
+            var sp = new StackPanel();
+            sp.Children.Add(CardTitle("Try a command", "Type what you would copy. It shows what will happen before anything runs."));
+            var row = new Grid();
+            row.ColumnDefinitions.Add(new ColumnDefinition());
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var box = Input(_playText);
+            box.FontSize = 13; box.Height = 40;
+            row.Children.Add(box);
+            var run = Ui.Button("Run it", null, "Btn.Accent", Icons.Play);
+            run.Height = 40; run.Margin = new Thickness(0, 0, 0, 8);
+            Grid.SetColumn(run, 1);
+            row.Children.Add(run);
+            sp.Children.Add(row);
+            var explain = new TextBlock { Style = Ui.Style("T.Body"), Margin = new Thickness(0, 4, 0, 0) };
+            sp.Children.Add(explain);
+
+            void Explain()
+            {
+                _playText = box.Text;
+                var t = box.Text.Trim();
+                var c = ClipItem.TryCommand(t);
+                run.IsEnabled = c != null;
+                explain.Foreground = Ui.Res(c != null ? "B.Mint" : "B.TextMute");
+                if (c == null)
+                {
+                    explain.Text = t.LastIndexOf(':') > 2
+                        ? "Not runnable yet: the path before the colon does not exist, or the word after it is not a format, :push or one of your shortcuts."
+                        : "Format: a path, a colon, then a format such as mp4, gif, mp3 or webp. Also :push and your own :shortcuts.";
+                    return;
+                }
+                switch (c.Kind)
+                {
+                    case CommandKind.Convert when Directory.Exists(c.SourcePath):
+                        var n = Converter.CompatibleIn(c.SourcePath, c.Format).Count;
+                        explain.Text = $"Converts {n} file{(n == 1 ? "" : "s")} in {Path.GetFileName(c.SourcePath.TrimEnd('\\'))} to {Formats.Find(c.Format).Label}, saved next to the originals.";
+                        break;
+                    case CommandKind.Convert:
+                        explain.Text = $"Converts to {Formats.Find(c.Format).Label} → {Converter.OutputPathFor(c.SourcePath, Formats.Find(c.Format))}";
+                        break;
+                    case CommandKind.Push:
+                        var repo = GitPush.FindRepoRoot(c.SourcePath);
+                        explain.Text = repo == null ? "Not inside a git repository." :
+                            $"Stages everything in {Path.GetFileName(repo)}, commits as \"{GitPush.Expand(Settings.Current.CommitTemplate.Length > 0 ? Settings.Current.CommitTemplate : GitPush.SuggestedTemplate, repo, "current branch", 0)}\" and pushes.";
+                        break;
+                    case CommandKind.Custom:
+                        var sc = Shortcuts.Find(c.Format);
+                        explain.Text = $"Runs :{sc.Name} ({sc.Shell}) with \"{c.SourcePath}\" as its input.";
+                        break;
+                }
+            }
+            box.TextChanged += (s, e) => Explain();
+            run.Click += (s, e) => { var c = ClipItem.TryCommand(box.Text.Trim()); if (c != null) App.RunCommand(c); };
+            Explain();
+            return Card(sp, "#FF2B4A3F");
+        }
+
+        // -------------------------------------------------------------- about and updates
+
+        private string _updateText;
+
+        private FrameworkElement AboutPage()
+        {
+            var version = typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+            var root = PageRoot("About", "Monitoring Tools " + version, "Clipboard toasts, internet watch and quick commands for Windows.");
+            var a = new StackPanel();
+            a.Children.Add(CardTitle("Updates", _updateText ?? "Every change to the project ships as a new release on GitHub."));
+            var row = new WrapPanel();
+            row.Children.Add(Ui.Button("Check for updates", async () =>
+            {
+                _updateText = "Checking…";
+                Navigate("about", animate: false);
+                _updateText = await CheckUpdates(version);
+                Navigate("about", animate: false);
+            }, "Btn.Accent", Icons.Restart));
+            row.Children.Add(Ui.Button("Release notes", () => Markdown.Open("https://github.com/Ding-Ding-Projects/Monitoring-tools/releases"), "Btn.Ghost", Icons.Globe));
+            row.Children.Add(Ui.Button("Project page", () => Markdown.Open("https://ding-ding-projects.github.io/Monitoring-tools/"), "Btn.Ghost", Icons.Link));
+            a.Children.Add(row);
+            root.Children.Add(Card(a));
+
+            var p = new StackPanel();
+            p.Children.Add(CardTitle("Where things live"));
+            void Line(string k, string v, Action open)
+            {
+                var g = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
+                g.ColumnDefinitions.Add(new ColumnDefinition());
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                g.Children.Add(new TextBlock { Text = k, Foreground = Ui.Res("B.TextMute"), FontSize = 13, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
+                var t = Ui.Mono(v, Ui.Res("B.TextSoft")); t.VerticalAlignment = VerticalAlignment.Center;
+                Grid.SetColumn(t, 1); g.Children.Add(t);
+                var b = Ui.Button("Open", open); b.Margin = new Thickness(8, 0, 0, 0);
+                Grid.SetColumn(b, 2); g.Children.Add(b);
+                p.Children.Add(g);
+            }
+            Line("Program", ServiceHost.ServiceExe, () => ActionProvider.Reveal(ServiceHost.ServiceExe));
+            Line("Settings", Path.Combine(Settings.DataDir, "settings.json"), () => ActionProvider.Reveal(Path.Combine(Settings.DataDir, "settings.json")));
+            Line("Scripts", Shortcuts.Folder, () => ActionProvider.Shell(Shortcuts.Folder));
+            Line("Logs", Log.Folder, () => ActionProvider.Shell(Log.Folder));
+            Line("Saved media", Settings.Current.ResolvedMediaFolder, () => ActionProvider.Shell(Settings.Current.ResolvedMediaFolder));
+            root.Children.Add(Card(p));
+
+            var priv = new StackPanel();
+            priv.Children.Add(CardTitle("Privacy", "Clipboard history stays in memory and is gone when the service stops. Copies that password managers mark private are skipped. The only network calls are the connectivity probes and this update check."));
+            root.Children.Add(Card(priv));
+            return root;
+        }
+
+        private static async System.Threading.Tasks.Task<string> CheckUpdates(string current)
+        {
+            try
+            {
+                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+                http.DefaultRequestHeaders.UserAgent.ParseAdd("MonitoringTools/" + current);
+                var json = await http.GetStringAsync("https://api.github.com/repos/Ding-Ding-Projects/Monitoring-tools/releases/latest");
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var tag = doc.RootElement.GetProperty("tag_name").GetString()?.TrimStart('v') ?? "";
+                if (Version.TryParse(tag, out var latest) && Version.TryParse(current, out var mine))
+                    return latest > mine ? $"Version {latest} is out. You have {mine}. Grab it from Release notes." : $"You are up to date ({mine}).";
+                return "Could not read the latest version.";
+            }
+            catch (Exception ex) { return "Update check failed: " + ex.Message; }
         }
 
         // -------------------------------------------------------------- chrome

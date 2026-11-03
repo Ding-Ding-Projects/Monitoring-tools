@@ -11,6 +11,9 @@ using System.Windows.Media.Imaging;
 using MonitoringTools.Clip;
 using MonitoringTools.Core;
 
+using Activity = MonitoringTools.Core.Activity;
+using ActivityKind = MonitoringTools.Core.ActivityKind;
+
 namespace MonitoringTools.Media
 {
     public sealed class ConversionJob
@@ -374,7 +377,9 @@ namespace MonitoringTools.Media
                 if (job.Source.StartsWith(Path.GetTempPath(), StringComparison.OrdinalIgnoreCase))
                     try { File.Delete(job.Source); } catch { }
             }
-            Log.Info(job.Failed ? $"Conversion failed: {error}" : $"Converted to {job.Output}");
+            Activity.Add(ActivityKind.Convert,
+                job.Failed ? $"{Path.GetFileName(job.Source)} to {job.Format.Label} failed" : $"{Path.GetFileName(job.Source)} → {Path.GetFileName(job.Output)}",
+                job.Failed ? error : $"{UI.Ui.Bytes(job.SourceBytes)} → {UI.Ui.Bytes(job.OutputBytes)}", !job.Failed);
             job.Raise();
         }
     }

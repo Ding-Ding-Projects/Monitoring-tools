@@ -22,6 +22,8 @@ namespace MonitoringTools
         public static ClipHistory History { get; } = new ClipHistory();
         public static DateTime SnoozeUntil { get; set; } = DateTime.MinValue;
         public static bool IsSnoozed => DateTime.Now < SnoozeUntil;
+        /// <summary>Set by "--screenshots DIR": render every surface with sample data and exit.</summary>
+        public static string ScreenshotDir { get; set; }
 
         private OfflineWindow _offline;
         private bool _offlineDeferred;
@@ -39,13 +41,21 @@ namespace MonitoringTools
             AppDomain.CurrentDomain.UnhandledException += (s, ex) => Log.Error("Unhandled", ex.ExceptionObject as Exception);
 
             Settings.Load();
-            Log.Info($"Agent starting (elevated: {ServiceHost.IsElevated})");
-
             Games = new GameDetector();
             Toasts = new ToastManager();
             Tray = new TrayIcon();
-            Clip = new ClipboardWatcher();
             Net = new NetworkMonitor();
+
+            if (ScreenshotDir != null)
+            {
+                // No watchers, no install, no saved settings: just render and leave.
+                Settings.Current.GameModeEnabled = false;
+                Dispatcher.BeginInvoke(new Action(async () => await Huishots.RunAsync(ScreenshotDir)), DispatcherPriority.ApplicationIdle);
+                return;
+            }
+
+            Log.Info($"Agent starting (elevated: {ServiceHost.IsElevated})");
+            Clip = new ClipboardWatcher();
 
             Clip.Changed += OnClipboard;
             Net.StateChanged += OnNetworkState;
@@ -67,8 +77,7 @@ namespace MonitoringTools
             if (File.Exists(flag))
             {
                 try { File.Delete(flag); } catch { }
-                Toasts.ShowNotice("Monitoring Tools is running",
-                    "It lives in the tray now. Right-click the icon for the menu, double-click for the control centre.", Toasts.Mint);
+                ShowWelcome();
             }
         }
 
@@ -94,23 +103,27 @@ namespace MonitoringTools
             if (item.Command != null && Settings.Current.QuickCommandsEnabled)
             {
                 // Quick commands always run, even in game mode; only the toast is held back.
-                var c = item.Command;
-                switch (c.Kind)
-                {
-                    case CommandKind.Convert:
-                        if (System.IO.Directory.Exists(c.SourcePath)) Converter.StartBatch(Converter.CompatibleIn(c.SourcePath, c.Format), c.Format, c.SourcePath);
-                        else Converter.Start(c.SourcePath, c.Format);
-                        break;
-                    case CommandKind.Push: Toasts.StartPush(c.SourcePath); break;
-                    case CommandKind.Custom:
-                        var sc = Shortcuts.Find(c.Format);
-                        if (sc != null) Toasts.RunShortcut(sc, c.SourcePath);
-                        break;
-                }
+                RunCommand(item.Command);
                 return;
             }
             if (ShouldSuppress) return;
             Toasts.ShowClip(item);
+        }
+
+        public static void RunCommand(QuickCommand c)
+        {
+            switch (c.Kind)
+            {
+                case CommandKind.Convert:
+                    if (System.IO.Directory.Exists(c.SourcePath)) Converter.StartBatch(Converter.CompatibleIn(c.SourcePath, c.Format), c.Format, c.SourcePath);
+                    else Converter.Start(c.SourcePath, c.Format);
+                    break;
+                case CommandKind.Push: Toasts.StartPush(c.SourcePath); break;
+                case CommandKind.Custom:
+                    var sc = Shortcuts.Find(c.Format);
+                    if (sc != null) Toasts.RunShortcut(sc, c.SourcePath);
+                    break;
+            }
         }
 
         public static bool ShouldSuppress => IsSnoozed || (Settings.Current.GameModeEnabled && Games.IsGaming);
@@ -124,10 +137,12 @@ namespace MonitoringTools
             {
                 _offlineDeferred = false;
                 _dismissedCause = null;
+                Activity.OutageEnded();
                 if (_offline != null) { _offline.ShowRestored(state); _offline = null; }
                 return;
             }
 
+            Activity.OutageStarted(state.Headline);
             if (_offline != null) { _offline.Update(state); return; }
             if (!Settings.Current.NetworkEnabled) return;
             if (_dismissedCause == state.Cause) return; // dismissed: stay quiet until the situation changes
@@ -156,6 +171,8 @@ namespace MonitoringTools
             _centre.Activate();
             if (section != null) _centre.Navigate(section);
         }
+
+        public void ShowWelcome() => new WelcomeWindow().Show();
 
         public static new App Current => (App)Application.Current;
 

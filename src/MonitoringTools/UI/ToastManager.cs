@@ -14,6 +14,9 @@ using MonitoringTools.Clip;
 using MonitoringTools.Core;
 using MonitoringTools.Media;
 
+using Activity = MonitoringTools.Core.Activity;
+using ActivityKind = MonitoringTools.Core.ActivityKind;
+
 namespace MonitoringTools.UI
 {
     public sealed class ToastManager
@@ -60,7 +63,7 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- clipboard toasts
 
-        public void ShowClip(ClipItem item)
+        public ToastWindow ShowClip(ClipItem item)
         {
             var w = new ToastWindow();
             w.SetAccent(Mint, Ui.C("C.MintWash"));
@@ -85,6 +88,7 @@ namespace MonitoringTools.UI
             w.SetActions(ActionProvider.For(item));
             w.StartTimer(Settings.Current.ToastSeconds);
             Present(w);
+            return w;
         }
 
         private static string Counts(string t)
@@ -316,9 +320,9 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- conversion jobs
 
-        public void ShowJob(ConversionJob job)
+        public ToastWindow ShowJob(ConversionJob job)
         {
-            if (App.ShouldSuppress) { Log.Info("Game mode: conversion runs without a toast"); return; }
+            if (App.ShouldSuppress) { Log.Info("Game mode: conversion runs without a toast"); return null; }
 
             var w = new ToastWindow();
             w.SetAccent(Mint, Ui.C("C.MintWash"));
@@ -381,6 +385,7 @@ namespace MonitoringTools.UI
                 });
                 w.StartTimer(8);
             };
+            return w;
         }
 
         private void FfmpegMissing(ToastWindow w, ConversionJob job)
@@ -437,6 +442,8 @@ namespace MonitoringTools.UI
                 try { r = await work(report); }
                 catch (Exception ex) { r = (false, "Failed", ex.Message); }
                 w.TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                Activity.Add(title.StartsWith(":") ? ActivityKind.Shortcut : title.StartsWith("Pre-dew") ? ActivityKind.Push : title.StartsWith("docker") ? ActivityKind.Docker : ActivityKind.Service,
+                    $"{title} · {r.Summary}", ActionProvider.Tail(r.Detail, 1), r.Ok);
                 if (!r.Ok) w.SetAccent(Amber, Ui.C("C.AmberWash"));
                 w.SetHeader(r.Ok ? Icons.Check : Icons.Bolt, r.Summary, subtitle);
                 var body = Ui.Mono(string.IsNullOrWhiteSpace(r.Detail) ? (r.Ok ? "Finished." : "No output.") : ActionProvider.Tail(r.Detail, 6), Ui.Res("B.TextSoft"));
