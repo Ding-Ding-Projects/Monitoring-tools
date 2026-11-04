@@ -271,6 +271,7 @@ namespace MonitoringTools.Core
             S.DisplayName = d.DisplayName;
             S.LogoSource = d.LogoSource;
             S.LogoCustomHex = d.LogoCustomHex;
+            LogoKit.ResetQuiet();
             Settings.Save();
             Apply();
         }

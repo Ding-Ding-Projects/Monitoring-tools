@@ -24,7 +24,7 @@ namespace MonitoringTools.UI
     /// package is a JavaScript library and this app has no web view or package manager to host it. It has seven pens, a partial
     /// eraser, shapes, text, select and move, undo and redo, and PNG, SVG and clipboard output. Drawing never leaves this computer.
     /// </summary>
-    public sealed class DrawingWindow : Window
+    public sealed partial class DrawingWindow : Window
     {
         // -------------------------------------------------------------- entry points
 

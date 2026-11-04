@@ -21,7 +21,7 @@ namespace MonitoringTools.UI
     /// and writes selftest.json with one pass or fail per check. Exit code 0 only when every check passes.
     /// It proves behaviour through the app's own code paths; it does not move the mouse.
     /// </summary>
-    public static class SelfTest
+    public static partial class SelfTest
     {
         private sealed record Result(string Name, bool Pass, string Detail);
         private static readonly List<Result> Results = new List<Result>();
@@ -797,6 +797,8 @@ namespace MonitoringTools.UI
                 }
                 finally { Settings.Current.ApplyCopiedWordingFile = saved; PersonalWording.Clear(); }
             });
+
+            await Wave6ChecksAsync();
 
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");

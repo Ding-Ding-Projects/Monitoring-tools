@@ -68,10 +68,10 @@ namespace MonitoringTools.UI
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && _pageSearch != null) { _pageSearch.Box.Focus(); _pageSearch.Box.SelectAll(); e.Handled = true; }
             };
             Loaded += (s, e) => Navigate(_tabs.StartupTab);
-            void OnLook() { AppName.Text = Appearance.DisplayName; Logo.Stroke = new SolidColorBrush(Appearance.LogoColor); if (_current != null) Navigate(_current, animate: false); }
+            void OnLook() { AppName.Text = Appearance.DisplayName; LogoKit.ApplyToHeader(Logo, Appearance.LogoColor); if (_current != null) Navigate(_current, animate: false); }
             Appearance.Changed += OnLook;
             Closed += (s, e) => Appearance.Changed -= OnLook;
-            Loaded += (s, e) => { AppName.Text = Appearance.DisplayName; Logo.Stroke = new SolidColorBrush(Appearance.LogoColor); };
+            Loaded += (s, e) => { AppName.Text = Appearance.DisplayName; LogoKit.ApplyToHeader(Logo, Appearance.LogoColor); };
             CommandPalette.Attach(this);
             ElementMenu.Attach(this, t =>
             {
@@ -312,12 +312,14 @@ namespace MonitoringTools.UI
         private BulkSelect<ActivityEntry> _activityBulk;
         private BulkSelect<Shortcut> _shortcutBulk;
         private BulkSelect<string> _gameBulk;
+        private BulkSelect<Outage> _outageBulk;
 
         private void InitBulk()
         {
             _activityBulk = new BulkSelect<ActivityEntry>(() => Navigate("activity", animate: false), "entries");
             _shortcutBulk = new BulkSelect<Shortcut>(() => Navigate("shortcuts", animate: false), "shortcuts");
             _gameBulk = new BulkSelect<string>(() => Navigate("game", animate: false), "games", StringComparer.OrdinalIgnoreCase);
+            _outageBulk = new BulkSelect<Outage>(() => Navigate("activity", animate: false), "outages");
         }
 
         // -------------------------------------------------------------- history
@@ -1232,6 +1234,7 @@ namespace MonitoringTools.UI
             Chip("Docker", ActivityKind.Docker);
             root.Children.Add(chips);
             root.Children.Add(ActivityCard(100, _activityFilter, _activityFilter == null ? "Everything" : _activityFilter.ToString(), _activityBulk));
+            root.Children.Add(OutagesBulkCard());
             root.Children.Add(Ui.Button("Open log folder", () => ActionProvider.Shell(Log.Folder), "Btn.Ghost", Icons.Lines));
             return root;
         }

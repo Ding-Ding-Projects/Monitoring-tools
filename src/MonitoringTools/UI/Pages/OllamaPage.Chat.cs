@@ -222,7 +222,17 @@ namespace MonitoringTools.UI
             deleteProfile.ToolTip = "Deletes the saved profile whose name is in the box (asks first).";
             var profRow = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
             profRow.Children.Add(profileName); profRow.Children.Add(saveProfile); profRow.Children.Add(deleteProfile);
+            var guideHost = new ContentControl { IsTabStop = false };
+            profRow.Children.Add(Ui.Button("New profile, step by step", () =>
+            {
+                guideHost.Content = OllamaProfileGuide(profiles, p =>
+                {
+                    guideHost.Content = null; session.Profile = p.Name; Settings.Current.OllamaLastProfile = p.Name; Settings.Save();
+                    profNote.Text = "Saved profile “" + p.Name + "”."; profNote.Foreground = Ui.Res("B.Mint"); paintProfiles();
+                }, () => guideHost.Content = null);
+            }, "Btn.Accent", Icons.Wand));
             box.Children.Add(profRow);
+            box.Children.Add(guideHost);
             box.Children.Add(profNote);
             paintProfiles();
 

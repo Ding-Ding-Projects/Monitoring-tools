@@ -22,13 +22,17 @@ The count is announced politely to screen readers, every checkbox is named after
 | Game mode, watched games | Remove selected |
 | Regex builder, Library tab | Export selected (same file format as Export JSON), Delete selected |
 | Local AI models, installed models | Delete selected |
+| Settings history | Copy, Export as JSON, Delete (the newest snapshot is the current state and is never selectable) |
+| Changelog | Copy notes, Export as Markdown (releases come from GitHub, so nothing is deleted) |
+| Outages (Activity page) | Copy, Export as text, Remove (an ongoing outage is kept) |
+| Schedule rules | Enable, Disable, Delete |
 
 ## Notes and limits
 
 - Selection is kept while the list refreshes, matched by the item itself (models by name), and an item that disappears is dropped from the choice.
 - The regex Library has no search of its own, so "all shown" there means every saved pattern. Because that builder is a pop-up that closes when another window takes focus, the Library may have closed by the time a confirmation finishes; the change is still made.
 - Deleting models runs one after another and stops at the first failure, saying how many were deleted.
-- Not done: bulk actions on the settings history list, the changelog or outage lists, which have no per-item actions.
+- Lists with no bulk actions on purpose: the overview page's four-item outage summary (the full list is on Activity), and single-item panels such as lock records, which are managed one at a time behind their own credentials. The regex Library still has no search of its own.
 
 ## For developers
 

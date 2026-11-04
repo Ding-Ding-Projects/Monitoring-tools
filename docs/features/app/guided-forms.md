@@ -13,9 +13,12 @@ A guided form shows one step at a time with a progress indicator, Back, Next and
 | New shortcut | Shortcuts and scripts | Name, shell, template (existing) |
 | Add a DNS profile | Network and DNS | Name, servers (IPv4 format checked as you type), review. After saving it offers **Use now** or **Not now** |
 | New Minecraft server | Minecraft servers | Name and version, where it runs, memory and port, review with the EULA |
+| Add a schedule rule | Modes, Scheduled settings | What to change, days and times, optional dates, review. Uses the same check as the single form |
+| Make a look | Appearance | Theme, seed colour, contrast, density and text size, then a review of what changes |
+| New chat profile | Local AI models, Chat | Name and instructions, optional parameters, review. Uses the same checks as Save as profile |
 
 The Minecraft form keeps its draft and current step if the page redraws, shows creation progress under the last step, and Cancel discards the draft.
 
 ## Not done
 
-Other editors (Appearance edits, Ollama chat profiles, the schedule rule form) are still single forms with inline validation.
+The single forms for schedule rules and chat profiles remain beside the guided ones. Per-element appearance edits (the element editor window) are still one form.

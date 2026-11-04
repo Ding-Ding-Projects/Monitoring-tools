@@ -18,7 +18,7 @@ namespace MonitoringTools.UI
     /// writes an index.json, then exits. CI runs this on a Windows runner after the build.
     /// Nothing is installed and settings are never saved.
     /// </summary>
-    public static class ScreenshotRunner
+    public static partial class ScreenshotRunner
     {
         private static string _dir;
         private static readonly List<object> Index = new List<object>();
@@ -117,6 +117,7 @@ namespace MonitoringTools.UI
                 await SearchScenes(cc);
                 await LookScenes(cc);
                 await ScaleScenes(cc);
+                await Wave6Scenes(cc);
                 cc.Close();
 
                 var gate = new ConfirmWindow("Uninstall Monitoring Tools?", "This stops the background service, removes it from start-up and deletes the program.", "Uninstall", danger: true);
