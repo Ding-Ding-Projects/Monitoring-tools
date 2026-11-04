@@ -4,11 +4,21 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
-## Unreleased
+## 1.0.20 (2026-11-04)
 
-Commits after v1.0.19, up to `c0bbcd8`.
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.20)
 
+- Read remote server.properties with tail instead of cat ([`43b8468`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/43b8468319162a753ad967c20c44438df5572fac))
+- Finish the typed number fields and fix four checks they broke ([`8cef2e5`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8cef2e50d8f5a95bc4959849c7aabd2f983d6a3c))
+- Start the Minecraft schedule runner with the background app ([`714906b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/714906b223a140b3f06948e3044b03707a9238af))
+- Document the server manager and run a real server in the live check ([`213a14e`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/213a14ef65f3fd3cbe615c1b3e54721a41b1441d))
+- Record v1.0.19 figures and changelog ([`86aad2f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/86aad2f204bfac01bb2f87250495e7760503db43))
 - Refresh screenshots for v1.0.19 ([`c0bbcd8`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c0bbcd8218651457266de5716ac1a1e9cded169f))
+- Translate the server manager and walk it in the audits ([`15a25d6`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/15a25d6cc3e72673c8fc45f7df1513be7380df67))
+- Remake the Minecraft page as a server manager ([`b230978`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b230978581d9a7e21716ade7595c85620aece73f))
+- Add the Minecraft server manager backend ([`956c6b9`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/956c6b9a20b37106f46e9470a892330ad0868c3a))
+- Work in progress: typed number fields instead of preset choices ([`3819525`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/38195251ae0a15566cce9624dd3905f04b932fa6))
+- Add the design for the Minecraft server manager remake ([`1c8d70e`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/1c8d70e63ddd8fa760850bf5c0fe0f41b3005ae5))
 
 ## 1.0.19 (2026-11-04)
 
