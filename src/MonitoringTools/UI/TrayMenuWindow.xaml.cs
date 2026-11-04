@@ -23,6 +23,7 @@ namespace MonitoringTools.UI
             KeyDown += (s, e) => { if (e.Key == System.Windows.Input.Key.Escape && _search?.BuilderOpen != true) CloseAnimated(); };
             Build();
             Search.SearchScope.Attach(Rows, _search, "menu items");
+            ElementMenu.Attach(this);
         }
 
         // -------------------------------------------------------------- rows

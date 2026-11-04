@@ -2,235 +2,429 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Clipboard history search</title>
+<title>Monitoring Tools · Material 3 Expressive</title>
 <script src="./support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#08090C}
-a{color:#7CF2C2}a:hover{color:#B5F8DC}
-input::placeholder{color:#9AA1AD}
-button{font:inherit}
+body{margin:0;background:#0A0F0D}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+input{font:inherit;color:inherit}
+a{color:var(--primary)}a:hover{color:var(--on-primary-container)}
+.ms{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;direction:ltr;-webkit-font-smoothing:antialiased;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24}
+.ms.fill{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
+.app{--ease:cubic-bezier(.2,0,0,1);--ease-dec:cubic-bezier(.05,.7,.1,1);--ease-acc:cubic-bezier(.3,0,.8,.15);--spring:cubic-bezier(.34,1.56,.64,1);font-family:'Roboto Flex','Segoe UI Variable Text',system-ui,sans-serif;transition:background-color .5s var(--ease),color .5s var(--ease)}
+.app.reduced *,.app.reduced *::before{animation-duration:1ms!important;transition-duration:1ms!important}
+.state{position:relative;overflow:hidden;isolation:isolate}
+.state::before{content:"";position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .2s var(--ease);z-index:-1;pointer-events:none}
+.state:hover::before{opacity:.08}.state:active::before{opacity:.12}
+.state:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.rail-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:80px;padding:0 0 4px;font-size:12px;font-weight:500;letter-spacing:.5px;color:var(--on-surface-variant)}
+.rail-pill{width:56px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center;transition:background-color .3s var(--ease),width .45s var(--spring)}
+.rail-item[aria-current="page"] .rail-pill{background:var(--secondary-container);color:var(--on-secondary-container);width:64px}
+.rail-item[aria-current="page"]{color:var(--on-surface)}
+.enter{animation:axisIn .5s var(--ease-dec) both}
+@keyframes axisIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.rise{animation:axisIn .55s var(--ease-dec) both}
+.d1{animation-delay:.04s}.d2{animation-delay:.08s}.d3{animation-delay:.12s}.d4{animation-delay:.16s}.d5{animation-delay:.2s}
+.morph{animation:morphIn .5s var(--ease-dec) both;transform-origin:top center}
+@keyframes morphIn{from{opacity:0;transform:scale(.92,.6);border-radius:28px}to{opacity:1;transform:none}}
+.chip{height:32px;padding:0 16px;border-radius:8px;border:1px solid var(--outline-variant);display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--on-surface-variant);transition:background-color .25s var(--ease),border-color .25s var(--ease),border-radius .35s var(--spring),color .25s}
+.chip[aria-pressed="true"]{background:var(--secondary-container);border-color:transparent;color:var(--on-secondary-container);border-radius:16px}
+.seg{display:inline-flex;border:1px solid var(--outline);border-radius:20px;overflow:hidden;height:40px}
+.seg button{padding:0 18px;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--on-surface);border-right:1px solid var(--outline);transition:background-color .3s var(--ease)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--secondary-container);color:var(--on-secondary-container)}
+.btn-filled{height:40px;padding:0 24px;border-radius:20px;background:var(--primary);color:var(--on-primary);font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:8px;transition:border-radius .35s var(--spring),box-shadow .2s}
+.btn-filled:active{border-radius:12px}
+.btn-tonal{height:40px;padding:0 20px;border-radius:20px;background:var(--secondary-container);color:var(--on-secondary-container);font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:8px;transition:border-radius .35s var(--spring)}
+.btn-tonal:active{border-radius:12px}
+.btn-text{height:40px;padding:0 12px;border-radius:20px;color:var(--primary);font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.icon-btn{width:40px;height:40px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;color:var(--on-surface-variant);transition:background-color .25s var(--ease),border-radius .35s var(--spring)}
+.icon-btn[aria-pressed="true"]{background:var(--primary);color:var(--on-primary);border-radius:12px}
+.card{background:var(--surface-container);border-radius:24px;padding:20px;transition:background-color .5s var(--ease)}
+.card-hi{background:var(--surface-container-high);border-radius:28px}
+.sw{width:52px;height:32px;border-radius:16px;border:2px solid var(--outline);background:var(--surface-container-highest);position:relative;flex:none;transition:background-color .3s var(--ease),border-color .3s}
+.sw i{position:absolute;top:50%;left:6px;width:16px;height:16px;border-radius:50%;background:var(--outline);transform:translateY(-50%);transition:left .35s var(--spring),width .35s var(--spring),height .35s var(--spring),background-color .3s}
+.sw[aria-checked="true"]{background:var(--primary);border-color:var(--primary)}
+.sw[aria-checked="true"] i{left:24px;width:24px;height:24px;background:var(--on-primary)}
+.slider{appearance:none;-webkit-appearance:none;width:100%;height:16px;border-radius:8px;background:var(--secondary-container);outline:none}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:4px;height:44px;border-radius:2px;background:var(--primary);box-shadow:0 0 0 6px var(--surface-container)}
+.list-row{display:flex;align-items:center;gap:16px;min-height:72px;padding:8px 16px;border-radius:16px;transition:background-color .25s var(--ease),border-radius .35s var(--spring),transform .35s var(--spring)}
+.list-row[data-sel="true"]{background:var(--secondary-container);color:var(--on-secondary-container);border-radius:28px}
+.avatar{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none;transition:border-radius .4s var(--spring)}
+.list-row:hover .avatar{border-radius:20px}
+.spark{stroke-dasharray:900;stroke-dashoffset:900;animation:draw 1.6s var(--ease-dec) .2s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.pulse{animation:pulse 2.4s var(--ease) infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.55}}
+.hl{background:var(--primary-container);color:var(--on-primary-container);border-radius:6px;padding:0 2px}
+.fab{width:96px;height:96px;border-radius:28px;background:var(--primary-container);color:var(--on-primary-container);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:border-radius .45s var(--spring),transform .45s var(--spring)}
+.fab:hover{border-radius:48px;transform:rotate(-8deg)}
+.snack{animation:snackIn .45s var(--ease-dec) both}
+@keyframes snackIn{from{opacity:0;transform:translateY(40px) scale(.96)}to{opacity:1;transform:none}}
+.bar-in{animation:barIn .4s var(--ease-dec) both}
+@keyframes barIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+.mono{font-family:'Roboto Mono','Cascadia Mono',Consolas,monospace}
+.label-l{font-size:14px;font-weight:500;letter-spacing:.1px}
+.body-m{font-size:14px;line-height:20px;letter-spacing:.25px}
+.body-s{font-size:12px;line-height:16px;letter-spacing:.4px}
 </style>
 </helmet>
-<div style="min-height: 860px; display: flex; flex-wrap: wrap; background: #0D0F13; color: #E8EAED; font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;">
-  <nav aria-label="Sections" style="flex: 1 1 240px; max-width: 300px; box-sizing: border-box; padding: 24px 16px; border-right: 1px solid #262A33; display: flex; flex-direction: column; gap: 4px;">
-    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px 20px;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7CF2C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg>
-      <span style="font-size: 17px; font-weight: 600;">Monitoring Tools</span>
-    </div>
-    <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #C9CDD4; text-decoration: none; font-size: 14px;">Overview</a>
-    <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #C9CDD4; text-decoration: none; font-size: 14px;">Activity</a>
-    <a href="#" aria-current="page" style="padding: 10px 14px; border-radius: 10px; background: #1A1D23; color: #E8EAED; text-decoration: none; font-size: 14px; box-shadow: inset 3px 0 0 #7CF2C2;">Clipboard history</a>
-    <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #C9CDD4; text-decoration: none; font-size: 14px;">Shortcuts and scripts</a>
-    <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #C9CDD4; text-decoration: none; font-size: 14px;">Network and DNS</a>
-    <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #C9CDD4; text-decoration: none; font-size: 14px;">Game mode</a>
+<div class="{{appClass}}" style="{{rootVars}}">
+<div style="min-height: 900px; display: flex; flex-wrap: wrap; background: var(--surface); color: var(--on-surface); font-size: {{textScale}}%;">
+
+  <nav aria-label="Sections" style="flex: 0 0 96px; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 0; background: var(--surface);">
+    <button type="button" class="icon-btn state" aria-label="Menu" style="margin-bottom: 4px;"><span class="ms" aria-hidden="true">menu</span></button>
+    <button type="button" class="fab state" aria-label="New shortcut" style="width: 56px; height: 56px; border-radius: 16px; margin-bottom: 20px;"><span class="ms" aria-hidden="true">add</span></button>
+    <sc-for list="{{nav}}" as="n" hint-placeholder-count="6">
+      <button type="button" class="rail-item" aria-current="{{n.current}}" onClick="{{n.go}}">
+        <span class="rail-pill state"><span class="{{n.iconClass}}" aria-hidden="true">{{n.icon}}</span></span>
+        <span>{{n.label}}</span>
+      </button>
+    </sc-for>
     <div style="flex-grow: 1;"></div>
-    <div style="padding: 10px; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD; line-height: 1.6;">v1.0.8 · updated 2026-11-04 05:10:32 UTC</div>
+    <div class="body-s mono" style="width: 80px; text-align: center; color: var(--on-surface-variant); line-height: 1.5;">v1.0.8<br>05:10:32<br>UTC−05</div>
   </nav>
 
-  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px 40px 48px; display: flex; flex-direction: column; gap: 20px;">
-    <div style="display: flex; flex-direction: column; gap: 6px;">
-      <div style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; letter-spacing: 0.08em; color: #9AA1AD;">CLIPBOARD HISTORY</div>
-      <h1 style="margin: 0; font-family: 'Segoe UI Variable Display', 'Segoe UI', sans-serif; font-size: 32px; font-weight: 600;">Recent copies</h1>
-    </div>
-
-    <div style="position: relative; display: flex; flex-direction: column; gap: 0; max-width: 900px;">
-      <div style="display: flex; align-items: center; gap: 8px; height: 48px; box-sizing: border-box; padding: 0 6px 0 14px; background: #0F1115; border: 1px solid {{fieldBorder}}; border-radius: 12px;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9AA1AD" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
-        <label for="hist-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search clipboard history</label>
-        <input id="hist-search" value="{{query}}" onChange="{{onQuery}}" placeholder="Search clipboard history" style="flex: 1 1 auto; min-width: 0; height: 44px; background: transparent; border: 0; outline: none; color: #E8EAED; font-size: 15px; font-family: {{fieldFont}};">
-        <span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: {{countColor}}; white-space: nowrap; padding: 0 6px;">{{countText}}</span>
-        <button type="button" onClick="{{toggleCase}}" aria-pressed="{{caseOn}}" aria-label="Match case" style="width: 40px; height: 36px; border-radius: 9px; border: 1px solid {{caseBorder}}; background: {{caseBg}}; color: #C9CDD4; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; cursor: pointer;">Aa</button>
-        <button type="button" onClick="{{toggleRegex}}" aria-pressed="{{regexOn}}" aria-label="Regular expression mode" style="width: 40px; height: 36px; border-radius: 9px; border: 1px solid {{regexBorder}}; background: {{regexBg}}; color: #C9CDD4; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; cursor: pointer;">.*</button>
-        <button type="button" onClick="{{toggleBuilder}}" aria-expanded="{{builderOpen}}" aria-controls="hist-builder" style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid {{builderBorder}}; background: {{builderBg}}; color: {{builderInk}}; font-size: 13px; font-weight: 600; cursor: pointer;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l10-10"></path><path d="M15 4v3M18.5 5.5l-2 2M20 9h-3"></path></svg>
-          Builder
-        </button>
+  <main style="flex: 999 1 640px; min-width: 0; padding: 16px 24px 40px 8px; display: flex; flex-direction: column; gap: 16px;">
+    <header style="display: flex; align-items: center; gap: 12px; min-height: 64px;">
+      <div style="flex: 1 1 auto; min-width: 0;">
+        <div class="body-s" style="color: var(--on-surface-variant); letter-spacing: .8px;">{{eyebrow}}</div>
+        <h1 style="margin: 0; font-size: 32px; line-height: 40px; font-weight: 500; letter-spacing: -.2px;">{{title}}</h1>
       </div>
+      <button type="button" class="icon-btn state" onClick="{{toggleDark}}" aria-label="Switch light and dark"><span class="ms" aria-hidden="true">{{themeIcon}}</span></button>
+      <button type="button" class="icon-btn state" aria-label="Notifications"><span class="ms" aria-hidden="true">notifications</span></button>
+    </header>
 
-      <sc-if value="{{builderOpen}}" hint-placeholder-val="{{ true }}">
-        <section id="hist-builder" aria-label="Regex builder for clipboard history search" style="margin-top: 8px; background: #14161B; border: 1px solid #2E333D; border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); overflow: hidden;">
-          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #262A33;">
-            <span style="font-size: 14px; font-weight: 600;">Regex builder</span>
-            <span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;">.NET 8 · System.Text.RegularExpressions · backtracking · 200 ms limit · 64 KB pattern cap</span>
+    <sc-if value="{{isOverview}}" hint-placeholder-val="{{ true }}">
+      <div class="enter" style="display: flex; flex-direction: column; gap: 16px; max-width: 1100px;">
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
+          <section class="card card-hi rise d1" style="grid-column: span 2; padding: 28px; display: flex; flex-direction: column; gap: 16px; background: var(--primary-container); color: var(--on-primary-container);">
+            <div style="display: flex; align-items: center; gap: 10px;"><span class="pulse" style="width: 10px; height: 10px; border-radius: 5px; background: var(--primary); display: inline-block;"></span><span class="label-l">Online · Google DNS</span></div>
+            <div style="font-size: 45px; line-height: 52px; font-weight: 400; letter-spacing: -.5px;">Everything is quiet</div>
+            <svg viewBox="0 0 600 90" width="100%" height="90" aria-hidden="true"><path class="spark" d="M0 60 C40 55 60 30 90 40 S150 70 180 50 240 20 270 35 330 75 360 55 420 25 450 40 510 65 540 50 600 30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path></svg>
+            <div style="display: flex; gap: 28px; flex-wrap: wrap;" class="body-m"><span><b style="font-size: 22px;">5 ms</b> gateway</span><span><b style="font-size: 22px;">16 ms</b> DNS</span><span><b style="font-size: 22px;">43 s</b> uptime</span></div>
+          </section>
+          <section class="card rise d2" style="display: flex; flex-direction: column; gap: 10px; background: var(--tertiary-container); color: var(--on-tertiary-container);">
+            <span class="ms fill" style="font-size: 32px;" aria-hidden="true">sports_esports</span>
+            <div style="font-size: 24px; line-height: 32px;">Game mode is standing by</div>
+            <div class="body-m">18 games watched · fullscreen counts</div>
             <div style="flex-grow: 1;"></div>
-            <div role="tablist" aria-label="Builder views" style="display: flex; gap: 4px;">
-              <button type="button" role="tab" aria-selected="true" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #7CF2C2; background: #1D2A26; color: #E8EAED; font-size: 12px;">Build</button>
-              <button type="button" role="tab" aria-selected="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Explain</button>
-              <button type="button" role="tab" aria-selected="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Test</button>
-              <button type="button" role="tab" aria-selected="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Replace</button>
-              <button type="button" role="tab" aria-selected="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Code</button>
-              <button type="button" role="tab" aria-selected="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Library</button>
+            <button type="button" class="btn-tonal state" style="align-self: flex-start; background: var(--on-tertiary-container); color: var(--tertiary-container);">Edit list</button>
+          </section>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
+          <section class="card rise d3"><div class="label-l" style="margin-bottom: 8px;">Latest activity</div>
+            <div class="list-row state"><span class="avatar" style="background: var(--primary-container); color: var(--on-primary-container);"><span class="ms" aria-hidden="true">bolt</span></span><div style="flex: 1; min-width: 0;"><div class="body-m">launch-teaser.mov → mp4</div><div class="body-s" style="color: var(--on-surface-variant);">412 MB → 96 MB · 2 m ago</div></div></div>
+            <div class="list-row state"><span class="avatar" style="background: var(--secondary-container); color: var(--on-secondary-container);"><span class="ms" aria-hidden="true">commit</span></span><div style="flex: 1; min-width: 0;"><div class="body-m">Committed and pushed 3 files</div><div class="body-s" style="color: var(--on-surface-variant);">my-repo · 9 m ago</div></div></div>
+          </section>
+          <section class="card rise d4"><div class="label-l" style="margin-bottom: 8px;">Quick commands</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <span class="chip mono">:mp4</span><span class="chip mono">:gif</span><span class="chip mono">:mp3</span><span class="chip mono">:webp</span><span class="chip mono">:push</span>
             </div>
-          </div>
+            <p class="body-m" style="color: var(--on-surface-variant); margin: 16px 0 0;">Copy a path with a command on the end, for example <span class="mono">D:\Footage\clip.mov:mp4</span>.</p>
+          </section>
+        </div>
+      </div>
+    </sc-if>
 
-          <div style="display: flex; flex-wrap: wrap; gap: 0;">
-            <div style="flex: 1 1 300px; min-width: 0; box-sizing: border-box; padding: 16px 18px; border-right: 1px solid #262A33; display: flex; flex-direction: column; gap: 14px;">
-              <sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                  <div style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; letter-spacing: 0.06em; color: #9AA1AD;">{{g.name}}</div>
-                  <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                    <sc-for list="{{g.tokens}}" as="t" hint-placeholder-count="4">
-                      <button type="button" onClick="{{t.insert}}" title="{{t.help}}" style="height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; cursor: pointer;">{{t.label}}</button>
-                    </sc-for>
-                  </div>
-                </div>
+    <sc-if value="{{isHistory}}" hint-placeholder-val="{{ false }}">
+      <div class="enter" style="display: flex; flex-direction: column; gap: 12px; max-width: 980px;">
+        <sc-if value="{{hasSelection}}" hint-placeholder-val="{{ false }}">
+          <div class="bar-in" role="toolbar" aria-label="Selected copies" style="display: flex; align-items: center; gap: 8px; height: 64px; padding: 0 8px 0 4px; border-radius: 32px; background: var(--secondary-container); color: var(--on-secondary-container);">
+            <button type="button" class="icon-btn state" onClick="{{clearSel}}" aria-label="Clear selection" style="color: inherit;"><span class="ms" aria-hidden="true">close</span></button>
+            <span class="label-l" style="flex: 1;">{{selText}}</span>
+            <button type="button" class="btn-text state" style="color: inherit;"><span class="ms" aria-hidden="true">content_copy</span>Copy</button>
+            <button type="button" class="btn-text state" style="color: inherit;"><span class="ms" aria-hidden="true">download</span>Export</button>
+            <button type="button" class="btn-text state" style="color: inherit;"><span class="ms" aria-hidden="true">delete</span>Remove</button>
+          </div>
+        </sc-if>
+        <div style="display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 4px 0 16px; border-radius: {{barRadius}}; background: var(--surface-container-high); transition: border-radius .45s var(--spring);">
+          <span class="ms" aria-hidden="true" style="color: var(--on-surface-variant);">search</span>
+          <label for="h-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search clipboard history</label>
+          <input id="h-search" value="{{query}}" onChange="{{onQuery}}" placeholder="Search clipboard history" spellcheck="false" style="flex: 1 1 auto; min-width: 0; height: 52px; padding: 0 12px; border: 0; outline: none; background: transparent; font-size: 16px; font-family: {{fieldFont}};">
+          <span class="body-s mono" style="color: {{countColor}}; padding: 0 8px; white-space: nowrap;">{{countText}}</span>
+          <button type="button" class="icon-btn state" aria-pressed="{{caseOn}}" onClick="{{toggleCase}}" aria-label="Match case"><span class="ms" aria-hidden="true">match_case</span></button>
+          <button type="button" class="icon-btn state" aria-pressed="{{regexOn}}" onClick="{{toggleRegex}}" aria-label="Regular expression"><span class="ms" aria-hidden="true">regular_expression</span></button>
+          <button type="button" class="btn-filled state" onClick="{{toggleBuilder}}" aria-expanded="{{builderOn}}" aria-controls="h-builder" style="margin-left: 4px;"><span class="ms" aria-hidden="true">{{builderIcon}}</span>Builder</button>
+        </div>
+
+        <sc-if value="{{builderOn}}" hint-placeholder-val="{{ true }}">
+          <section id="h-builder" class="morph card-hi" aria-label="Regex builder for clipboard history" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 8px 28px rgba(0,0,0,.28);">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <span style="font-size: 22px; line-height: 28px;">Regex builder</span>
+              <span class="body-s mono" style="color: var(--on-surface-variant);">.NET 8 · backtracking · 200 ms limit</span>
+              <div style="flex-grow: 1;"></div>
+              <div class="seg" role="group" aria-label="Builder view">
+                <button type="button" aria-pressed="true"><span class="ms" style="font-size: 18px;" aria-hidden="true">check</span>Build</button>
+                <button type="button" aria-pressed="false">Test</button>
+                <button type="button" aria-pressed="false">Replace</button>
+                <button type="button" aria-pressed="false">Code</button>
+                <button type="button" aria-pressed="false">Library</button>
+              </div>
+            </div>
+            <div style="position: relative;">
+              <label for="h-pattern" class="body-s" style="position: absolute; left: 12px; top: -8px; padding: 0 4px; background: var(--surface-container-high); color: {{patternTint}};">Pattern</label>
+              <input id="h-pattern" value="{{query}}" onChange="{{onQuery}}" spellcheck="false" class="mono" style="width: 100%; height: 56px; padding: 0 16px; border-radius: 4px; border: 2px solid {{patternTint}}; outline: none; background: transparent; font-size: 16px;">
+            </div>
+            <div role="status" class="body-s" style="display: flex; align-items: center; gap: 6px; color: {{patternTint}};"><span class="ms" style="font-size: 18px;" aria-hidden="true">{{statusIcon}}</span>{{statusText}}</div>
+            <sc-if value="{{riskOn}}" hint-placeholder-val="{{ false }}">
+              <div class="snack" style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; border-radius: 16px; background: var(--error-container); color: var(--on-error-container);"><span class="ms" aria-hidden="true">warning</span><span class="body-m">Nested quantifier. Text like “aaaa…!” can backtrack for a very long time; searches stop after 200 ms. Try an atomic group (?&gt;…) or turn on Non-backtracking.</span></div>
+            </sc-if>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <sc-for list="{{flags}}" as="f" hint-placeholder-count="6">
+                <button type="button" class="chip state" aria-pressed="{{f.on}}" onClick="{{f.toggle}}" title="{{f.help}}"><span class="ms" style="font-size: 18px;" aria-hidden="true">{{f.icon}}</span>{{f.label}}</button>
               </sc-for>
             </div>
-
-            <div style="flex: 1.3 1 360px; min-width: 0; box-sizing: border-box; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;">
-              <label for="hist-pattern" style="font-size: 12px; color: #C9CDD4;">Pattern, kept in step with the search box</label>
-              <input id="hist-pattern" value="{{query}}" onChange="{{onQuery}}" spellcheck="false" style="height: 42px; box-sizing: border-box; padding: 0 12px; background: #0F1115; border: 1px solid {{patternBorder}}; border-radius: 10px; color: #E8EAED; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 14px; outline: none;">
-              <div role="status" style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: {{statusColor}};">
-                <span style="width: 8px; height: 8px; border-radius: 4px; background: {{statusColor}}; flex: none;"></span>
-                <span>{{statusText}}</span>
-              </div>
-              <sc-if value="{{riskOn}}" hint-placeholder-val="{{ false }}">
-                <div style="padding: 10px 12px; border-radius: 10px; background: #2A2116; border: 1px solid #FFB547; color: #FFB547; font-size: 12px; line-height: 1.5;">Nested quantifier: this can backtrack for a very long time on input like “aaaa…!”. The search stops after 200 ms. Try an atomic group (?>…) or a possessive-style rewrite.</div>
-              </sc-if>
-              <div style="font-size: 12px; color: #C9CDD4;">Options</div>
-              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                <sc-for list="{{flags}}" as="f" hint-placeholder-count="6">
-                  <button type="button" onClick="{{f.toggle}}" aria-pressed="{{f.on}}" title="{{f.help}}" style="height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid {{f.border}}; background: {{f.bg}}; color: #E8EAED; font-size: 12px; cursor: pointer;">{{f.label}}</button>
-                </sc-for>
-              </div>
-              <div style="font-size: 12px; color: #C9CDD4;">Explanation</div>
-              <div style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto; padding: 8px 10px; background: #0F1115; border: 1px solid #262A33; border-radius: 10px;">
-                <sc-for list="{{explain}}" as="x" hint-placeholder-count="4">
-                  <div style="display: flex; gap: 10px; font-size: 12px; line-height: 1.5;">
-                    <code style="flex: none; min-width: 64px; color: #7CF2C2; font-family: 'Cascadia Mono', Consolas, monospace;">{{x.token}}</code>
-                    <span style="color: #C9CDD4;">{{x.text}}</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+              <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 10px;">
+                <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+                  <div>
+                    <div class="body-s" style="color: var(--on-surface-variant); margin-bottom: 6px; letter-spacing: .8px;">{{g.name}}</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                      <sc-for list="{{g.tokens}}" as="t" hint-placeholder-count="4">
+                        <button type="button" class="chip state mono" onClick="{{t.insert}}" title="{{t.help}}" style="height: 32px; padding: 0 12px;">{{t.label}}</button>
+                      </sc-for>
+                    </div>
                   </div>
                 </sc-for>
               </div>
+              <div style="flex: 1 1 320px; min-width: 0; border-radius: 20px; background: var(--surface-container); padding: 12px 16px; max-height: 260px; overflow-y: auto;">
+                <div class="body-s" style="color: var(--on-surface-variant); margin-bottom: 8px; letter-spacing: .8px;">EXPLANATION</div>
+                <sc-for list="{{explain}}" as="x" hint-placeholder-count="5">
+                  <div class="rise" style="display: flex; gap: 12px; padding: 4px 0;"><code class="mono" style="min-width: 70px; color: var(--primary);">{{x.token}}</code><span class="body-m" style="color: var(--on-surface-variant);">{{x.text}}</span></div>
+                </sc-for>
+              </div>
             </div>
-          </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+              <button type="button" class="btn-text state" onClick="{{plainText}}">Back to plain text</button>
+              <button type="button" class="btn-filled state" onClick="{{toggleBuilder}}">Done</button>
+            </div>
+          </section>
+        </sc-if>
 
-          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 18px; border-top: 1px solid #262A33; background: #0F1115;">
-            <span style="font-size: 12px; color: #9AA1AD;">Esc closes and returns to the search box. Patterns stay on this computer.</span>
-            <div style="flex-grow: 1;"></div>
-            <button type="button" style="height: 34px; padding: 0 14px; border-radius: 9px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 13px;">Save to library</button>
-            <button type="button" onClick="{{plainText}}" style="height: 34px; padding: 0 14px; border-radius: 9px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 13px; cursor: pointer;">Back to plain text</button>
-            <button type="button" onClick="{{toggleBuilder}}" style="height: 34px; padding: 0 16px; border-radius: 9px; border: 1px solid #7CF2C2; background: #7CF2C2; color: #062018; font-size: 13px; font-weight: 600; cursor: pointer;">Done</button>
+        <ul aria-label="Clipboard history" style="list-style: none; margin: 0; padding: 8px; display: flex; flex-direction: column; gap: 2px; border-radius: 28px; background: var(--surface-container-low);">
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+            <li class="list-row state rise" data-sel="{{r.sel}}" onClick="{{r.toggle}}" style="cursor: pointer;">
+              <span class="avatar" style="background: {{r.wash}}; color: {{r.ink}};"><span class="ms" aria-hidden="true">{{r.icon}}</span></span>
+              <div style="flex: 1 1 auto; min-width: 0;">
+                <div class="body-m" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><sc-for list="{{r.parts}}" as="p" hint-placeholder-count="1"><span class="{{p.cls}}">{{p.text}}</span></sc-for></div>
+                <div class="body-s" style="color: var(--on-surface-variant);">{{r.kind}} · {{r.when}}</div>
+              </div>
+              <span class="ms" aria-hidden="true" style="color: var(--on-surface-variant);">{{r.check}}</span>
+            </li>
+          </sc-for>
+          <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+            <li class="snack" style="padding: 24px; display: flex; align-items: center; gap: 16px;"><span class="ms" style="font-size: 40px; color: var(--on-surface-variant);" aria-hidden="true">search_off</span><div><div class="body-m">No copies match this search.</div><button type="button" class="btn-text state" style="padding: 0;">Search every page</button></div></li>
+          </sc-if>
+        </ul>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isAppearance}}" hint-placeholder-val="{{ false }}">
+      <div class="enter" style="display: flex; flex-wrap: wrap; gap: 16px; max-width: 1100px;">
+        <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+          <section class="card rise d1" style="display: flex; flex-direction: column; gap: 14px;">
+            <div class="label-l">Theme</div>
+            <div class="seg" role="group" aria-label="Theme">
+              <button type="button" aria-pressed="{{lightOn}}" onClick="{{setLight}}"><span class="ms" style="font-size: 18px;" aria-hidden="true">light_mode</span>Light</button>
+              <button type="button" aria-pressed="{{darkOn}}" onClick="{{setDark}}"><span class="ms" style="font-size: 18px;" aria-hidden="true">dark_mode</span>Dark</button>
+              <button type="button" aria-pressed="false">System</button>
+            </div>
+            <div class="label-l" style="margin-top: 6px;">Colour</div>
+            <div style="display: flex; gap: 12px;">
+              <sc-for list="{{seeds}}" as="s" hint-placeholder-count="5">
+                <button type="button" onClick="{{s.pick}}" aria-pressed="{{s.on}}" aria-label="{{s.name}}" class="state" style="width: 56px; height: 56px; border-radius: {{s.radius}}; background: {{s.color}}; transition: border-radius .45s var(--spring), transform .45s var(--spring); transform: scale({{s.scale}}); box-shadow: 0 0 0 3px {{s.ring}};"></button>
+              </sc-for>
+            </div>
+          </section>
+          <section class="card rise d2" style="display: flex; flex-direction: column; gap: 12px;">
+            <label for="txt" class="label-l">Text size · {{textScale}} %</label>
+            <input id="txt" type="range" min="90" max="150" step="10" value="{{textScale}}" onChange="{{onText}}" class="slider">
+            <div class="label-l" style="margin-top: 8px;">Density</div>
+            <div class="seg" role="group" aria-label="Density"><button type="button" aria-pressed="true">Comfortable</button><button type="button" aria-pressed="false">Compact</button></div>
+          </section>
+          <section class="card rise d3" style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; align-items: center; gap: 16px; min-height: 56px;"><div style="flex: 1;"><div class="body-m">Reduce motion</div><div class="body-s" style="color: var(--on-surface-variant);">Fades replace slides and springs. Default: follow Windows.</div></div><button type="button" role="switch" class="sw" aria-checked="{{reducedOn}}" onClick="{{toggleReduced}}" aria-label="Reduce motion"><i></i></button></div>
+            <div style="display: flex; align-items: center; gap: 16px; min-height: 56px;"><div style="flex: 1;"><div class="body-m">High contrast outlines</div><div class="body-s" style="color: var(--on-surface-variant);">Stronger borders on every control. Default: off.</div></div><button type="button" role="switch" class="sw" aria-checked="false" aria-label="High contrast outlines"><i></i></button></div>
+          </section>
+        </div>
+        <section class="card-hi rise d2" aria-label="Live preview" style="flex: 1 1 340px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+          <div class="body-s" style="color: var(--on-surface-variant); letter-spacing: .8px;">LIVE PREVIEW</div>
+          <div class="card" style="background: var(--primary-container); color: var(--on-primary-container);"><div style="font-size: 24px;">Connection is back</div><div class="body-m">Down for 2 m 14 s · DNS was failing</div></div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;"><button type="button" class="btn-filled state">Retry now</button><button type="button" class="btn-tonal state">Flush DNS</button><button type="button" class="btn-text state">Details</button></div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;"><span class="chip" aria-pressed="true">Google</span><span class="chip">Cloudflare</span><span class="chip">Quad9</span></div>
+          <div style="flex-grow: 1;"></div>
+          <div class="fab state" aria-hidden="true" style="align-self: flex-end;"><span class="ms" style="font-size: 36px;">add</span></div>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isLanguage}}" hint-placeholder-val="{{ false }}">
+      <div class="enter" style="display: flex; flex-wrap: wrap; gap: 16px; max-width: 1100px;">
+        <section class="card rise d1" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+          <div class="label-l">Language</div>
+          <div class="seg" role="group" aria-label="Language">
+            <sc-for list="{{langs}}" as="l" hint-placeholder-count="3"><button type="button" aria-pressed="{{l.on}}" onClick="{{l.pick}}">{{l.label}}</button></sc-for>
+          </div>
+          <label for="fun-en" class="label-l" style="margin-top: 8px;">English humour · {{funEn}} of 5</label>
+          <input id="fun-en" type="range" min="1" max="5" value="{{funEn}}" onChange="{{onFunEn}}" class="slider">
+          <label for="fun-yue" class="label-l">廣東話幽默 · {{funYue}} / 5</label>
+          <input id="fun-yue" type="range" min="1" max="5" value="{{funYue}}" onChange="{{onFunYue}}" class="slider">
+          <div style="display: flex; align-items: center; gap: 16px; min-height: 56px;"><div style="flex: 1;"><div class="body-m">Emoji in dialogs</div><div class="body-s" style="color: var(--on-surface-variant);">Default: on.</div></div><button type="button" role="switch" class="sw" aria-checked="{{emojiOn}}" onClick="{{toggleEmoji}}" aria-label="Emoji in dialogs"><i></i></button></div>
+          <div style="display: flex; align-items: center; gap: 16px; min-height: 56px;"><div style="flex: 1;"><div class="body-m">Read toasts aloud</div><div class="body-s" style="color: var(--on-surface-variant);">Windows voice · English (Canada) · Cantonese (Hong Kong)</div></div><button type="button" role="switch" class="sw" aria-checked="false" aria-label="Read toasts aloud"><i></i></button></div>
+        </section>
+        <section class="card-hi rise d2" aria-live="polite" style="flex: 1 1 340px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+          <div class="body-s" style="color: var(--on-surface-variant); letter-spacing: .8px;">HOW THE OFFLINE ALERT READS</div>
+          <div class="snack" style="border-radius: 24px; padding: 20px; background: var(--error-container); color: var(--on-error-container);">
+            <div style="font-size: 22px; line-height: 28px; white-space: pre-line;">{{previewTitle}}</div>
+            <div class="body-m" style="margin-top: 6px; white-space: pre-line;">{{previewBody}}</div>
           </div>
         </section>
-      </sc-if>
-    </div>
+      </div>
+    </sc-if>
 
-    <ul aria-label="Clipboard history results" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 900px;">
-      <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
-        <li style="display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: #14161B; border: 1px solid #262A33; border-radius: 12px;">
-          <span style="flex: none; width: 56px; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;">{{r.kind}}</span>
-          <span style="flex: 1 1 auto; min-width: 0; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; color: #C9CDD4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            <sc-for list="{{r.parts}}" as="p" hint-placeholder-count="2"><span style="background: {{p.bg}}; color: {{p.ink}}; border-radius: 3px;">{{p.text}}</span></sc-for>
-          </span>
-          <span style="flex: none; font-size: 12px; color: #9AA1AD;">{{r.when}}</span>
-        </li>
-      </sc-for>
-      <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
-        <li style="padding: 20px; border: 1px dashed #2E333D; border-radius: 12px; color: #C9CDD4; font-size: 14px;">No copies match this search.</li>
-      </sc-if>
-    </ul>
+    <sc-if value="{{isRecords}}" hint-placeholder-val="{{ false }}">
+      <div class="enter" style="display: flex; flex-wrap: wrap; gap: 16px; max-width: 1100px;">
+        <section class="card rise d1" style="flex: 1 1 420px; min-width: 0;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;"><span class="label-l">Notifications</span><button type="button" class="btn-text state">Clear all</button></div>
+          <div class="list-row state"><span class="avatar" style="background: var(--error-container); color: var(--on-error-container);"><span class="ms" aria-hidden="true">wifi_off</span></span><div style="flex: 1;"><div class="body-m">Connection lost · DNS lookups failing</div><div class="body-s" style="color: var(--on-surface-variant);">Today 20:20 · lasted 2 m</div></div></div>
+          <div class="list-row state"><span class="avatar" style="background: var(--primary-container); color: var(--on-primary-container);"><span class="ms" aria-hidden="true">public</span></span><div style="flex: 1;"><div class="body-m">Public IP changed</div><div class="body-s" style="color: var(--on-surface-variant);">Today 18:02 · committed to history</div></div></div>
+          <div class="list-row state"><span class="avatar" style="background: var(--secondary-container); color: var(--on-secondary-container);"><span class="ms" aria-hidden="true">movie</span></span><div style="flex: 1;"><div class="body-m">clip.mov converted to MP4</div><div class="body-s" style="color: var(--on-surface-variant);">Yesterday 22:14</div></div></div>
+        </section>
+        <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+          <section class="card rise d2" style="display: flex; flex-direction: column; gap: 12px;">
+            <span class="label-l">Export</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;"><span class="chip" aria-pressed="true">History</span><span class="chip">Activity</span><span class="chip">Settings</span><span class="chip">Notifications</span></div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;"><span class="chip mono" aria-pressed="true">JSON</span><span class="chip mono">CSV</span><span class="chip mono">Markdown</span><span class="chip mono">HTML</span><span class="chip mono">TXT</span></div>
+            <button type="button" class="btn-filled state" style="align-self: flex-start;"><span class="ms" aria-hidden="true">download</span>Export</button>
+          </section>
+          <section class="card rise d3" style="display: flex; flex-direction: column; gap: 6px;">
+            <span class="label-l">Settings history</span>
+            <div class="body-m" style="display: flex; justify-content: space-between;"><span>Turned off clipboard toasts</span><button type="button" class="btn-text state" style="height: 32px;">Restore</button></div>
+            <div class="body-m" style="display: flex; justify-content: space-between;"><span>Switched DNS to Cloudflare</span><button type="button" class="btn-text state" style="height: 32px;">Restore</button></div>
+          </section>
+        </div>
+      </div>
+    </sc-if>
   </main>
 </div>
+</div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":860}}'>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":true},"$preview":{"width":1360,"height":900}}'>
 class Component extends DCLogic {
   constructor(p) {
     super(p);
-    this.state = { query: '\\d{4}-\\d{2}-\\d{2}', regex: true, matchCase: false, builder: true, flags: { m: false, s: false, x: false, n: false, r: false, nb: false } };
+    this.state = { screen: 'history', dark: this.props.dark ?? true, seed: 0, query: '(?<name>\\w+)\\.(png|md|csv)', regex: true, matchCase: false, builder: true, flags: {}, sel: {}, textScale: 100, reduced: false, lang: 'en', funEn: 3, funYue: 3, emoji: true };
   }
-  explainOf(src) {
-    var out = [];
-    var re = /\\[dDwWsSbB]|\\.|\[[^\]]*\]|\(\?<[A-Za-z]\w*>|\(\?:|\(\?=|\(\?!|\(\?<=|\(\?<!|\(\?>|\(|\)|\{\d+(,\d*)?\}\??|[*+?]\??|\^|\$|\||./g;
-    var names = { '\\d': 'one digit 0 to 9', '\\D': 'one character that is not a digit', '\\w': 'one word character', '\\W': 'one non-word character', '\\s': 'one whitespace character', '\\S': 'one non-whitespace character', '\\b': 'a word boundary', '\\B': 'not a word boundary', '^': 'start of the text, or of a line with Multiline', '$': 'end of the text, or of a line with Multiline', '|': 'or', '.': 'any character except a line break', '(': 'start a numbered group', ')': 'end the group', '(?:': 'start a group that is not captured', '(?=': 'start a lookahead', '(?!': 'start a negative lookahead', '(?<=': 'start a lookbehind', '(?<!': 'start a negative lookbehind', '(?>': 'start an atomic group (no backtracking into it)', '*': 'zero or more, as many as possible', '+': 'one or more, as many as possible', '?': 'optional', '*?': 'zero or more, as few as possible', '+?': 'one or more, as few as possible' };
-    var m;
-    while ((m = re.exec(src)) && out.length < 40) {
-      var t = m[0], text = names[t];
-      if (!text && /^\{/.test(t)) text = 'repeat the previous item ' + t.replace(/[{}?]/g, '').replace(',', ' to ') + ' times';
-      if (!text && /^\[/.test(t)) text = 'one character from the set ' + t;
-      if (!text && /^\(\?</.test(t)) text = 'start the named group “' + t.slice(3, -1) + '”';
-      if (!text && /^\\./.test(t)) text = 'the literal character ' + t.slice(1);
-      if (!text) text = 'the literal character ' + t;
-      out.push({ token: t, text: text });
-    }
-    return out;
+  palette(seed, dark) {
+    var P = [
+      { name: 'Mint', d: ['#6FDBB4','#003827','#00513A','#8CF8CF','#B3CCBF','#354B41','#CFE9DB','#A6CCE0','#244C5D','#C2E8FD','#0F1512','#171D1A','#1B211E','#262B28','#303633','#DEE4DF','#BFC9C2','#89938C','#404943'], l: ['#006C4F','#FFFFFF','#8CF8CF','#002116','#4C6358','#CFE9DB','#09201A','#3E6374','#C2E8FD','#001F2A','#F5FBF6','#EFF5F0','#E9EFEA','#E4EAE5','#DEE4DF','#171D1A','#404943','#707973','#BFC9C2'] },
+      { name: 'Violet', d: ['#CFBCFF','#381E72','#4F378A','#E9DDFF','#CBC2DB','#4A4458','#E8DEF8','#EFB8C8','#633B48','#FFD8E4','#141218','#1D1B20','#211F26','#2B2930','#36343B','#E6E0E9','#CAC4D0','#948F99','#49454F'], l: ['#6750A4','#FFFFFF','#E9DDFF','#22005D','#625B71','#E8DEF8','#1E192B','#7D5260','#FFD8E4','#31111D','#FEF7FF','#F7F2FA','#F3EDF7','#ECE6F0','#E6E0E9','#1D1B20','#49454F','#79747E','#CAC4D0'] },
+      { name: 'Amber', d: ['#FFB95F','#462A00','#653E00','#FFDDB8','#DDC2A1','#56442A','#FADEBC','#B6CE9B','#384D27','#D2EAB5','#18120B','#211A13','#251E17','#302921','#3B332B','#EEE0D4','#D5C4B4','#9D8E80','#504539'], l: ['#855300','#FFFFFF','#FFDDB8','#2A1700','#705A3F','#FADEBC','#271904','#4F6440','#D2EAB5','#0E2004','#FFF8F4','#FCF2EA','#F6ECE4','#F0E6DE','#EEE0D4','#211A13','#504539','#827568','#D5C4B4'] },
+      { name: 'Ocean', d: ['#9ECAFF','#003258','#00497D','#D1E4FF','#BBC7DB','#3B4858','#D7E3F7','#D6BEE4','#523F5F','#F2DAFF','#101418','#181C20','#1C2024','#272A2F','#32353A','#E0E2E8','#C3C7CF','#8D9199','#43474E'], l: ['#0061A4','#FFFFFF','#D1E4FF','#001D36','#535F70','#D7E3F7','#101C2B','#6B5778','#F2DAFF','#251431','#F8F9FF','#F2F3F9','#ECEEF4','#E6E8EE','#E0E2E8','#181C20','#43474E','#73777F','#C3C7CF'] },
+      { name: 'Rose', d: ['#FFB2BC','#670020','#8E0F32','#FFD9DC','#E5BDBF','#5D3F42','#FFD9DC','#E9BF8F','#5C4019','#FFDDB5','#191113','#22191B','#261D1F','#312829','#3C3234','#F0DEDF','#D7C1C2','#9F8C8D','#524345'], l: ['#B32148','#FFFFFF','#FFD9DC','#40000F','#775657','#FFD9DC','#2C1516','#7A5729','#FFDDB5','#2A1800','#FFF8F7','#FEF0F0','#F8EAEA','#F2E4E5','#ECDEDF','#22191B','#524345','#857374','#D7C1C2'] }
+    ];
+    var k = ['primary','on-primary','primary-container','on-primary-container','secondary','secondary-container','on-secondary-container','tertiary','tertiary-container','on-tertiary-container','surface','surface-container-low','surface-container','surface-container-high','surface-container-highest','on-surface','on-surface-variant','outline','outline-variant'];
+    var v = (dark ? P[seed].d : P[seed].l);
+    var css = k.map(function (n, i) { return '--' + n + ':' + v[i]; }).join(';');
+    css += dark ? ';--error-container:#93000A;--on-error-container:#FFDAD6' : ';--error-container:#FFDAD6;--on-error-container:#410002';
+    return { css: css, list: P };
   }
   renderVals() {
     var s = this.state, self = this;
+    var pal = this.palette(s.seed, s.dark);
+    var go = function (id) { return function () { self.setState({ screen: id }); }; };
+    var navDefs = [['overview','Overview','space_dashboard'],['history','History','content_paste_search'],['appearance','Appearance','palette'],['language','Language','translate'],['records','Records','inventory_2']];
+    var titles = { overview: ['OVERVIEW','Overview'], history: ['CLIPBOARD','History'], appearance: ['SETTINGS','Appearance'], language: ['SETTINGS','Language and humour'], records: ['RECORDS','Notifications and exports'] };
     var items = [
-      { kind: 'text', text: 'Invoice 2026-10-31 sent to accounts', when: '2 m ago' },
-      { kind: 'link', text: 'https://github.com/Ding-Ding-Projects/Monitoring-tools/releases', when: '5 m ago' },
-      { kind: 'path', text: '"D:\\Footage\\2026-11-02 launch\\take 3.mov"', when: '9 m ago' },
-      { kind: 'text', text: 'Meeting moved to Thursday', when: '14 m ago' },
-      { kind: 'color', text: '#7CF2C2', when: '20 m ago' },
-      { kind: 'text', text: 'Backup finished 2026-11-03 at 22:14', when: '31 m ago' },
-      { kind: 'email', text: 'support@example.com', when: '1 h ago' }
+      { kind: 'Files', icon: 'image', text: 'Launch poster.png', when: '01:19' },
+      { kind: 'Text', icon: 'notes', text: 'Invoice 2026-10-31 sent to accounts', when: '01:12' },
+      { kind: 'Files', icon: 'table', text: 'Sales 2026.csv', when: '00:58' },
+      { kind: 'Link', icon: 'link', text: 'https://github.com/Ding-Ding-Projects/Monitoring-tools/releases', when: '00:41' },
+      { kind: 'Files', icon: 'description', text: 'Release checklist.md', when: '00:30' },
+      { kind: 'Color', icon: 'palette', text: '#6FDBB4', when: '00:12' }
     ];
     var q = s.query, rx = null, err = null;
-    if (q && s.regex) {
-      try { rx = new RegExp(q, 'g' + (s.matchCase ? '' : 'i') + (s.flags.m ? 'm' : '') + (s.flags.s ? 's' : '')); } catch (e) { err = String(e.message).replace(/^Invalid regular expression: /, ''); }
-    }
+    if (q && s.regex) { try { rx = new RegExp(q.replace(/\(\?<([A-Za-z_]\w*)>/g, '(?<$1>'), 'g' + (s.matchCase ? '' : 'i')); } catch (e) { err = String(e.message).replace(/^Invalid regular expression: /, ''); } }
     var rows = [];
-    items.forEach(function (it) {
-      var parts = [], hit = false;
-      if (!q) { parts.push({ text: it.text, bg: 'transparent', ink: '#C9CDD4' }); hit = true; }
-      else if (s.regex) {
-        if (rx) {
-          var last = 0, m; rx.lastIndex = 0;
-          while ((m = rx.exec(it.text))) {
-            if (m[0] === '') { rx.lastIndex++; continue; }
-            hit = true;
-            if (m.index > last) parts.push({ text: it.text.slice(last, m.index), bg: 'transparent', ink: '#C9CDD4' });
-            parts.push({ text: m[0], bg: '#1D2A26', ink: '#7CF2C2' });
-            last = m.index + m[0].length;
-          }
-          if (last < it.text.length) parts.push({ text: it.text.slice(last), bg: 'transparent', ink: '#C9CDD4' });
-        }
-      } else {
-        var hay = s.matchCase ? it.text : it.text.toLowerCase(), nee = s.matchCase ? q : q.toLowerCase(), i = hay.indexOf(nee);
-        if (i >= 0) { hit = true; parts.push({ text: it.text.slice(0, i), bg: 'transparent', ink: '#C9CDD4' }, { text: it.text.slice(i, i + q.length), bg: '#1D2A26', ink: '#7CF2C2' }, { text: it.text.slice(i + q.length), bg: 'transparent', ink: '#C9CDD4' }); }
-      }
-      if (hit) rows.push({ kind: it.kind, when: it.when, parts: parts });
+    items.forEach(function (it, idx) {
+      var parts = [], hit = !q;
+      if (!q) parts.push({ text: it.text, cls: '' });
+      else if (s.regex && rx) {
+        var last = 0, m; rx.lastIndex = 0;
+        while ((m = rx.exec(it.text))) { if (m[0] === '') { rx.lastIndex++; continue; } hit = true; if (m.index > last) parts.push({ text: it.text.slice(last, m.index), cls: '' }); parts.push({ text: m[0], cls: 'hl' }); last = m.index + m[0].length; }
+        if (last < it.text.length) parts.push({ text: it.text.slice(last), cls: '' });
+      } else if (!s.regex) {
+        var a = s.matchCase ? it.text : it.text.toLowerCase(), b = s.matchCase ? q : q.toLowerCase(), i = a.indexOf(b);
+        if (i >= 0) { hit = true; parts.push({ text: it.text.slice(0, i), cls: '' }, { text: it.text.slice(i, i + q.length), cls: 'hl' }, { text: it.text.slice(i + q.length), cls: '' }); }
+      } else { hit = true; parts.push({ text: it.text, cls: '' }); }
+      if (!hit) return;
+      var on = !!s.sel[idx];
+      rows.push({ kind: it.kind, when: it.when, icon: on ? 'check' : it.icon, parts: parts, sel: String(on), check: on ? 'check_circle' : 'radio_button_unchecked',
+        wash: on ? 'var(--primary)' : 'var(--secondary-container)', ink: on ? 'var(--on-primary)' : 'var(--on-secondary-container)',
+        toggle: function () { var n = Object.assign({}, self.state.sel); n[idx] = !n[idx]; self.setState({ sel: n }); } });
     });
-    var flagDefs = [['m', 'Multiline', '^ and $ match at every line'], ['s', 'Singleline', '. also matches line breaks'], ['x', 'Ignore whitespace', 'spaces and # comments in the pattern are ignored'], ['n', 'Explicit capture', 'only named groups capture'], ['r', 'Right to left', 'search from the end'], ['nb', 'Non-backtracking', 'linear-time engine; no lookaround or backreferences']];
-    var groups = [
-      { name: 'CHARACTERS', tokens: [['\\d', 'digit'], ['\\w', 'word character'], ['\\s', 'whitespace'], ['.', 'any character'], ['\\p{L}', 'any letter, any script'], ['\\u00E9', 'a code point']] },
-      { name: 'SETS', tokens: [['[abc]', 'one of'], ['[^abc]', 'none of'], ['[a-z]', 'range'], ['[a-z-[aeiou]]', 'subtraction']] },
-      { name: 'ANCHORS', tokens: [['^', 'start'], ['$', 'end'], ['\\b', 'word boundary'], ['\\G', 'where the last match ended']] },
-      { name: 'GROUPS', tokens: [['( )', 'numbered group'], ['(?<name> )', 'named group'], ['(?: )', 'not captured'], ['(?> )', 'atomic'], ['\\1', 'backreference'], ['(?(1)yes|no)', 'conditional']] },
-      { name: 'REPEAT', tokens: [['*', 'zero or more'], ['+', 'one or more'], ['?', 'optional'], ['{n,m}', 'n to m times'], ['*?', 'lazy']] },
-      { name: 'LOOK AROUND', tokens: [['(?= )', 'followed by'], ['(?! )', 'not followed by'], ['(?<= )', 'preceded by'], ['(?<! )', 'not preceded by']] }
-    ].map(function (g) { return { name: g.name, tokens: g.tokens.map(function (t) { return { label: t[0], help: t[1], insert: function () { self.setState({ query: self.state.query + t[0].replace(' ', ''), regex: true }); } }; }) }; });
+    var selCount = Object.keys(s.sel).filter(function (k) { return s.sel[k]; }).length;
+    var explainNames = { '\\w': 'one word character', '\\d': 'one digit', '\\.': 'a literal dot', '+': 'one or more, as many as possible', '*': 'zero or more', '?': 'optional', '|': 'or', '(': 'start a numbered group', ')': 'end of group', '^': 'start', '$': 'end' };
+    var explain = [];
+    (q.match(/\(\?<[A-Za-z_]\w*>|\\.|[()|+*?^$]|\{\d+(,\d*)?\}|\[[^\]]*\]|[^\\()|+*?^$\[{]+/g) || []).slice(0, 30).forEach(function (t) {
+      var text = explainNames[t] || (/^\(\?</.test(t) ? 'start the named group “' + t.slice(3, -1) + '”' : /^\[/.test(t) ? 'one character from ' + t : /^\{/.test(t) ? 'repeat ' + t : 'the text “' + t + '”');
+      explain.push({ token: t, text: text });
+    });
+    var flagDefs = [['m','Multiline','wrap_text'],['s','Singleline','short_text'],['x','Ignore whitespace','space_bar'],['n','Explicit capture','label'],['r','Right to left','format_textdirection_r_to_l'],['nb','Non-backtracking','bolt']];
+    var groupDefs = [['CHARACTERS',['\\d','\\w','\\s','.','\\p{L}']],['GROUPS',['(?<name>)','(?:)','(?>)','\\1']],['REPEAT',['*','+','?','{2,5}','*?']],['LOOK AROUND',['(?=)','(?!)','(?<=)','(?<!)']]];
+    var lang = s.lang, fun = lang === 'yue' ? s.funYue : s.funEn, emoji = s.emoji;
+    var enT = ['Internet connection lost', 'The internet stepped out', 'The internet has left the chat', 'Your internet is on a tea break', 'The internet ran off with the router'][s.funEn - 1];
+    var yueT = ['網絡連線中斷', '網絡走開咗一陣', '網絡同你講拜拜', '網絡去咗飲茶', '網絡同路由器私奔咗'][s.funYue - 1];
+    var enB = 'DNS lookups are failing. Switching DNS usually fixes it.';
+    var yueB = 'DNS 查唔到，轉個 DNS 通常就搞掂。';
+    var em = emoji ? '📡 ' : '';
+    var previewTitle = lang === 'en' ? em + enT : lang === 'yue' ? em + yueT : em + enT + '\n' + yueT;
+    var previewBody = lang === 'en' ? enB : lang === 'yue' ? yueB : enB + '\n' + yueB;
     var risk = s.regex && /\((?:[^()]|\([^()]*\))*[+*]\)[+*{]/.test(q);
-    var valid = !err;
+    var tint = err ? 'var(--on-error-container)' : 'var(--primary)';
     return {
-      query: q,
-      onQuery: function (e) { self.setState({ query: e.target.value }); },
+      rootVars: pal.css + ';--tick:0',
+      appClass: 'app' + (s.reduced ? ' reduced' : ''),
+      textScale: s.textScale,
+      nav: navDefs.map(function (n) { var on = s.screen === n[0]; return { label: n[1], icon: n[2], iconClass: on ? 'ms fill' : 'ms', current: on ? 'page' : 'false', go: go(n[0]) }; }),
+      eyebrow: titles[s.screen][0], title: titles[s.screen][1],
+      themeIcon: s.dark ? 'light_mode' : 'dark_mode',
+      toggleDark: function () { self.setState({ dark: !self.state.dark }); },
+      isOverview: s.screen === 'overview', isHistory: s.screen === 'history', isAppearance: s.screen === 'appearance', isLanguage: s.screen === 'language', isRecords: s.screen === 'records',
+      query: q, onQuery: function (e) { self.setState({ query: e.target.value }); },
+      caseOn: String(s.matchCase), regexOn: String(s.regex), builderOn: s.builder, builderIcon: s.builder ? 'expand_less' : 'build',
       toggleCase: function () { self.setState({ matchCase: !self.state.matchCase }); },
       toggleRegex: function () { self.setState({ regex: !self.state.regex }); },
       toggleBuilder: function () { self.setState({ builder: !self.state.builder, regex: true }); },
       plainText: function () { self.setState({ regex: false, builder: false }); },
-      caseOn: String(s.matchCase), regexOn: String(s.regex), builderOpen: s.builder,
-      caseBg: s.matchCase ? '#1D2A26' : '#1A1D23', caseBorder: s.matchCase ? '#7CF2C2' : '#2E333D',
-      regexBg: s.regex ? '#1D2A26' : '#1A1D23', regexBorder: s.regex ? '#7CF2C2' : '#2E333D',
-      builderBg: s.builder ? '#7CF2C2' : '#1A1D23', builderInk: s.builder ? '#062018' : '#E8EAED', builderBorder: s.builder ? '#7CF2C2' : '#2E333D',
-      fieldBorder: !valid ? '#FFB547' : (s.builder ? '#7CF2C2' : '#2E333D'),
-      fieldFont: s.regex ? "'Cascadia Mono', Consolas, monospace" : "'Segoe UI Variable Text', 'Segoe UI', sans-serif",
-      patternBorder: valid ? '#2E333D' : '#FFB547',
-      countText: !valid ? 'invalid' : rows.length + ' of ' + items.length,
-      countColor: valid ? '#9AA1AD' : '#FFB547',
-      statusText: !q ? 'Type a pattern or pick a token on the left.' : (valid ? 'Valid pattern · ' + rows.length + ' of ' + items.length + ' copies match' : 'Not valid: ' + err),
-      statusColor: valid ? '#7CF2C2' : '#FFB547',
+      barRadius: s.builder ? '28px 28px 16px 16px' : '28px',
+      fieldFont: s.regex ? "'Roboto Mono', monospace" : "'Roboto Flex', sans-serif",
+      countText: err ? 'invalid' : rows.length + ' of ' + items.length, countColor: err ? 'var(--on-error-container)' : 'var(--on-surface-variant)',
+      patternTint: tint, statusIcon: err ? 'error' : 'check_circle',
+      statusText: !q ? 'Type a pattern or pick a token.' : err ? 'Not valid: ' + err : 'Valid · ' + rows.length + ' of ' + items.length + ' copies match',
       riskOn: risk,
-      flags: flagDefs.map(function (f) { var on = !!s.flags[f[0]]; return { label: f[1], help: f[2], on: String(on), bg: on ? '#1D2A26' : '#1A1D23', border: on ? '#7CF2C2' : '#2E333D', toggle: function () { var n = Object.assign({}, self.state.flags); n[f[0]] = !n[f[0]]; self.setState({ flags: n }); } }; }),
-      groups: groups,
-      explain: this.explainOf(q),
-      rows: rows,
-      empty: rows.length === 0
+      flags: flagDefs.map(function (f) { var on = !!s.flags[f[0]]; return { label: f[1], icon: on ? 'check' : f[2], on: String(on), help: f[1], toggle: function () { var n = Object.assign({}, self.state.flags); n[f[0]] = !n[f[0]]; self.setState({ flags: n }); } }; }),
+      groups: groupDefs.map(function (g) { return { name: g[0], tokens: g[1].map(function (t) { return { label: t, help: t, insert: function () { self.setState({ query: self.state.query + t.replace('()', '').replace(/\)$/, ')'), regex: true }); } }; }) }; }),
+      explain: explain, rows: rows, empty: rows.length === 0,
+      hasSelection: selCount > 0, selText: selCount + ' selected', clearSel: function () { self.setState({ sel: {} }); },
+      lightOn: String(!s.dark), darkOn: String(s.dark),
+      setLight: function () { self.setState({ dark: false }); }, setDark: function () { self.setState({ dark: true }); },
+      seeds: pal.list.map(function (p, i) { var on = s.seed === i; return { name: p.name, color: s.dark ? p.d[0] : p.l[0], on: String(on), radius: on ? '18px' : '28px', scale: on ? '1.08' : '1', ring: on ? 'var(--on-surface)' : 'transparent', pick: function () { self.setState({ seed: i }); } }; }),
+      onText: function (e) { self.setState({ textScale: Number(e.target.value) }); },
+      reducedOn: String(s.reduced), toggleReduced: function () { self.setState({ reduced: !self.state.reduced }); },
+      langs: [['en','English'],['yue','廣東話'],['both','Bilingual']].map(function (l) { return { label: l[1], on: String(s.lang === l[0]), pick: function () { self.setState({ lang: l[0] }); } }; }),
+      funEn: s.funEn, funYue: s.funYue,
+      onFunEn: function (e) { self.setState({ funEn: Number(e.target.value) }); }, onFunYue: function (e) { self.setState({ funYue: Number(e.target.value) }); },
+      emojiOn: String(s.emoji), toggleEmoji: function () { self.setState({ emoji: !self.state.emoji }); },
+      previewTitle: previewTitle, previewBody: previewBody
     };
   }
 }

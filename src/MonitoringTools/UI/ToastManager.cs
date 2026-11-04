@@ -36,7 +36,7 @@ namespace MonitoringTools.UI
         private void Present(ToastWindow w)
         {
             if (_live.Count >= MaxLive) _live.First(t => !t.IsClosing).CloseAnimated();
-            _live.Add(w);
+            _live.Add(w); NotificationLog.AddToast(w.TitleText.Text, w.MetaText.Text);
             w.Gone += () => { _live.Remove(w); Restack(); };
             w.SizeChanged += (s, e) => Restack();
             var area = SystemParameters.WorkArea;

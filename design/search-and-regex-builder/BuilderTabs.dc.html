@@ -8,91 +8,77 @@
 <body>
 <x-dc>
 <helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#08090C}
-button{font:inherit}
+body{margin:0;background:#0F1512}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.ms{font-family:'Material Symbols Rounded';font-size:20px;line-height:1;display:inline-block;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20}
+.mono{font-family:'Roboto Mono',Consolas,monospace}
+.panel{border-radius:28px;background:#262B28;padding:24px;display:flex;flex-direction:column;gap:14px;min-width:0;animation:in .5s cubic-bezier(.05,.7,.1,1) both}
+.p2{animation-delay:.08s}.p3{animation-delay:.16s}
+@keyframes in{from{opacity:0;transform:translateY(24px) scale(.98)}to{opacity:1;transform:none}}
+.tabs{display:flex;border-bottom:1px solid #404943}
+.tab{flex:1;height:48px;font-size:14px;font-weight:500;color:#BFC9C2;position:relative}
+.tab[aria-selected="true"]{color:#6FDBB4}
+.tab[aria-selected="true"]::after{content:"";position:absolute;left:50%;bottom:0;width:48px;height:3px;border-radius:3px 3px 0 0;background:#6FDBB4;transform:translateX(-50%);animation:grow .45s cubic-bezier(.34,1.56,.64,1)}
+@keyframes grow{from{width:0}to{width:48px}}
+.field{position:relative}
+.field label{position:absolute;left:12px;top:-8px;padding:0 4px;background:#262B28;font-size:12px;color:#6FDBB4}
+.field .box{min-height:56px;border:2px solid #6FDBB4;border-radius:4px;padding:16px;font-size:15px;color:#DEE4DF}
+.chip{height:32px;padding:0 12px;border-radius:8px;border:1px solid #404943;display:inline-flex;align-items:center;font-size:13px;color:#BFC9C2}
+.hl{background:#00513A;color:#8CF8CF;border-radius:6px;padding:0 2px}
+.row{display:flex;align-items:center;gap:14px;min-height:56px;padding:0 16px;border-radius:16px;font-size:14px}
+.row.sel{background:#354B41;color:#CFE9DB;border-radius:28px}
+.filled{height:40px;padding:0 24px;border-radius:20px;background:#6FDBB4;color:#003827;font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.tonal{height:40px;padding:0 20px;border-radius:20px;background:#354B41;color:#CFE9DB;font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:8px}
 </style>
 </helmet>
-<div style="width: 1400px; height: 760px; box-sizing: border-box; padding: 40px; background: #08090C; color: #E8EAED; font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px;">
+<div style="width: 1400px; height: 820px; padding: 40px; background: #0F1512; color: #DEE4DF; font-family: 'Roboto Flex', system-ui, sans-serif; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px;">
 
-  <section aria-label="Test view" style="background: #14161B; border: 1px solid #2E333D; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0;">
-    <div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 15px; font-weight: 600;">Test</span><span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;">0.08 ms · 3 matches</span></div>
-    <code style="display: block; padding: 10px 12px; border-radius: 10px; background: #0F1115; border: 1px solid #2E333D; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; color: #E8EAED;">(?&lt;year&gt;\d{4})-(?&lt;month&gt;\d{2})-(\d{2})</code>
-    <div style="font-size: 12px; color: #C9CDD4;">Sample text</div>
-    <div style="padding: 12px; border-radius: 10px; background: #0F1115; border: 1px solid #262A33; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; line-height: 1.9; color: #C9CDD4;">Invoice <span style="background: #1D2A26; color: #7CF2C2; border-radius: 3px;">2026-10-31</span> sent<br>Backup finished <span style="background: #1D2A26; color: #7CF2C2; border-radius: 3px;">2026-11-03</span><br>take 3 · <span style="background: #1D2A26; color: #7CF2C2; border-radius: 3px; outline: 2px solid #7CF2C2;">2026-11-02</span></div>
-    <div style="font-size: 12px; color: #C9CDD4;">Match 3 of 3 · groups</div>
-    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-      <thead><tr><th style="text-align: left; padding: 6px 8px; color: #9AA1AD; font-weight: 400; border-bottom: 1px solid #262A33;">Group</th><th style="text-align: left; padding: 6px 8px; color: #9AA1AD; font-weight: 400; border-bottom: 1px solid #262A33;">Value</th><th style="text-align: left; padding: 6px 8px; color: #9AA1AD; font-weight: 400; border-bottom: 1px solid #262A33;">At</th></tr></thead>
-      <tbody style="font-family: 'Cascadia Mono', Consolas, monospace;">
-        <tr><td style="padding: 6px 8px;">0</td><td style="padding: 6px 8px; color: #7CF2C2;">2026-11-02</td><td style="padding: 6px 8px; color: #9AA1AD;">64–74</td></tr>
-        <tr><td style="padding: 6px 8px;">year</td><td style="padding: 6px 8px; color: #7CF2C2;">2026</td><td style="padding: 6px 8px; color: #9AA1AD;">64–68</td></tr>
-        <tr><td style="padding: 6px 8px;">month</td><td style="padding: 6px 8px; color: #7CF2C2;">11</td><td style="padding: 6px 8px; color: #9AA1AD;">69–71</td></tr>
-        <tr><td style="padding: 6px 8px;">3</td><td style="padding: 6px 8px; color: #7CF2C2;">02</td><td style="padding: 6px 8px; color: #9AA1AD;">72–74</td></tr>
-      </tbody>
-    </table>
-    <div style="display: flex; gap: 6px; margin-top: auto;">
-      <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Previous</button>
-      <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Next</button>
-      <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Use history as sample</button>
+  <section class="panel" aria-label="Test view">
+    <div class="tabs" role="tablist" aria-label="Builder view"><button type="button" class="tab" role="tab" aria-selected="false">Build</button><button type="button" class="tab" role="tab" aria-selected="true">Test</button><button type="button" class="tab" role="tab" aria-selected="false">Replace</button></div>
+    <div class="field"><label>Sample</label><div class="box mono" style="line-height: 1.9; font-size: 13px;">Launch <span class="hl">poster.png</span><br>Release <span class="hl">checklist.md</span><br>Sales <span class="hl">2026.csv</span></div></div>
+    <div style="font-size: 12px; color: #BFC9C2; display: flex; gap: 6px; align-items: center;"><span class="ms" aria-hidden="true">timer</span>3 matches · 0.17 ms measured</div>
+    <div class="row sel"><span class="ms" aria-hidden="true">check_circle</span><span class="mono">#1 at 7 · poster.png</span></div>
+    <div class="row"><span class="ms" aria-hidden="true">radio_button_unchecked</span><span class="mono">#2 at 26 · checklist.md</span></div>
+    <div class="row"><span class="ms" aria-hidden="true">radio_button_unchecked</span><span class="mono">#3 at 44 · 2026.csv</span></div>
+    <div style="border-radius: 20px; background: #1B211E; padding: 12px 16px; display: grid; grid-template-columns: 80px minmax(0, 1fr) auto; gap: 6px 12px; font-size: 13px;" class="mono">
+      <span style="color: #BFC9C2;">0</span><span style="color: #6FDBB4;">poster.png</span><span style="color: #89938C;">7–17</span>
+      <span style="color: #BFC9C2;">name</span><span style="color: #6FDBB4;">poster</span><span style="color: #89938C;">7–13</span>
+      <span style="color: #BFC9C2;">1</span><span style="color: #6FDBB4;">png</span><span style="color: #89938C;">14–17</span>
     </div>
   </section>
 
-  <section aria-label="Replace and split view" style="background: #14161B; border: 1px solid #2E333D; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0;">
-    <div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 15px; font-weight: 600;">Replace</span><div role="tablist" aria-label="Operation" style="display: flex; gap: 4px;"><button type="button" role="tab" aria-selected="true" style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #7CF2C2; background: #1D2A26; color: #E8EAED; font-size: 12px;">Replace</button><button type="button" role="tab" aria-selected="false" style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Split</button></div></div>
-    <label style="font-size: 12px; color: #C9CDD4;">Replacement</label>
-    <code style="display: block; padding: 10px 12px; border-radius: 10px; background: #0F1115; border: 1px solid #2E333D; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; color: #E8EAED;">${3}/${month}/${year}</code>
-    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-      <span style="height: 26px; line-height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid #2E333D; background: #1A1D23; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px;">$0 whole match</span>
-      <span style="height: 26px; line-height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid #2E333D; background: #1A1D23; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px;">${name}</span>
-      <span style="height: 26px; line-height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid #2E333D; background: #1A1D23; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px;">$$ dollar</span>
-      <span style="height: 26px; line-height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid #2E333D; background: #1A1D23; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px;">$` before</span>
-    </div>
-    <div style="font-size: 12px; color: #C9CDD4;">Preview, nothing is changed until you copy it</div>
-    <div style="padding: 12px; border-radius: 10px; background: #0F1115; border: 1px solid #262A33; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; line-height: 1.9; color: #C9CDD4;">Invoice <span style="color: #7CF2C2;">31/10/2026</span> sent<br>Backup finished <span style="color: #7CF2C2;">03/11/2026</span><br>take 3 · <span style="color: #7CF2C2;">02/11/2026</span></div>
-    <div style="font-size: 12px; color: #C9CDD4;">Invalid input stays visible</div>
-    <div style="padding: 10px 12px; border-radius: 10px; background: #2A2116; border: 1px solid #FFB547; color: #FFB547; font-size: 12px; line-height: 1.5;">Not valid: reference to undefined group name “day” at position 2.</div>
-    <div style="display: flex; gap: 6px; margin-top: auto;">
-      <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #7CF2C2; background: #7CF2C2; color: #062018; font-size: 12px; font-weight: 600;">Copy result</button>
-      <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Copy replacement</button>
-    </div>
+  <section class="panel p2" aria-label="Replace view">
+    <div class="tabs" role="tablist" aria-label="Builder view"><button type="button" class="tab" role="tab" aria-selected="false">Test</button><button type="button" class="tab" role="tab" aria-selected="true">Replace</button><button type="button" class="tab" role="tab" aria-selected="false">Split</button></div>
+    <div class="field"><label>Replacement</label><div class="box mono">${name}.webp</div></div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;"><span class="chip mono">$0</span><span class="chip mono">${name}</span><span class="chip mono">$1</span><span class="chip mono">$$</span><span class="chip mono">$`</span><span class="chip mono">$'</span></div>
+    <div style="border-radius: 20px; background: #00513A; color: #8CF8CF; padding: 16px; font-size: 13px; line-height: 1.9;" class="mono">Launch poster.webp<br>Release checklist.webp<br>Sales 2026.webp</div>
+    <div style="display: flex; gap: 12px; padding: 12px 16px; border-radius: 16px; background: #93000A; color: #FFDAD6; font-size: 13px;"><span class="ms" aria-hidden="true">error</span>Invalid input stays visible: group “day” is not defined.</div>
+    <div style="flex-grow: 1;"></div>
+    <div style="display: flex; gap: 8px;"><button type="button" class="filled"><span class="ms" aria-hidden="true">content_copy</span>Copy result</button><button type="button" class="tonal">Copy replacement</button></div>
   </section>
 
-  <section aria-label="Code and library views" style="display: flex; flex-direction: column; gap: 24px; min-width: 0;">
-    <div style="background: #14161B; border: 1px solid #2E333D; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px;">
-      <div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 15px; font-weight: 600;">Code</span>
-        <div role="tablist" aria-label="Language" style="display: flex; gap: 4px;">
-          <button type="button" role="tab" aria-selected="true" style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #7CF2C2; background: #1D2A26; color: #E8EAED; font-size: 12px;">C#</button>
-          <button type="button" role="tab" aria-selected="false" style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">PowerShell</button>
-          <button type="button" role="tab" aria-selected="false" style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Batch</button>
-        </div>
-      </div>
-      <pre style="margin: 0; padding: 12px; border-radius: 10px; background: #0F1115; border: 1px solid #262A33; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; line-height: 1.6; color: #C9CDD4; white-space: pre-wrap;">var rx = new Regex(@"(?&lt;year&gt;\d{4})-(?&lt;month&gt;\d{2})-(\d{2})",
+  <div style="display: flex; flex-direction: column; gap: 24px; min-width: 0;">
+    <section class="panel p3" aria-label="Code view">
+      <div class="tabs" role="tablist" aria-label="Language"><button type="button" class="tab" role="tab" aria-selected="true">C#</button><button type="button" class="tab" role="tab" aria-selected="false">PowerShell</button><button type="button" class="tab" role="tab" aria-selected="false">Python</button></div>
+      <pre class="mono" style="margin: 0; border-radius: 16px; background: #1B211E; padding: 14px; font-size: 12px; line-height: 1.6; color: #BFC9C2; white-space: pre-wrap;">var rx = new Regex(@"(?&lt;name&gt;\w+)\.(png|md|csv)",
     RegexOptions.IgnoreCase,
     TimeSpan.FromMilliseconds(200));</pre>
-      <button type="button" style="align-self: flex-start; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Copy code</button>
-    </div>
-    <div style="flex: 1 1 auto; background: #14161B; border: 1px solid #2E333D; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px;">
-      <span style="font-size: 15px; font-weight: 600;">Library</span>
-      <div style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px 0 12px; border-radius: 10px; background: #0F1115; border: 1px solid #2E333D;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA1AD" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
-        <span style="flex: 1; font-size: 13px; color: #9AA1AD;">Search saved patterns</span>
-        <span style="width: 32px; height: 28px; line-height: 28px; text-align: center; border-radius: 7px; border: 1px solid #2E333D; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #C9CDD4;">.*</span>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
-        <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 9px; background: #1A1D23;"><span>ISO date</span><code style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: #7CF2C2;">\d{4}-\d{2}-\d{2}</code></div>
-        <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 9px; background: #1A1D23;"><span>Windows path</span><code style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: #7CF2C2;">^[A-Z]:\\</code></div>
-        <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 9px; background: #1A1D23;"><span>IPv4 address</span><code style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: #7CF2C2;">\b(?:\d{1,3}\.){3}\d{1,3}\b</code></div>
-        <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 9px; background: #1A1D23;"><span>Recent · this search box</span><code style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: #C9CDD4;">take \d</code></div>
-      </div>
-      <div style="display: flex; gap: 6px; margin-top: auto;">
-        <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Import</button>
-        <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Export JSON</button>
-      </div>
-    </div>
-  </section>
+      <button type="button" class="tonal" style="align-self: flex-start;"><span class="ms" aria-hidden="true">content_copy</span>Copy code</button>
+    </section>
+    <section class="panel p3" aria-label="Library view" style="flex: 1 1 auto;">
+      <div style="font-size: 22px;">Library</div>
+      <div class="row sel"><span class="ms" aria-hidden="true">bookmark</span><span style="flex: 1;">ISO date</span><span class="mono" style="font-size: 12px;">\d{4}-\d{2}-\d{2}</span></div>
+      <div class="row"><span class="ms" aria-hidden="true">bookmark</span><span style="flex: 1;">IPv4 address</span><span class="mono" style="font-size: 12px; color: #6FDBB4;">\b(?:\d{1,3}\.){3}…</span></div>
+      <div class="row"><span class="ms" aria-hidden="true">history</span><span style="flex: 1;">Recent here</span><span class="mono" style="font-size: 12px; color: #BFC9C2;">take \d</span></div>
+      <div style="display: flex; gap: 8px; margin-top: auto;"><button type="button" class="tonal"><span class="ms" aria-hidden="true">upload</span>Import</button><button type="button" class="tonal"><span class="ms" aria-hidden="true">download</span>Export JSON</button></div>
+    </section>
+  </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":760}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":820}}'>
 class Component extends DCLogic {
   renderVals() { return {}; }
 }

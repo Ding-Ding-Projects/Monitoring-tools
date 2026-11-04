@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -33,11 +34,17 @@ namespace MonitoringTools.UI
             ("conversion", "Conversion", Icons.Bolt),
             ("minecraft", "Minecraft servers", Icons.Box),
             ("service", "Service", Icons.Shield),
+            ("appearance", "Appearance", Icons.Palette),
+            ("language", "Language and voice", Icons.Translate),
+            ("modes", "Modes", Icons.Moon),
+            ("records", "Records and exports", Icons.Archive),
+            ("help", "Help and docs", Icons.Help),
             ("about", "About and updates", Icons.Globe),
         };
         private string _current;
         private SearchField _pageSearch;
         public SearchField PageSearch => _pageSearch;
+        public IEnumerable<string> SectionIds => _sections.Select(s => s.Id);
         private Shortcut _editing;
 
         public ControlCentreWindow()
@@ -51,9 +58,11 @@ namespace MonitoringTools.UI
             foreach (var (id, label, icon) in _sections)
             {
                 var row = new StackPanel { Orientation = Orientation.Horizontal };
-                row.Children.Add(new ContentControl { Content = Ui.Icon(icon, Ui.Res("B.TextSoft"), 15), Margin = new Thickness(4, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center });
+                var glyph = Ui.Icon(icon, Ui.Res("B.TextSoft"), 15);
+                glyph.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "B.TextSoft");
+                row.Children.Add(new ContentControl { Content = glyph, Margin = new Thickness(4, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center });
                 row.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
-                var b = new Button { Style = Ui.Style("Btn.Row"), Content = row, Tag = id, HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 4) };
+                var b = new Button { Style = Ui.Style("Btn.Row"), Content = row, Tag = id, HorizontalContentAlignment = HorizontalAlignment.Left, Height = 36, Margin = new Thickness(0, 0, 0, 2) };
                 var sid = id;
                 b.Click += (s, e) => Navigate(sid);
                 Nav.Children.Add(b);
@@ -67,7 +76,17 @@ namespace MonitoringTools.UI
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && _pageSearch != null) { _pageSearch.Box.Focus(); _pageSearch.Box.SelectAll(); e.Handled = true; }
             };
             Loaded += (s, e) => Navigate("overview");
+            void OnLook() { AppName.Text = Appearance.DisplayName; Logo.Stroke = new SolidColorBrush(Appearance.LogoColor); if (_current != null) Navigate(_current, animate: false); }
+            Appearance.Changed += OnLook;
+            Closed += (s, e) => Appearance.Changed -= OnLook;
+            Loaded += (s, e) => { AppName.Text = Appearance.DisplayName; Logo.Stroke = new SolidColorBrush(Appearance.LogoColor); };
             CommandPalette.Attach(this);
+            ElementMenu.Attach(this, t =>
+            {
+                var words = SearchScope.Text(t).Split((char[])null, StringSplitOptions.RemoveEmptyEntries).Take(3);
+                var q = string.Join(" ", words);
+                return _pageSearch == null || q.Length == 0 ? null : new[] { new ElementMenu.Item($"Search this page for “{q}”", Icons.Search, "Ctrl+F", () => { _pageSearch.State.SetRegex(false); _pageSearch.State.SetQuery(q); _pageSearch.Box.Focus(); }) };
+            });
             ServerManager.Output += OnServerOutput;
             Closed += (s, e) => ServerManager.Output -= OnServerOutput;
             RefreshStatus();
@@ -88,7 +107,7 @@ namespace MonitoringTools.UI
             if (idx < 0) idx = 0;
             id = _sections[idx].Id;
             _current = id;
-            NavShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(idx * 42, TimeSpan.FromMilliseconds(animate ? 360 : 0)) { EasingFunction = Ui.Spring });
+            NavShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(idx * 38, TimeSpan.FromMilliseconds(animate ? 360 : 0)) { EasingFunction = Ui.Spring });
 
             FrameworkElement page = id switch
             {
@@ -101,6 +120,11 @@ namespace MonitoringTools.UI
                 "service" => ServicePage(),
                 "activity" => ActivityPage(),
                 "minecraft" => MinecraftPage(),
+                "appearance" => AppearancePage(),
+                "language" => LanguagePage(),
+                "modes" => ModesPage(),
+                "records" => RecordsPage(),
+                "help" => HelpPage(),
                 "about" => AboutPage(),
                 _ => OverviewPage(),
             };
@@ -130,7 +154,7 @@ namespace MonitoringTools.UI
             var root = new StackPanel { MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 20) };
             var head = new StackPanel { Margin = new Thickness(0, 4, 0, 22) };
             head.Children.Add(new TextBlock { Text = eyebrow.ToUpperInvariant(), Style = Ui.Style("T.Eyebrow"), FontSize = 12 });
-            head.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 30, Margin = new Thickness(0, 4, 0, 0) });
+            head.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 32, Margin = new Thickness(0, 4, 0, 0) });
             if (sub != null) head.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 6, 0, 0), MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left });
             root.Children.Add(head);
             return root;
@@ -140,12 +164,13 @@ namespace MonitoringTools.UI
         {
             var b = new Border
             {
-                Background = Ui.Res("B.Surface"), CornerRadius = new CornerRadius(16), Padding = new Thickness(pad),
-                BorderBrush = edge == null ? Ui.Res("B.Line") : new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge)),
-                BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 0, 14), Child = child
+                Background = Ui.Res("B.Surface"), CornerRadius = new CornerRadius(24), Padding = new Thickness(pad + 4),
+                BorderBrush = edge == null ? Brushes.Transparent : new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge)),
+                BorderThickness = new Thickness(edge == null ? 0 : 1), Margin = new Thickness(0, 0, 0, 16), Child = child
             };
-            b.MouseEnter += (s, e) => b.BorderBrush = Ui.Res("B.LineStrong");
-            b.MouseLeave += (s, e) => b.BorderBrush = edge == null ? Ui.Res("B.Line") : new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge));
+            // Material 3 filled card: no outline; a soft tonal lift on hover.
+            b.MouseEnter += (s, e) => b.Background = Ui.Res("B.Raised");
+            b.MouseLeave += (s, e) => b.Background = Ui.Res("B.Surface");
             return b;
         }
 
@@ -284,14 +309,83 @@ namespace MonitoringTools.UI
                 return root;
             }
             var list = new StackPanel();
-            foreach (var it in App.History.Items) list.Children.Add(HistoryRow(it));
+            _historyRows.Clear();
+            foreach (var it in App.History.Items) list.Children.Add(HistoryRow(it, selectable: true));
+            root.Children.Add(BulkBar());
             root.Children.Add(Card(list, pad: 10));
             return root;
         }
 
-        private FrameworkElement HistoryRow(ClipItem it)
+        // ---- bulk actions on history: select mode, select all visible, copy, save, remove
+
+        private bool _selecting;
+        private readonly HashSet<ClipItem> _selected = new HashSet<ClipItem>();
+        private readonly List<(ClipItem Item, FrameworkElement Row)> _historyRows = new List<(ClipItem, FrameworkElement)>();
+
+        private FrameworkElement BulkBar()
+        {
+            _selected.IntersectWith(App.History.Items);
+            var bar = new WrapPanel { Margin = new Thickness(0, 0, 0, 12) };
+            var toggle = Ui.Button(_selecting ? "Done selecting" : "Select", () => { _selecting = !_selecting; if (!_selecting) _selected.Clear(); Navigate("history", animate: false); }, _selecting ? "Btn.Accent" : "Btn.Ghost");
+            toggle.Margin = new Thickness(0, 0, 8, 0);
+            bar.Children.Add(toggle);
+            if (!_selecting) return bar;
+            var count = new TextBlock { Text = $"{_selected.Count} selected", Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 12, 0) };
+            AutomationProperties.SetLiveSetting(count, System.Windows.Automation.AutomationLiveSetting.Polite);
+            bar.Children.Add(count);
+            Button Act(string label, Action a, string style = "Btn.Ghost")
+            {
+                var b = Ui.Button(label, a, style);
+                b.Margin = new Thickness(0, 0, 8, 0);
+                b.IsEnabled = label.StartsWith("Select all") || _selected.Count > 0;
+                bar.Children.Add(b);
+                return b;
+            }
+            Act("Select all shown", () =>
+            {
+                foreach (var (it, row) in _historyRows) if (row.IsVisible) _selected.Add(it);
+                Navigate("history", animate: false);
+            });
+            Act("Copy", () => ClipboardWatcher.SetText(string.Join(Environment.NewLine, Ordered().Select(TextFor))));
+            Act("Save as text…", () =>
+            {
+                var d = new Microsoft.Win32.SaveFileDialog { FileName = "clipboard-history.txt", Filter = "Text|*.txt" };
+                if (d.ShowDialog() == true) File.WriteAllText(d.FileName, string.Join(Environment.NewLine, Ordered().Select(TextFor)));
+            });
+            Act("Remove from history", () =>
+            {
+                var n = _selected.Count;
+                var ok = new ConfirmWindow($"Remove {n} {(n == 1 ? "copy" : "copies")} from history?", "They are only removed from this list. Nothing on disk or on the clipboard changes.", "Remove", danger: true);
+                ok.Confirmed += yes =>
+                {
+                    if (!yes) return;
+                    foreach (var it in _selected.ToList()) App.History.Items.Remove(it);
+                    _selected.Clear();
+                    Navigate("history", animate: false);
+                };
+                ok.Show();
+            }, "Btn.Danger");
+            return bar;
+        }
+
+        private IEnumerable<ClipItem> Ordered() => App.History.Items.Where(_selected.Contains);
+
+        private static string TextFor(ClipItem it) =>
+            it.Text ?? (it.Files.Length > 0 ? string.Join(Environment.NewLine, it.Files) : $"[{it.Kind.ToString().ToLowerInvariant()}]");
+
+        private FrameworkElement HistoryRow(ClipItem it, bool selectable = false)
         {
             var g = new Grid { Margin = new Thickness(6, 4, 6, 4) };
+            if (selectable && _selecting)
+            {
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                var cb = new CheckBox { IsChecked = _selected.Contains(it), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 12, 0) };
+                AutomationProperties.SetName(cb, "Select " + (it.Preview ?? it.Kind.ToString()));
+                cb.Checked += (s, e) => { _selected.Add(it); Navigate("history", animate: false); };
+                cb.Unchecked += (s, e) => { _selected.Remove(it); Navigate("history", animate: false); };
+                g.Children.Add(cb);
+            }
+            int c0 = g.ColumnDefinitions.Count;
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             g.ColumnDefinitions.Add(new ColumnDefinition());
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -300,23 +394,26 @@ namespace MonitoringTools.UI
                 ClipKind.Url => Icons.Link, ClipKind.Files => Icons.File, ClipKind.Image => Icons.Image, ClipKind.Audio => Icons.Audio,
                 ClipKind.Json => Icons.Braces, ClipKind.Color => Icons.Palette, ClipKind.Email => Icons.Mail, ClipKind.Command => Icons.Bolt, _ => Icons.Text
             };
-            g.Children.Add(Ui.IconChip(icon, Ui.Res("B.Mint"), Ui.Res("B.MintWash")));
+            var chip = Ui.IconChip(icon, Ui.Res("B.OnPrimaryContainer"), Ui.Res("B.MintWash"));
+            Grid.SetColumn(chip, c0); g.Children.Add(chip);
             var mid = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
             var prev = (it.Preview ?? "").Replace("\r", " ").Replace("\n", " ");
             mid.Children.Add(new TextBlock { Text = prev.Length > 140 ? prev[..140] + "…" : prev, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = it.Kind == ClipKind.Files ? Ui.Font("F.Mono") : Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
             mid.Children.Add(Ui.Mono($"{it.Kind.ToString().ToLowerInvariant()} · {it.At:HH:mm:ss}", Ui.Res("B.TextMute"), 11));
-            Grid.SetColumn(mid, 1); g.Children.Add(mid);
+            Grid.SetColumn(mid, c0 + 1); g.Children.Add(mid);
             var btns = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
             var again = Ui.Button("Copy again", () => CopyAgain(it), "Btn.Ghost");
             again.Margin = new Thickness(0, 0, 8, 0);
             var acts = Ui.Button("Actions", () => App.Toasts.ShowClip(it), "Btn.Ghost");
             acts.Margin = new Thickness(0);
             btns.Children.Add(again); btns.Children.Add(acts);
-            Grid.SetColumn(btns, 2); g.Children.Add(btns);
+            Grid.SetColumn(btns, c0 + 2); g.Children.Add(btns);
             var row = new Border { CornerRadius = new CornerRadius(12), Padding = new Thickness(6), Child = g, Background = Brushes.Transparent };
             SearchScope.SetItem(row, $"{it.Kind} {it.Text} {string.Join(" ", it.Files ?? Array.Empty<string>())}");
+            if (selectable) _historyRows.Add((it, row));
+            if (selectable && _selected.Contains(it)) row.Background = Ui.Res("B.SecondaryContainer");
             row.MouseEnter += (s, e) => row.Background = Ui.Res("B.Raised");
-            row.MouseLeave += (s, e) => row.Background = Brushes.Transparent;
+            row.MouseLeave += (s, e) => row.Background = selectable && _selected.Contains(it) ? Ui.Res("B.SecondaryContainer") : Brushes.Transparent;
             return row;
         }
 

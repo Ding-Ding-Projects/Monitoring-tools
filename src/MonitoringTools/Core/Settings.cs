@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace MonitoringTools.Core
 {
-    public sealed class Settings
+    public sealed partial class Settings
     {
         // Clipboard
         public bool ClipboardEnabled { get; set; } = true;
@@ -111,6 +111,7 @@ namespace MonitoringTools.Core
         {
             try { File.WriteAllText(FilePath, JsonSerializer.Serialize(Current, Json)); }
             catch (Exception ex) { Log.Warn("Settings save failed: " + ex.Message); }
+            SettingsHistory.Record(Current);
             Changed?.Invoke();
         }
 

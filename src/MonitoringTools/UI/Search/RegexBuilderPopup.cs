@@ -116,8 +116,8 @@ namespace MonitoringTools.UI.Search
 
             _card = new Border
             {
-                Background = Ui.Res("B.Surface"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(16),
-                Padding = new Thickness(18), Margin = new Thickness(0, 0, 24, 24),
+                Background = Ui.Res("B.Raised"), BorderBrush = Brushes.Transparent, BorderThickness = new Thickness(0), CornerRadius = new CornerRadius(28),
+                Padding = new Thickness(24, 20, 24, 20), Margin = new Thickness(0, 0, 24, 24),
                 Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"],
                 Child = new ScrollViewer { Content = stack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 620 }
             };
@@ -128,6 +128,19 @@ namespace MonitoringTools.UI.Search
             {
                 Child = _card, PlacementTarget = field.Bar, Placement = PlacementMode.Bottom, VerticalOffset = 8,
                 StaysOpen = false, AllowsTransparency = true, PopupAnimation = PopupAnimation.Fade, Focusable = true
+            };
+            // Container transform: the builder grows out of its search bar.
+            _card.RenderTransformOrigin = new Point(0.5, 0);
+            _card.RenderTransform = new ScaleTransform(1, 1);
+            _popup.Opened += (o, e) =>
+            {
+                if (Core.Settings.Current != null && SystemParameters.ClientAreaAnimation)
+                {
+                    var ease = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut };
+                    ((ScaleTransform)_card.RenderTransform).BeginAnimation(ScaleTransform.ScaleYProperty, new System.Windows.Media.Animation.DoubleAnimation(0.6, 1, TimeSpan.FromMilliseconds(420)) { EasingFunction = ease });
+                    ((ScaleTransform)_card.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, new System.Windows.Media.Animation.DoubleAnimation(0.94, 1, TimeSpan.FromMilliseconds(420)) { EasingFunction = ease });
+                    _card.BeginAnimation(UIElement.OpacityProperty, new System.Windows.Media.Animation.DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260)));
+                }
             };
             _popup.Closed += (o, e) => { _closedAt = DateTime.UtcNow; _s.Remember(); Closed?.Invoke(); };
             _s.Changed += src => { if (_popup.IsOpen) Refresh(src); };
@@ -571,9 +584,9 @@ namespace MonitoringTools.UI.Search
 
         private static void Paint(Button b, bool on)
         {
-            b.Background = on ? Ui.Res("B.MintWash") : Ui.Res("B.Raised");
-            b.Foreground = on ? Ui.Res("B.Text") : Ui.Res("B.TextSoft");
-            b.BorderBrush = on ? Ui.Res("B.Mint") : Ui.Res("B.LineStrong");
+            b.Background = on ? Ui.Res("B.SecondaryContainer") : Brushes.Transparent;
+            b.Foreground = on ? Ui.Res("B.OnSecondaryContainer") : Ui.Res("B.TextSoft");
+            b.BorderBrush = on ? Brushes.Transparent : Ui.Res("B.Line");
         }
     }
 }

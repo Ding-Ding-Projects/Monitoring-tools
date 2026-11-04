@@ -42,10 +42,14 @@ namespace MonitoringTools
             AppDomain.CurrentDomain.UnhandledException += (s, ex) => Log.Error("Unhandled", ex.ExceptionObject as Exception);
 
             Settings.Load();
+            Appearance.Initialize();
+            EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((s, e) => { if (s is Window w) Appearance.ScaleFor(w); }));
             PersonalWording.LoadCache();
             WordingLayer.Install();
+            Core.Language.Initialize();
             Games = new GameDetector();
             Toasts = new ToastManager();
+            Modes.Initialize();
             Tray = new TrayIcon();
             Net = new NetworkMonitor();
             PublicIp = new PublicIpMonitor();
@@ -104,7 +108,7 @@ namespace MonitoringTools
         private void OnClipboard(ClipItem item)
         {
             History.Add(item);
-            if (!Settings.Current.ClipboardEnabled) return;
+            if (!Modes.ClipboardToastsOn) return;
 
             if (item.Command != null && Settings.Current.QuickCommandsEnabled)
             {
@@ -124,7 +128,9 @@ namespace MonitoringTools
                     if (System.IO.Directory.Exists(c.SourcePath)) Converter.StartBatch(Converter.CompatibleIn(c.SourcePath, c.Format), c.Format, c.SourcePath);
                     else Converter.Start(c.SourcePath, c.Format);
                     break;
-                case CommandKind.Push: Toasts.StartPush(c.SourcePath); break;
+                case CommandKind.Push:
+                    if (Modes.Blocks(ModeFeature.Push)) { Toasts.ShowNotice(Modes.SchoolName + " is on", "Pushing to git is paused while it is on.", Toasts.Amber, 3, icon: Icons.Git); break; }
+                    Toasts.StartPush(c.SourcePath); break;
                 case CommandKind.Custom:
                     var sc = Shortcuts.Find(c.Format);
                     if (sc != null) Toasts.RunShortcut(sc, c.SourcePath);
@@ -132,7 +138,7 @@ namespace MonitoringTools
             }
         }
 
-        public static bool ShouldSuppress => IsSnoozed || (Settings.Current.GameModeEnabled && Games.IsGaming);
+        public static bool ShouldSuppress => IsSnoozed || (Modes.GameModeOn && Games.IsGaming);
 
         private void OnNetworkState(NetworkState state)
         {
@@ -159,6 +165,7 @@ namespace MonitoringTools
 
         private void ShowOffline(NetworkState state)
         {
+            NotificationLog.Add("Offline", state.Headline ?? "Internet connection lost", state.Cause.ToString());
             if (ShouldSuppress) { _offlineDeferred = true; return; }
             _offlineDeferred = false;
             _offline = new OfflineWindow(state);

@@ -24,19 +24,24 @@ for. Items move up as they ship; nothing here is claimed as done until it is in 
 - A search bar on every control-centre page, the palette, the tray menu and the Minecraft version picker, each with its own anchored regex builder (Build, Test, Replace, Code, Library) on the .NET engine
 - Running version and its build time (local time with seconds and time zone) on the control centre's front screen
 
+- Material 3 throughout: colour roles from five seeds, light, dark and system themes, Roboto, pill shapes, spring motion, reduce motion
+- Language modes (English, Cantonese, bilingual), two humour sliders, emoji switch and narrator
+- Modes: School mode, ADHD helpers, dim sum surprise, scheduled and file-driven settings
+- Records: notification centre, settings history with restore, exports in five formats, changelog viewer
+- Offline Help and docs page, right-click menus on every element, two-key destructive confirmation, bulk actions in history
+
 ## In progress
 
 - Minecraft servers: Bedrock edition, a world generator with seed preview, and a recorded acceptance check per target on real hardware
 
 ## Still to build from the shared app requirements
 
-- Language modes: English, Hong Kong Cantonese and bilingual, persisted
-- Independent humour-level sliders (1 to 5) for English and Cantonese copy
-- A shared, renamable School mode across the maintainer's apps, with its unlock credential
-- Show-emoji-in-dialogs toggle
 - Regex builder parity: flavour comparison, a step debugger, benchmarks, file and folder search, test cases, editable code templates (see [the parity ledger](docs/features/search/regexbuddy-parity.md))
 - Settings matches from other pages listed inline under a page search (today: Search every page opens the palette)
-- Right-click menus with their own filter field
+- Browser-style tabs with docking, pinning, grouping and the four tab searches
+- An unlock ladder, support tickets and a built-in authenticator
+- A per-element appearance editor and a full colour picker
+- The Ollama suite manager, the Minecraft world generator, drawing and forge publishing
+- A native-speaker review of the Cantonese copy
 - Resizable, draggable panels with persisted size and position
 - Right-click menus that show working keyboard shortcuts
-- Localized wizard and palette copy

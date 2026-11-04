@@ -107,7 +107,7 @@ namespace MonitoringTools.UI
                 var cc = new ControlCentreWindow { Width = 1180, Height = 820 };
                 cc.Show();
                 await Task.Delay(1200);
-                foreach (var page in new[] { "overview", "activity", "history", "clipboard", "shortcuts", "network", "game", "conversion", "minecraft", "service", "about" })
+                foreach (var page in cc.SectionIds.ToList())
                 {
                     cc.Navigate(page);
                     await Shot(cc, "control-" + page, "Control centre: " + page, 1300);
@@ -115,7 +115,15 @@ namespace MonitoringTools.UI
 
                 // search and the regex builder, anchored to the page's own search field
                 await SearchScenes(cc);
+                await LookScenes(cc);
                 cc.Close();
+
+                var gate = new ConfirmWindow("Uninstall Monitoring Tools?", "This stops the background service, removes it from start-up and deletes the program.", "Uninstall", danger: true);
+                gate.Show();
+                await Shot(gate, "super-confirm-start", "Destructive actions need two keys and a full slide", 1100);
+                gate.ArmForPreview(60);
+                await Shot(gate, "super-confirm-armed", "Both keys on, slider part way", 700);
+                gate.Close();
 
                 // tray menu filtered, and the palette in regex mode
                 var fmenu = new TrayMenuWindow();
@@ -201,6 +209,36 @@ namespace MonitoringTools.UI
             cc.PageSearch.State.SetQuery("sound");
             await Shot(cc, "search-settings", "Settings page searched for one option", 1000);
             cc.PageSearch.State.SetQuery("");
+        }
+
+        /// <summary>Language modes and a light theme on another seed, captured from the same window.</summary>
+        private static async Task LookScenes(ControlCentreWindow cc)
+        {
+            var s = Settings.Current;
+            foreach (var (mode, name) in new[] { (LanguageMode.Cantonese, "cantonese"), (LanguageMode.Bilingual, "bilingual") })
+            {
+                s.LanguageMode = mode;
+                cc.Navigate("overview");
+                await Task.Delay(700);
+                Language.Refresh();
+                await Shot(cc, "lang-" + name + "-overview", "Overview in " + name + " mode", 900);
+                cc.Navigate("language");
+                await Task.Delay(700);
+                Language.Refresh();
+                await Shot(cc, "lang-" + name + "-language", "Language page in " + name + " mode", 900);
+            }
+            s.LanguageMode = LanguageMode.English;
+            Language.Refresh();
+
+            s.ThemeMode = "light"; s.SeedColour = "violet";
+            Appearance.Apply();
+            cc.Navigate("appearance");
+            await Shot(cc, "theme-light-violet", "Appearance in the light theme on the Violet seed", 1200);
+            cc.Navigate("history");
+            await Shot(cc, "theme-light-violet-history", "Clipboard history in the light theme", 1000);
+            s.ThemeMode = "dark"; s.SeedColour = "mint";
+            Appearance.Apply();
+            await Task.Delay(400);
         }
 
         /// <summary>Renders the window and composites the builder popup at its anchored position.</summary>

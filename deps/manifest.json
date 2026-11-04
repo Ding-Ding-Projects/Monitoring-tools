@@ -28,6 +28,20 @@
         "*": ""
       },
       "target": "mingit"
+    },
+    {
+      "name": "roboto",
+      "purpose": "Roboto, the Material 3 typeface, embedded so every surface renders the same type on any Windows install",
+      "license": "Apache-2.0 (Roboto v2.138); source: https://github.com/googlefonts/roboto",
+      "repository": "googlefonts/roboto",
+      "tag": "v2.138",
+      "assetPattern": "^roboto-unhinted\\.zip$",
+      "asset": "roboto-unhinted.zip",
+      "sha256": "70f64c718510a601fbcf752aafe644314dacaeb85474dc689c89787c4a72a728",
+      "extract": {
+        "*": ""
+      },
+      "target": "roboto"
     }
   ]
 }
