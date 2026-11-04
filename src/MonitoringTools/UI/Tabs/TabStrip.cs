@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Shell;
 using System.Windows.Threading;
 using MonitoringTools.Core;
+using static MonitoringTools.UI.Tabs.TabText;
 
 namespace MonitoringTools.UI.Tabs
 {
@@ -40,6 +41,8 @@ namespace MonitoringTools.UI.Tabs
         private Button _newBtn, _moreBtn, _optBtn;
         private bool _compact;
         private string _active;
+        private string _lookSignature;
+        private readonly List<(Button Button, TextBlock Label, string Name, string Keys)> _actionDefs = new List<(Button, TextBlock, string, string)>();
 
         private static Settings S => Settings.Current;
 
@@ -66,14 +69,86 @@ namespace MonitoringTools.UI.Tabs
             };
             w.PreviewKeyDown += OnWindowKey;
             DockRequested += OnDockRequested;
+            Appearance.Changed += OnLook;
+            Language.Changed += OnLanguage;
+            ElementStyles.Changed += OnStyles;
             w.Closed += (s, e) =>
             {
                 DockRequested -= OnDockRequested;
+                Appearance.Changed -= OnLook;
+                Language.Changed -= OnLanguage;
+                ElementStyles.Changed -= OnStyles;
                 if (S.ActiveTab != _active) { S.ActiveTab = _active; Settings.Save(); }
             };
             _compact = ComputeCompact();
             ApplyDock();
             Rebuild();
+        }
+
+        // Density, language and per-tab looks all rebuild the strip, which re-applies every saved look.
+        private void OnLook() { ApplyDock(); Rebuild(); }
+
+        private void OnLanguage()
+        {
+            foreach (var d in _actionDefs)
+            {
+                d.Label.Text = T(d.Name);
+                d.Button.ToolTip = d.Keys == null ? T(d.Name) : T(d.Name) + " (" + d.Keys + ")";
+                AutomationProperties.SetName(d.Button, T(d.Name));
+            }
+            Rebuild();
+            UpdateOverflow();
+        }
+
+        private void OnStyles()
+        {
+            if (LookSignature() == _lookSignature) return;
+            Rebuild();
+        }
+
+        // -------------------------------------------------------------- per-tab and per-group looks
+
+        public static string TabKey(string id) => "tab:" + id;
+        public static string GroupKey(string name) => "group:" + name;
+
+        private static string LookSignature()
+        {
+            var parts = new List<string>();
+            foreach (var kv in S.ElementStyles ?? new Dictionary<string, ElementStyle>())
+                if (kv.Key.StartsWith("tab:", StringComparison.Ordinal) || kv.Key.StartsWith("group:", StringComparison.Ordinal))
+                    parts.Add(kv.Key + "=" + System.Text.Json.JsonSerializer.Serialize(kv.Value));
+            parts.Sort(StringComparer.Ordinal);
+            return string.Join("\n", parts);
+        }
+
+        /// <summary>Applies a saved look to one view: the box (background, corners, padding, border) and its text.</summary>
+        private static void ApplyLook(Border box, TextBlock text, ElementStyle st)
+        {
+            if (st == null || st.IsEmpty) return;
+            if (ElementStyles.TryColour(st.Background, out var bg)) box.Background = new SolidColorBrush(bg);
+            if (st.CornerRadius is double r) box.CornerRadius = new CornerRadius(Math.Max(0, r));
+            if (st.Padding is double p) box.Padding = new Thickness(Math.Max(0, p));
+            if (st.BorderThickness is double bt) box.BorderThickness = new Thickness(Math.Max(0, bt));
+            if (ElementStyles.TryColour(st.BorderColour, out var bc)) box.BorderBrush = new SolidColorBrush(bc);
+            if (text == null) return;
+            if (!string.IsNullOrWhiteSpace(st.FontFamily)) text.FontFamily = new FontFamily(st.FontFamily);
+            if (st.FontSize is double sz && sz > 0) text.FontSize = sz;
+            if (st.FontWeight is int w) text.FontWeight = FontWeight.FromOpenTypeWeight(Math.Clamp(w, 1, 999));
+            if (st.Italic is bool it) text.FontStyle = it ? FontStyles.Italic : FontStyles.Normal;
+            if (ElementStyles.TryColour(st.Foreground, out var fg)) text.Foreground = new SolidColorBrush(fg);
+        }
+
+        /// <summary>Opens the appearance editor for one tab. The look is saved under "tab:" plus the tab id.</summary>
+        public void EditTabAppearance(string id)
+        {
+            if (_tabViews.TryGetValue(id, out var v)) AppearanceEditorWindow.Open(_w, v, TabKey(id));
+        }
+
+        /// <summary>Opens the appearance editor for one group header. The look is saved under "group:" plus the group name.</summary>
+        public void EditGroupAppearance(string gid)
+        {
+            var g = Group(gid);
+            if (g != null && _headers.TryGetValue(gid, out var h)) AppearanceEditorWindow.Open(_w, h, GroupKey(g.Name));
         }
 
         // -------------------------------------------------------------- settings control used by the appearance page
@@ -82,8 +157,8 @@ namespace MonitoringTools.UI.Tabs
         public static FrameworkElement DockChoice()
         {
             var sp = new StackPanel { Margin = new Thickness(0, 4, 0, 10) };
-            sp.Children.Add(new TextBlock { Text = "Tab strip position", Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) });
-            sp.Children.Add(new TextBlock { Text = "Which edge of the control centre the tabs sit on. Default: left.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 0, 0, 8) });
+            sp.Children.Add(new TextBlock { Text = T("Tab strip position"), Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) });
+            sp.Children.Add(new TextBlock { Text = T("Which edge of the control centre the tabs sit on. Default: left."), Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 0, 0, 8) });
             var wrap = new WrapPanel();
             var buttons = new List<(Button B, string V)>();
             void Paint()
@@ -99,7 +174,7 @@ namespace MonitoringTools.UI.Tabs
             foreach (var d in Docks)
             {
                 var v = d;
-                var b = Ui.Button(char.ToUpperInvariant(d[0]) + d.Substring(1), null, "Btn.Chip");
+                var b = Ui.Button(T(char.ToUpperInvariant(d[0]) + d.Substring(1)), null, "Btn.Chip");
                 b.Click += (s, e) => { S.TabDock = v; Settings.Save(); Paint(); DockRequested?.Invoke(); };
                 buttons.Add((b, d));
                 wrap.Children.Add(b);
@@ -147,7 +222,7 @@ namespace MonitoringTools.UI.Tabs
         {
             var p = Page(id);
             var g = Group(GroupIdOf(id));
-            return new TabInfo(id, p.Label, p.Icon, IsPinned(id), g?.Id, g?.Name, id == _active);
+            return new TabInfo(id, T(p.Label), p.Icon, IsPinned(id), g?.Id, g?.Name, id == _active);
         }
 
         private IReadOnlyList<TabInfo> AllInfos()
@@ -290,7 +365,7 @@ namespace MonitoringTools.UI.Tabs
             var g = Group(gid);
             if (g == null) return;
             var key = "g:" + gid;
-            var name = TabDialogs.Prompt(_w, "Rename group", "Group name", g.Name, "Rename");
+            var name = TabDialogs.Prompt(_w, T("Rename group"), T("Group name"), g.Name, T("Rename"));
             if (name != null) { g.Name = name; Settings.Save(); Rebuild(); }
             RestoreFocus(key);
         }
@@ -314,7 +389,7 @@ namespace MonitoringTools.UI.Tabs
 
         private void NewGroupFlow(string tabId)
         {
-            var name = TabDialogs.Prompt(_w, "New group", "Group name", "", "Create group");
+            var name = TabDialogs.Prompt(_w, T("New group"), T("Group name"), "", T("Create group"));
             if (name == null) { if (tabId != null) FocusTab(tabId); return; }
             var g = NewGroup(name);
             if (tabId != null && !IsPinned(tabId)) S.TabGroupOf[tabId] = g.Id;
@@ -326,7 +401,7 @@ namespace MonitoringTools.UI.Tabs
         private void MoveIntoGroupFlow(string tabId)
         {
             if (IsPinned(tabId)) return;
-            var choice = TabDialogs.MovePicker(_w, Page(tabId).Label, GroupList());
+            var choice = TabDialogs.MovePicker(_w, T(Page(tabId).Label), GroupList());
             if (choice == null) { FocusTab(tabId); return; }
             string gid = choice.GroupId;
             if (gid == null) gid = NewGroup(choice.NewGroupName).Id;
@@ -372,7 +447,7 @@ namespace MonitoringTools.UI.Tabs
         // -------------------------------------------------------------- menus
 
         private IEnumerable<ElementMenu.Item> DockItems() =>
-            Docks.Where(d => d != Dock).Select(d => new ElementMenu.Item("Dock tabs to the " + d, Icons.Drag, null, () => SetDock(d)));
+            Docks.Where(d => d != Dock).Select(d => new ElementMenu.Item(T("Dock tabs to the " + d), Icons.Drag, null, () => SetDock(d)));
 
         private void SetDock(string d)
         {
@@ -384,11 +459,11 @@ namespace MonitoringTools.UI.Tabs
 
         private IEnumerable<ElementMenu.Item> SharedItems()
         {
-            yield return new ElementMenu.Item("Search this tab strip…", Icons.Search, "Ctrl+Shift+E", SearchStrip);
-            yield return new ElementMenu.Item("Search all open tabs…", Icons.Search, "Ctrl+Shift+A", SearchMaster);
-            yield return new ElementMenu.Item("Search tab groups…", Icons.Search, "Ctrl+Shift+G", SearchGroupNames);
-            yield return new ElementMenu.Item("Close tabs containing text…", Icons.Trash, null, () => BulkClose(true));
-            yield return new ElementMenu.Item("Close tabs not containing text…", Icons.Trash, null, () => BulkClose(false));
+            yield return new ElementMenu.Item(T("Search this tab strip…"), Icons.Search, "Ctrl+Shift+E", SearchStrip);
+            yield return new ElementMenu.Item(T("Search all open tabs…"), Icons.Search, "Ctrl+Shift+A", SearchMaster);
+            yield return new ElementMenu.Item(T("Search tab groups…"), Icons.Search, "Ctrl+Shift+G", SearchGroupNames);
+            yield return new ElementMenu.Item(T("Close tabs containing text…"), Icons.Trash, null, () => BulkClose(true));
+            yield return new ElementMenu.Item(T("Close tabs not containing text…"), Icons.Trash, null, () => BulkClose(false));
             foreach (var d in DockItems()) yield return d;
         }
 
@@ -399,22 +474,37 @@ namespace MonitoringTools.UI.Tabs
             bool horizontal = !IsVertical;
             var items = new List<ElementMenu.Item>
             {
-                new ElementMenu.Item(pinned ? "Unpin tab" : "Pin tab", Icons.Shield, "Ctrl+Shift+P", () => TogglePin(id)),
-                new ElementMenu.Item(horizontal ? "Move tab earlier" : "Move tab up", Icons.Drag, horizontal ? "Ctrl+Shift+Left" : "Ctrl+Shift+Up", () => Move(id, -1)),
-                new ElementMenu.Item(horizontal ? "Move tab later" : "Move tab down", Icons.Drag, horizontal ? "Ctrl+Shift+Right" : "Ctrl+Shift+Down", () => Move(id, 1)),
+                new ElementMenu.Item(T(pinned ? "Unpin tab" : "Pin tab"), Icons.Shield, "Ctrl+Shift+P", () => TogglePin(id)),
+                new ElementMenu.Item(T(horizontal ? "Move tab earlier" : "Move tab up"), Icons.Drag, horizontal ? "Ctrl+Shift+Left" : "Ctrl+Shift+Up", () => Move(id, -1)),
+                new ElementMenu.Item(T(horizontal ? "Move tab later" : "Move tab down"), Icons.Drag, horizontal ? "Ctrl+Shift+Right" : "Ctrl+Shift+Down", () => Move(id, 1)),
             };
-            if (!pinned) items.Add(new ElementMenu.Item("Move… into group…", Icons.Folder, null, () => MoveIntoGroupFlow(id)));
+            if (!pinned) items.Add(new ElementMenu.Item(T("Move… into group…"), Icons.Folder, null, () => MoveIntoGroupFlow(id)));
             if (GroupIdOf(id) != null)
             {
-                items.Add(new ElementMenu.Item("Remove from group", Icons.Folder, null, () => RemoveFromGroup(id)));
+                items.Add(new ElementMenu.Item(T("Remove from group"), Icons.Folder, null, () => RemoveFromGroup(id)));
                 var gid = GroupIdOf(id);
-                items.Add(new ElementMenu.Item("Search this group…", Icons.Search, null, () => SearchGroup(gid)));
+                items.Add(new ElementMenu.Item(T("Search this group…"), Icons.Search, null, () => SearchGroup(gid)));
             }
-            if (!pinned) items.Add(new ElementMenu.Item("New group with this tab…", Icons.Plus, null, () => NewGroupFlow(id)));
-            items.Add(new ElementMenu.Item("Close tab", Icons.Close, "Ctrl+W", () => CloseTab(id)));
-            items.Add(new ElementMenu.Item("Close other tabs", Icons.Close, null, () => CloseOthers(id)));
+            if (!pinned) items.Add(new ElementMenu.Item(T("New group with this tab…"), Icons.Plus, null, () => NewGroupFlow(id)));
+            items.Add(new ElementMenu.Item(T("Edit tab appearance…"), Icons.Palette, null, () => EditTabAppearance(id)));
+            items.Add(new ElementMenu.Item(T("Close tab"), Icons.Close, "Ctrl+W", () => CloseTab(id)));
+            items.Add(new ElementMenu.Item(T("Close other tabs"), Icons.Close, null, () => CloseOthers(id)));
             items.AddRange(SharedItems());
             ElementMenu.Open(_w, t, _ => items, at);
+        }
+
+        /// <summary>Right-click on a tab: the menu, or the appearance editor straight away when Shift is held.</summary>
+        public void OpenTabMenuMouse(StripTab t, Point at)
+        {
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0) EditTabAppearance(t.TabId);
+            else OpenTabMenu(t, at);
+        }
+
+        /// <summary>Right-click on a group header: the menu, or the appearance editor straight away when Shift is held.</summary>
+        public void OpenGroupMenuMouse(GroupHeader h, Point at)
+        {
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0) EditGroupAppearance(h.GroupId);
+            else OpenGroupMenu(h, at);
         }
 
         public void OpenGroupMenu(GroupHeader h, Point at)
@@ -424,11 +514,12 @@ namespace MonitoringTools.UI.Tabs
             if (g == null) return;
             var items = new List<ElementMenu.Item>
             {
-                new ElementMenu.Item(g.Collapsed ? "Expand group" : "Collapse group", Icons.Folder, "Enter", () => ToggleCollapse(gid)),
-                new ElementMenu.Item("Rename group…", Icons.Text, "F2", () => RenameGroup(gid)),
-                new ElementMenu.Item("Group colour…", Icons.Palette, null, () => ChooseColour(gid)),
-                new ElementMenu.Item("Search this group…", Icons.Search, null, () => SearchGroup(gid)),
-                new ElementMenu.Item("Remove group (keeps its tabs)", Icons.Trash, null, () => RemoveGroup(gid), Danger: true),
+                new ElementMenu.Item(T(g.Collapsed ? "Expand group" : "Collapse group"), Icons.Folder, "Enter", () => ToggleCollapse(gid)),
+                new ElementMenu.Item(T("Rename group…"), Icons.Text, "F2", () => RenameGroup(gid)),
+                new ElementMenu.Item(T("Group colour…"), Icons.Palette, null, () => ChooseColour(gid)),
+                new ElementMenu.Item(T("Edit group appearance…"), Icons.Palette, null, () => EditGroupAppearance(gid)),
+                new ElementMenu.Item(T("Search this group…"), Icons.Search, null, () => SearchGroup(gid)),
+                new ElementMenu.Item(T("Remove group (keeps its tabs)"), Icons.Trash, null, () => RemoveGroup(gid), Danger: true),
             };
             items.AddRange(SharedItems());
             ElementMenu.Open(_w, h, _ => items, at);
@@ -438,8 +529,8 @@ namespace MonitoringTools.UI.Tabs
         {
             var items = new List<ElementMenu.Item>
             {
-                new ElementMenu.Item("New tab…", Icons.Plus, "Ctrl+T", OpenCatalog),
-                new ElementMenu.Item("New group…", Icons.Folder, null, () => NewGroupFlow(null)),
+                new ElementMenu.Item(T("New tab…"), Icons.Plus, "Ctrl+T", OpenCatalog),
+                new ElementMenu.Item(T("New group…"), Icons.Folder, null, () => NewGroupFlow(null)),
             };
             items.AddRange(SharedItems());
             ElementMenu.Open(_w, _w.TabHost, _ => items, at);
@@ -555,12 +646,13 @@ namespace MonitoringTools.UI.Tabs
             var g = Ui.Icon(icon, Ui.Res("B.TextSoft"), 16);
             g.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "B.TextSoft");
             sp.Children.Add(new ContentControl { Content = g, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center, Focusable = false });
-            var label = new TextBlock { Text = name, VerticalAlignment = VerticalAlignment.Center };
+            var label = new TextBlock { Text = T(name), VerticalAlignment = VerticalAlignment.Center };
             sp.Children.Add(label);
             _actionLabels.Add(label);
-            var b = new Button { Style = Ui.Style("Btn.Row"), Content = sp, Height = 40, HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 2) };
-            b.ToolTip = keys == null ? name : name + " (" + keys + ")";
-            AutomationProperties.SetName(b, name);
+            var b = new Button { Style = Ui.Style("Btn.Row"), Content = sp, Height = Appearance.Row(40), HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 2) };
+            b.ToolTip = keys == null ? T(name) : T(name) + " (" + keys + ")";
+            AutomationProperties.SetName(b, T(name));
+            _actionDefs.Add((b, label, name, keys));
             b.Click += (s, e) => run();
             WindowChrome.SetIsHitTestVisibleInChrome(b, true);
             return b;
@@ -619,6 +711,7 @@ namespace MonitoringTools.UI.Tabs
             foreach (var l in _actionLabels) l.Visibility = v && !_compact ? Visibility.Visible : Visibility.Collapsed;
             foreach (var b in new[] { _newBtn, _moreBtn, _optBtn })
             {
+                b.Height = Appearance.Row(40);
                 b.Padding = v && !_compact ? new Thickness(16, 0, 16, 0) : new Thickness(0);
                 b.Width = v && !_compact ? double.NaN : 44;
                 b.HorizontalAlignment = v && !_compact ? HorizontalAlignment.Stretch : HorizontalAlignment.Center;
@@ -627,7 +720,7 @@ namespace MonitoringTools.UI.Tabs
                 if (b.Content is StackPanel sp && sp.Children[0] is ContentControl cc) cc.Margin = new Thickness(0, 0, v && !_compact ? 12 : 0, 0);
             }
             _panel.Orientation = v ? Orientation.Vertical : Orientation.Horizontal;
-            AutomationProperties.SetName(_panel, "Open tabs");
+            AutomationProperties.SetName(_panel, T("Open tabs"));
         }
 
         private static void Place(UIElement e, int row, int col) { Grid.SetRow(e, row); Grid.SetColumn(e, col); }
@@ -648,6 +741,7 @@ namespace MonitoringTools.UI.Tabs
                 var g = Group(GroupIdOf(id));
                 var view = new StripTab(this, Info(id), v, _compact, g?.Colour, ++pos, size);
                 WindowChrome.SetIsHitTestVisibleInChrome(view, true);
+                ApplyLook(view, view.LabelBlock, ElementStyles.Get(TabKey(id)));
                 _panel.Children.Add(view);
                 _tabViews[id] = view;
             }
@@ -655,6 +749,7 @@ namespace MonitoringTools.UI.Tabs
             {
                 var h = new GroupHeader(this, new TabGroupInfo(g.Id, g.Name, g.Colour, g.Collapsed, Members(g.Id).Count()), v, _compact);
                 WindowChrome.SetIsHitTestVisibleInChrome(h, true);
+                ApplyLook(h, h.NameBlock, ElementStyles.Get(GroupKey(g.Name)));
                 _panel.Children.Add(h);
                 _headers[g.Id] = h;
             }
@@ -676,8 +771,10 @@ namespace MonitoringTools.UI.Tabs
                 AddHeader(g);
                 if (GroupShown(g)) foreach (var id in Members(g.Id)) AddTab(id);
             }
+            _lookSignature = LookSignature();
             UpdateRoving();
             RestoreFocus(focus);
+            Language.Refresh(_panel);
             _w.Dispatcher.BeginInvoke(new Action(UpdateOverflow), DispatcherPriority.Loaded);
         }
 
@@ -706,14 +803,14 @@ namespace MonitoringTools.UI.Tabs
             var sv = _w.TabScroll;
             bool over = IsVertical ? sv.ExtentHeight > sv.ViewportHeight + 0.5 : sv.ExtentWidth > sv.ViewportWidth + 0.5;
             _moreBtn.Visibility = over ? Visibility.Visible : Visibility.Collapsed;
-            if (over) AutomationProperties.SetName(_moreBtn, "More tabs, " + HiddenTabs().Count + " hidden");
+            if (over) AutomationProperties.SetName(_moreBtn, F("More tabs, {0} hidden", HiddenTabs().Count));
         }
 
         private void OpenMoreMenu()
         {
             var hidden = HiddenTabs();
-            var items = hidden.Select(t => { var id = t.TabId; var p = Page(id); return new ElementMenu.Item(p.Label + (id == _active ? " (active)" : ""), p.Icon, null, () => { Activate(id); FocusTab(id); }); }).ToList();
-            if (items.Count == 0) items.Add(new ElementMenu.Item("All open tabs are visible; scroll the strip to move through them", Icons.Help, null, () => { }));
+            var items = hidden.Select(t => { var id = t.TabId; var p = Page(id); return new ElementMenu.Item(T(p.Label) + (id == _active ? " " + T("(active)") : ""), p.Icon, null, () => { Activate(id); FocusTab(id); }); }).ToList();
+            if (items.Count == 0) items.Add(new ElementMenu.Item(T("All open tabs are visible; scroll the strip to move through them"), Icons.Help, null, () => { }));
             ElementMenu.Open(_w, _moreBtn, _ => items, _moreBtn.TranslatePoint(new Point(0, 0), _w));
         }
     }
