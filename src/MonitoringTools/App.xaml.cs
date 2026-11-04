@@ -161,6 +161,7 @@ namespace MonitoringTools
 
         private void ShowOffline(NetworkState state)
         {
+            NotificationLog.Add("Offline", state.Headline ?? "Internet connection lost", state.Cause.ToString());
             if (ShouldSuppress) { _offlineDeferred = true; return; }
             _offlineDeferred = false;
             _offline = new OfflineWindow(state);

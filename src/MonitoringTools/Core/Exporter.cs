@@ -143,6 +143,8 @@ namespace MonitoringTools.Core
         private static string Csv(string v)
         {
             v ??= "";
+            // A cell that starts like a formula is prefixed so spreadsheets show it as text instead of running it.
+            if (v.Length > 0 && "=+-@\t\r".IndexOf(v[0]) >= 0) v = "'" + v;
             return v.IndexOfAny(new[] { ',', '"', '\r', '\n' }) >= 0 ? "\"" + v.Replace("\"", "\"\"") + "\"" : v;
         }
 
