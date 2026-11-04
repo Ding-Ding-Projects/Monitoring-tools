@@ -49,7 +49,7 @@ namespace MonitoringTools.UI
         public void Refresh()
         {
             var (dot, status) = State();
-            var key = dot.ToArgb() + status;
+            var key = dot.ToArgb() + status + LogoKit.Signature;
             var text = ("Monitoring Tools · " + status);
             _icon.Text = text.Length > 120 ? text[..120] : text;
             if (key == _lastKey) return;
@@ -67,6 +67,13 @@ namespace MonitoringTools.UI
                     g.FillPath(bg, path);
                     g.DrawPath(edge, path);
                 }
+                if (LogoKit.IsCustomised)
+                {
+                    // A chosen glyph or a custom image replaces the default pulse line; the status dot below still shows.
+                    using var logoBmp = LogoKit.TrayBase(32);
+                    g.DrawImage(logoBmp, 0, 0, 32, 32);
+                }
+                else
                 using (var line = new Pen(Color.FromArgb(0xE8, 0xEA, 0xED), 2.6f) { LineJoin = LineJoin.Round, StartCap = LineCap.Round, EndCap = LineCap.Round })
                 {
                     g.DrawLines(line, new[]

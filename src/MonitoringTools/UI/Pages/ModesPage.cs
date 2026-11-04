@@ -150,6 +150,7 @@ namespace MonitoringTools.UI
                 }
             }
             sp.Children.Add(result);
+            if (Modes.SchoolRecordError == null && Modes.CredentialIsSet) sp.Children.Add(ModesHelloRow(on, Say));
 
             sp.Children.Add(ModesNote("This is a user-experience lock, not a security boundary. There is no way to recover a forgotten PIN or password: close the app and delete the shared record below, which turns the mode off and forgets its name, PIN and password. Anyone with this computer can do the same.", "B.TextMute"));
             // Shown with the profile folder as a variable so the user name does not appear on screen.
@@ -234,6 +235,15 @@ namespace MonitoringTools.UI
             var sp = new StackPanel();
             sp.Children.Add(CardTitle("Scheduled settings", "A rule says: between two times on chosen days, set one value. Rules are checked every minute. When a rule ends, your saved choice comes back; a rule never rewrites it. None by default."));
             sp.Children.Add(ModesNote($"Times use this computer's clock in {TimeZoneInfo.Local.DisplayName}. A window that crosses midnight belongs to the day it starts on. Equal start and end mean all day. Daylight-saving changes follow the wall clock, so a window inside a skipped hour does not happen that day. If rules overlap on one setting, the one lower in the list wins."));
+
+            var guideHost = new ContentControl { IsTabStop = false };
+            var guideBtn = Ui.Button("Add a rule step by step", () =>
+            {
+                guideHost.Content = ModesRuleGuide(() => { guideHost.Content = null; foreach (var h in refreshHooks.ToList()) h(); }, () => guideHost.Content = null);
+            }, "Btn.Accent", Icons.Wand);
+            guideBtn.Margin = new Thickness(0, 0, 0, 10);
+            sp.Children.Add(guideBtn);
+            sp.Children.Add(guideHost);
 
             string setting = "sounds", value = "off";
             var days = new HashSet<int>();
@@ -321,9 +331,31 @@ namespace MonitoringTools.UI
             cancelEdit.Visibility = Visibility.Collapsed;
             var filter = new SearchField("modes:rules", "Search schedule rules", compact: true) { MaxWidth = 520, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 10, 0, 8) };
             var list = new StackPanel();
+            // Select mode for the rule list: enable, disable or delete the chosen rules together.
+            var barHost = new ContentControl { IsTabStop = false };
+            BulkSelect<ScheduleRule> bulk = null;
+            Action refillAll = null;
+            bulk = new BulkSelect<ScheduleRule>(() => refillAll(), "rules");
+            string RuleNoun(int n) => n == 1 ? "rule" : "rules";
+            void RebuildBar() => barHost.Content = bulk.Bar(new[]
+            {
+                new BulkAction<ScheduleRule> { Label = "Enable", Hint = "Turn the chosen rules on.",
+                    Run = items => { foreach (var r in items) r.Enabled = true; Settings.Save(); Modes.Evaluate(); refillAll(); } },
+                new BulkAction<ScheduleRule> { Label = "Disable", Hint = "Turn the chosen rules off without deleting them.",
+                    Run = items => { foreach (var r in items) r.Enabled = false; Settings.Save(); Modes.Evaluate(); refillAll(); } },
+                new BulkAction<ScheduleRule> { Label = "Delete", Danger = true, Hint = "Delete the chosen rules, after you confirm.",
+                    Run = items =>
+                    {
+                        var chosen = items.ToList();
+                        bulk.ConfirmThen($"Delete {chosen.Count} {RuleNoun(chosen.Count)}?", "The rules are removed. Your saved settings are not changed.", "Delete", () => { foreach (var r in chosen) Settings.Current.ScheduleRules.Remove(r); Settings.Save(); Modes.Evaluate(); });
+                    } },
+            });
             void Refill()
             {
                 var rules = Settings.Current.ScheduleRules;
+                bulk.Prune(rules);
+                bulk.Begin();
+                RebuildBar();
                 filter.SampleSource = () => rules.Select(r => r.Label + " " + Modes.DescribeRule(r));
                 filter.State.TimedOut = false;
                 list.Children.Clear();
@@ -351,11 +383,12 @@ namespace MonitoringTools.UI
                     btns.Children.Add(Ui.Button("Move later", () => { var i = rules.IndexOf(rule); if (i >= 0 && i < rules.Count - 1) { rules.RemoveAt(i); rules.Insert(i + 1, rule); Changed(); } }));
                     btns.Children.Add(Ui.Button("Delete", () => { rules.Remove(rule); Changed(); }, "Btn.Danger"));
                     row.Children.Add(btns);
-                    list.Children.Add(SearchScope.SetItem(Card(row, null, 12), text));
+                    list.Children.Add(bulk.Wrap(rule, SearchScope.SetItem(Card(row, null, 12), text), string.IsNullOrWhiteSpace(rule.Label) ? ModesSettingLabel(rule.Setting) : rule.Label));
                 }
                 if (rules.Count == 0) list.Children.Add(ModesNote("No rules yet."));
                 filter.SetCount(shown, rules.Count, "rules");
             }
+            refillAll = Refill;
             filter.Filter += Refill;
             refreshHooks.Add(Refill);
 
@@ -404,6 +437,7 @@ namespace MonitoringTools.UI
             sp.Children.Add(msg);
             sp.Children.Add(ModesNote("Language and theme rules are stored and offered to the rest of the app as the scheduled choice. Sounds, toasts and game mode rules apply immediately. A rule never changes your saved choice.", "B.TextMute"));
             sp.Children.Add(filter);
+            sp.Children.Add(barHost);
             sp.Children.Add(list);
             Refill();
             return Card(sp);

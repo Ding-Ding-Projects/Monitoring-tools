@@ -99,6 +99,36 @@ namespace MonitoringTools.Core
             return list;
         }
 
+        /// <summary>
+        /// Deletes the chosen snapshot files. Only files inside the history folder are touched, and the newest snapshot (the
+        /// current state) is always kept. Returns how many were deleted.
+        /// </summary>
+        public static int Delete(IEnumerable<string> files)
+        {
+            int n = 0;
+            lock (Gate)
+            {
+                var dir = Path.GetFullPath(Dir);
+                var newest = Directory.GetFiles(Dir, "*.json").OrderByDescending(f => f).FirstOrDefault();
+                foreach (var f in files.ToList())
+                {
+                    var full = Path.GetFullPath(f);
+                    if (!string.Equals(Path.GetDirectoryName(full), dir, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (newest != null && string.Equals(full, Path.GetFullPath(newest), StringComparison.OrdinalIgnoreCase)) continue;
+                    try { if (File.Exists(full)) { File.Delete(full); n++; } } catch (Exception ex) { Log.Warn("Snapshot not deleted: " + ex.Message); }
+                }
+            }
+            if (n > 0) Changed?.Invoke();
+            return n;
+        }
+
+        /// <summary>The chosen snapshots (time, summary and full settings) as one JSON array, oldest first.</summary>
+        public static string ExportJson(IEnumerable<string> files)
+        {
+            var rows = files.Select(Load).Where(s => s != null).OrderBy(s => s.At).Select(s => new { s.At, s.Summary, s.Settings }).ToList();
+            return JsonSerializer.Serialize(rows, Opts);
+        }
+
         public static SettingsSnapshot Load(string file)
         {
             try { return JsonSerializer.Deserialize<SettingsSnapshot>(File.ReadAllText(file)); }

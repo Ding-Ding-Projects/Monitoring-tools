@@ -29,5 +29,11 @@ namespace MonitoringTools.Core
 
         /// <summary>A custom logo tint as #RRGGBB.</summary>
         public string LogoCustomHex { get; set; } = "";
+
+        /// <summary>The glyph id from the app's icon set shown as the logo. Default "pulse".</summary>
+        public string LogoGlyph { get; set; } = "pulse";
+
+        /// <summary>File name (inside the app's logo folder) of a custom PNG or ICO logo. Empty means none.</summary>
+        public string LogoImageFile { get; set; } = "";
     }
 }

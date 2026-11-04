@@ -380,6 +380,22 @@ namespace MonitoringTools.Core
             File.Move(FilePath + ".tmp", FilePath, true);
         }
 
+        /// <summary>Builds a profile from the text of a form. Returns a problem text, or null with the profile filled in.</summary>
+        public static string TryBuild(string name, string prompt, string temperature, string topP, string numCtx, out OllamaProfile profile)
+        {
+            profile = null;
+            if (!OllamaChatOptions.TryParseDouble(temperature, out var t)) return "Temperature is not a number.";
+            if (!OllamaChatOptions.TryParseDouble(topP, out var p)) return "Top-p is not a number.";
+            if (!OllamaChatOptions.TryParseInt(numCtx, out var c)) return "Context length must be a whole number.";
+            var made = new OllamaProfile { Name = (name ?? "").Trim(), SystemPrompt = (prompt ?? "").Trim(), Temperature = t, TopP = p, NumCtx = c };
+            if (made.Name.Length == 0) return "Give the profile a name first.";
+            if (made.Name.Length > 40) return "Profile names are limited to 40 characters.";
+            var bad = new OllamaChatOptions { Temperature = t, TopP = p, NumCtx = c }.Validate();
+            if (bad.Count > 0) return bad[0];
+            profile = made;
+            return null;
+        }
+
         /// <summary>Adds the profile or replaces the one with the same name (case-insensitive). Returns a problem text, or null.</summary>
         public static string Upsert(List<OllamaProfile> list, OllamaProfile p)
         {

@@ -35,6 +35,8 @@ namespace MonitoringTools.UI
             preview.Children.Add(PreviewSample());
             root.Children.Add(Card(SearchScope.SetItem(preview, "preview sample buttons chips switch")));
 
+            root.Children.Add(AppearanceLookCard());
+
             // ---- Theme and colour
             var look = new StackPanel();
             look.Children.Add(CardTitle("Theme and colour", "Light, dark or whatever Windows is using, plus the colour the app is built around."));
@@ -117,6 +119,7 @@ namespace MonitoringTools.UI
             hexWrap.Children.Add(hexNote);
             ident.Children.Add(Described(hexWrap, "A custom logo colour as #RRGGBB, applied when the field loses focus or you press Enter. Only used when Logo tint is Custom colour.", "empty", "custom logo hex colour"));
             root.Children.Add(Card(ident));
+            root.Children.Add(AppearanceLogoCard());
 
             // ---- Reset
             var reset = new StackPanel { Orientation = Orientation.Horizontal };

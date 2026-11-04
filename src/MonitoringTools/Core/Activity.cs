@@ -73,6 +73,19 @@ namespace MonitoringTools.Core
             lock (Gate) return Outages.Take(n).ToList();
         }
 
+        /// <summary>Removes the chosen outages from the in-memory log. An outage still in progress is kept. Returns how many were removed.</summary>
+        public static int RemoveOutages(IEnumerable<Outage> chosen)
+        {
+            int n;
+            lock (Gate)
+            {
+                var drop = new HashSet<Outage>(chosen.Where(o => o.End != null));
+                n = Outages.RemoveAll(drop.Contains);
+            }
+            if (n > 0) Raise();
+            return n;
+        }
+
         /// <summary>Used by the screenshot mode to show a lived-in control centre.</summary>
         public static void Seed(IEnumerable<ActivityEntry> entries, IEnumerable<Outage> outages)
         {

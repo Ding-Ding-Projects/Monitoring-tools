@@ -54,6 +54,7 @@ namespace MonitoringTools
             Toasts = new ToastManager();
             Modes.Initialize();
             Tray = new TrayIcon();
+            Appearance.Changed += () => Tray?.Refresh();
             Net = new NetworkMonitor();
             PublicIp = new PublicIpMonitor();
 

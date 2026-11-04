@@ -15,6 +15,22 @@ namespace MonitoringTools.Core
         public static string ActivityLine(ActivityEntry e) =>
             $"{e.At:yyyy-MM-dd HH:mm:ss}  [{e.Kind}] {(e.Ok ? "" : "FAILED ")}{e.Title}{(string.IsNullOrWhiteSpace(e.Detail) ? "" : " - " + e.Detail)}";
 
+        /// <summary>Chosen releases as one Markdown document, newest first as given, each with its date and notes.</summary>
+        public static string ReleaseNotesMarkdown(IEnumerable<ReleaseNote> items)
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (var r in items)
+            {
+                sb.Append("## ").AppendLine(string.IsNullOrWhiteSpace(r.Name) ? r.Tag : r.Name);
+                if (r.Published != null) sb.AppendLine("Published " + r.Published.Value.ToString("yyyy-MM-dd HH:mm"));
+                sb.AppendLine().AppendLine(string.IsNullOrWhiteSpace(r.Body) ? "No notes were written for this release." : r.Body.Trim()).AppendLine();
+            }
+            return sb.ToString();
+        }
+
+        public static string OutageLine(Outage o) =>
+            $"{o.Start:yyyy-MM-dd HH:mm:ss}  {(o.End == null ? "ongoing" : "lasted " + (o.Length.TotalHours >= 1 ? $"{(int)o.Length.TotalHours} h {o.Length.Minutes} m" : $"{(int)o.Length.TotalMinutes} m {o.Length.Seconds:00} s"))}  {o.Cause ?? "Connection lost"}";
+
         public static string NotificationLine(NotificationEntry n) =>
             $"{n.At:yyyy-MM-dd HH:mm:ss}  [{n.Kind}] {n.Title}{(string.IsNullOrWhiteSpace(n.Detail) ? "" : " - " + n.Detail)}";
 

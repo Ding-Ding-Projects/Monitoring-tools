@@ -99,6 +99,8 @@ namespace MonitoringTools.Core
             public string PasswordSalt { get; set; } = "";
             public string PasswordHash { get; set; } = "";
             public int PasswordIterations { get; set; } = Pbkdf2Iterations;
+            // True once Windows Hello was confirmed on this computer as a third way to turn the mode off. Holds no secret.
+            public bool HelloUnlock { get; set; }
         }
 
         private const int Pbkdf2Iterations = 200_000;
@@ -108,8 +110,12 @@ namespace MonitoringTools.Core
         private static readonly JsonSerializerOptions Pretty = new JsonSerializerOptions { WriteIndented = true };
 
         /// <summary>The shared record every Ding-Ding app reads. Deleting it resets School mode.</summary>
-        public static string SchoolRecordPath => Path.Combine(
+        public static string SchoolRecordPath => RecordPathOverride ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DingDingShared", "school-mode.json");
+
+        // Lets the self-test and the capture run use a throwaway record, so the real shared record is never touched.
+        internal static string RecordPathOverride { get; set; }
+        internal static void ReloadSchoolForTest() { ReadSchool(); NotifyChanged(); }
 
         /// <summary>Null when the record is readable (or absent); otherwise why it could not be read.</summary>
         public static string SchoolRecordError { get; private set; }

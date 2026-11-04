@@ -21,6 +21,7 @@ namespace MonitoringTools.UI
             root.Children.Add(RecordsNotifications());
             root.Children.Add(RecordsSettingsHistory());
             root.Children.Add(RecordsExports());
+            root.Children.Add(RecordsExportEverything());
             root.Children.Add(RecordsChangelog());
             return root;
         }
@@ -193,13 +194,40 @@ namespace MonitoringTools.UI
             var status = new TextBlock { Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8), Visibility = Visibility.Collapsed };
             box.Children.Add(status);
             var list = new StackPanel();
-            box.Children.Add(list);
             const int MaxRows = 50;
+
+            // Select mode for the snapshot list: copy, export or delete the chosen ones. The newest snapshot is the current state and is never deleted.
+            var barHost = new ContentControl { IsTabStop = false };
+            BulkSelect<string> bulk = null;
+            Action rebuildList = null;
+            bulk = new BulkSelect<string>(() => rebuildList(), "snapshots");
+            var shownSnaps = new Dictionary<string, SettingsSnapshot>();
+            string Lines(IEnumerable<string> files) => string.Join(Environment.NewLine, files.Where(shownSnaps.ContainsKey).Select(f => shownSnaps[f].At.ToString("yyyy-MM-dd HH:mm:ss") + "  " + shownSnaps[f].Summary));
+            string Noun(int n) => n == 1 ? "snapshot" : "snapshots";
+            void RebuildBar() => barHost.Content = bulk.Bar(new[]
+            {
+                new BulkAction<string> { Label = "Copy", Hint = "Copy the time and summary of each chosen snapshot.",
+                    Run = items => BulkSelect<string>.CopyText(Lines(items), items.Count, Noun(items.Count)) },
+                new BulkAction<string> { Label = "Export as JSON...", Hint = "Save the chosen snapshots, with their full settings, to one JSON file.",
+                    Run = items => BulkSelect<string>.SaveText("settings-snapshots.json", "JSON|*.json", SettingsHistory.ExportJson(items), items.Count, Noun(items.Count)) },
+                new BulkAction<string> { Label = "Delete", Danger = true, Hint = "Delete the chosen snapshots, after you confirm. The newest one is the current state and is kept.",
+                    Run = items =>
+                    {
+                        var chosen = items.ToList();
+                        bulk.ConfirmThen($"Delete {chosen.Count} {Noun(chosen.Count)}?", "They are removed from the history for good. The newest snapshot is kept, and your current settings are not changed.", "Delete", () => { SettingsHistory.Delete(chosen); });
+                    } },
+            });
+            box.Children.Add(barHost);
+            box.Children.Add(list);
 
             void Rebuild()
             {
                 list.Children.Clear();
                 var snaps = SettingsHistory.List();
+                bulk.Prune(snaps.Select(x => x.File));
+                bulk.Begin();
+                shownSnaps.Clear();
+                RebuildBar();
                 if (snaps.Count == 0)
                 {
                     list.Children.Add(new TextBlock { Text = "No snapshots yet. The first one appears the next time a setting changes.", Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute") });
@@ -261,12 +289,14 @@ namespace MonitoringTools.UI
                     row.Children.Add(head);
                     row.Children.Add(detail);
                     SearchScope.SetItem(row, "settings history snapshot");
-                    list.Children.Add(row);
+                    shownSnaps[file] = snap;
+                    list.Children.Add(i == 0 ? row : bulk.Wrap(file, row, snap.At.ToString("yyyy-MM-dd HH:mm:ss")));
                 }
                 if (snaps.Count > MaxRows)
                     list.Children.Add(new TextBlock { Text = $"Showing the newest {MaxRows} of {snaps.Count} snapshots.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
             }
 
+            rebuildList = Rebuild;
             Action changed = () => RunOnUi(Rebuild);
             box.Loaded += (s, e) => { SettingsHistory.Changed -= changed; SettingsHistory.Changed += changed; Rebuild(); };
             box.Unloaded += (s, e) => SettingsHistory.Changed -= changed;
@@ -354,15 +384,33 @@ namespace MonitoringTools.UI
             box.Children.Add(refresh);
             box.Children.Add(status);
             box.Children.Add(search);
-            box.Children.Add(list);
 
             ChangelogResult data = null;
             bool loading = false;
+
+            // Select mode: releases come from GitHub and cannot be changed here, so the actions copy and export their notes only.
+            var barHost = new ContentControl { IsTabStop = false };
+            BulkSelect<ReleaseNote> bulk = null;
+            Action render = null;
+            bulk = new BulkSelect<ReleaseNote>(() => render(), "releases");
+            string Noun(int n) => n == 1 ? "release" : "releases";
+            void RebuildBar() => barHost.Content = bulk.Bar(new[]
+            {
+                new BulkAction<ReleaseNote> { Label = "Copy notes", Hint = "Copy the chosen releases and their notes to the clipboard as Markdown.",
+                    Run = items => BulkSelect<ReleaseNote>.CopyText(ListActions.ReleaseNotesMarkdown(items), items.Count, Noun(items.Count)) },
+                new BulkAction<ReleaseNote> { Label = "Export as Markdown...", Hint = "Save the chosen releases and their notes to a Markdown file.",
+                    Run = items => BulkSelect<ReleaseNote>.SaveText("release-notes.md", "Markdown|*.md", ListActions.ReleaseNotesMarkdown(items), items.Count, Noun(items.Count)) },
+            });
+            box.Children.Add(barHost);
+            box.Children.Add(list);
 
             void Render()
             {
                 list.Children.Clear();
                 if (data == null) return;
+                bulk.Prune(data.Releases);
+                bulk.Begin();
+                RebuildBar();
                 var hits = data.Releases.Where(r => search.State.Matches(r.Name + " " + r.Tag + " " + r.Body)).ToList();
                 foreach (var r in hits)
                 {
@@ -380,11 +428,12 @@ namespace MonitoringTools.UI
                     var card = Card(inner, running ? Ui.C("C.Mint").ToString() : null, 14);
                     card.Background = Ui.Res("B.Raised");
                     SearchScope.SetItem(card, "release " + r.Tag);
-                    list.Children.Add(card);
+                    list.Children.Add(bulk.Wrap(r, card, r.Name));
                 }
                 search.SetCount(hits.Count, data.Releases.Count, "releases");
             }
 
+            render = Render;
             async void Load()
             {
                 if (loading) return;

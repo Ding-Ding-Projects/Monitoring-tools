@@ -40,4 +40,8 @@ This is a user-experience lock, not a security boundary. A forgotten PIN cannot 
 
 ## Not covered here
 
-Passkey unlock is not implemented; a PIN and a password are offered. Other Ding-Ding apps that share the record decide for themselves what they remove.
+Windows Hello is offered as an optional third way to turn the mode off (see below). It is Windows Hello user verification through the Windows consent verifier, not a FIDO2 or WebAuthn credential: no key pair is created and Windows only answers yes or no. A true FIDO2 passkey is not implemented. Other Ding-Ding apps that share the record decide for themselves what they remove.
+
+## Windows Hello as a third way to turn it off
+
+Once a PIN or password exists, the Modes page shows a Windows Hello row with Windows' own availability text (available, no capable device, not set up for this account, turned off by policy, busy). While the mode is off, **Allow Windows Hello** asks Hello once to confirm the user and then stores a single flag (`HelloUnlock`) in the shared record, which holds no secret. While the mode is on, **Turn off with Windows Hello** asks Hello and, only on a confirmed yes, turns the mode off and clears the wrong-try count. A cancelled, failed or unavailable check changes nothing, and the button is shown disabled with the reason when Hello cannot be used. Hello cannot be added or removed while the mode is on, and the PIN and password keep working throughout. Code: `Core/Modes.Hello.cs`, `UI/Pages/ModesPage.Hello.cs`.
