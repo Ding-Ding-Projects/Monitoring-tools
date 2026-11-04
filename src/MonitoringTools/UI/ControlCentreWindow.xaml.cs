@@ -58,7 +58,9 @@ namespace MonitoringTools.UI
             foreach (var (id, label, icon) in _sections)
             {
                 var row = new StackPanel { Orientation = Orientation.Horizontal };
-                row.Children.Add(new ContentControl { Content = Ui.Icon(icon, Ui.Res("B.TextSoft"), 15), Margin = new Thickness(4, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center });
+                var glyph = Ui.Icon(icon, Ui.Res("B.TextSoft"), 15);
+                glyph.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "B.TextSoft");
+                row.Children.Add(new ContentControl { Content = glyph, Margin = new Thickness(4, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center });
                 row.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
                 var b = new Button { Style = Ui.Style("Btn.Row"), Content = row, Tag = id, HorizontalContentAlignment = HorizontalAlignment.Left, Height = 36, Margin = new Thickness(0, 0, 0, 2) };
                 var sid = id;

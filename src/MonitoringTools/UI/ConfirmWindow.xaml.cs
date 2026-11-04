@@ -73,13 +73,20 @@ namespace MonitoringTools.UI
             var track = new Grid { Height = 48 };
             var bg = new Border { CornerRadius = new CornerRadius(24), Background = Ui.Res("B.Sunken") };
             _fill = new Border { CornerRadius = new CornerRadius(24), Background = Ui.Res("B.Danger"), HorizontalAlignment = HorizontalAlignment.Left, Width = 0 };
-            _slider = new Slider { Minimum = 0, Maximum = 100, IsEnabled = false, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 12, 0), SmallChange = 5, LargeChange = 25 };
+            _slider = new Slider { Minimum = 0, Maximum = 100, IsEnabled = false, VerticalAlignment = VerticalAlignment.Stretch, Margin = new Thickness(4, 0, 4, 0), SmallChange = 5, LargeChange = 25, Focusable = true };
+            _slider.Template = (ControlTemplate)System.Windows.Markup.XamlReader.Parse(
+                "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='Slider'>" +
+                "<Grid Background='Transparent'><Track x:Name='PART_Track' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>" +
+                "<Track.Thumb><Thumb Width='40' Height='40'><Thumb.Template><ControlTemplate TargetType='Thumb'>" +
+                "<Border CornerRadius='20' Background='{DynamicResource B.Text}' BorderBrush='{DynamicResource B.Danger}' BorderThickness='3'/>" +
+                "</ControlTemplate></Thumb.Template></Thumb></Track.Thumb></Track></Grid></ControlTemplate>");
             AutomationProperties.SetName(_slider, ok + ": slide to 100 to confirm");
             var label = new TextBlock { Text = "Slide to " + ok.ToLowerInvariant(), Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), FontWeight = FontWeights.Medium, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false };
+            label.Foreground = Ui.Res("B.Text");
             track.Children.Add(bg);
             track.Children.Add(_fill);
-            track.Children.Add(label);
             track.Children.Add(_slider);
+            track.Children.Add(label);
             Gate.Children.Add(track);
             _gateStatus = new TextBlock { Style = Ui.Style("T.Body"), FontSize = 12, Margin = new Thickness(4, 8, 0, 0), Text = "Both keys are off." };
             AutomationProperties.SetLiveSetting(_gateStatus, AutomationLiveSetting.Assertive);
@@ -136,6 +143,15 @@ namespace MonitoringTools.UI
             t.Checked += (s, e) => t.Content = name + " · on";
             t.Unchecked += (s, e) => t.Content = name;
             return t;
+        }
+
+        /// <summary>For the screenshot run only: turns both keys on and moves the slider part way, without confirming.</summary>
+        public void ArmForPreview(double value)
+        {
+            if (_key1 == null) return;
+            _key1.IsChecked = true; _key2.IsChecked = true;
+            _key1.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            _slider.Value = Math.Min(value, 99);
         }
 
         private void Complete()

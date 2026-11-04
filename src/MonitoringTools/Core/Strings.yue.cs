@@ -49,7 +49,12 @@ namespace MonitoringTools.Core
 
             // ---- history
             Add("Nothing yet. Copy something and it shows up here.", "暫時未有嘢，複製啲嘢就會出現喺度。");
-            Add("Copy again", "再複製一次"); Add("Open", "開啟"); Add("Edit", "編輯"); Add("Save", "儲存"); Add("Delete", "刪除");
+            Add("Copy again", "再複製一次");
+            Add("Builder", "砌 pattern"); Add("Search every page", "搜尋所有頁面"); Add("Filter actions", "篩選動作"); Add("Filter this menu", "篩選呢個選單");
+            Add("Select", "揀選"); Add("Done selecting", "揀完"); Add("Select all shown", "揀晒顯示緊嘅"); Add("Save as text…", "存做文字檔…"); Add("Remove from history", "喺紀錄度移除");
+            Add("Regex builder", "正則表達式砌法"); Add("Back to plain text", "返去普通文字"); Add("Done", "完成"); Add("Use this list as the sample", "用呢張清單做樣本");
+            Add("Emergency exit", "緊急出口"); Add("First key", "第一條鎖匙"); Add("Second key", "第二條鎖匙"); Add("To go ahead, turn both keys, then slide all the way.", "要繼續，就扭兩條鎖匙，再一路拉到盡。");
+            Add("Edit appearance…", "編輯外觀…"); Add("Lock this element…", "鎖住呢個元素…"); Add("Unlock this element", "解鎖呢個元素"); Add("Copy text", "複製文字"); Add("Press", "撳"); Add("Open", "開啟"); Add("Edit", "編輯"); Add("Save", "儲存"); Add("Delete", "刪除");
             Add("Remove", "移除"); Add("Cancel", "取消"); Add("Close", "關閉"); Add("Back", "返回"); Add("Next", "下一步");
             Add("Done", "完成"); Add("Skip this step", "跳過呢一步"); Add("Dismiss", "關閉"); Add("Confirm", "確認");
 
@@ -368,6 +373,10 @@ namespace MonitoringTools.Core
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), fn));
 
             Add(@"^The last (\d+) copies, kept in memory only\. Quitting the app forgets them\.$", "最近 $1 次複製，只留喺記憶體。退出程式就會忘記。");
+            AddFn(@"^(\d+) text · (\d+) links · (\d+) files · (\d+) media$", m => $"{m.Groups[1].Value} 段文字 · {m.Groups[2].Value} 條連結 · {m.Groups[3].Value} 個檔案 · {m.Groups[4].Value} 個媒體");
+            Add(@"^(\d+) m ago$", "$1 分鐘前"); Add(@"^(\d+) h ago$", "$1 個鐘前"); Add(@"^(\d+) s ago$", "$1 秒前");
+            Add(@"^(\d+) games watched · fullscreen on$", "監察緊 $1 隻遊戲 · 全螢幕都計"); Add(@"^(\d+) games watched · fullscreen off$", "監察緊 $1 隻遊戲 · 全螢幕唔計");
+            Add(@"^(\d+) of (\d+)$", "$1 / $2"); Add(@"^(\d+) selected$", "揀咗 $1 個");
             Add(@"^(\d+) copies$", "$1 次複製"); Add(@"^(\d+) copy$", "$1 次複製");
             Add(@"^(\d+) text$", "$1 段文字"); Add(@"^(\d+) links?$", "$1 條連結"); Add(@"^(\d+) files?$", "$1 個檔案"); Add(@"^(\d+) media$", "$1 個媒體");
             Add(@"^gateway (\d+ ms)$", "閘道 $1"); Add(@"^dns (\d+ ms|\?)$", "DNS $1");
