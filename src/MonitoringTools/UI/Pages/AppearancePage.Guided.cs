@@ -56,7 +56,7 @@ namespace MonitoringTools.UI
                 },
                 new GuidedStep
                 {
-                    Title = "Review and apply", Help = "Applying changes only the five choices above. Reset to defaults on this page undoes it.",
+                    Title = "Review and apply", Help = "Applying the look changes only the five choices above. Reset to defaults on this page undoes it.",
                     Build = () => review,
                     Entered = () =>
                     {

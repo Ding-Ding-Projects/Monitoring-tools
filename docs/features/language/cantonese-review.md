@@ -430,7 +430,7 @@ Entries: 2014 table entries, 678 strings produced by patterns.
 | Draws dividers and card borders in the stronger outline colour so edges are easier to see. Default: off. | 用較深嘅輪廓顏色畫分隔線同卡片邊框，令邊緣更易睇。預設：關。 |
 | Filled | 實心 |
 | Follow Windows | 跟隨 Windows |
-| Globe | 地球 |
+| Globe | 環球 |
 | Glyph | 圖案 |
 | High-contrast outlines | 高對比輪廓 |
 | How big things are, how tightly they sit and how much moves. | 東西幾大、排得幾密，同有幾多動態。 |
@@ -443,7 +443,7 @@ Entries: 2014 table entries, 678 strings produced by patterns.
 | Make a look step by step | 逐步製作造型 |
 | Match seed colour | 配合主色 |
 | Monitor | 螢幕 |
-| Moon | 月亮 |
+| Moon | 月牙 |
 | Name and logo | 名稱同標誌 |
 | Ocean | 海洋 |
 | On | 開 |

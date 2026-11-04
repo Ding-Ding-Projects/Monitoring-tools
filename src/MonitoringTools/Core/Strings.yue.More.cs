@@ -13,6 +13,61 @@ namespace MonitoringTools.Core
         {
             void Add(string en, string yue) => t.TryAdd(en, yue);
 
+            // ---- wave 6 guided forms, Windows Hello, export and logo
+            Add("Light, dark, or whatever Windows is using. System follows the Windows app mode.", "淺色、深色，或者跟 Windows 而家用緊嗰款。「跟系統」會跟住 Windows 嘅應用程式模式。");
+            Add("Every other colour is derived from this one, with a full light and dark set.", "其他所有顏色都由呢隻顏色計出嚟，淺色深色各有一套。");
+            Add("Contrast and density", "對比同密度");
+            Add("Stronger outlines make edges easier to see. Compact rows fit more on screen. Text size scales text and spacing together.", "輪廓加粗啲，邊界會易睇啲；緊密排列一屏放得多啲；字體大小會連埋間距一齊放大縮細。");
+            Add("Draws dividers and card borders in the stronger outline colour.", "分隔線同卡片邊框用較深嘅輪廓色畫。");
+            Add("Review and apply", "檢查一次再套用");
+            Add("Applying the look changes only the five choices above. Reset to defaults on this page undoes it.", "套用呢個外觀只會改上面五個選擇。喺呢頁撳「回復預設」就可以還原。");
+            Add("Nothing would change: this is the look you already have.", "乜都唔會變：呢個就係你而家嘅外觀。");
+            Add("Apply look", "套用外觀");
+            Add("Optional first date, yyyy-MM-dd", "第一日（可以唔填），格式 yyyy-MM-dd");
+            Add("Optional last date, yyyy-MM-dd, included", "最後一日（可以唔填），格式 yyyy-MM-dd，包埋嗰日");
+            Add("What should change?", "要改啲乜？");
+            Add("Pick one setting and the value it takes while the rule is in effect. When the rule ends, your own saved choice comes back.", "揀一個設定，同埋規則生效期間用嘅值。規則完咗之後，會返返你自己儲存嘅選擇。");
+            Add("When does it apply?", "幾時生效？");
+            Add("Name (optional)", "名稱（可以唔填）");
+            Add("Choose the days (none selected means every day) and the 24-hour start and end. Equal times mean all day, and a window that crosses midnight belongs to the day it starts on.", "揀星期幾（一日都唔揀即係日日），同埋 24 小時制嘅開始同結束時間。開始同結束一樣即係成日；跨過午夜嘅時段算喺開始嗰日。");
+            Add("Only between certain dates?", "只係喺某段日子？");
+            Add("Optional. Leave both empty for no date limit, or fill only one for an open-ended range. Both ends are included.", "可以唔填。兩格都留空就冇日期限制；只填一格就係冇盡頭嘅範圍。頭尾兩日都計埋。");
+            Add("First date", "第一日");
+            Add("Last date", "最後一日");
+            Add("Review and add", "檢查一次再加");
+            Add("Adding puts the rule at the end of the list. If rules overlap on one setting, the one lower in the list wins.", "加入之後規則會放喺清單最尾。如果幾條規則改同一個設定又撞時間，清單入面排得低嗰條話事。");
+            Add("Add a schedule rule", "加一條排程規則");
+            Add("A short name. The same name replaces the old profile.", "簡短名稱。用同一個名就會取代舊嘅設定檔。");
+            Add("Instructions sent before the conversation. Empty sends none.", "喺對話之前先送出嘅指示。留空就乜都唔送。");
+            Add("Context window in tokens (128 to 1048576). Empty uses the server default.", "上下文長度，以 token 計（128 至 1048576）。留空就用伺服器預設。");
+            Add("All three are optional. Empty fields use the model's own defaults.", "三樣都可以唔填。留空嘅格會用模型自己嘅預設。");
+            Add("Parameters look fine.", "參數睇落冇問題。");
+            Add("Name and instructions", "名稱同指示");
+            Add("The name appears as a chip above the chat. The instructions are the system prompt the model sees first.", "名稱會喺對話上面變成一粒標籤。指示就係模型最先睇到嘅系統提示。");
+            Add("Instructions (system prompt)", "指示（系統提示）");
+            Add("Give the profile a name first.", "請先幫設定檔改個名。");
+            Add("Profile names are limited to 40 characters.", "設定檔名稱最多 40 個字元。");
+            Add("Parameters (optional)", "參數（可以唔填）");
+            Add("Temperature, top-p and context length. Leave any empty to keep the model's own default.", "溫度、top-p 同上下文長度。邊格留空，就保留模型自己嘅預設。");
+            Add("Review and save", "檢查一次再儲存");
+            Add("Saving over an existing name replaces that profile. Chats that used it keep their own copy of the prompt.", "用已有嘅名儲存會取代嗰個設定檔。用過佢嘅對話會保留自己嗰份提示。");
+            Add("New chat profile", "新對話設定檔");
+            Add("Windows Hello for this mode", "呢個模式用 Windows Hello");
+            Add("Windows Hello (optional)", "Windows Hello（可以唔用）");
+            Add("Checking Windows Hello...", "檢查緊 Windows Hello…");
+            Add("Turn off with Windows Hello", "用 Windows Hello 關閉");
+            Add("To add Windows Hello, turn the mode off first, then allow it here.", "想加 Windows Hello，要先關咗呢個模式，再喺呢度允許。");
+            Add("Stop allowing Windows Hello", "唔再允許 Windows Hello");
+            Add("Allow Windows Hello", "允許 Windows Hello");
+            Add("Asks Windows Hello once to confirm it is you, then allows it as a third way to turn the mode off.", "會叫 Windows Hello 確認一次係你本人，之後就可以用佢做第三種方法關閉呢個模式。");
+            Add("Windows Hello cannot be used on this computer right now, so this stays off.", "呢部電腦而家用唔到 Windows Hello，所以呢項保持關閉。");
+            Add("Export cancelled.", "已取消匯出。");
+            Add("Glyph changed. A custom image, if any, was removed.", "已換圖案。如果之前有自訂圖片，已經移除咗。");
+            Add("Choose a logo image", "揀一張標誌圖片");
+            Add("Custom image set for the drawer and the tray.", "側欄同系統匣已用自訂圖片。");
+            Add("Custom image removed.", "已移除自訂圖片。");
+            Add("The logo is back to the default glyph.", "標誌已經返返預設圖案。");
+
             // ---- Ollama page
             Add("1 hour", "1 小時");
             Add("30 minutes", "30 分鐘");
@@ -1209,7 +1264,7 @@ namespace MonitoringTools.Core
             Add("Export everything", "全部匯出");
             Add("Export everything...", "全部匯出...");
             Add("Fills the system prompt and parameters below. Be strict.", "填入下面嘅系統提示同參數。要嚴格。");
-            Add("Globe", "地球");
+            Add("Globe", "環球");
             Add("Glyph", "圖案");
             Add("How long a model stays loaded in memory after a reply when the chat does not set its own time. A shorter time frees memory sooner but the next reply starts slower. Default: 5 minutes.", "對話冇自己設定時間嗰陣，模型喺回覆之後保持載入記憶體幾耐。時間越短越快釋放記憶體，不過下一次回覆會開始得慢啲。預設：5 分鐘。");
             Add("How many times larger the exported PNG is than the board on screen. 2x and 3x are sharper and make bigger files. Default: 1x.", "匯出嘅 PNG 比螢幕上嘅畫板大幾多倍。2 倍同 3 倍更清晰，檔案亦更大。預設：1 倍。");
@@ -1223,7 +1278,7 @@ namespace MonitoringTools.Core
             Add("Make a look", "製作造型");
             Add("Make a look step by step", "逐步製作造型");
             Add("Monitor", "螢幕");
-            Add("Moon", "月亮");
+            Add("Moon", "月牙");
             Add("New profile, step by step", "逐步建立新設定檔");
             Add("Off by default. Clipboard history is plain text and may hold private copies, so it is left out unless you choose it.", "預設關閉。剪貼簿紀錄係純文字，可能有私人內容，所以除非你揀，否則唔會包括。");
             Add("One zip with every dataset below in JSON, CSV, Markdown, HTML and plain text. Lock records list what each lock covers but never a PIN, a password or an authenticator secret.", "一個 ZIP，包含下面每個資料集嘅 JSON、CSV、Markdown、HTML 同純文字版本。鎖紀錄會列出每個鎖涵蓋咩，但永遠唔會有 PIN、密碼或者驗證器密鑰。");
