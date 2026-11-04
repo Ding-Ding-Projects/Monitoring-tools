@@ -126,7 +126,14 @@ jobs:
           git commit -q -F commit-message.txt
           Remove-Item commit-message.txt
           git pull --rebase -q origin main
-          git push origin HEAD:main
+          # The remote sometimes answers a push with a transient server error; retry with backoff.
+          $pushed = $false
+          foreach ($wait in 0, 2, 4, 8, 16) {
+            if ($wait) { Start-Sleep -Seconds $wait; git pull --rebase -q origin main }
+            git push origin HEAD:main
+            if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+          }
+          if (-not $pushed) { throw "Push to main failed after retries" }
 
       - uses: actions/setup-node@v4
         with:
@@ -238,7 +245,14 @@ jobs:
           $lines -join "`n" | Set-Content -Encoding utf8NoBOM commit-message.txt
           git commit -q -F commit-message.txt
           Remove-Item commit-message.txt
-          git push origin HEAD:main
+          # The remote sometimes answers a push with a transient server error; retry with backoff.
+          $pushed = $false
+          foreach ($wait in 0, 2, 4, 8, 16) {
+            if ($wait) { Start-Sleep -Seconds $wait; git pull --rebase -q origin main }
+            git push origin HEAD:main
+            if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+          }
+          if (-not $pushed) { throw "Push to main failed after retries" }
 
   pages:
     needs: windows
