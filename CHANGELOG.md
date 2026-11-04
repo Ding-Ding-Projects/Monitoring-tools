@@ -4,6 +4,14 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.29 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.29)
+
+- Record v1.0.28 figures and changelog ([`34aa9fd`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/34aa9fd7fdcaa1a05541b9d6d4a4c3aa7bef7d80))
+- Close the SSH and Bedrock gaps: Linux Bedrock started, catalogues over SSH, on-host backups, real player bulk actions ([`ec67714`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ec677149e1ce7c558def5745ad8bdccbb31bb9f3))
+- WIP: catalogue and Undo over SSH, on-host backups, give hand-off ([`33c3b0c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/33c3b0c22707bc3a598255103f0687ef6d48cca9))
+
 ## 1.0.28 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.28)
