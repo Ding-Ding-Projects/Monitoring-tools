@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Ink;
 using System.Windows.Input;
+using System.Windows.Input.StylusPlugIns;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using MonitoringTools.Clip;
@@ -101,7 +102,8 @@ namespace MonitoringTools.UI
         private readonly string _boardKey;
         private readonly double _w, _h;
         private readonly Grid _board = new Grid();
-        private readonly InkCanvas _canvas = new InkCanvas();
+        private readonly LiveWidthRenderer _live = new LiveWidthRenderer();
+        private readonly InkCanvas _canvas;
         private readonly Border _toolbarHost = new Border();
         private readonly TextBlock _status = new TextBlock();
         private readonly StackPanel _statusRow = new StackPanel { Orientation = Orientation.Horizontal };
@@ -122,12 +124,35 @@ namespace MonitoringTools.UI
         private TextBlock _editing;
         private string _lastSaved;
 
+        /// <summary>
+        /// Draws the stroke being drawn with the pen attributes in force at each moment, so a width change made while the pen is down
+        /// shows in the very next segment instead of waiting for the stroke to end.
+        /// </summary>
+        private sealed class LiveInkCanvas : InkCanvas
+        {
+            public LiveInkCanvas(DynamicRenderer r) { DynamicRenderer = r; }   // the property is only open to a subclass
+        }
+
+        internal sealed class LiveWidthRenderer : DynamicRenderer
+        {
+            private volatile DrawingAttributes _now;
+            public void Use(DrawingAttributes a) { _now = a.Clone(); }
+            protected override void OnDraw(DrawingContext dc, StylusPointCollection points, Geometry geometry, Brush fillBrush)
+            {
+                var a = _now;
+                if (a == null || points == null || points.Count == 0) { base.OnDraw(dc, points, geometry, fillBrush); return; }
+                new Stroke(points, a.Clone()).Draw(dc);
+            }
+            internal void DrawForTest(DrawingContext dc, StylusPointCollection points) => OnDraw(dc, points, null, null);
+        }
+
         private sealed class TextItem { public double X { get; set; } public double Y { get; set; } public string Text { get; set; } public string Color { get; set; } public double Size { get; set; } }
         private sealed class Snap { public byte[] Ink; public List<TextItem> Texts; }
         private sealed class BoardFile { public string Ink { get; set; } public List<TextItem> Texts { get; set; } }
 
         private DrawingWindow(BitmapSource image, string sourcePath, string name, string key)
         {
+            _canvas = new LiveInkCanvas(_live);
             _image = image;
             _sourcePath = sourcePath;
             _boardKey = key;
@@ -466,6 +491,17 @@ namespace MonitoringTools.UI
             ShowStatus(_tool == Tool.Pen ? $"{_pen.Name}: {_pen.Hint}." : $"{ActiveToolName()}: {OtherTools.First(x => x.Tool == _tool).Hint}.");
         }
 
+        /// <summary>Changes the stroke width from the keyboard ([ and ]). A stroke in progress takes it from its next segment.</summary>
+        private void SetWidth(double v)
+        {
+            v = Math.Max(1, Math.Min(48, Math.Round(v)));
+            if (v == _width) return;
+            _width = v; Settings.Current.DrawWidth = v; Settings.Save();
+            ApplyTool();
+            ShowStatus("Stroke width " + (int)v);
+            if (IsLoaded) RebuildToolbar();
+        }
+
         private void ApplyTool()
         {
             var attrs = new DrawingAttributes
@@ -480,6 +516,7 @@ namespace MonitoringTools.UI
             };
             if (attrs.Width < 1) { attrs.Width = 1; attrs.Height = 1; }
             _canvas.DefaultDrawingAttributes = attrs;
+            _live.Use(attrs);
             switch (_tool)
             {
                 case Tool.Pen: _canvas.EditingMode = InkCanvasEditingMode.Ink; _canvas.Cursor = Cursors.Pen; break;
@@ -517,6 +554,11 @@ namespace MonitoringTools.UI
             }
             if (key == Key.C) { TogglePanel("colour"); e.Handled = true; return; }
             if (key == Key.Z) { TogglePanel("size"); e.Handled = true; return; }
+            if (key == Key.OemOpenBrackets || key == Key.OemCloseBrackets)
+            {
+                SetWidth(_width + (key == Key.OemCloseBrackets ? 1 : -1) * (shift ? 5 : 1));   // also while the pen is down: the next segment takes it
+                e.Handled = true; return;
+            }
             var pen = Pens.FirstOrDefault(p => p.Key == key);
             if (pen != null) { _pen = pen; Settings.Current.DrawPen = pen.Id; Settings.Save(); SelectTool(Tool.Pen); e.Handled = true; return; }
             foreach (var t in OtherTools) if (t.Key == key) { SelectTool(t.Tool); e.Handled = true; return; }
@@ -528,6 +570,8 @@ namespace MonitoringTools.UI
             foreach (var t in OtherTools) { var tool = t.Tool; yield return new ElementMenu.Item(t.Name, null, KeyName(t.Key), () => SelectTool(tool)); }
             yield return new ElementMenu.Item("Colour palette", null, "C", () => TogglePanel("colour"));
             yield return new ElementMenu.Item("Stroke size", null, "Z", () => TogglePanel("size"));
+            yield return new ElementMenu.Item("Thinner stroke", null, "[", () => SetWidth(_width - 1));
+            yield return new ElementMenu.Item("Thicker stroke", null, "]", () => SetWidth(_width + 1));
             yield return new ElementMenu.Item("Undo", null, "Ctrl+Z", Undo);
             yield return new ElementMenu.Item("Redo", null, "Ctrl+Y", Redo);
             yield return new ElementMenu.Item("Save PNG", null, "Ctrl+S", SavePng);
@@ -541,6 +585,9 @@ namespace MonitoringTools.UI
         {
             if (_tool == Tool.Pen)
             {
+                // a width changed while the pen was down applies to the whole finished stroke
+                e.Stroke.DrawingAttributes.Width = _canvas.DefaultDrawingAttributes.Width;
+                e.Stroke.DrawingAttributes.Height = _canvas.DefaultDrawingAttributes.Height;
                 try { ShapeStroke(e.Stroke); } catch (Exception ex) { Log.Warn("Pen shaping skipped: " + ex.Message); }
             }
             CommitChange();

@@ -27,7 +27,7 @@ namespace MonitoringTools.UI
             });
             root.Children.Add(new TextBlock
             {
-                Text = $"Every save keeps a copy on this computer, up to {ScriptHistory.Cap}; the oldest is dropped first. Pick a version to compare it with the text as it is now. Restore puts that version in the editor and saves it, after you confirm. The text you are replacing is kept in the history first.",
+                Text = $"Every save keeps a copy on this computer, up to the limit set on the Records page; the oldest is dropped first. Pick a version to compare it with the text as it is now. Restore puts that version in the editor and saves it, after you confirm. The text you are replacing is kept in the history first.",
                 Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8)
             });
 
@@ -38,6 +38,7 @@ namespace MonitoringTools.UI
             var diffFrame = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Child = diffScroll, Margin = new Thickness(0, 8, 0, 8), Visibility = Visibility.Collapsed };
             AutomationProperties.SetName(diffFrame, "Comparison with the current text");
             var legend = new TextBlock { Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed };
+            var lockedNote = new TextBlock { Text = "The history is locked. Unlock it on the Records page to see and restore earlier versions.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 4), Visibility = Visibility.Collapsed };
             var empty = new TextBlock { Text = "No earlier versions yet. The first save creates one.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 0, 0, 4) };
 
             List<(HistoryVersion V, string Text)> versions = new List<(HistoryVersion, string)>();
@@ -84,8 +85,9 @@ namespace MonitoringTools.UI
                     rows.Children.Add(SearchScope.SetItem(b, v.Time.ToString("f") + " " + text));
                 }
                 search.SetCount(shown, versions.Count, "versions");
-                empty.Visibility = versions.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-                search.Visibility = versions.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+                lockedNote.Visibility = ScriptHistory.IsLocked ? Visibility.Visible : Visibility.Collapsed;
+                empty.Visibility = versions.Count == 0 && !ScriptHistory.IsLocked ? Visibility.Visible : Visibility.Collapsed;
+                search.Visibility = versions.Count == 0 || ScriptHistory.IsLocked ? Visibility.Collapsed : Visibility.Visible;
             }
 
             void Reload()
@@ -119,6 +121,7 @@ namespace MonitoringTools.UI
             restoreBtn.ToolTip = "Replaces the text in the editor with the selected version, after a two-key confirmation. Off until you pick a version.";
 
             search.Filter += Render;
+            root.Children.Add(lockedNote);
             root.Children.Add(empty);
             root.Children.Add(search);
             root.Children.Add(rows);

@@ -47,6 +47,7 @@ namespace MonitoringTools.UI
         private string _current;
         private SearchField _pageSearch;
         public SearchField PageSearch => _pageSearch;
+        internal string CurrentIdForTest => _current;
         public IEnumerable<string> SectionIds => _sections.Select(s => s.Id);
         private Shortcut _editing;
         private Tabs.TabStrip _tabs;
@@ -67,7 +68,13 @@ namespace MonitoringTools.UI
             {
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && _pageSearch != null) { _pageSearch.Box.Focus(); _pageSearch.Box.SelectAll(); e.Handled = true; }
             };
-            Loaded += (s, e) => Navigate(_tabs.StartupTab);
+            Loaded += (s, e) =>
+            {
+                // Momentum: reopen on the page that was open last time
+                var start = _tabs.StartupTab;
+                if (Modes.Momentum && !string.IsNullOrEmpty(Settings.Current.LastPage) && SectionIds.Contains(Settings.Current.LastPage)) start = Settings.Current.LastPage;
+                Navigate(start);
+            };
             void OnLook() { AppName.Text = Appearance.DisplayName; LogoKit.ApplyToHeader(Logo, Appearance.LogoColor); if (_current != null) Navigate(_current, animate: false); }
             Appearance.Changed += OnLook;
             Closed += (s, e) => Appearance.Changed -= OnLook;
@@ -98,7 +105,9 @@ namespace MonitoringTools.UI
             id = _sections[idx].Id;
             int direction = _lastIdx < 0 || _lastIdx == idx ? 0 : idx > _lastIdx ? 1 : -1;
             _lastIdx = idx;
+            bool changed = _current != id;
             _current = id;
+            if (changed && Modes.Momentum && Settings.Current.LastPage != id) { Settings.Current.LastPage = id; Settings.Save(); }   // Momentum: remember the page for next time
             _tabs.Show(id);
 
             FrameworkElement page = id switch

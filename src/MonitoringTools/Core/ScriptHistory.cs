@@ -20,7 +20,14 @@ namespace MonitoringTools.Core
     /// </summary>
     public static class ScriptHistory
     {
+        /// <summary>The default number of versions kept per item. The person's own limit is <see cref="KeepCount"/>.</summary>
         public const int Cap = 50;
+
+        public static int KeepCount => Math.Clamp(Settings.Current?.HistoryKeepCount ?? Cap, 5, 500);
+        public static int KeepDays => Math.Clamp(Settings.Current?.HistoryKeepDays ?? 0, 0, 3650);
+
+        /// <summary>True when versions are encrypted and the password has not been typed.</summary>
+        public static bool IsLocked => HistoryVault.IsLocked;
 
         private static string Root => Path.Combine(Settings.DataDir, "history");
 
@@ -45,22 +52,65 @@ namespace MonitoringTools.Core
                 text ??= "";
                 var dir = Dir(key);
                 Directory.CreateDirectory(dir);
+                if (HistoryVault.IsLocked) { Log.Warn("The history is locked, so this version was not kept."); return false; }
                 var newest = Files(dir).FirstOrDefault();
-                if (newest != null && File.ReadAllText(newest) == text) return false;
+                if (newest != null && ReadFile(newest) == text) return false;
                 var stamp = DateTime.UtcNow;
                 // Versions sort by their name, so a new one must never be named earlier than the newest.
                 if (newest != null && DateTime.TryParseExact(Path.GetFileNameWithoutExtension(newest), "yyyyMMddHHmmssfff", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var last) && last >= stamp)
                     stamp = last.AddMilliseconds(1);
-                string path = Path.Combine(dir, stamp.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture) + ".txt");
-                File.WriteAllText(path, text, new UTF8Encoding(false));
-                foreach (var old in Files(dir).Skip(Cap)) { try { File.Delete(old); } catch { } }
+                string stampName = stamp.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture);
+                if (HistoryVault.Encrypts)
+                {
+                    var sealedBytes = HistoryVault.Encrypt(text);
+                    if (sealedBytes == null) { Log.Warn("The history key is unavailable, so this version was not kept."); return false; }
+                    File.WriteAllBytes(Path.Combine(dir, stampName + ".enc"), sealedBytes);
+                }
+                else File.WriteAllText(Path.Combine(dir, stampName + ".txt"), text, new UTF8Encoding(false));
+                Prune(key);
                 return true;
             }
             catch (Exception ex) { Log.Warn("Could not keep a history copy: " + ex.Message); return false; }
         }
 
         private static IEnumerable<string> Files(string dir) =>
-            Directory.Exists(dir) ? Directory.GetFiles(dir, "*.txt").OrderByDescending(f => Path.GetFileName(f), StringComparer.Ordinal) : Enumerable.Empty<string>();
+            Directory.Exists(dir) ? Directory.GetFiles(dir).Where(f => f.EndsWith(".txt") || f.EndsWith(".enc")).OrderByDescending(f => Path.GetFileName(f), StringComparer.Ordinal) : Enumerable.Empty<string>();
+
+        /// <summary>Reads one stored version, decrypting it when it is encrypted. Null when it is encrypted and cannot be opened.</summary>
+        internal static string ReadFile(string path)
+        {
+            try { return path.EndsWith(".enc") ? HistoryVault.Decrypt(File.ReadAllBytes(path)) : File.ReadAllText(path); }
+            catch { return null; }
+        }
+
+        /// <summary>Applies the person's retention to one item: the newest versions up to the count, and nothing older than the age limit. The newest version always stays.</summary>
+        public static int Prune(string key)
+        {
+            int removed = 0;
+            var files = Files(Dir(key)).ToList();
+            var cutoff = KeepDays > 0 ? DateTime.UtcNow.AddDays(-KeepDays) : DateTime.MinValue;
+            for (int i = 1; i < files.Count; i++)
+            {
+                bool tooMany = i >= KeepCount;
+                bool tooOld = false;
+                if (KeepDays > 0 && DateTime.TryParseExact(Path.GetFileNameWithoutExtension(files[i]), "yyyyMMddHHmmssfff", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var t)) tooOld = t < cutoff;
+                if (tooMany || tooOld) { try { File.Delete(files[i]); removed++; } catch { } }
+            }
+            return removed;
+        }
+
+        /// <summary>Applies retention to every item.</summary>
+        public static int PruneAll() => Items().Sum(i => Prune(i.Key));
+
+        /// <summary>Every item that has a history: its folder name and how many versions it keeps.</summary>
+        public static List<(string Key, int Versions)> Items() =>
+            Directory.Exists(Root) ? Directory.GetDirectories(Root).Select(d => (Path.GetFileName(d), Files(d).Count())).Where(x => x.Item2 > 0).OrderBy(x => x.Item1, StringComparer.Ordinal).ToList() : new List<(string, int)>();
+
+        /// <summary>Removes every saved version of one item. The caller confirms first.</summary>
+        public static bool Delete(string key)
+        {
+            try { var d = Dir(key); if (Directory.Exists(d)) Directory.Delete(d, true); return true; } catch { return false; }
+        }
 
         /// <summary>The saved versions, newest first.</summary>
         public static List<HistoryVersion> List(string key)
@@ -78,8 +128,11 @@ namespace MonitoringTools.Core
         public static string Read(string key, string id)
         {
             if (!Regex.IsMatch(id ?? "", @"^\d{17}$")) return null;
-            var p = Path.Combine(Dir(key), id + ".txt");
-            return File.Exists(p) ? File.ReadAllText(p) : null;
+            var dir = Dir(key);
+            var p = Path.Combine(dir, id + ".enc");
+            if (File.Exists(p)) return ReadFile(p);
+            p = Path.Combine(dir, id + ".txt");
+            return File.Exists(p) ? ReadFile(p) : null;
         }
 
         /// <summary>

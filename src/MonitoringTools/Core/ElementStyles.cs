@@ -730,7 +730,10 @@ namespace MonitoringTools.Core
             StyleBundle b;
             try { b = JsonSerializer.Deserialize<StyleBundle>(json, JsonOptions); }
             catch (Exception ex) { return "The file is not valid JSON for element looks: " + ex.Message; }
-            if (b == null || b.Format != "monitoringtools.element-styles") return "This is not an element looks file (its format name is wrong).";
+            // a file that never names its format must not pass because the class fills in the right name by default
+            bool named = false;
+            try { using var doc = JsonDocument.Parse(json); named = doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.EnumerateObject().Any(p => p.Name.Equals("format", StringComparison.OrdinalIgnoreCase)); } catch { }
+            if (b == null || !named || b.Format != "monitoringtools.element-styles") return "This is not an element looks file (its format name is wrong).";
             if (b.Version != 1) return $"This file is version {b.Version}; only version 1 is understood.";
             b.Styles ??= new Dictionary<string, ElementStyle>(); b.Presets ??= new Dictionary<string, ElementStyle>();
             if (b.Styles.Count > MaxImportStyles) return $"The file has more than {MaxImportStyles} looks.";

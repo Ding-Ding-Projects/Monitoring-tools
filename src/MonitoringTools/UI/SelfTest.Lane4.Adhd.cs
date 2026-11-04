@@ -1,0 +1,169 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using MonitoringTools.Core;
+
+namespace MonitoringTools.UI
+{
+    // The effects of the ADHD modes, read from a running window: held toasts, one toast at a time, no motion or sound,
+    // elapsed time on a running task, the reminder timer and reopening on the page left open.
+    public static partial class SelfTest
+    {
+        private static void CloseToasts()
+        {
+            foreach (var t in Application.Current.Windows.OfType<ToastWindow>().ToList()) { try { t.Close(); } catch { } }
+            var live = (System.Collections.IList)typeof(ToastManager).GetField("_live", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(App.Toasts);
+            live.Clear();
+            var q = (Queue<ToastWindow>)typeof(ToastManager).GetField("_waiting", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(App.Toasts);
+            q.Clear();
+        }
+
+        private static async Task AdhdLane4ChecksAsync()
+        {
+            var s = Settings.Current;
+            bool f0 = s.AdhdFocus, o0 = s.AdhdOneThing, l0 = s.AdhdLowStimulation, t0 = s.AdhdTimeAwareness, m0 = s.AdhdMomentum;
+            int rem0 = s.TimeReminderMinutes;
+            void Restore() { s.AdhdFocus = f0; s.AdhdOneThing = o0; s.AdhdLowStimulation = l0; s.AdhdTimeAwareness = t0; s.AdhdMomentum = m0; s.TimeReminderMinutes = rem0; Modes.NotifyChanged(); CloseToasts(); }
+
+            await CheckAsync("adhd focus: a toast that is not urgent goes to the history and a warning still shows", async () =>
+            {
+                try
+                {
+                    CloseToasts(); s.AdhdFocus = false; Modes.NotifyChanged();
+                    int logged = NotificationLog.All().Count;
+                    App.Toasts.ShowNotice("Focus plain", "Shown when Focus is off.", App.Toasts.Violet, 30);
+                    await Task.Delay(300);
+                    if (App.Toasts.LiveToasts.Count != 1) return "with Focus off the toast was not shown";
+                    CloseToasts();
+                    s.AdhdFocus = true; Modes.NotifyChanged();
+                    int before = NotificationLog.All().Count;
+                    App.Toasts.ShowNotice("Focus held", "Held back when Focus is on.", App.Toasts.Violet, 30);
+                    await Task.Delay(300);
+                    if (App.Toasts.LiveToasts.Count != 0) return "with Focus on a non-urgent toast was shown";
+                    if (NotificationLog.All().Count != before + 1 || !NotificationLog.All().Any(n => n.Title.Contains("Focus held") || n.Detail.Contains("Focus held"))) return "the held toast is not in the notification history";
+                    App.Toasts.ShowNotice("Focus warning", "A warning gets through.", App.Toasts.Amber, 30);
+                    await Task.Delay(300);
+                    return App.Toasts.LiveToasts.Count == 1 ? null : "a warning was held back";
+                }
+                finally { Restore(); }
+            });
+
+            await CheckAsync("adhd one thing at a time: a second toast waits, in order, until the first goes", async () =>
+            {
+                try
+                {
+                    CloseToasts(); s.AdhdFocus = false; s.AdhdLowStimulation = true; s.AdhdOneThing = true; Modes.NotifyChanged();   // low stimulation so closing is immediate
+                    var a = App.Toasts.ShowNotice("First", "On screen now.", App.Toasts.Violet, 60);
+                    var b = App.Toasts.ShowNotice("Second", "Waits.", App.Toasts.Violet, 60);
+                    var c = App.Toasts.ShowNotice("Third", "Waits longer.", App.Toasts.Violet, 60);
+                    await Task.Delay(300);
+                    if (App.Toasts.LiveToasts.Count != 1 || App.Toasts.WaitingCount != 2) return $"expected 1 live and 2 waiting, got {App.Toasts.LiveToasts.Count} and {App.Toasts.WaitingCount}";
+                    if (b.IsVisible || c.IsVisible) return "a waiting toast is visible";
+                    a.CloseAnimated(); await Task.Delay(300);
+                    if (!b.IsVisible || c.IsVisible || App.Toasts.WaitingCount != 1) return $"after the first went: second visible={b.IsVisible}, third visible={c.IsVisible}, waiting={App.Toasts.WaitingCount}";
+                    b.CloseAnimated(); await Task.Delay(300);
+                    if (!c.IsVisible) return "the third toast never got its turn";
+                    s.AdhdOneThing = false; Modes.NotifyChanged();
+                    var d = App.Toasts.ShowNotice("Fourth", "Free to show with the mode off.", App.Toasts.Violet, 60);
+                    var e = App.Toasts.ShowNotice("Fifth", "Free to show with the mode off.", App.Toasts.Violet, 60);
+                    await Task.Delay(300);
+                    return d.IsVisible && e.IsVisible ? null : "with the mode off two toasts did not show together";
+                }
+                finally { Restore(); }
+            });
+
+            await CheckAsync("adhd low stimulation: motion is skipped in a live window and sounds are limited to warnings", async () =>
+            {
+                try
+                {
+                    var host = new Window { Width = 300, Height = 200, Content = new Border { Background = Brushes.Black, Opacity = 0 } };
+                    host.Show();
+                    var el = (Border)host.Content;
+                    s.AdhdLowStimulation = false; Modes.NotifyChanged();
+                    if (Ui.Reduced && !Modes.LowStimulation) { /* Windows itself reduces animation: the "off" half cannot be read here */ }
+                    bool windowsReduces = !SystemParameters.ClientAreaAnimation;
+                    el.Opacity = 0; Ui.Fade(el, 1, 1200);
+                    bool offHalf = windowsReduces || el.Opacity < 0.5;   // the animation has not run to the end yet
+                    el.BeginAnimation(UIElement.OpacityProperty, null); el.Opacity = 0;
+                    var ordinary = Modes.SoundAllowed(false); var essential = Modes.SoundAllowed(true);
+                    s.AdhdLowStimulation = true; Modes.NotifyChanged();
+                    if (!Ui.Reduced) { host.Close(); return "Ui.Reduced is false with Low stimulation on"; }
+                    el.BeginAnimation(UIElement.OpacityProperty, null); el.Opacity = 0; Ui.Fade(el, 1, 1200);
+                    await WaitFor(() => el.Opacity >= 0.99, 450);
+                    bool onHalf = el.Opacity >= 0.99;   // finished within a blink, not over 1.2 s
+                    bool soundOrdinary = Modes.SoundAllowed(false), soundEssential = Modes.SoundAllowed(true);
+                    // a toast shown now has no slide: its resting opacity is full straight away
+                    CloseToasts();
+                    var t = App.Toasts.ShowNotice("Still", "No motion.", App.Toasts.Violet, 30);
+                    await Task.Delay(100);
+                    bool toastStill = t.Opacity >= 0.99;
+                    host.Close();
+                    if (!offHalf) return "with the mode off the fade did not animate (opacity " + el.Opacity + ")";
+                    if (!onHalf) return "with the mode on the fade still animated";
+                    if (!toastStill) return "a toast was still fading in with the mode on";
+                    if (Modes.SoundsOn && ordinary && soundOrdinary) return "an ordinary sound still plays with the mode on";
+                    return !Modes.SoundsOn || soundEssential ? null : "a warning sound is silenced by the mode";
+                }
+                finally { Restore(); }
+            });
+
+            await CheckAsync("adhd time awareness: a running task shows elapsed time, then how long it took, and the reminder timer follows the setting", async () =>
+            {
+                try
+                {
+                    CloseToasts(); s.AdhdFocus = false; s.AdhdOneThing = false; s.AdhdTimeAwareness = false; Modes.NotifyChanged();
+                    if (Modes.ReminderRunning) return "the reminder was running with the mode off";
+                    s.AdhdTimeAwareness = true; s.TimeReminderMinutes = 45; Modes.NotifyChanged(); Settings.Save();
+                    await Task.Delay(200);
+                    if (!Modes.ReminderRunning || Modes.ReminderEvery != TimeSpan.FromMinutes(45)) return "the reminder did not start at the chosen interval: " + Modes.ReminderEvery;
+                    ToastWindow found = null;
+                    App.Toasts.ShowTask("Slow job", "for the time check", async () => { await Task.Delay(2600); return (true, "done", "ok"); });
+                    await Task.Delay(1500);
+                    found = App.Toasts.LiveToasts.FirstOrDefault();
+                    if (found == null) return "the task toast did not show";
+                    var running = found.WhenText.Text;
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(running, @"^\d+ s elapsed$")) return "no elapsed time while running: \"" + running + "\"";
+                    await Task.Delay(2200);
+                    var done = found.WhenText.Text;
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(done, @"^Took \d+ s$")) return "no duration when finished: \"" + done + "\"";
+                    CloseToasts();
+                    s.AdhdTimeAwareness = false; Modes.NotifyChanged(); Settings.Save(); await Task.Delay(200);
+                    return Modes.ReminderRunning ? "the reminder kept running after the mode went off" : null;
+                }
+                finally { Restore(); }
+            });
+
+            await CheckAsync("adhd momentum: the control centre reopens on the page left open, and not with the mode off", async () =>
+            {
+                try
+                {
+                    s.AdhdMomentum = true; Modes.NotifyChanged();
+                    var a = new ControlCentreWindow { Width = 1180, Height = 820 };
+                    a.Show(); await Task.Delay(700);
+                    a.Navigate("records", animate: false); await Task.Delay(200);
+                    a.Navigate("modes", animate: false); await Task.Delay(200);
+                    a.Close();
+                    Settings.Current.ActiveTab = "overview";   // the tab strip alone would reopen on the overview now, so only the mode can bring the modes page back
+                    if (Settings.Current.LastPage != "modes") return "the last page was not remembered: \"" + Settings.Current.LastPage + "\"";
+                    var b = new ControlCentreWindow { Width = 1180, Height = 820 };
+                    b.Show(); await Task.Delay(800);
+                    var reopened = b.CurrentIdForTest;
+                    b.Close();
+                    if (reopened != "modes") return "reopened on \"" + reopened + "\" instead of the modes page";
+                    s.AdhdMomentum = false; Modes.NotifyChanged();
+                    Settings.Current.ActiveTab = "overview";
+                    var c = new ControlCentreWindow { Width = 1180, Height = 820 };
+                    c.Show(); await Task.Delay(800);
+                    var plain = c.CurrentIdForTest;
+                    c.Close();
+                    return plain != "modes" ? null : "the mode is off but the window still reopened on the remembered page";
+                }
+                finally { Restore(); }
+            });
+        }
+    }
+}

@@ -51,7 +51,13 @@ namespace MonitoringTools.UI
             dir = Path.GetFullPath(dir);
             Directory.CreateDirectory(dir);
             if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
-            if (Environment.GetEnvironmentVariable("MT_ONLY") == "lane4") { await Lane4ChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "lane4")
+            {
+                await Lane4ChecksAsync(dir);
+                await CheckAsync("context menus on every window (lane loop)", () => Wave6Flows.Menus(null));
+                await CheckAsync("settings explain themselves (lane loop)", () => Wave6Flows.Explain());
+                Finish(dir); return;
+            }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "wording") { await WordingChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit

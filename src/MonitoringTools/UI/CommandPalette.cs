@@ -233,7 +233,9 @@ namespace MonitoringTools.UI
 
                 _search.Filter += Filter;
                 PreviewKeyDown += OnKey;
-                Deactivated += (s, e) => { if (IsVisible && !_search.BuilderOpen) Close(); };
+                Deactivated += (s, e) => { if (IsVisible && !_search.BuilderOpen && !_menuOpen) Close(); };
+                // right-click, Shift+F10 or the Menu key: the palette's own actions, and the same menu every other window has
+                ElementMenu.Attach(this, _ => PaletteMenu(), new ElementMenu.Options { OnMenu = open => _menuOpen = open });
                 Loaded += (s, e) =>
                 {
                     ((ScaleTransform)_card.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Spring });
@@ -242,6 +244,18 @@ namespace MonitoringTools.UI
                     Activate(); _query.Focus();
                 };
                 Filter();
+            }
+
+            private bool _menuOpen;
+
+            private IEnumerable<ElementMenu.Item> PaletteMenu()
+            {
+                yield return new ElementMenu.Item("Clear the search", null, "", () => { _search.State.SetQuery(""); _query.Focus(); });
+                yield return new ElementMenu.Item(Settings.Current.PaletteFullWindow ? "Use the card size" : "Use the full window", null, "", () =>
+                {
+                    Settings.Current.PaletteFullWindow = !Settings.Current.PaletteFullWindow; Settings.Save(); ApplySize();
+                });
+                yield return new ElementMenu.Item("Close the palette", null, "Esc", Close);
             }
 
             private void ApplySize()
