@@ -203,7 +203,12 @@ When the public IP address changes, a dialog shows the old and new address, and 
 Line counts are produced by the release workflow with `node scripts/line-counts.mjs` and published in each release's notes. The block below is refreshed from the latest release by that workflow; until the first release that runs it, it shows no figures rather than invented ones.
 
 <!-- release-figures:start -->
-No release has published figures yet. They appear here after the next release.
+Figures from release v1.0.13 (commit `0b9d54f036a0`), refreshed automatically by the release workflow. The release notes are the record; this is a convenience copy.
+
+- Project total: 43,977 lines (39,799 non-blank); grand total with excluded rows: 52,276 lines.
+- Source 38,062, tests 558, styles and markup 1,360, documentation 2,539, configuration and data 1,458.
+- Agent-written surviving lines: 43,977 of 43,977, by `git blame`.
+- Human time estimate: about 745 to 1,856 working days for one person, an estimate rather than a measurement (method below).
 <!-- release-figures:end -->
 
 **How the human-time estimate is made.** It is an estimate, not a measurement, and it is given as a range because a single figure would imply precision it does not have.

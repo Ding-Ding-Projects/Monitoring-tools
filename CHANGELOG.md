@@ -6,8 +6,23 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.12, up to `e8933df`.
+Commits after v1.0.13, up to `9a6f56f`.
 
+- Refresh screenshots for v1.0.13 ([`9a6f56f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9a6f56f370e0515b92554a7c5e8d97ad88e7ed73))
+
+## 1.0.13 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.13)
+
+- Retry the workflow's pushes to main on transient server errors ([`0b9d54f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0b9d54f036a08b320f85f1525384022df61e813d))
+- State the self-test's 45 checks ([`5bb903f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/5bb903f621c208a26d5b5a065d2b4ecf6ae48f55))
+- Add Ollama chat features and world generator editors ([`301a04b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/301a04bf45a36e47751f3a92de96d9d5fd78564c))
+- Clear two naming false positives in the site and code-name list ([`156d609`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/156d609b1571da7a4745cadd059699c62abe4e62))
+- Complete the appearance editor: states, presets, history, import and export, locks, LAB and LCH ([`407a538`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/407a538ebc703d16340e74dccbcc98b40d407920))
+- Bake the new site into the desktop companion ([`9af3f2a`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9af3f2aca4ec89c7d3b342aa025ab602b378e037))
+- Rebuild the project site as a Material 3 documentation site ([`546ac3b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/546ac3b1af78a1a675bbcb2d61b7407fd4925698))
+- Add regex syntax tree, replacement explanation and guided editing ([`014e64a`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/014e64a15673700718ea161b8aae4c8c1989f28a))
+- Add release notes with timing, line counts, code names and records ([`e7f15b0`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e7f15b0fc39efde3ddd72b289c7e7b1aaa37eefe))
 - Refresh screenshots for v1.0.12 ([`e8933df`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e8933dfc0bf65a3f6bf2ff7b8faf3589b298adcd))
 
 ## 1.0.12 (2026-11-04)
