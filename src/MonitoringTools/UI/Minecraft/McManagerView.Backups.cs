@@ -16,14 +16,6 @@ namespace MonitoringTools.UI.Minecraft
         private FrameworkElement BuildBackups(ServerDef s)
         {
             var root = new StackPanel();
-            if (!s.IsLocal)
-            {
-                var sp = new StackPanel();
-                sp.Children.Add(McUi.Title("Backups"));
-                sp.Children.Add(McUi.Body("This server keeps its world on the SSH host, so this app cannot copy it from here. Back it up on that host. Backups for servers on this computer, including Docker ones, are made here.", "B.TextSoft", 13));
-                root.Children.Add(McUi.Card(sp));
-                return root;
-            }
             var card = new StackPanel();
             var head = new Grid();
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -122,7 +114,8 @@ namespace MonitoringTools.UI.Minecraft
             }, "Btn.Ghost", Icons.Folder);
             Grid.SetColumn(choose, 1); fg.Children.Add(choose);
             keep.Children.Add(fg);
-            var how = McUi.Body("A backup of a running server runs save-off and save-all, copies the world, then save-on, so the copy is consistent while players stay online. Restore stops the server, keeps the current world as one more backup, then swaps.", "B.TextMute", 12.5);
+            var how = McUi.Body("A backup of a running server runs save-off and save-all, copies the world, then save-on, so the copy is consistent while players stay online. Restore stops the server, keeps the current world as one more backup, then swaps."
+                + (s.IsSsh ? " This server's world is on the SSH host: a backup copies it here with scp, and a restore copies the backup back up, moving the host's current folders aside until every folder has arrived." : ""), "B.TextMute", 12.5);
             how.Margin = new Thickness(0, 12, 0, 0);
             keep.Children.Add(how);
 
@@ -141,8 +134,17 @@ namespace MonitoringTools.UI.Minecraft
                 try
                 {
                     if (IsUp(s) && !McDemo.IsSample(s)) await ServerManager.StopAsync(s);
-                    var level = McWorlds.LevelName(s);
-                    var safety = await Task.Run(() => McBackups.Restore(s.Folder, level, s.BackupFolder, b, s.KeepBackups));
+                    McBackup safety;
+                    if (s.IsSsh)
+                    {
+                        var files = McFiles.For(s);
+                        safety = await Task.Run(() => McRemote.Restore(s, files, McRemote.LevelName(files, s.IsBedrock), b));
+                    }
+                    else
+                    {
+                        var level = McWorlds.LevelName(s);
+                        safety = await Task.Run(() => McBackups.Restore(s.Folder, level, s.BackupFolder, b, s.KeepBackups));
+                    }
                     say("Restored." + (safety != null ? " The world as it was is in " + Path.GetFileName(safety.Path) + "." : "") + " Start the server to play it.", "B.Mint");
                 }
                 catch (Exception ex) { say(ex.Message, "B.Amber"); }

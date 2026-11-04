@@ -35,13 +35,11 @@ namespace MonitoringTools.UI.Minecraft
 
             if (s.IsBedrock)
             {
-                var worlds = System.IO.Path.Combine(s.Folder, "worlds");
-                var names = System.IO.Directory.Exists(worlds) ? System.IO.Directory.GetDirectories(worlds).Select(System.IO.Path.GetFileName).ToList() : new System.Collections.Generic.List<string>();
-                list.Children.Add(McUi.Body(names.Count == 0 ? "The Bedrock server makes its world in the worlds folder at its first start." : "Bedrock worlds in the worlds folder: " + string.Join(", ", names) + ". Backups hold the whole worlds folder. Import, reset and the world generator are for Java edition.", "B.TextSoft", 13));
+                list.Children.Add(BedrockWorldsBody(s, top, Say));
             }
             else if (!s.IsLocal)
             {
-                list.Children.Add(McUi.Body("This server keeps its world on the SSH host, so import, download and reset happen there. The world generator below can still build a world on this computer to copy over.", "B.TextSoft", 13));
+                list.Children.Add(SshWorldsBody(s, Say));
             }
             else
             {

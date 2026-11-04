@@ -25,13 +25,12 @@ namespace MonitoringTools.UI.Minecraft
         {
             var root = new StackPanel();
             var noun = s.ContentFolder == "mods" ? "mods" : "plugins";
+            if (s.IsBedrock) return BuildBedrockAddons(s);
             if (s.ContentFolder == null)
             {
                 var sp = new StackPanel();
                 sp.Children.Add(McUi.Title("Plugins and mods"));
-                sp.Children.Add(McUi.Body(s.IsBedrock
-                    ? "The Bedrock server takes add-ons (behavior and resource packs) rather than plugins or mods. Put them in its behavior_packs and resource_packs folders; this app does not manage add-ons yet."
-                    : "Vanilla runs neither plugins nor mods. A Paper or Purpur server takes plugins, and a Fabric, Forge or NeoForge server takes mods; make a new server with one of those to use them.", "B.TextSoft", 13));
+                sp.Children.Add(McUi.Body("Vanilla runs neither plugins nor mods. A Paper or Purpur server takes plugins, and a Fabric, Forge or NeoForge server takes mods; make a new server with one of those to use them.", "B.TextSoft", 13));
                 root.Children.Add(McUi.Card(sp));
                 return root;
             }
@@ -57,6 +56,14 @@ namespace MonitoringTools.UI.Minecraft
             root.Children.Add(McUi.Card(installed));
 
             Button updateAll = null, check = null;
+            // A server on an SSH host: its folder is listed over SSH, and a switch or removal runs there.
+            List<McAddon> remoteItems = null; string remoteError = null;
+            async void LoadRemote()
+            {
+                try { var files = McFiles.For(s); remoteItems = await Task.Run(() => McContent.List(files, s.ContentFolder)); remoteError = null; }
+                catch (Exception ex) { remoteError = ex.Message; }
+                Fill();
+            }
             ib.Children.Add(Ui.Button("Install from a file…", () =>
             {
                 var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Plugin or mod (*.jar)|*.jar", Title = "Choose a plugin or mod" };
@@ -64,7 +71,17 @@ namespace MonitoringTools.UI.Minecraft
                 try
                 {
                     if (s.IsLocal) { McContent.Install(McContent.FolderOf(s), dlg.FileName); Say("Installed " + Path.GetFileName(dlg.FileName) + ". The folder was backed up first. Restart the server to load it.", "B.Mint"); Fill(); }
-                    else Say(ServerManager.InstallPlugin(s, dlg.FileName), "B.TextSoft");
+                    else
+                    {
+                        var jar = dlg.FileName;
+                        Say("Copying " + Path.GetFileName(jar) + " to the SSH host…", "B.TextMute");
+                        _ = Task.Run(() => McContent.Install(McFiles.For(s), s.ContentFolder, jar)).ContinueWith(t => Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            if (t.IsFaulted) Say(t.Exception.InnerException.Message, "B.Amber");
+                            else Say("Copied " + Path.GetFileName(jar) + " into " + noun + " on the host. The folder was copied to a dated backup beside it first. Restart the server to load it.", "B.Mint");
+                            LoadRemote();
+                        })));
+                    }
                 }
                 catch (Exception ex) { Say(ex.Message, "B.Amber"); }
             }, "Btn.Ghost", Icons.File));
@@ -101,8 +118,15 @@ namespace MonitoringTools.UI.Minecraft
             void Fill()
             {
                 list.Children.Clear();
-                if (!s.IsLocal) { list.Children.Add(McUi.Body($"This server's {noun} folder is on the SSH host. Install from a file copies a jar there over SSH; the list itself is managed on the host.", "B.TextSoft", 13)); return; }
-                var items = McContent.List(McContent.FolderOf(s));
+                List<McAddon> items;
+                if (!s.IsLocal)
+                {
+                    checkLine.Text = "Names come from the file names, and catalogue checks and updates are for servers on this computer.";
+                    if (remoteError != null) { list.Children.Add(McUi.Body(remoteError, "B.Amber", 13)); Core.Language.Refresh(installed); return; }
+                    if (remoteItems == null) { list.Children.Add(McUi.Body($"Reading the {noun} folder on the SSH host…", "B.TextMute", 13)); Core.Language.Refresh(installed); return; }
+                    items = remoteItems;
+                }
+                else items = McContent.List(McContent.FolderOf(s));
                 McCatalogue.Last.TryGetValue(s.Id, out var checks);
                 if (items.Count == 0) list.Children.Add(McUi.Body($"No {noun} yet. Install one from a file or find one in the catalogue.", "B.TextMute", 13));
                 foreach (var a in items)
@@ -112,7 +136,7 @@ namespace MonitoringTools.UI.Minecraft
                     list.Children.Add(AddonRow(s, a, info, Say, Refill));
                 }
                 int due = checks?.Values.Count(c => c.Kind == McCompat.Update) ?? 0;
-                checkLine.Text = checks == null ? "Not checked against the catalogues yet." : due == 0 ? "Checked against Modrinth and Hangar: nothing newer for this version." : due == 1 ? "1 update for this version." : $"{due} updates for this version.";
+                if (s.IsLocal) checkLine.Text = checks == null ? "Not checked against the catalogues yet." : due == 0 ? "Checked against Modrinth and Hangar: nothing newer for this version." : due == 1 ? "1 update for this version." : $"{due} updates for this version.";
                 if (updateAll != null) updateAll.IsEnabled = due > 0;
                 Core.Language.Refresh(installed);
             }
@@ -127,8 +151,9 @@ namespace MonitoringTools.UI.Minecraft
                 Fill();
             }
             // After a change the badges are read again, so they always describe the files that are there now.
-            void Refill() { if (McCatalogue.Last.ContainsKey(s.Id) || McDemo.IsSample(s)) Fill(); else _ = Check(); }
+            void Refill() { if (!s.IsLocal) LoadRemote(); else if (McCatalogue.Last.ContainsKey(s.Id) || McDemo.IsSample(s)) Fill(); else _ = Check(); }
             Fill();
+            if (!s.IsLocal) LoadRemote();
             if (s.IsLocal && !McDemo.IsSample(s) && CheckedOnce.Add(s.Id) && McContent.List(McContent.FolderOf(s)).Count > 0) _ = Check();
 
             // ---- catalogue
@@ -240,6 +265,16 @@ namespace MonitoringTools.UI.Minecraft
             var sub = $"{(a.Version.Length > 0 ? a.Version + " · " : "")}{Path.GetFileName(a.File)} · {Ui.Bytes(a.Size)}";
             var cb = McUi.Switch(a.Name, a.Enabled ? "On: the server loads it at its next start." : "Off: the server skips it.", a.Enabled, v =>
             {
+                if (a.Files != null)
+                {
+                    say("Working on the SSH host…", "B.TextMute");
+                    _ = Task.Run(() => McContent.SetEnabled(a, v)).ContinueWith(t => Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        say(t.IsFaulted ? t.Exception.InnerException.Message : (v ? "Turned on " : "Turned off ") + a.Name + ". The folder was copied to a dated backup on the host first; restart the server to apply it.", t.IsFaulted ? "B.Amber" : "B.Mint");
+                        refill();
+                    })));
+                    return;
+                }
                 try { McContent.SetEnabled(a, v); McCatalogue.Last.Remove(s.Id); say((v ? "Turned on " : "Turned off ") + a.Name + ". The folder was backed up first; restart the server to apply it.", "B.Mint"); refill(); }
                 catch (Exception ex) { say(ex.Message, "B.Amber"); refill(); }
             }, literalLabel: true);
@@ -284,7 +319,19 @@ namespace MonitoringTools.UI.Minecraft
             var more = McUi.IconButton(Icons.Trash, "Remove " + a.Name, () =>
             {
                 var dlg = new ConfirmWindow($"Remove {a.Name}?", $"The jar is deleted from the folder. A backup of the whole folder is taken first, so it can be put back.", "Remove", danger: true);
-                dlg.Confirmed += _ => { try { McContent.Remove(a); McCatalogue.Last.Remove(s.Id); say("Removed " + a.Name + ". The folder was backed up first.", "B.Mint"); } catch (Exception ex) { say(ex.Message, "B.Amber"); } refill(); };
+                dlg.Confirmed += ok =>
+                {
+                    if (a.Files != null)
+                    {
+                        say("Working on the SSH host…", "B.TextMute");
+                        _ = Task.Run(() => McContent.Remove(a)).ContinueWith(t => Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            say(t.IsFaulted ? t.Exception.InnerException.Message : "Removed " + a.Name + ". The folder was copied to a dated backup on the host first.", t.IsFaulted ? "B.Amber" : "B.Mint");
+                            refill();
+                        })));
+                        return;
+                    }
+                    try { McContent.Remove(a); McCatalogue.Last.Remove(s.Id); say("Removed " + a.Name + ". The folder was backed up first.", "B.Mint"); } catch (Exception ex) { say(ex.Message, "B.Amber"); } refill(); };
                 dlg.Show();
             });
             btns.Children.Add(more);
