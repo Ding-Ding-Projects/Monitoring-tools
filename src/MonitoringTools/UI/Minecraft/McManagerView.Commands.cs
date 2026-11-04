@@ -240,7 +240,7 @@ namespace MonitoringTools.UI.Minecraft
         private FrameworkElement Gallery(ServerDef s)
         {
             var sp = new StackPanel();
-            var search = new SearchField("minecraft:command-tasks", "Search tasks and commands", compact: true) { Margin = new Thickness(0, 0, 0, 6) };
+            var search = new SearchField("minecraft:command-tasks", "Search tasks", compact: true) { Margin = new Thickness(0, 0, 0, 6) };
             search.SampleSource = () => McCommandTasks.All.Select(t => t.Label).Concat(_tree.Children.Select(c => c.Name));
             var list = new StackPanel();
             AutomationProperties.SetName(list, "Tasks");
@@ -596,7 +596,9 @@ namespace MonitoringTools.UI.Minecraft
                     var part = new Button { Style = Ui.Style("Btn.Row"), Content = new Border { Background = Ui.Res(empty ? "B.Raised" : bg), CornerRadius = new CornerRadius(7), Padding = new Thickness(7, 2, 7, 3), Child = tb }, Height = double.NaN, Padding = new Thickness(0), Margin = new Thickness(0, 0, 6, 6) };
                     var tip = kindName + " · " + (label ?? (kind == McCommandTree.PartKind.Command ? "the command" : steps[i].Node.Name));
                     part.ToolTip = tip;
-                    AutomationProperties.SetName(part, tip + ": " + (empty ? "not filled in" : text.Trim()));
+                    AutomationProperties.SetName(part, tip);
+                    // the value itself is data (a name, an id, a message), so it is the item status rather than part of the translated name
+                    AutomationProperties.SetItemStatus(part, empty ? "not filled in" : text.Trim());
                     int index = i; string fid = steps[i].Field;
                     part.Click += (o, e) =>
                     {

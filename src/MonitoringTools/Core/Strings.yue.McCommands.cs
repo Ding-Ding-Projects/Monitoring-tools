@@ -19,7 +19,7 @@ namespace MonitoringTools.Core
             Add("Command builder", "指令砌法"); Add("Tasks", "任務"); Add("Every command", "所有指令"); Add("Builder mode", "砌法模式");
             Add("Tasks: forms for what people most often want to do", "任務：大家最常做嘅嘢，一格格填");
             Add("Every command: walk the server's whole command tree", "所有指令：行勻伺服器成棵指令樹");
-            Add("Back to the console", "返去主控台"); Add("Search tasks and commands", "搜尋任務同指令"); Add("Favourites", "我的最愛");
+            Add("Back to the console", "返去主控台"); Add("Search tasks and commands", "搜尋任務同指令"); Add("Search tasks", "搜尋任務"); Add("Favourites", "我的最愛");
             Add("Players", "玩家"); Add("World", "世界"); Add("Rules", "規則"); Add("Server", "伺服器");
             Add("No task matches. Every command has all of them.", "冇任務符合。「所有指令」有齊晒。");
             Add("Bedrock servers do not report a command list, so their console takes typed lines.", "Bedrock 伺服器唔會報告指令清單，所以佢嘅主控台要自己打指令。");

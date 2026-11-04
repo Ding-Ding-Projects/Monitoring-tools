@@ -36,8 +36,11 @@ namespace MonitoringTools.UI
                 await Shot(cc, name, caption, 700);
                 cc.Scroller.ScrollToTop();
             }
+            var itemSearch = Search.SearchState.For("minecraft:pick:minecraft:item");
+            itemSearch.SetQuery("diamond");   // as the design shows it: the item list searched for "diamond"
             await Task("give", new Dictionary<string, string> { ["targets"] = "Ava", ["item"] = "minecraft:diamond", ["count"] = "5" }, "mc-commands-give",
-                "Minecraft servers: the command builder giving an item, with the online players, the version's item list and the coloured command line (sample data)");
+                "Minecraft servers: the command builder giving an item, with the online players, the version's item list searched for diamond and the coloured command line (sample data)");
+            itemSearch.SetQuery("");
             await Task("tp", new Dictionary<string, string> { ["targets"] = "@a[distance=..10]", ["location"] = "~ ~5 ~" }, "mc-commands-tp",
                 "Minecraft servers: teleport with a selector filter and relative axes (sample data)");
 
