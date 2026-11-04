@@ -46,6 +46,7 @@ namespace MonitoringTools.UI
         public SearchField PageSearch => _pageSearch;
         public IEnumerable<string> SectionIds => _sections.Select(s => s.Id);
         private Shortcut _editing;
+        private Tabs.TabStrip _tabs;
 
         public ControlCentreWindow()
         {
@@ -54,20 +55,7 @@ namespace MonitoringTools.UI
             StateChanged += (s, e) => Shell.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0);
             FooterVersion.Text = "v" + (typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0") + (ServiceHost.IsElevated ? " · admin" : "")
                 + Environment.NewLine + BuildInfo.UpdatedLabel;
-            int i = 0;
-            foreach (var (id, label, icon) in _sections)
-            {
-                var row = new StackPanel { Orientation = Orientation.Horizontal };
-                var glyph = Ui.Icon(icon, Ui.Res("B.TextSoft"), 15);
-                glyph.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "B.TextSoft");
-                row.Children.Add(new ContentControl { Content = glyph, Margin = new Thickness(4, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center });
-                row.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
-                var b = new Button { Style = Ui.Style("Btn.Row"), Content = row, Tag = id, HorizontalContentAlignment = HorizontalAlignment.Left, Height = 36, Margin = new Thickness(0, 0, 0, 2) };
-                var sid = id;
-                b.Click += (s, e) => Navigate(sid);
-                Nav.Children.Add(b);
-                Ui.Rise(b, 60 + i++ * 35, 8);
-            }
+            _tabs = new Tabs.TabStrip(this, _sections.Select(x => new Tabs.PageEntry(x.Id, x.Label, x.Icon)).ToList());
             App.History.Updated += () => { if ((_current == "history" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
             Activity.Changed += () => { if ((_current == "activity" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
             App.Net.Sampled += () => { if (_current == "overview" && IsActive && !SearchField.AnyActive) Navigate(_current, animate: false); };
@@ -75,7 +63,7 @@ namespace MonitoringTools.UI
             {
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && _pageSearch != null) { _pageSearch.Box.Focus(); _pageSearch.Box.SelectAll(); e.Handled = true; }
             };
-            Loaded += (s, e) => Navigate("overview");
+            Loaded += (s, e) => Navigate(_tabs.StartupTab);
             void OnLook() { AppName.Text = Appearance.DisplayName; Logo.Stroke = new SolidColorBrush(Appearance.LogoColor); if (_current != null) Navigate(_current, animate: false); }
             Appearance.Changed += OnLook;
             Closed += (s, e) => Appearance.Changed -= OnLook;
@@ -107,7 +95,7 @@ namespace MonitoringTools.UI
             if (idx < 0) idx = 0;
             id = _sections[idx].Id;
             _current = id;
-            NavShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(idx * 38, TimeSpan.FromMilliseconds(animate ? 360 : 0)) { EasingFunction = Ui.Spring });
+            _tabs.Show(id);
 
             FrameworkElement page = id switch
             {
