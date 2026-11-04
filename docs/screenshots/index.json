@@ -3,79 +3,79 @@
     "file": "toast-markdown.png",
     "caption": "Markdown copied, hovered",
     "width": 872,
-    "height": 902
+    "height": 948
   },
   {
     "file": "toast-link.png",
     "caption": "Link with tracking parameters",
     "width": 872,
-    "height": 656
+    "height": 664
   },
   {
     "file": "toast-image-file.png",
     "caption": "Image file with a rich preview",
     "width": 872,
-    "height": 1170
+    "height": 1178
   },
   {
     "file": "toast-csv.png",
     "caption": "CSV file preview",
     "width": 872,
-    "height": 944
+    "height": 952
   },
   {
     "file": "toast-quoted-path.png",
     "caption": "Path copied with quotes",
     "width": 872,
-    "height": 1196
+    "height": 1204
   },
   {
     "file": "toast-compose.png",
     "caption": "Docker Compose file",
     "width": 872,
-    "height": 982
+    "height": 990
   },
   {
     "file": "toast-folder.png",
     "caption": "Folder with batch conversion chips",
     "width": 872,
-    "height": 936
+    "height": 944
   },
   {
     "file": "toast-multi.png",
     "caption": "Several files at once",
     "width": 872,
-    "height": 798
+    "height": 806
   },
   {
     "file": "toast-bitmap.png",
     "caption": "Screenshot on the clipboard",
     "width": 872,
-    "height": 850
+    "height": 858
   },
   {
     "file": "toast-color.png",
     "caption": "Color value",
     "width": 872,
-    "height": 550
+    "height": 558
   },
   {
     "file": "toast-base64.png",
     "caption": "Base64 text",
     "width": 872,
-    "height": 546
+    "height": 554
   },
   {
     "file": "toast-converting.png",
     "caption": "Converting with :mp4",
     "width": 872,
-    "height": 476
+    "height": 484
   },
   {
     "file": "offline-dialog.png",
     "caption": "Internet connection lost",
     "width": 1048,
-    "height": 1230
+    "height": 1306
   },
   {
     "file": "tray-menu.png",
@@ -111,7 +111,7 @@
     "file": "toast-public-ip.png",
     "caption": "Public IP changed",
     "width": 872,
-    "height": 614
+    "height": 622
   },
   {
     "file": "welcome.png",
@@ -254,6 +254,24 @@
   {
     "file": "search-builder-replace.png",
     "caption": "Regex builder: replacement preview",
+    "width": 2088,
+    "height": 1636
+  },
+  {
+    "file": "search-builder-debug.png",
+    "caption": "Regex builder: step-by-step trace checked against the .NET engine",
+    "width": 2088,
+    "height": 1636
+  },
+  {
+    "file": "search-builder-compare.png",
+    "caption": "Regex builder: the pattern in each .NET engine mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "search-builder-files.png",
+    "caption": "Regex builder: search and replace in files with backups",
     "width": 2088,
     "height": 1636
   },
