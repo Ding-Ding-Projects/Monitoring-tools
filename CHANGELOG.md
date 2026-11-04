@@ -4,6 +4,16 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.22 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.22)
+
+- Line up the console's command buttons and dim a saved favourite ([`78277d9`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/78277d9618e6f81269b062cae9f632ce4e3a66df))
+- Finish the Minecraft command builder: captures, docs and audit coverage ([`c8b234d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c8b234d4e76207aad03a91457d7b1c16a86d922a))
+- Command builder: Cantonese, self-test checks, live check, captures and docs (in progress) ([`35eda6d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/35eda6dee7ce4b68ce7bea21d689bbd2c6af702d))
+- Add the command builder model, field controls and section (work in progress) ([`3109704`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/310970426966b71a854558f2688aac4080597d96))
+- Record v1.0.21 figures and changelog ([`5c3e8dd`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/5c3e8dd46e5a310d5970f3e45a7e150f86e5be15))
+
 ## 1.0.21 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.21)
