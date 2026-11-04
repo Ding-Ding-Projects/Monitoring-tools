@@ -16,34 +16,6 @@ using ActivityKind = MonitoringTools.Core.ActivityKind;
 
 namespace MonitoringTools.Minecraft
 {
-    public enum Target { LocalProcess, LocalDocker, SshProcess, SshDocker }
-    public enum Flavour { Vanilla, Paper, Fabric }
-
-    public sealed class ServerDef
-    {
-        public string Id { get; set; } = Guid.NewGuid().ToString("N")[..10];
-        public string Name { get; set; } = "My server";
-        public string Version { get; set; }
-        public Flavour Flavour { get; set; } = Flavour.Vanilla;
-        public Target Target { get; set; } = Target.LocalProcess;
-        public int Port { get; set; } = 25565;
-        public int MemoryMb { get; set; } = 2048;
-        public bool EulaAccepted { get; set; }
-        public string SshHost { get; set; } = "";       // user@host[:port]
-        public string RemoteDir { get; set; } = "";     // folder on the SSH host
-        public DateTime Created { get; set; } = DateTime.Now;
-
-        public string Folder => Path.Combine(ServerManager.Root, Id);
-        public string ContainerName => "monitoring-tools-mc-" + Id;
-        public string RemoteFolder => string.IsNullOrWhiteSpace(RemoteDir) ? $"monitoring-tools-mc/{Id}" : RemoteDir.Trim();
-    }
-
-    public sealed class McVersion
-    {
-        public string Id, Type, Url, Sha1;
-        public DateTime Released;
-    }
-
     /// <summary>
     /// Creates and runs Minecraft Java servers on four targets: a local process, local Docker,
     /// a process on an SSH host, and Docker on an SSH host. Versions come from Mojang's official
@@ -68,14 +40,45 @@ namespace MonitoringTools.Minecraft
 
         private static List<ServerDef> Load()
         {
-            try { if (File.Exists(ListFile)) return JsonSerializer.Deserialize<List<ServerDef>>(File.ReadAllText(ListFile)) ?? new List<ServerDef>(); }
-            catch { }
+            try
+            {
+                if (File.Exists(ListFile))
+                {
+                    var list = JsonSerializer.Deserialize<List<ServerDef>>(File.ReadAllText(ListFile)) ?? new List<ServerDef>();
+                    foreach (var s in list) Migrate(s);
+                    return list;
+                }
+            }
+            catch (Exception ex)
+            {
+                // A file that cannot be read is kept aside, never overwritten, so no server is lost.
+                try { File.Copy(ListFile, ListFile + ".unreadable-" + DateTime.Now.ToString("yyyyMMdd-HHmmss"), false); } catch { }
+                Log.Error("Minecraft servers.json could not be read", ex);
+            }
             return new List<ServerDef>();
         }
 
+        /// <summary>Fills fields that an older servers.json does not have, in place. Nothing that was stored is changed.</summary>
+        internal static void Migrate(ServerDef s)
+        {
+            s.Build ??= "";
+            s.BackupDir ??= "";
+            s.SshHost ??= "";
+            s.RemoteDir ??= "";
+            if (s.KeepBackups <= 0) s.KeepBackups = 14;
+            s.Schedules ??= new List<McSchedule>();
+            s.RecentCommands ??= new List<string>();
+        }
+
+        /// <summary>Reloads servers.json (used when the data folder changes under a self-test).</summary>
+        internal static void Reload() { Servers = Load(); Changed?.Invoke(); }
+
         public static void Save()
         {
-            File.WriteAllText(ListFile, JsonSerializer.Serialize(Servers, new JsonSerializerOptions { WriteIndented = true }));
+            // Write to a temporary file first, so a crash mid-write never leaves a half-written list.
+            var tmp = ListFile + ".tmp";
+            File.WriteAllText(tmp, JsonSerializer.Serialize(Servers, new JsonSerializerOptions { WriteIndented = true }));
+            File.Move(tmp, ListFile, true);
             Changed?.Invoke();
         }
 
@@ -151,7 +154,7 @@ namespace MonitoringTools.Minecraft
             return Directory.EnumerateFiles(dir, "java.exe", SearchOption.AllDirectories).First();
         }
 
-        private static async Task Download(string url, string path, Action<string> report)
+        internal static async Task Download(string url, string path, Action<string> report)
         {
             using var r = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             r.EnsureSuccessStatusCode();
@@ -199,7 +202,7 @@ namespace MonitoringTools.Minecraft
             return mingitSsh != null && File.Exists(mingitSsh) ? mingitSsh : "ssh";
         }
 
-        private static (string Host, string Port) SplitHost(string hostSpec)
+        internal static (string Host, string Port) SplitHost(string hostSpec)
         {
             var h = hostSpec.Trim();
             var at = h.LastIndexOf(':');
@@ -207,7 +210,7 @@ namespace MonitoringTools.Minecraft
             return (h, "22");
         }
 
-        private static string KnownHosts => Path.Combine(Root, "known_hosts");
+        internal static string KnownHosts => Path.Combine(Root, "known_hosts");
 
         /// <summary>The host key fingerprint to show for explicit approval before first use.</summary>
         public static (bool Known, string Fingerprints) HostKey(string hostSpec)
@@ -235,30 +238,39 @@ namespace MonitoringTools.Minecraft
         }
 
         private static string Quote(string s) => "\"" + s.Replace("\"", "\\\"") + "\"";
-        private static string Sh(string s) => "'" + s.Replace("'", "'\\''") + "'";
+        internal static string Sh(string s) => "'" + s.Replace("'", "'\\''") + "'";
 
         // -------------------------------------------------------------- create
 
-        public static async Task CreateAsync(ServerDef s, Action<string> report)
+        /// <param name="initial">server.properties values for the first start, such as max-players and level-seed.</param>
+        /// <param name="worldSource">A world folder or ZIP to copy in as the server's world, or null for a new world.</param>
+        public static async Task CreateAsync(ServerDef s, Action<string> report, IDictionary<string, string> initial = null, string worldSource = null)
         {
             if (!s.EulaAccepted) throw new InvalidOperationException("Accept the Minecraft EULA for this server first.");
+            var props = new Dictionary<string, string> { ["server-port"] = s.Port.ToString(), ["motd"] = Escape(s.Name) };
+            if (initial != null) foreach (var (k, v) in initial) props[k] = Escape(v);
             switch (s.Target)
             {
                 case Target.LocalProcess:
                 {
-                    if (s.Flavour != Flavour.Vanilla) throw new NotSupportedException("Local process servers run Vanilla. Use a Docker target for Paper or Fabric.");
+                    if (!McSoftware.RunsAsLocalProcess(s.Flavour)) throw new NotSupportedException($"{s.Flavour} needs its own installer, so it runs on the Docker targets. On this computer as a process, choose Vanilla, Paper or Purpur.");
                     var d = await ResolveAsync(s.Version);
                     if (d.Missing != null) throw new InvalidOperationException(d.Missing);
                     Directory.CreateDirectory(s.Folder);
                     var jar = Path.Combine(s.Folder, "server.jar");
-                    report($"Downloading the {s.Version} server ({d.Size / 1048576.0:0.0} MB)…");
-                    await Download(d.Url, jar + ".part", report);
-                    if (!string.Equals(Convert.ToHexString(SHA1.HashData(File.ReadAllBytes(jar + ".part"))), d.Sha1, StringComparison.OrdinalIgnoreCase))
-                    { File.Delete(jar + ".part"); throw new InvalidDataException("The server jar failed its SHA-1 check."); }
+                    if (s.Flavour == Flavour.Vanilla)
+                    {
+                        report($"Downloading the {s.Version} server ({d.Size / 1048576.0:0.0} MB)…");
+                        await Download(d.Url, jar + ".part", report);
+                        if (!string.Equals(Convert.ToHexString(SHA1.HashData(File.ReadAllBytes(jar + ".part"))), d.Sha1, StringComparison.OrdinalIgnoreCase))
+                        { File.Delete(jar + ".part"); throw new InvalidDataException("The server jar failed its SHA-1 check."); }
+                    }
+                    else await DownloadSoftwareJarAsync(s, jar + ".part", report);
                     File.Move(jar + ".part", jar, true);
                     await JavaAsync(d.JavaMajor, report);
                     File.WriteAllText(Path.Combine(s.Folder, "eula.txt"), $"# Accepted in Monitoring Tools on {DateTime.Now:O}\neula=true\n");
-                    WriteProperties(s, new Dictionary<string, string> { ["server-port"] = s.Port.ToString(), ["motd"] = s.Name });
+                    if (worldSource != null) McWorlds.ImportInto(s, worldSource, report);
+                    WriteProperties(s, props);
                     break;
                 }
                 case Target.LocalDocker:
@@ -266,36 +278,41 @@ namespace MonitoringTools.Minecraft
                     var info = Run("docker", "info --format \"{{.ServerVersion}}\"", 20000);
                     if (info.Code != 0) throw new InvalidOperationException("Docker is not running on this computer: " + ActionLine(info.Out));
                     Directory.CreateDirectory(s.Folder);
+                    if (worldSource != null) McWorlds.ImportInto(s, worldSource, report);
+                    WriteProperties(s, props);
                     report("Pulling the server image…");
                     var pull = Run("docker", "pull itzg/minecraft-server:latest", 900000);
                     if (pull.Code != 0) throw new InvalidOperationException("Pull failed: " + ActionLine(pull.Out));
-                    var mk = Run("docker", DockerCreateArgs(s, $"\"{s.Folder}\""), 60000);
+                    var mk = Run("docker", DockerCreateArgs(s, $"\"{s.Folder}\"", props), 60000);
                     if (mk.Code != 0) throw new InvalidOperationException("Container create failed: " + ActionLine(mk.Out));
                     break;
                 }
                 case Target.SshProcess:
                 {
-                    if (s.Flavour != Flavour.Vanilla) throw new NotSupportedException("SSH process servers run Vanilla. Use an SSH Docker target for Paper or Fabric.");
+                    if (s.Flavour != Flavour.Vanilla) throw new NotSupportedException("SSH process servers run Vanilla. Use an SSH Docker target for other software.");
+                    if (worldSource != null) throw new NotSupportedException("Copy an existing world to an SSH host from the Worlds section after the server is created.");
                     var d = await ResolveAsync(s.Version);
                     if (d.Missing != null) throw new InvalidOperationException(d.Missing);
                     report("Preparing the folder on the SSH host…");
                     var dir = s.RemoteFolder;
+                    var lines = string.Concat(props.Select(kv => $"{kv.Key}={kv.Value}\\n"));
                     var script = $"set -e; mkdir -p {Sh(dir)}; cd {Sh(dir)}; " +
                                  $"command -v java >/dev/null || {{ echo 'Java is not installed on this host (needs Java {d.JavaMajor}+)'; exit 3; }}; " +
                                  $"curl -fsSL -o server.jar.part {Sh(d.Url)} || wget -q -O server.jar.part {Sh(d.Url)}; " +
                                  $"echo {Sh(d.Sha1)}'  server.jar.part' | sha1sum -c - >/dev/null; mv server.jar.part server.jar; " +
-                                 $"printf 'eula=true\\n' > eula.txt; printf 'server-port={s.Port}\\nmotd={Escape(s.Name)}\\n' > server.properties";
+                                 $"printf 'eula=true\\n' > eula.txt; printf {Sh(lines)} > server.properties";
                     var r = Ssh(s, script, 900000);
                     if (r.Code != 0) throw new InvalidOperationException("SSH setup failed: " + ActionLine(r.Out));
                     break;
                 }
                 case Target.SshDocker:
                 {
+                    if (worldSource != null) throw new NotSupportedException("Copy an existing world to an SSH host from the Worlds section after the server is created.");
                     var info = Ssh(s, "docker info --format '{{.ServerVersion}}'", 30000);
                     if (info.Code != 0) throw new InvalidOperationException("Docker is not available on the SSH host: " + ActionLine(info.Out));
                     report("Pulling the server image on the SSH host…");
                     var dir = s.RemoteFolder;
-                    var r = Ssh(s, $"mkdir -p {Sh(dir)} && docker pull itzg/minecraft-server:latest >/dev/null && docker {DockerCreateArgs(s, $"\"$(cd {Sh(dir)} && pwd)\"")}", 900000);
+                    var r = Ssh(s, $"mkdir -p {Sh(dir)} && docker pull itzg/minecraft-server:latest >/dev/null && docker {DockerCreateArgs(s, $"\"$(cd {Sh(dir)} && pwd)\"", props)}", 900000);
                     if (r.Code != 0) throw new InvalidOperationException("Container create failed: " + ActionLine(r.Out));
                     break;
                 }
@@ -305,13 +322,43 @@ namespace MonitoringTools.Minecraft
             Activity.Add(ActivityKind.Service, $"Minecraft server created: {s.Name}", $"{s.Version} · {s.Target}");
         }
 
-        private static string DockerCreateArgs(ServerDef s, string volume) =>
-            $"create --name {s.ContainerName} --label monitoring-tools.server={s.Id} -p {s.Port}:25565 -v {volume}:/data " +
-            $"-e EULA=TRUE -e VERSION={s.Version} -e TYPE={s.Flavour.ToString().ToUpperInvariant()} -e MEMORY={s.MemoryMb}M " +
-            $"-e MOTD=\"{Escape(s.Name)}\" -i -t itzg/minecraft-server:latest";
+        /// <summary>Downloads a Paper or Purpur jar from its project's API and checks it against the hash that API publishes.</summary>
+        private static async Task DownloadSoftwareJarAsync(ServerDef s, string path, Action<string> report)
+        {
+            var list = await McSoftware.BuildsAsync(s.Flavour, s.Version);
+            if (list.Unavailable != null) throw new InvalidOperationException(list.Unavailable);
+            var build = string.IsNullOrWhiteSpace(s.Build) ? list.Latest : list.Builds.FirstOrDefault(b => b.Id == s.Build);
+            if (build?.DownloadUrl == null) throw new InvalidOperationException($"{s.Flavour} build {s.Build} is not listed for {s.Version}.");
+            s.Build = build.Id;
+            report($"Downloading {s.Flavour} {s.Version} build {build.Id}…");
+            await Download(build.DownloadUrl, path, report);
+            var bytes = File.ReadAllBytes(path);
+            string expected = build.Hash, kind = build.HashKind;
+            if (s.Flavour == Flavour.Purpur) { expected = await McSoftware.PurpurMd5Async(s.Version, build.Id); kind = "md5"; }
+            if (expected == null) { File.Delete(path); throw new InvalidDataException($"{s.Flavour} publishes no checksum for this build, so it was not installed."); }
+            var actual = kind == "md5" ? Convert.ToHexString(MD5.HashData(bytes)) : Convert.ToHexString(SHA256.HashData(bytes));
+            if (!string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase)) { File.Delete(path); throw new InvalidDataException($"The {s.Flavour} jar failed its {kind.ToUpperInvariant()} check."); }
+        }
 
-        private static string Escape(string s) => (s ?? "").Replace("\\", "").Replace("\"", "").Replace("'", "").Replace("\n", " ");
-        private static string ActionLine(string s) => (s ?? "").Split('\n').Where(l => l.Trim().Length > 0).LastOrDefault() ?? "";
+        private static string DockerCreateArgs(ServerDef s, string volume, IDictionary<string, string> props)
+        {
+            var env = new StringBuilder();
+            env.Append($"-e EULA=TRUE -e VERSION={s.Version} -e TYPE={s.Flavour.ToString().ToUpperInvariant()} -e MEMORY={s.MemoryMb}M -e MOTD=\"{Escape(s.Name)}\" ");
+            if (!string.IsNullOrWhiteSpace(s.Build))
+            {
+                var key = s.Flavour switch { Flavour.Paper => "PAPER_BUILD", Flavour.Purpur => "PURPUR_BUILD", Flavour.Fabric => "FABRIC_LOADER_VERSION", Flavour.Forge => "FORGE_VERSION", Flavour.NeoForge => "NEOFORGE_VERSION", _ => null };
+                if (key != null) env.Append($"-e {key}={Escape(s.Build)} ");
+            }
+            if (props.TryGetValue("max-players", out var mp)) env.Append($"-e MAX_PLAYERS={Escape(mp)} ");
+            if (props.TryGetValue("level-seed", out var seed) && seed.Length > 0) env.Append($"-e SEED=\"{Escape(seed)}\" ");
+            return $"create --name {s.ContainerName} --label monitoring-tools.server={s.Id} -p {s.Port}:25565 -v {volume}:/data {env}-i -t itzg/minecraft-server:latest";
+        }
+
+        /// <summary>The live process of a local process server, or null when it is not running from this app.</summary>
+        internal static Process ProcessOf(ServerDef s) => Running.TryGetValue(s.Id, out var p) && !p.HasExited ? p : null;
+
+        internal static string Escape(string s) => (s ?? "").Replace("\\", "").Replace("\"", "").Replace("'", "").Replace("\n", " ");
+        internal static string ActionLine(string s) => (s ?? "").Split('\n').Where(l => l.Trim().Length > 0).LastOrDefault() ?? "";
 
         // -------------------------------------------------------------- run
 
@@ -339,8 +386,10 @@ namespace MonitoringTools.Minecraft
 
         public static async Task StartAsync(ServerDef s, Action<string> report)
         {
+            if (s.Target == Target.LocalProcess && IsRunning(s)) return;
             if (!PortFree(s.Port) && (s.Target == Target.LocalProcess || s.Target == Target.LocalDocker))
                 throw new InvalidOperationException($"Port {s.Port} is already in use on this computer.");
+            McLive.For(s).MarkStarting();
             switch (s.Target)
             {
                 case Target.LocalProcess:
@@ -449,30 +498,36 @@ namespace MonitoringTools.Minecraft
 
         public static Dictionary<string, string> ReadProperties(ServerDef s)
         {
-            var map = new Dictionary<string, string>();
             var f = PropertiesPath(s);
-            if (f == null || !File.Exists(f)) return map;
-            foreach (var line in File.ReadAllLines(f))
-            {
-                if (line.StartsWith("#") || !line.Contains('=')) continue;
-                var i = line.IndexOf('=');
-                map[line[..i].Trim()] = line[(i + 1)..];
-            }
-            return map;
+            return f == null ? new Dictionary<string, string>() : McProperties.Load(f).ToDictionary();
         }
 
         /// <summary>Updates only the given keys and keeps every other line, comment and unknown setting.</summary>
-        public static void WriteProperties(ServerDef s, Dictionary<string, string> changes)
+        public static void WriteProperties(ServerDef s, IDictionary<string, string> changes)
         {
             var f = PropertiesPath(s) ?? throw new NotSupportedException("Edit remote settings on the host; this target keeps them there.");
-            var lines = File.Exists(f) ? File.ReadAllLines(f).ToList() : new List<string>();
-            foreach (var (k, v) in changes)
-            {
-                var i = lines.FindIndex(l => l.StartsWith(k + "="));
-                var entry = $"{k}={v.Replace("\n", " ")}";
-                if (i >= 0) lines[i] = entry; else lines.Add(entry);
-            }
-            File.WriteAllLines(f, lines);
+            var doc = McProperties.Load(f);
+            foreach (var (k, v) in changes) doc.Set(k, v);
+            doc.Save(f);
+        }
+
+        /// <summary>The whole server.properties file, from this computer or from the SSH host. Null when it cannot be read.</summary>
+        public static string ReadPropertiesText(ServerDef s)
+        {
+            var f = PropertiesPath(s);
+            if (f != null) return File.Exists(f) ? File.ReadAllText(f) : "";
+            var r = Ssh(s, $"cat {Sh(s.RemoteFolder)}/server.properties 2>/dev/null || true", 30000);
+            return r.Code == 0 ? r.Out.Replace("\r\n", "\n") + (r.Out.Length > 0 ? "\n" : "") : null;
+        }
+
+        /// <summary>Writes the whole file back. On an SSH host it travels as base64, so no character of it is interpreted by a shell.</summary>
+        public static void WritePropertiesText(ServerDef s, string text)
+        {
+            var f = PropertiesPath(s);
+            if (f != null) { McProperties.Parse(text).Save(f); return; }
+            var b64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(text));
+            var r = Ssh(s, $"cd {Sh(s.RemoteFolder)} && echo {b64} | base64 -d > server.properties.tmp && mv server.properties.tmp server.properties", 30000);
+            if (r.Code != 0) throw new InvalidOperationException("Could not write server.properties on the host: " + ActionLine(r.Out));
         }
 
         private static string PropertiesPath(ServerDef s) =>
