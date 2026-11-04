@@ -102,7 +102,7 @@ namespace MonitoringTools.UI
             if (text.Length > 0)
                 items.Add(new Item("Copy text", Icons.Clipboard, "Ctrl+C", () => ClipboardWatcher.SetText(text)));
             if (extra != null) items.AddRange(extra(target) ?? Enumerable.Empty<Item>());
-            items.Add(new Item("Edit appearance…", Icons.Palette, null, () => App.Current.OpenControlCentre("appearance")));
+            items.Add(new Item("Edit appearance…", Icons.Palette, null, () => AppearanceEditorWindow.Open(w, target)));
             if (Locked.Contains(key))
                 items.Add(new Item("Unlock this element", Icons.Shield, null, () => { Locked.Remove(key); SetLocked(target, false); }));
             else
