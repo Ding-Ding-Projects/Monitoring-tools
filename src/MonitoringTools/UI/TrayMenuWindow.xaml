@@ -11,7 +11,7 @@
                 <TranslateTransform x:Name="RootShift"/>
             </TransformGroup>
         </Grid.RenderTransform>
-        <Border CornerRadius="16" Background="{StaticResource B.Surface}" BorderBrush="{StaticResource B.Line}" BorderThickness="1"
+        <Border CornerRadius="24" Background="{DynamicResource B.Raised}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
                 Effect="{StaticResource Fx.Shadow}" Padding="8">
             <StackPanel x:Name="Rows"/>
         </Border>

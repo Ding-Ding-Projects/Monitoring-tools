@@ -10,7 +10,7 @@
         </Grid.RenderTransform>
         <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderThickness="1" Effect="{StaticResource Fx.Shadow}" Padding="24,22,24,20">
             <Border.BorderBrush>
-                <SolidColorBrush x:Name="Edge" Color="{StaticResource C.Line}"/>
+                <SolidColorBrush x:Name="Edge" Color="{DynamicResource C.Line}"/>
             </Border.BorderBrush>
             <StackPanel x:Name="Body">
                 <ContentControl x:Name="IconHost" HorizontalAlignment="Left" Margin="0,0,0,14"/>

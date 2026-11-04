@@ -253,7 +253,8 @@ namespace MonitoringTools.UI
             SkipBtn.Visibility = st.Optional ? Visibility.Visible : Visibility.Collapsed;
             NextBtn.Content = idx == _steps.Count - 1 ? "Open control centre" : "Next";
             var width = ((FrameworkElement)ProgressFill.Parent).ActualWidth;
-            ProgressFill.BeginAnimation(WidthProperty, new DoubleAnimation(width * (idx + 1) / _steps.Count, TimeSpan.FromMilliseconds(420)) { EasingFunction = Ui.Spring });
+            if (Core.Appearance.ReduceMotion || Core.Modes.ReduceMotion) { ProgressFill.BeginAnimation(WidthProperty, null); ProgressFill.Width = width * (idx + 1) / _steps.Count; }
+            else ProgressFill.BeginAnimation(WidthProperty, new DoubleAnimation(width * (idx + 1) / _steps.Count, TimeSpan.FromMilliseconds(420)) { EasingFunction = Ui.Out });
             BuildRail();
 
             if (direction != 0)
@@ -281,7 +282,7 @@ namespace MonitoringTools.UI
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 var dot = new Border
                 {
-                    Width = 24, Height = 24, CornerRadius = new CornerRadius(12),
+                    Width = 28, Height = 28, CornerRadius = new CornerRadius(14),
                     Background = done ? Ui.Res("B.Mint") : now ? Ui.Res("B.MintWash") : Ui.Res("B.Raised"),
                     BorderBrush = now ? Ui.Res("B.Mint") : Ui.Res("B.LineStrong"), BorderThickness = new Thickness(now ? 2 : 1),
                     Child = done ? (UIElement)Ui.Icon(Icons.Check, Ui.Res("B.MintInk"), 11, 3)
@@ -391,6 +392,7 @@ namespace MonitoringTools.UI
 
         private void Enter()
         {
+            if (Core.Appearance.ReduceMotion || Core.Modes.ReduceMotion) { Root.Opacity = 1; Activate(); return; }
             RootScale.ScaleX = RootScale.ScaleY = 0.95;
             RootShift.Y = 16;
             Root.Opacity = 0;

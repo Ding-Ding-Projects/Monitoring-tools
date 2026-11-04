@@ -44,27 +44,24 @@ namespace MonitoringTools.UI
             Ladder.Children.Clear();
             foreach (var st in s.Stages.Take(4))
             {
-                var (bg, edge, fg) = st.Result switch
+                // Theme roles: container fill with its matching "on" colour, so the tiles follow the Appearance theme.
+                var (bg, on) = st.Result switch
                 {
-                    StageResult.Ok => ("#FF17211D", "#FF1F4A3A", "B.Mint"),
-                    StageResult.Fail => ("#FF261D12", "#FF5A4220", "B.Amber"),
-                    StageResult.Warn => ("#FF24201A", "#FF4A3F2A", "B.Amber"),
-                    _ => ("#FF1A1D23", "#FF2E333D", "B.TextMute")
+                    StageResult.Ok => ("B.SecondaryContainer", "B.OnSecondaryContainer"),
+                    StageResult.Fail => ("B.DangerWash", "B.Danger"),
+                    StageResult.Warn => ("B.AmberWash", "B.Amber"),
+                    _ => ("B.Sunken", "B.TextMute")
                 };
+                var name = new TextBlock { Text = st.Name, FontSize = 12, FontFamily = Ui.Font("F.Body"), Opacity = 0.85 };
+                name.SetResourceReference(TextBlock.ForegroundProperty, on);
+                var value = new TextBlock { Text = st.Value, FontSize = 13, FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 3, 0, 0) };
+                value.SetResourceReference(TextBlock.ForegroundProperty, on);
                 var chip = new Border
                 {
-                    Margin = new Thickness(4, 0, 4, 0), Padding = new Thickness(10), CornerRadius = new CornerRadius(10),
-                    Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(bg)),
-                    BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge)), BorderThickness = new Thickness(1),
-                    Child = new StackPanel
-                    {
-                        Children =
-                        {
-                            new TextBlock { Text = st.Name, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body") },
-                            new TextBlock { Text = st.Value, FontSize = 13, Foreground = Ui.Res(fg), FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 3, 0, 0) }
-                        }
-                    }
+                    Margin = new Thickness(4, 0, 4, 0), Padding = new Thickness(12, 10, 12, 10), CornerRadius = new CornerRadius(16),
+                    Child = new StackPanel { Children = { name, value } }
                 };
+                chip.SetResourceReference(Border.BackgroundProperty, bg);
                 Ladder.Children.Add(chip);
             }
 
@@ -155,17 +152,27 @@ namespace MonitoringTools.UI
         private void Enter()
         {
             Place();
-            RootShift.Y = 40;
-            Root.Opacity = 0;
-            RootShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(40, 0, TimeSpan.FromMilliseconds(560)) { EasingFunction = Ui.Spring });
-            Ui.Fade(Root, 1, 260);
-            int i = 0;
-            foreach (FrameworkElement c in Ladder.Children) Ui.Rise(c, 160 + i++ * 60, 10);
-            foreach (FrameworkElement c in Actions.Children) Ui.Rise(c, 320 + i++ * 30, 8);
-            Pulse(Ring1Scale, Ring1, 0);
-            Pulse(Ring2Scale, Ring2, 1000);
-            BarScale.BeginAnimation(ScaleTransform.ScaleXProperty,
-                new DoubleAnimation(0.08, 1, TimeSpan.FromMilliseconds(1400)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase() });
+            bool still = Core.Appearance.ReduceMotion || Core.Modes.ReduceMotion;
+            if (still)
+            {
+                Root.Opacity = 1;
+                BarScale.ScaleX = 1;
+                Ring1.Opacity = 0; Ring2.Opacity = 0;
+            }
+            else
+            {
+                RootShift.Y = 40;
+                Root.Opacity = 0;
+                RootShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(40, 0, TimeSpan.FromMilliseconds(560)) { EasingFunction = Ui.Out });
+                Ui.Fade(Root, 1, 260);
+                int i = 0;
+                foreach (FrameworkElement c in Ladder.Children) Ui.Rise(c, 160 + i++ * 60, 10);
+                foreach (FrameworkElement c in Actions.Children) Ui.Rise(c, 320 + i++ * 30, 8);
+                Pulse(Ring1Scale, Ring1, 0);
+                Pulse(Ring2Scale, Ring2, 1000);
+                BarScale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                    new DoubleAnimation(0.08, 1, TimeSpan.FromMilliseconds(1400)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase() });
+            }
             _clock.Start();
             Sounds.Play(Cue.Warning);
         }
@@ -208,7 +215,7 @@ namespace MonitoringTools.UI
             Sounds.Play(Cue.Restored);
             var mint = Ui.C("C.Mint");
             foreach (var b in new[] { Ring1Brush, Ring2Brush, BarBrush }) Ui.ColorTo(b, mint, 400);
-            Ui.ColorTo(EdgeBrush, Color.FromRgb(0x1F, 0x4A, 0x3A), 400);
+            Ui.ColorTo(EdgeBrush, Ui.C("C.MintWash"), 400);
             Ui.ColorTo(BadgeBrush, Ui.C("C.MintWash"), 400);
             BadgeIcon.Content = Ui.Icon(Icons.Check, Ui.Res("B.Mint"), 24, 3);
             Ui.Rise((FrameworkElement)BadgeIcon, 0, 6);
