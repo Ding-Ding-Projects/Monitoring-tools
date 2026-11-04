@@ -257,7 +257,7 @@ namespace MonitoringTools.UI
             var b = Ui.Button(button, act, primary ? "Btn.Accent" : "Btn.Ghost");
             b.IsEnabled = enabled; b.HorizontalAlignment = HorizontalAlignment.Stretch; b.Margin = new Thickness(0);
             sp.Children.Add(b);
-            return new Border { Background = Ui.Res("B.Sunken"), BorderBrush = new SolidColorBrush(Color.FromRgb(0x22, 0x26, 0x2E)), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(14), Padding = new Thickness(14), Margin = new Thickness(0, 0, 10, 12), Child = sp };
+            return new Border { Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(20), Padding = new Thickness(14), Margin = new Thickness(0, 0, 10, 12), Child = sp };
         }
 
         /// <summary>A two-column grid that fills row by row.</summary>
