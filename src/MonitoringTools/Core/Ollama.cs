@@ -29,6 +29,8 @@ namespace MonitoringTools.Core
     {
         public string Role { get; set; }
         public string Content { get; set; }
+        /// <summary>Base64 images for a vision model, sent in the message's "images" array. Null or empty for text only.</summary>
+        public List<string> Images { get; set; }
     }
 
     /// <summary>
@@ -268,18 +270,16 @@ namespace MonitoringTools.Core
         }
 
         /// <summary>Streams a chat reply. Returns a short statistics line (tokens per second) when the server reports one.</summary>
-        public static async Task<string> ChatAsync(string model, IReadOnlyList<OllamaChatTurn> turns, Action<string> chunk, CancellationToken ct)
+        public static Task<string> ChatAsync(string model, IReadOnlyList<OllamaChatTurn> turns, Action<string> chunk, CancellationToken ct) =>
+            ChatAsync(model, turns, null, chunk, ct);
+
+        /// <summary>Streams a chat reply with a system prompt and per-chat parameters. Unset parameters are left out so the model's own defaults apply.</summary>
+        public static async Task<string> ChatAsync(string model, IReadOnlyList<OllamaChatTurn> turns, OllamaChatOptions options, Action<string> chunk, CancellationToken ct)
         {
-            object keep = Settings.Current.OllamaKeepAlive == "0" ? 0 : (string.IsNullOrWhiteSpace(Settings.Current.OllamaKeepAlive) ? "5m" : Settings.Current.OllamaKeepAlive);
-            var body = new
-            {
-                model,
-                messages = turns.Select(t => new { role = t.Role, content = t.Content }).ToArray(),
-                stream = true,
-                keep_alive = keep
-            };
+            var fallback = Settings.Current.OllamaKeepAlive == "0" ? "0" : (string.IsNullOrWhiteSpace(Settings.Current.OllamaKeepAlive) ? "5m" : Settings.Current.OllamaKeepAlive);
+            var json = OllamaChatOptions.BuildChatBody(model, turns, options, fallback);
             using var req = new HttpRequestMessage(HttpMethod.Post, BaseUrl + "/api/chat")
-            { Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json") };
+            { Content = new StringContent(json, Encoding.UTF8, "application/json") };
             using var r = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
             if (!r.IsSuccessStatusCode) throw new InvalidOperationException(await ErrorText(r));
             await using var s = await r.Content.ReadAsStreamAsync(ct);

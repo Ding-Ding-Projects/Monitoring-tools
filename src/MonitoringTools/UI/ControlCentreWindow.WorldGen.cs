@@ -43,6 +43,7 @@ namespace MonitoringTools.UI
             StackPanel flatPanel = null, rulesPanel = null, rulesHost = null;
             SearchField rulesFilter = null;
             CheckBox dimNether = null, dimEnd = null;
+            WorldgenEditorUi wgEd = null;
 
             // ---- server and version
             var servers = ServerManager.Servers.Where(s => s.Target == Target.LocalProcess || s.Target == Target.LocalDocker).ToList();
@@ -289,7 +290,8 @@ namespace MonitoringTools.UI
                 CheckFlat();
             }
 
-            void PaintJarParts() { PaintFlat(); PaintRules(); PaintDims(); }
+
+            void PaintJarParts() { PaintFlat(); PaintRules(); PaintDims(); wgEd?.Refresh(); }
 
             readJar.Click += async (a, b) =>
             {
@@ -313,6 +315,8 @@ namespace MonitoringTools.UI
             sp.Children.Add(readJar);
             sp.Children.Add(jarStatus);
             sp.Children.Add(rulesPanel);
+            wgEd = BuildWorldgenEditor(o, () => current, () => _wgFacts);
+            sp.Children.Add(wgEd.Panel);
 
             void PaintType()
             {
@@ -393,21 +397,57 @@ namespace MonitoringTools.UI
             // ---- area
             var radius = Input(o.RadiusChunks.ToString(), 100, $"Half the side of the square in chunks, 0 to {WorldGenerator.MaxRadiusChunks}. 50 gives 100 x 100 chunks. 0 skips pre-generation.");
             AutomationProperties.SetName(radius, "Area radius in chunks");
+            var centreX = Input(o.AreaCenterX.ToString(), 90, "Chunk X of the square's centre. Default 0. A chunk is 16 blocks, so chunk 10 starts at block 160.");
+            var centreZ = Input(o.AreaCenterZ.ToString(), 90, "Chunk Z of the square's centre. Default 0.");
+            AutomationProperties.SetName(centreX, "Area centre chunk X"); AutomationProperties.SetName(centreZ, "Area centre chunk Z");
+            var picker = new ChunkAreaPicker { Margin = new Thickness(0, 4, 0, 6) };
+            picker.SetSelection(o.AreaCenterX, o.AreaCenterZ, o.RadiusChunks);
             void Estimate()
             {
                 var r = Math.Clamp(o.RadiusChunks, 0, WorldGenerator.MaxRadiusChunks);
                 estimate.Text = r == 0
                     ? "No pre-generation: the world is created around spawn and grows as it is explored."
-                    : $"{r * 2} x {r * 2} chunks = {r * 2 * 16} x {r * 2 * 16} blocks, {(long)r * r * 4:N0} chunks in {WorldGenerator.BatchCount(r)} batches of at most 256 chunks, centred on 0, 0 in each chosen dimension (the Overworld always, the Nether and the End if switched on below). Time and disk grow with the square of the radius.";
+                    : $"{r * 2} x {r * 2} chunks = {r * 2 * 16} x {r * 2 * 16} blocks, {(long)r * r * 4:N0} chunks in {WorldGenerator.BatchCount(r)} batches of at most 256 chunks, centred on chunk {o.AreaCenterX}, {o.AreaCenterZ} (block {o.AreaCenterX * 16}, {o.AreaCenterZ * 16}) in each chosen dimension (the Overworld always, the Nether and the End if switched on below, with no coordinate scaling). Time and disk grow with the square of the radius.";
                 PaintDims();
+            }
+            void ReadCentre()
+            {
+                if (int.TryParse(centreX.Text, out var x) && Math.Abs(x) <= 1800000) o.AreaCenterX = x; else centreX.Text = o.AreaCenterX.ToString();
+                if (int.TryParse(centreZ.Text, out var z) && Math.Abs(z) <= 1800000) o.AreaCenterZ = z; else centreZ.Text = o.AreaCenterZ.ToString();
+                picker.SetSelection(o.AreaCenterX, o.AreaCenterZ, o.RadiusChunks);
+                Estimate();
             }
             radius.LostFocus += (a, b) =>
             {
                 if (int.TryParse(radius.Text, out var r) && r >= 0 && r <= WorldGenerator.MaxRadiusChunks) o.RadiusChunks = r; else radius.Text = o.RadiusChunks.ToString();
+                picker.SetSelection(o.AreaCenterX, o.AreaCenterZ, o.RadiusChunks);
                 Estimate();
             };
-            sp.Children.Add(Ui.Mono("AREA RADIUS IN CHUNKS (default 50)", Ui.Res("B.TextMute"), 11));
-            sp.Children.Add(radius);
+            centreX.LostFocus += (a, b) => ReadCentre(); centreZ.LostFocus += (a, b) => ReadCentre();
+            picker.SelectionChanged += (x, z, r) =>
+            {
+                o.AreaCenterX = x; o.AreaCenterZ = z; o.RadiusChunks = r;
+                radius.Text = r.ToString(); centreX.Text = x.ToString(); centreZ.Text = z.ToString();
+                Estimate();
+            };
+            sp.Children.Add(Ui.Mono("AREA TO PRE-GENERATE (default: radius 50 chunks around chunk 0, 0)", Ui.Res("B.TextMute"), 11));
+            var areaNote = Ui.Mono("Drag on the grid to draw the square, or type its radius and centre. The grid shows chunk numbers and the 32-chunk region boundaries; it shows no terrain, because terrain cannot be known without running the game.", Ui.Res("B.TextMute"), 11);
+            areaNote.TextWrapping = TextWrapping.Wrap; areaNote.Margin = new Thickness(0, 2, 0, 4);
+            sp.Children.Add(areaNote);
+            sp.Children.Add(picker);
+            var areaRow = new WrapPanel();
+            foreach (var (label, field) in new[] { ("RADIUS (CHUNKS)", radius), ("CENTRE CHUNK X", centreX), ("CENTRE CHUNK Z", centreZ) })
+            {
+                var cell = new StackPanel { Margin = new Thickness(0, 0, 8, 0) };
+                cell.Children.Add(Ui.Mono(label, Ui.Res("B.TextMute"), 11)); cell.Children.Add(field);
+                areaRow.Children.Add(cell);
+            }
+            var viewHome = Ui.Button("View 0, 0", () => picker.ResetView(), "Btn.Ghost", Icons.Restart);
+            viewHome.ToolTip = "Scrolls the grid back to the world origin. The chosen square does not change.";
+            var clearArea = Ui.Button("No area", () => { o.RadiusChunks = 0; radius.Text = "0"; picker.SetSelection(o.AreaCenterX, o.AreaCenterZ, 0); Estimate(); }, "Btn.Ghost", Icons.Close);
+            clearArea.ToolTip = "Sets the radius to 0, so nothing is pre-generated.";
+            areaRow.Children.Add(viewHome); areaRow.Children.Add(clearArea);
+            sp.Children.Add(areaRow);
             estimate.TextWrapping = TextWrapping.Wrap; estimate.Margin = new Thickness(0, 0, 0, 8);
             sp.Children.Add(estimate);
             Estimate();
