@@ -111,6 +111,7 @@ namespace MonitoringTools.Core
         {
             try { File.WriteAllText(FilePath, JsonSerializer.Serialize(Current, Json)); }
             catch (Exception ex) { Log.Warn("Settings save failed: " + ex.Message); }
+            SettingsHistory.Record(Current);
             Changed?.Invoke();
         }
 
