@@ -178,7 +178,8 @@ namespace MonitoringTools.UI
             sp.Children.Add(Switch("Time awareness", "Off by default. Running jobs show how long they have taken, and a plain reminder appears at the interval below.",
                 s.AdhdTimeAwareness, v => { s.AdhdTimeAwareness = v; Modes.NotifyChanged(); }, "B.Violet"));
             sp.Children.Add(Choice("Reminder interval (default 30 minutes, used only with Time awareness)",
-                new[] { ("15 min", 15), ("30 min", 30), ("45 min", 45), ("60 min", 60), ("90 min", 90) }, s.TimeReminderMinutes, v => { s.TimeReminderMinutes = v; Modes.NotifyChanged(); }));
+                new[] { ("15 min", 15), ("30 min", 30), ("45 min", 45), ("60 min", 60), ("90 min", 90) }, s.TimeReminderMinutes, v => { s.TimeReminderMinutes = v; Modes.NotifyChanged(); },
+                "How often the plain reminder appears while Time awareness is on. Ignored when it is off."));
             sp.Children.Add(Switch("One thing at a time", "Off by default. Only one popup is on screen at once. The rest wait their turn and also appear in History.",
                 s.AdhdOneThing, v => { s.AdhdOneThing = v; Modes.NotifyChanged(); }, "B.Violet"));
             sp.Children.Add(Switch("Momentum", "Off by default. This window reopens on the page you were last using, so you can pick up where you stopped.",
@@ -271,11 +272,11 @@ namespace MonitoringTools.UI
                 }
             }
             string DefaultFor(string key) => ValuesFor(key).First().Item2;
-            void BuildValue() => valueHost.Content = Choice("Value", ValuesFor(setting), value, v => value = v);
+            void BuildValue() => valueHost.Content = Choice("Value", ValuesFor(setting), value, v => value = v, "What the setting is set to during the window. Your saved choice comes back when the rule ends.");
             value = "off"; BuildValue();
 
             var settingKeys = Modes.SettingKeys.Select(k => (ModesSettingLabel(k), k)).ToList();
-            void BuildSetting() => settingHost.Content = Choice("Setting to change", settingKeys, setting, v => { setting = v; value = (v == "language" || v == "theme") ? DefaultFor(v) : "off"; BuildValue(); });
+            void BuildSetting() => settingHost.Content = Choice("Setting to change", settingKeys, setting, v => { setting = v; value = (v == "language" || v == "theme") ? DefaultFor(v) : "off"; BuildValue(); }, "Which setting this rule changes while its time window is open.");
             BuildSetting();
             sp.Children.Add(settingHost);
             sp.Children.Add(valueHost);

@@ -110,8 +110,9 @@ namespace MonitoringTools.Core
         private static readonly JsonSerializerOptions Pretty = new JsonSerializerOptions { WriteIndented = true };
 
         /// <summary>The shared record every Ding-Ding app reads. Deleting it resets School mode.</summary>
+        // A throwaway-data run (self-test, captures) must never touch the real shared record.
         public static string SchoolRecordPath => RecordPathOverride ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DingDingShared", "school-mode.json");
+            Settings.DataDirOverride ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DingDingShared", "school-mode.json");
 
         // Lets the self-test and the capture run use a throwaway record, so the real shared record is never touched.
         internal static string RecordPathOverride { get; set; }

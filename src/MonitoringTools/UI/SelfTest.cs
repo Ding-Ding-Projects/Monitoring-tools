@@ -50,6 +50,7 @@ namespace MonitoringTools.UI
         {
             dir = Path.GetFullPath(dir);
             Directory.CreateDirectory(dir);
+            if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
 
             // ---- search
             Check("search: plain text needs every word", () =>
@@ -799,6 +800,7 @@ namespace MonitoringTools.UI
             });
 
             await Wave6ChecksAsync();
+            await RunWave6Async();
 
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
@@ -818,6 +820,11 @@ namespace MonitoringTools.UI
                 return bad.Count == 0 ? null : "no search on: " + string.Join(", ", bad);
             });
 
+            Finish(dir);
+        }
+
+        private static void Finish(string dir)
+        {
             var report = new { at = DateTime.Now.ToString("O"), version = typeof(SelfTest).Assembly.GetName().Version?.ToString(), passed = Results.Count(r => r.Pass), failed = Results.Count(r => !r.Pass), results = Results };
             File.WriteAllText(Path.Combine(dir, "selftest.json"), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
             App.Current.Shutdown(Results.All(r => r.Pass) ? 0 : 1);

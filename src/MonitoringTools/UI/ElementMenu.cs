@@ -64,6 +64,30 @@ namespace MonitoringTools.UI
             }
         }
 
+        /// <summary>Labels of the most recently opened menu, for the self-test and the capture run. Cleared when it closes.</summary>
+        public static IReadOnlyList<string> LastLabels { get; private set; } = Array.Empty<string>();
+        /// <summary>The card of the most recently opened menu while it is open, or null.</summary>
+        public static FrameworkElement LastCard { get; private set; }
+        private static Action _closeLast;
+        /// <summary>Keeps a menu open when its window is not the active one, which a hidden test desktop never makes it. Never set by the app itself.</summary>
+        internal static int DiagSeen, DiagTarget;
+        private sealed class ExtraHolder { public Func<FrameworkElement, IEnumerable<Item>> Extra; }
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Window, ExtraHolder> Extras = new System.Runtime.CompilerServices.ConditionalWeakTable<Window, ExtraHolder>();
+
+        /// <summary>Opens the menu for <paramref name="target"/> exactly as its window's right-click handler would, using the window's own extra items. For the self-test and the capture run.</summary>
+        internal static bool OpenFor(Window w, FrameworkElement target)
+        {
+            if (!Extras.TryGetValue(w, out var h)) return false;
+            Point p;
+            try { p = target.TranslatePoint(new Point(12, target.ActualHeight / 2), w); } catch { p = new Point(12, 12); }
+            Open(w, target, h.Extra, p);
+            return true;
+        }
+        internal static bool KeepOpenForTest { get; set; }
+        /// <summary>Closes the menu the self-test or capture run opened.</summary>
+        public static void ClearLabels() => LastLabels = Array.Empty<string>();
+        public static void CloseLast() { var c = _closeLast; _closeLast = null; LastCard = null; c?.Invoke(); }
+
         private static readonly List<WeakReference<Window>> Attached = new List<WeakReference<Window>>();
         private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<FrameworkElement, LockBadge> Badges = new System.Runtime.CompilerServices.ConditionalWeakTable<FrameworkElement, LockBadge>();
         private static readonly Dictionary<string, Window> OpenPrompts = new Dictionary<string, Window>();
@@ -75,6 +99,7 @@ namespace MonitoringTools.UI
         public static void Attach(Window w, Func<FrameworkElement, IEnumerable<Item>> extra = null, Options options = null)
         {
             bool locks = options?.CopyOnly != true;
+            Extras.AddOrUpdate(w, new ExtraHolder { Extra = extra });
             if (options != null) WindowOptions.AddOrUpdate(w, options);
             if (locks) WireLocks(w);
             w.PreviewMouseLeftButtonDown += (s, e) =>
@@ -85,10 +110,12 @@ namespace MonitoringTools.UI
             };
             w.PreviewMouseRightButtonUp += (s, e) =>
             {
+                DiagSeen++;
                 if (e.OriginalSource is not DependencyObject d) return;
                 if (InsideText(d)) return; // text boxes keep their own cut, copy and paste menu
                 var target = Target(d);
                 if (target == null) return;
+                DiagTarget++;
                 e.Handled = true;
                 Open(w, target, extra, e.GetPosition(w));
             };
@@ -373,9 +400,9 @@ namespace MonitoringTools.UI
                     RenderTransformOrigin = new Point(0, 0), RenderTransform = new ScaleTransform(1, 1)
                 };
                 AutomationProperties.SetName(_card, "Actions for this element");
-                _popup = new Popup { Child = _card, StaysOpen = false, AllowsTransparency = true, Placement = PlacementMode.Relative, Focusable = true };
+                _popup = new Popup { Child = _card, StaysOpen = KeepOpenForTest, AllowsTransparency = true, Placement = PlacementMode.Relative, Focusable = true };
                 _card.PreviewKeyDown += OnKey;
-                _popup.Closed += (s, e) => { if (!_filter.BuilderOpen) _origin.Focus(); _onClosed?.Invoke(); };
+                _popup.Closed += (s, e) => { if (LastCard == _card) LastCard = null; if (!_filter.BuilderOpen) _origin.Focus(); _onClosed?.Invoke(); };
             }
 
             public void Show(Window w, Point at)
@@ -386,6 +413,9 @@ namespace MonitoringTools.UI
                 _popup.VerticalOffset = at.Y;
                 Render();
                 _popup.IsOpen = true;
+                LastLabels = _items.Select(i => i.Label).ToList();
+                LastCard = _card;
+                _closeLast = () => _popup.IsOpen = false;
                 if (!Appearance.ReduceMotion)
                 {
                     var t = (ScaleTransform)_card.RenderTransform;
