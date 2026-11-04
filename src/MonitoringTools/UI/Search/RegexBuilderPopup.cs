@@ -4,12 +4,16 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Threading;
 using MonitoringTools.Clip;
 using MonitoringTools.Core;
 
@@ -21,7 +25,7 @@ namespace MonitoringTools.UI.Search
     /// </summary>
     public sealed class RegexBuilderPopup
     {
-        public static readonly string[] Tabs = { "Build", "Test", "Replace", "Code", "Library" };
+        public static readonly string[] Tabs = { "Build", "Test", "Debug", "Compare", "Benchmark", "Replace", "Code", "Library" };
 
         private readonly SearchField _field;
         private readonly SearchState _s;
@@ -44,6 +48,25 @@ namespace MonitoringTools.UI.Search
         private bool _split;
         private string _language = "C#";
         private int _selected;
+
+        // Debug, Compare and Benchmark state
+        private TextBox _dbgSubject;
+        private TextBlock _dbgPattern, _dbgText, _dbgInfo, _dbgStatus;
+        private StackPanel _dbgSteps;
+        private Button _dbgPlay, _dbgPrev, _dbgNext, _dbgFirst, _dbgLast;
+        private RegexTrace.Result _trace;
+        private string _traceKey, _dbgSubjectText;
+        private int _step;
+        private DispatcherTimer _playTimer;
+        private StackPanel _cmpResults;
+        private TextBlock _cmpStatus;
+        private int _cmpRun;
+        private TextBox _benchMatch, _benchNon;
+        private string _benchMatchText, _benchNonText;
+        private StackPanel _benchResults;
+        private TextBlock _benchStatus;
+        private Button _benchRun, _benchCancel;
+        private CancellationTokenSource _benchCts;
 
         public event Action Closed;
         /// <summary>The builder's surface, for the screenshot run, which renders popups separately from their window.</summary>
@@ -142,7 +165,7 @@ namespace MonitoringTools.UI.Search
                     _card.BeginAnimation(UIElement.OpacityProperty, new System.Windows.Media.Animation.DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260)));
                 }
             };
-            _popup.Closed += (o, e) => { _closedAt = DateTime.UtcNow; _s.Remember(); Closed?.Invoke(); };
+            _popup.Closed += (o, e) => { _closedAt = DateTime.UtcNow; StopBackground(); _s.Remember(); Closed?.Invoke(); };
             _s.Changed += src => { if (_popup.IsOpen) Refresh(src); };
         }
 
@@ -185,6 +208,9 @@ namespace MonitoringTools.UI.Search
             {
                 case "Build": RenderExplain(); break;
                 case "Test": RunTest(); break;
+                case "Debug": RunDebug(); break;
+                case "Compare": StaleCompare(); break;
+                case "Benchmark": StaleBench(); break;
                 case "Replace": RunReplace(); break;
                 case "Code": if (_code != null) _code.Text = RegexKit.Code(_language, _s.Query, _s.EngineOptions); break;
             }
@@ -192,11 +218,15 @@ namespace MonitoringTools.UI.Search
 
         private void Show(string tab)
         {
+            if (tab != _tab) StopBackground();
             _tab = tab;
             foreach (Button b in _tabStrip.Children) Paint(b, (string)b.Tag == tab);
             _body.Content = tab switch
             {
                 "Test" => TestView(),
+                "Debug" => DebugView(),
+                "Compare" => CompareView(),
+                "Benchmark" => BenchmarkView(),
                 "Replace" => ReplaceView(),
                 "Code" => CodeView(),
                 "Library" => LibraryView(),
@@ -386,6 +416,384 @@ namespace MonitoringTools.UI.Search
         {
             s = (s ?? "").Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
             return s.Length > 60 ? s[..60] + "…" : s;
+        }
+
+        // ---------------------------------------------------------------- Debug, Compare, Benchmark
+
+        private static TextBlock Note(string text)
+        {
+            return new TextBlock { Text = text, Foreground = Ui.Res("B.TextMute"), FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 2, 0, 6) };
+        }
+
+        private void StopBackground()
+        {
+            StopPlay();
+            _cmpRun++;
+            try { _benchCts?.Cancel(); } catch (ObjectDisposedException) { }
+        }
+
+        private string DefaultSubject(int cap)
+        {
+            var lines = (_s.Sample ?? DefaultSample()).Split('\n').Select(l => l.TrimEnd('\r')).Where(l => l.Length > 0).ToList();
+            if (lines.Count == 0) return "";
+            var rx = _s.Regex;
+            string pick = null;
+            if (rx != null)
+            {
+                foreach (var l in lines.Take(200))
+                {
+                    try { if (rx.IsMatch(l)) { pick = l; break; } } catch (RegexMatchTimeoutException) { }
+                }
+            }
+            pick ??= lines[0];
+            return pick.Length > cap ? pick[..cap] : pick;
+        }
+
+        private static TextBox SubjectBox(string name, string text, double height)
+        {
+            var tb = new TextBox
+            {
+                Style = Ui.Style("Input"), FontFamily = Ui.Font("F.Mono"), FontSize = 12, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap,
+                Height = height, VerticalContentAlignment = VerticalAlignment.Top, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Margin = new Thickness(0, 4, 0, 6), Text = text ?? ""
+            };
+            AutomationProperties.SetName(tb, name);
+            return tb;
+        }
+
+        // ---- Debug
+
+        private FrameworkElement DebugView()
+        {
+            var sp = new StackPanel();
+            sp.Children.Add(Eyebrow("Step-by-step trace"));
+            sp.Children.Add(Note("A small built-in interpreter replays one match attempt of the default backtracking engine. It covers literals, classes, anchors, word boundaries, groups, alternation, greedy and lazy repeats and backreferences. Before a trace is shown it is checked against the real .NET engine on the same subject; if they disagree, or the pattern uses something the interpreter does not cover, you are told and nothing is faked."));
+            sp.Children.Add(Eyebrow("Subject to trace (first " + RegexTrace.MaxSubject + " characters)"));
+            _dbgSubjectText ??= DefaultSubject(300);
+            _dbgSubject = SubjectBox("Subject text for the step-by-step trace", _dbgSubjectText, 54);
+            _dbgSubject.TextChanged += (o, e) => { _dbgSubjectText = _dbgSubject.Text; RunDebug(); };
+            sp.Children.Add(_dbgSubject);
+
+            _dbgStatus = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 6) };
+            AutomationProperties.SetLiveSetting(_dbgStatus, AutomationLiveSetting.Polite);
+            sp.Children.Add(_dbgStatus);
+
+            var controls = new WrapPanel();
+            _dbgFirst = Ui.Button("First", () => { StopPlay(); _step = 0; RenderDebug(); }, "Btn.Ghost");
+            _dbgPrev = Ui.Button("Prev", () => { StopPlay(); if (_step > 0) _step--; RenderDebug(); }, "Btn.Ghost");
+            _dbgNext = Ui.Button("Next", () => { StopPlay(); if (_trace != null && _step < _trace.Steps.Count - 1) _step++; RenderDebug(); }, "Btn.Ghost");
+            _dbgPlay = Ui.Button("Play", TogglePlay, "Btn.Accent");
+            _dbgLast = Ui.Button("Last", () => { StopPlay(); if (_trace != null) _step = Math.Max(0, _trace.Steps.Count - 1); RenderDebug(); }, "Btn.Ghost");
+            _dbgFirst.ToolTip = "Go to the first step"; _dbgPrev.ToolTip = "Go back one step"; _dbgNext.ToolTip = "Go forward one step";
+            _dbgPlay.ToolTip = "Step forward automatically, a few steps per second"; _dbgLast.ToolTip = "Go to the last step";
+            foreach (var b in new[] { _dbgFirst, _dbgPrev, _dbgNext, _dbgPlay, _dbgLast }) controls.Children.Add(b);
+            sp.Children.Add(controls);
+
+            sp.Children.Add(Eyebrow("Pattern (current token highlighted)"));
+            _dbgPattern = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
+            sp.Children.Add(Panel(_dbgPattern));
+            sp.Children.Add(Eyebrow("Subject (current position highlighted)"));
+            _dbgText = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
+            sp.Children.Add(Panel(_dbgText));
+            _dbgInfo = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 8, 0, 4), Foreground = Ui.Res("B.Text") };
+            sp.Children.Add(_dbgInfo);
+            _dbgSteps = new StackPanel();
+            sp.Children.Add(_dbgSteps);
+            return sp;
+        }
+
+        private static Border Panel(UIElement child) => new Border
+        {
+            Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
+            Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(0, 4, 0, 0), Child = child
+        };
+
+        private void RunDebug()
+        {
+            if (_dbgSubject == null) return;
+            if (_s.Query.Length == 0 || _s.Error != null)
+            {
+                StopPlay(); _trace = null; _traceKey = null;
+                _dbgStatus.Text = _s.Error != null ? "Fix the pattern to trace it: " + _s.Error : "Type a pattern to trace it.";
+                _dbgStatus.Foreground = Ui.Res(_s.Error != null ? "B.Amber" : "B.TextMute");
+                RenderDebug();
+                return;
+            }
+            var key = _s.Query + "\u0001" + (int)_s.EngineOptions + "\u0001" + _dbgSubject.Text;
+            if (key != _traceKey)
+            {
+                StopPlay();
+                _trace = RegexTrace.Run(_s.Query, _s.EngineOptions, _dbgSubject.Text);
+                _traceKey = key;
+                _step = 0;
+            }
+            RenderDebug();
+        }
+
+        private void SetDebugEnabled(bool hasTrace)
+        {
+            int last = hasTrace ? _trace.Steps.Count - 1 : 0;
+            _dbgFirst.IsEnabled = hasTrace && _step > 0;
+            _dbgPrev.IsEnabled = hasTrace && _step > 0;
+            _dbgNext.IsEnabled = hasTrace && _step < last;
+            _dbgLast.IsEnabled = hasTrace && _step < last;
+            _dbgPlay.IsEnabled = hasTrace && (_playTimer != null || _step < last);
+        }
+
+        private void RenderDebug()
+        {
+            if (_dbgSubject == null || _dbgSteps == null) return;
+            _dbgSteps.Children.Clear();
+            _dbgPattern.Inlines.Clear(); _dbgText.Inlines.Clear(); _dbgInfo.Text = "";
+            var t = _trace;
+            if (t == null) { SetDebugEnabled(false); return; }
+            if (t.Unsupported != null || t.Disagreement != null)
+            {
+                _dbgStatus.Text = t.Unsupported ?? t.Disagreement;
+                _dbgStatus.Foreground = Ui.Res("B.Amber");
+                _dbgPattern.Inlines.Add(new Run(t.Pattern));
+                SetDebugEnabled(false);
+                return;
+            }
+            if (_step >= t.Steps.Count) _step = Math.Max(0, t.Steps.Count - 1);
+            var st = t.Steps[_step];
+            _dbgStatus.Foreground = Ui.Res(t.LimitHit ? "B.Amber" : "B.TextMute");
+            _dbgStatus.Text = (t.Verified ? "Checked against the .NET engine: same result (" + (t.Matched ? "match at " + t.MatchIndex + ", length " + t.MatchLength : "no match") + "). " : "")
+                + (t.Note ?? "");
+
+            Highlight(_dbgPattern, t.Pattern, st.PatStart, st.PatLen);
+            var disp = new string(t.Subject.Select(c => c == '\n' ? '↵' : c == '\r' ? '␍' : c == '\t' ? '→' : c).ToArray());
+            int pos = Math.Min(st.TextPos, disp.Length), len = Math.Max(0, Math.Min(st.TextLen, disp.Length - pos));
+            int lo = Math.Max(0, pos - 60), hi = Math.Min(disp.Length, pos + len + 100);
+            if (lo > 0) _dbgText.Inlines.Add(new Run("…"));
+            _dbgText.Inlines.Add(new Run(disp.Substring(lo, pos - lo)));
+            _dbgText.Inlines.Add(new Run(len > 0 ? disp.Substring(pos, len) : "▏") { Background = Ui.Res("B.MintWash"), Foreground = Ui.Res("B.OnPrimaryContainer") });
+            _dbgText.Inlines.Add(new Run(disp.Substring(pos + len, hi - pos - len)));
+            if (hi < disp.Length) _dbgText.Inlines.Add(new Run("…"));
+            if (disp.Length == 0) _dbgText.Inlines.Add(new Run(" (empty subject)") { Foreground = Ui.Res("B.TextMute") });
+
+            _dbgInfo.Text = $"Step {_step + 1} of {t.Steps.Count:N0}{(t.LimitHit ? " (stopped at the " + RegexTrace.StepLimit.ToString("N0") + " step limit)" : "")} at text position {st.TextPos}: {st.Text}";
+            int from = Math.Max(0, _step - 3), to = Math.Min(t.Steps.Count, _step + 7);
+            for (int i = from; i < to; i++)
+            {
+                var s = t.Steps[i];
+                var row = new DockPanel { Margin = new Thickness(0, 1, 0, 1) };
+                var num = Ui.Mono("#" + (i + 1), Ui.Res("B.TextMute"), 11); num.MinWidth = 52;
+                var kind = Ui.Mono(s.Kind.ToString().ToLowerInvariant(), Ui.Res(s.Kind switch { RegexTrace.StepKind.Fail => "B.Danger", RegexTrace.StepKind.Backtrack => "B.Amber", RegexTrace.StepKind.Match or RegexTrace.StepKind.Done => "B.Mint", _ => "B.TextSoft" }), 11); kind.MinWidth = 70;
+                DockPanel.SetDock(num, Dock.Left); row.Children.Add(num);
+                DockPanel.SetDock(kind, Dock.Left); row.Children.Add(kind);
+                row.Children.Add(new TextBlock { Text = s.Text, FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res(i == _step ? "B.Text" : "B.TextSoft") });
+                _dbgSteps.Children.Add(new Border { Child = row, Padding = new Thickness(6, 2, 6, 2), CornerRadius = new CornerRadius(8), Background = i == _step ? Ui.Res("B.MintWash") : Brushes.Transparent });
+            }
+            SetDebugEnabled(true);
+        }
+
+        private static void Highlight(TextBlock tb, string text, int start, int len)
+        {
+            start = Math.Max(0, Math.Min(start, text.Length));
+            len = Math.Max(0, Math.Min(len, text.Length - start));
+            tb.Inlines.Add(new Run(text.Substring(0, start)));
+            if (len > 0) tb.Inlines.Add(new Run(text.Substring(start, len)) { Background = Ui.Res("B.MintWash"), Foreground = Ui.Res("B.OnPrimaryContainer") });
+            tb.Inlines.Add(new Run(text.Substring(start + len)));
+            if (text.Length == 0) tb.Inlines.Add(new Run("(empty pattern)") { Foreground = Ui.Res("B.TextMute") });
+        }
+
+        private void TogglePlay()
+        {
+            if (_playTimer != null) { StopPlay(); return; }
+            if (_trace == null || !_trace.HasTrace) return;
+            if (_step >= _trace.Steps.Count - 1) _step = 0;
+            _playTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(160) };
+            _playTimer.Tick += (o, e) =>
+            {
+                if (_trace == null || _step >= _trace.Steps.Count - 1) { StopPlay(); return; }
+                _step++;
+                RenderDebug();
+                if (_step >= _trace.Steps.Count - 1) StopPlay();
+            };
+            _playTimer.Start();
+            if (_dbgPlay != null) _dbgPlay.Content = "Pause";
+            RenderDebug();
+        }
+
+        private void StopPlay()
+        {
+            if (_playTimer != null) { _playTimer.Stop(); _playTimer = null; }
+            if (_dbgPlay != null) _dbgPlay.Content = "Play";
+            if (_dbgFirst != null && _dbgSteps != null) SetDebugEnabled(_trace != null && _trace.HasTrace);
+        }
+
+        // ---- Compare
+
+        private FrameworkElement CompareView()
+        {
+            var sp = new StackPanel();
+            sp.Children.Add(Eyebrow("Compare the .NET engine modes"));
+            sp.Children.Add(Note("Runs the pattern over the sample in each mode this runtime really has: the default backtracking engine, the non-backtracking engine, ECMAScript mode and compiled. Each result shows whether the mode accepts the pattern, the match count, the first difference from the default engine and the time of one run. Other languages' engines (PCRE, Java, JavaScript, Python and so on) are not available in this app, so no comparison with them is possible here."));
+            var run = Ui.Button("Run comparison", RunCompare, "Btn.Accent");
+            run.ToolTip = "Run the pattern over the sample in every available .NET mode";
+            run.HorizontalAlignment = HorizontalAlignment.Left;
+            sp.Children.Add(run);
+            _cmpStatus = new TextBlock { FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body") };
+            AutomationProperties.SetLiveSetting(_cmpStatus, AutomationLiveSetting.Polite);
+            sp.Children.Add(_cmpStatus);
+            _cmpResults = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
+            sp.Children.Add(_cmpResults);
+            return sp;
+        }
+
+        private void StaleCompare()
+        {
+            if (_cmpResults == null) return;
+            _cmpRun++;
+            _cmpResults.Children.Clear();
+            _cmpStatus.Text = _s.Error != null ? "Fix the pattern to compare modes: " + _s.Error : _s.Query.Length == 0 ? "Type a pattern, then run the comparison." : "Press Run comparison to measure this pattern on the sample.";
+        }
+
+        private void RunCompare()
+        {
+            if (_s.Query.Length == 0 || _s.Error != null) { StaleCompare(); return; }
+            var pattern = _s.Query;
+            var opts = _s.EngineOptions;
+            var sample = _s.Sample ?? DefaultSample();
+            int id = ++_cmpRun;
+            _cmpResults.Children.Clear();
+            _cmpStatus.Text = "Running...";
+            Task.Run(() =>
+            {
+                try { return RegexBench.Compare(pattern, opts, sample); }
+                catch (Exception ex) { Log.Warn("Regex comparison failed: " + ex.Message); return null; }
+            }).ContinueWith(t =>
+            {
+                _card.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (id != _cmpRun || _cmpResults == null) return;
+                    _cmpResults.Children.Clear();
+                    var list = t.Result;
+                    if (list == null) { _cmpStatus.Text = "The comparison could not run."; return; }
+                    _cmpStatus.Text = $"Sample of {Math.Min(sample.Length, RegexKit.MaxSampleLength):N0} characters. Each time is one cold run; the first run of a mode includes warm-up.";
+                    foreach (var r in list) _cmpResults.Children.Add(CompareRow(r));
+                }));
+            });
+        }
+
+        private static FrameworkElement CompareRow(RegexBench.ModeResult r)
+        {
+            var sp = new StackPanel();
+            var head = new DockPanel();
+            var state = Ui.Mono(r.Supported ? (r.TimedOut ? "hit the limit" : "supported") : "not supported", Ui.Res(r.Supported ? (r.TimedOut ? "B.Amber" : "B.Mint") : "B.Danger"), 11);
+            DockPanel.SetDock(state, Dock.Right); head.Children.Add(state);
+            head.Children.Add(new TextBlock { Text = r.Mode, FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
+            sp.Children.Add(head);
+            if (!r.Supported) sp.Children.Add(Note(r.Note));
+            else
+            {
+                sp.Children.Add(Ui.Mono($"{r.Matches} match(es) · match {r.MatchMs:0.00} ms · construct {r.ConstructMs:0.00} ms", Ui.Res("B.TextSoft"), 11));
+                sp.Children.Add(Note(r.FirstDifference));
+            }
+            return new Border { Child = sp, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6) };
+        }
+
+        // ---- Benchmark
+
+        private FrameworkElement BenchmarkView()
+        {
+            var sp = new StackPanel();
+            sp.Children.Add(Eyebrow("Benchmark"));
+            sp.Children.Add(Note("Times the pattern on a subject that matches and one that does not, then repeats each subject 1x, 2x, 4x, 8x and 16x to see how the time grows. Runs stop at the 200 ms limit and never block the window. Defaults come from the sample; edit them freely."));
+            _benchMatchText ??= DefaultSubject(2000);
+            if (_benchNonText == null)
+            {
+                var rx = _s.Regex;
+                string non = "";
+                if (rx != null)
+                {
+                    foreach (var l in (_s.Sample ?? DefaultSample()).Split('\n').Select(x => x.TrimEnd('\r')).Where(x => x.Length > 0).Take(200))
+                    {
+                        try { if (!rx.IsMatch(l)) { non = l.Length > 2000 ? l[..2000] : l; break; } } catch (RegexMatchTimeoutException) { }
+                    }
+                }
+                _benchNonText = non;
+            }
+            sp.Children.Add(Eyebrow("Subject that should match"));
+            _benchMatch = SubjectBox("Subject that should match, for the benchmark", _benchMatchText, 46);
+            _benchMatch.TextChanged += (o, e) => _benchMatchText = _benchMatch.Text;
+            sp.Children.Add(_benchMatch);
+            sp.Children.Add(Eyebrow("Subject that should not match"));
+            _benchNon = SubjectBox("Subject that should not match, for the benchmark", _benchNonText, 46);
+            _benchNon.TextChanged += (o, e) => _benchNonText = _benchNon.Text;
+            sp.Children.Add(_benchNon);
+            var row = new WrapPanel();
+            _benchRun = Ui.Button("Run benchmark", RunBench, "Btn.Accent");
+            _benchRun.ToolTip = "Time the pattern on both subjects and run the input-growth test";
+            _benchCancel = Ui.Button("Cancel", () => { try { _benchCts?.Cancel(); } catch (ObjectDisposedException) { } }, "Btn.Ghost");
+            _benchCancel.ToolTip = "Stop the running benchmark"; _benchCancel.IsEnabled = false;
+            row.Children.Add(_benchRun); row.Children.Add(_benchCancel);
+            sp.Children.Add(row);
+            _benchStatus = new TextBlock { FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body") };
+            AutomationProperties.SetLiveSetting(_benchStatus, AutomationLiveSetting.Polite);
+            sp.Children.Add(_benchStatus);
+            _benchResults = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
+            sp.Children.Add(_benchResults);
+            return sp;
+        }
+
+        private void StaleBench()
+        {
+            if (_benchResults == null) return;
+            if (_benchRun != null && !_benchRun.IsEnabled) return; // a run is in progress; keep its status
+            _benchResults.Children.Clear();
+            _benchStatus.Text = _s.Error != null ? "Fix the pattern to benchmark it: " + _s.Error : _s.Query.Length == 0 ? "Type a pattern, then run the benchmark." : "Press Run benchmark to measure this pattern.";
+        }
+
+        private void RunBench()
+        {
+            var rx = _s.Regex;
+            if (rx == null) { StaleBench(); return; }
+            string m = _benchMatch.Text, n = _benchNon.Text;
+            _benchCts?.Cancel();
+            var cts = _benchCts = new CancellationTokenSource();
+            var ct = cts.Token;
+            _benchResults.Children.Clear();
+            _benchRun.IsEnabled = false; _benchCancel.IsEnabled = true;
+            _benchStatus.Text = "Starting...";
+            var results = new List<RegexBench.SubjectBench>();
+            Task.Run(() =>
+            {
+                void Progress(string s) => _card.Dispatcher.BeginInvoke(new Action(() => { if (!ct.IsCancellationRequested && _benchCts == cts) _benchStatus.Text = s; }));
+                results.Add(RegexBench.Run(rx, "Subject that should match", m, ct, Progress));
+                results.Add(RegexBench.Run(rx, "Subject that should not match", n, ct, Progress));
+            }, ct).ContinueWith(t =>
+            {
+                _card.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_benchCts != cts) return;
+                    if (_benchRun != null) { _benchRun.IsEnabled = true; _benchCancel.IsEnabled = false; }
+                    if (_benchResults == null) return;
+                    _benchResults.Children.Clear();
+                    if (t.IsCanceled || ct.IsCancellationRequested || (t.Exception != null && t.Exception.InnerExceptions.Any(x => x is OperationCanceledException))) { _benchStatus.Text = "Cancelled. No results are shown for a cancelled run."; return; }
+                    if (t.IsFaulted) { _benchStatus.Text = "The benchmark could not finish."; return; }
+                    _benchStatus.Text = "Done. Times are the mean of repeated runs for fast cases and a single run otherwise; they vary between runs.";
+                    foreach (var r in results) _benchResults.Children.Add(BenchRow(r));
+                }));
+            });
+        }
+
+        private static FrameworkElement BenchRow(RegexBench.SubjectBench r)
+        {
+            var sp = new StackPanel();
+            sp.Children.Add(new TextBlock { Text = r.Label, FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
+            if (r.Skipped) { sp.Children.Add(Note(r.Verdict)); }
+            else
+            {
+                sp.Children.Add(Ui.Mono($"{r.Length:N0} characters · {(r.Matched ? "matched" : "no match")} · " + (r.TimedOut ? "hit the 200 ms limit" : $"{r.MsPerRun:0.000} ms per run"), Ui.Res(r.TimedOut ? "B.Amber" : "B.TextSoft"), 11));
+                foreach (var g in r.Growth)
+                    sp.Children.Add(Ui.Mono($"{g.Factor,2}x · {g.Length,9:N0} characters · " + (g.TimedOut ? "hit the 200 ms limit" : $"{g.Ms:0.000} ms"), Ui.Res(g.TimedOut ? "B.Amber" : "B.TextMute"), 11));
+                var v = Note("Verdict: " + r.Verdict);
+                v.Foreground = Ui.Res("B.Text");
+                sp.Children.Add(v);
+            }
+            return new Border { Child = sp, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6) };
         }
 
         // ---------------------------------------------------------------- Replace and split
