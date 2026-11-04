@@ -74,6 +74,42 @@ used here.".
 
 ![Favourites](../../screenshots/mc-commands-favourites.png)
 
+## Item components and NBT
+
+![Item component editor](../../screenshots/mc-commands-item-components.png)
+
+An item argument (`give`, `item replace`, `summon` equipment and the rest that take `minecraft:item_stack`) has an
+**Item components** control under its id list. On Java 1.20.5 and newer it is a component editor: a custom name, lore
+(one line per row), enchantments chosen from the version's enchantment list with a level, damage, unbreakable, custom
+model data, and a generic row for any other component, whose id is chosen from the version's own
+`minecraft:data_component_type` list in `registries.json` and whose value is checked as SNBT. It writes
+`id[component=value,...]` in the form the version takes: custom names and lore are JSON text in SNBT strings before
+1.21.5 and plain SNBT from 1.21.5, enchantments are `{levels:{...}}` before 1.21.5 and a flat compound from it, and
+custom model data is a number before 1.21.4 and `{floats:[n]}` from it. A component the controls cannot read back stays
+in the generic list untouched. Before 1.20.5 the same place is the NBT editor below.
+
+![NBT editor](../../screenshots/mc-commands-nbt.png)
+
+An argument that takes NBT (`minecraft:nbt_compound_tag`, for example the last argument of `summon` and `data merge`) gets
+a structured tree editor: **Add key**, a name, a type (byte, short, int, long, float, double, string, list or compound),
+a typed value checked against its range, nested compounds and lists (a list holds one type), and the SNBT it writes under
+the tree. A value that uses a typed array (`[B;1b]`) is left as a text box. An invalid tree turns Run off and says what
+is wrong beside the field. The Every command walker keeps quoted and bracketed parts in one word, so a saved favourite
+with components or NBT opens again.
+
+## Plugin and mod commands
+
+![Plugins and mods](../../screenshots/mc-commands-plugins.png)
+
+The jar's report lists only vanilla commands. While a server runs, the builder asks it: `help` (all pages of Paper's
+index) and `minecraft:help`, over RCON, `rcon-cli` or the console, and keeps the commands that are not in the jar's own
+list. They appear under **Plugins and mods** in the gallery, labelled as read from the live server and when. A
+`/name: description` line gives the description; a usage line such as `/mute <player> [minutes] [reason]` becomes a
+form with one field per token: a player picker for player-like names, whole numbers, true or false, text, and choices
+for `(a|b)` words, with `[...]` optional. Names the server printed are shown as written. Sample servers show sample
+commands and say so. The list is read again on request, never guessed when the server does not answer, and a stopped
+server shows how to get the group instead.
+
 ## Layout and access
 
 At narrow widths the task gallery becomes rows of chips above the form. Every control has an accessible name; the mode
@@ -87,16 +123,26 @@ trimmed copy of the real 1.21.4 reports and assert the exact lines; refuse out-o
 players and fractional block coordinates with the field named; write relative axes as `~` and `~5`; read ten commands
 of eight argument types back through the Every command walker; read enchantments from inside a bundler jar; drive the
 form until Run turns on and a click on a part focuses its field; check that stop, ban and op are confirmed first; save
-a favourite to `servers.json` and open it again; and open a command schedule. The live check
-(`MT_LIVE_ONLY=minecraft-commands`) starts a throwaway Vanilla 1.21.4 server, builds `time set day`,
-`give @a minecraft:diamond 2` and `gamerule keepInventory true` with the builder's own code, runs them and checks each
-reply in the console, then stops and removes the server. Captures `mc-commands-give`, `mc-commands-tp`,
-`mc-commands-tree` and `mc-commands-favourites` use the sample server.
+a favourite to `servers.json` and open it again; and open a command schedule. Further checks write and read back SNBT
+for every tag type, write item components in each version's form, drive the item editor and the NBT editor through
+their real buttons to exact lines (including a refused byte of 300), read plugin help into forms, and press **Use a
+player's position** with a stand-in reply. The live check (`MT_LIVE_ONLY=minecraft-commands`) starts a throwaway Vanilla
+1.21.4 server, builds `time set day`, `give @a minecraft:diamond 2` and `gamerule keepInventory true` with the builder's
+own code, runs them and checks each reply in the console. `MT_LIVE_ONLY=minecraft-lane` goes further, on a real Paper
+server with a headless bot player (mineflayer in a throwaway folder): the server's own `data get entity` reply gives the
+position the bot itself reports, a `give` with seven components is answered and read back from the player's inventory,
+a `summon` with NBT from the tree is answered, and `help` is read into Plugins and mods; it also runs the builder's lines
+over the Docker and SSH targets. Captures `mc-commands-give`, `mc-commands-tp`, `mc-commands-tree`,
+`mc-commands-favourites`, `mc-commands-item-components`, `mc-commands-nbt` and `mc-commands-plugins` use the sample
+server.
 
 ## Limits
 
-- Commands added by plugins or mods are not in the jar's report, so they are not offered for Paper, Purpur, Fabric,
-  Forge and NeoForge servers.
-- Item components and NBT (`minecraft:diamond_sword[enchantments=...]`, `{...}`) are not built by controls; type them
-  in Every command's text box where the parser allows.
+- Plugin and mod commands depend on what `help` prints: a plugin that registers a command without usage text gets a
+  form with one text field for its words, and one the server does not list in `help` is not offered. Fabric and Forge
+  servers were not run in the live check (Paper was); the same parser reads both formats.
+- The component editor builds six components with controls and any other by id and SNBT; item *predicates* (the
+  `item_predicate` parser used by `clear` and `execute if items`) keep the id list and a typed value.
+- An invalid NBT tree turns Run off and the field shows the reason, but the status line says only that the value needs
+  filling in.
 - Data pack dimensions are typed; the list offers the overworld, the nether and the end.

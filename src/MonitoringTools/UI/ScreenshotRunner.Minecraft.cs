@@ -51,6 +51,17 @@ namespace MonitoringTools.UI
                     await Shot(cc, name, caption, 700);
                     cc.Scroller.ScrollToTop();
                 }
+                // the peak players card in full
+                mc.ShowSection("overview");
+                await Task.Delay(900);
+                var peakCard = SelfTest.Descend<System.Windows.FrameworkElement>(mc).FirstOrDefault(e => System.Windows.Automation.AutomationProperties.GetName(e) == "Peak players, last 7 days");
+                if (peakCard != null)
+                {
+                    var at = peakCard.TranslatePoint(new System.Windows.Point(0, 0), cc.Scroller);
+                    cc.Scroller.ScrollToVerticalOffset(cc.Scroller.VerticalOffset + at.Y - 300);
+                }
+                await Shot(cc, "mc-overview-peaks", "Minecraft servers: the peak players today and over seven days, with a bar for each day; a day with no reading is a dash (sample values)", 700);
+                cc.Scroller.ScrollToTop();
                 // the generator's actions, with Pause pre-generation beside Generate world and Cancel
                 McManagerView.ShowGenerator = true;
                 mc.ShowSection("worlds");

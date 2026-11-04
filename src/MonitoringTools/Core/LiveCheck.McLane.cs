@@ -17,10 +17,11 @@ namespace MonitoringTools.Core
     {
         private static async Task McLane(List<Result> results)
         {
-            await Check(results, "minecraft: on a real Paper server with a bot player, tps, the update check, plugin commands, a player's position, item components and NBT all work", PaperLane);
-            await Check(results, "minecraft: the command builder's lines run and answer on the Docker target", DockerLane);
-            await Check(results, "minecraft: the command builder's lines run and answer on the SSH target", SshLane);
-            await Check(results, "minecraft: bounded pre-generation pauses, resumes and writes region files", PreGenLane);
+            var only = (Environment.GetEnvironmentVariable("MT_LIVE_LANE") ?? "paper,docker,ssh,pregen").Split(',');
+            if (only.Contains("paper")) await Check(results, "minecraft: on a real Paper server with a bot player, tps, the update check, plugin commands, a player's position, item components and NBT all work", PaperLane);
+            if (only.Contains("docker")) await Check(results, "minecraft: the command builder's lines run and answer on the Docker target", DockerLane);
+            if (only.Contains("ssh")) await Check(results, "minecraft: the command builder's lines run and answer on the SSH target", SshLane);
+            if (only.Contains("pregen")) await Check(results, "minecraft: bounded pre-generation pauses, resumes and writes region files", PreGenLane);
         }
 
         private static string NodeExe()
@@ -320,12 +321,12 @@ namespace MonitoringTools.Core
             Directory.CreateDirectory(dest);
             try
             {
-                var o = new WorldGenOptions { Version = Version, Seed = "lane", RadiusChunks = 17, EulaAccepted = true, Destination = dest, WorldName = "lane-world" };
+                var o = new WorldGenOptions { Version = Version, Seed = Environment.GetEnvironmentVariable("MT_LIVE_SEED") ?? "lane", RadiusChunks = int.Parse(Environment.GetEnvironmentVariable("MT_LIVE_RADIUS") ?? "16"), EulaAccepted = true, Destination = dest, WorldName = "lane-world" };
                 var pause = new GenPause();
                 var messages = new List<string>();
                 var sw = Stopwatch.StartNew();
                 int batchesBeforePause = 0, batchesDuringPause = 0;
-                bool pausedSet = false;
+                bool pausedSet = false, noPause = Environment.GetEnvironmentVariable("MT_LIVE_NOPAUSE") == "1";
                 using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(25));
                 var run = Task.Run(() => WorldGenerator.GenerateAsync(o, (t, f) =>
                 {
@@ -335,25 +336,25 @@ namespace MonitoringTools.Core
                         if (t.StartsWith("Pre-generating", StringComparison.Ordinal))
                         {
                             if (!pausedSet) batchesBeforePause++; else if (pause.Paused) batchesDuringPause++;
-                            if (!pausedSet && batchesBeforePause >= 2) { pausedSet = true; pause.Paused = true; }
+                            if (!pausedSet && batchesBeforePause >= 2 && noPause) pausedSet = true; else if (!pausedSet && batchesBeforePause >= 2) { pausedSet = true; pause.Paused = true; }
                         }
                     }
                 }, cts.Token, pause));
                 var until = DateTime.Now.AddMinutes(12);
-                while (DateTime.Now < until && !(pausedSet && messages.Any(m => m.StartsWith("Paused after batch", StringComparison.Ordinal))) && !run.IsCompleted) await Task.Delay(500);
+                while (DateTime.Now < until && !(pausedSet && (noPause || messages.Any(m => m.StartsWith("Paused after batch", StringComparison.Ordinal)))) && !run.IsCompleted) await Task.Delay(500);
                 if (run.IsFaulted) return "generation failed before the pause: " + run.Exception.InnerException?.Message;
                 if (!pausedSet) return "pre-generation never reached batch 2: " + Trim(string.Join(" | ", messages.TakeLast(3)));
                 int countAtPause; lock (messages) countAtPause = messages.Count;
                 Say($"paused after {batchesBeforePause} batches at {sw.Elapsed.TotalSeconds:0} s");
-                await Task.Delay(8000);
-                lock (messages) if (messages.Count != countAtPause || batchesDuringPause != 0) return $"progress moved while paused ({messages.Count - countAtPause} new messages)";
-                if (run.IsCompleted) return "the run finished while paused";
+                if (!noPause) await Task.Delay(8000);
+                lock (messages) if (!noPause && (messages.Count != countAtPause || batchesDuringPause != 0)) return $"progress moved while paused ({messages.Count - countAtPause} new messages)";
+                if (!noPause && run.IsCompleted) return "the run finished while paused";
                 Say("8 s paused with no progress");
                 sw.Restart();
                 pause.Paused = false;
                 var written = await run;
                 Say($"resumed and finished in {sw.Elapsed.TotalSeconds:0} s");
-                if (pause.Waits < 1) return "the run never waited for the pause";
+                if (!noPause && pause.Waits < 1) return "the run never waited for the pause";
                 var path = written.Split('\n')[0].Trim();
                 if (!Directory.Exists(path)) return "the output folder is missing: " + path;
                 var regions = Directory.GetFiles(path, "r.*.mca", SearchOption.AllDirectories).Where(f => new FileInfo(f).Length > 0).ToList();
@@ -361,7 +362,7 @@ namespace MonitoringTools.Core
                 Say($"{regions.Count} non-empty region files: {names}, {regions.Sum(f => new FileInfo(f).Length) / 1024} KB");
                 var want = new[] { "r.-1.-1.mca", "r.-1.0.mca", "r.0.-1.mca", "r.0.0.mca" };
                 foreach (var w in want) if (!regions.Any(r => Path.GetFileName(r) == w)) return "the region file " + w + " is missing; found " + names;
-                if (!messages.Any(m => m.Contains("batch 9 of 9"))) return "batch 9 of 9 was never reported";
+                var lastBatch = WorldGenerator.BatchCount(o.RadiusChunks); if (!messages.Any(m => m.Contains($"batch {lastBatch} of {lastBatch}"))) return $"batch {lastBatch} of {lastBatch} was never reported";
                 return null;
             }
             finally { try { Directory.Delete(dest, true); } catch { } }

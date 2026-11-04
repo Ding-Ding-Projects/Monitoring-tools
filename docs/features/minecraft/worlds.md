@@ -18,5 +18,9 @@ SSH servers keep their world on the host, so import, download and reset happen t
 
 ## Verification
 
-Capture `mc-worlds`. The reset and import code paths share the backup, which the backup self-test check drives; they were
-not driven against a real world in the self-test.
+Capture `mc-worlds` (and `mc-worlds-generator` for the generator's actions). A self-test check drives the section's real
+buttons on a throwaway local server with real folders: **Import a world** refuses a folder without `level.dat`, copies a
+world folder (the region file's content is compared), asks before a ZIP replaces it (declining changes nothing, confirming
+swaps in the ZIP's content after a backup), and **Reset the world** removes the world folder after a second backup. The
+file pickers and the two-key confirmation window are replaced by test hooks in that check; the dialogs themselves were
+not driven. The generator's **Pause pre-generation** button is checked to exist and to be off until a build runs.
