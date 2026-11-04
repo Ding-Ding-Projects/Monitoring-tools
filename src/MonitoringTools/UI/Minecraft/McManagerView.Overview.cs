@@ -23,6 +23,12 @@ namespace MonitoringTools.UI.Minecraft
             AutomationProperties.SetName(tiles, "Live status");
             root.Children.Add(tiles);
 
+            // the busiest each day, kept between runs (player-peaks.json), as small bars for the last seven days
+            var peaks = new StackPanel();
+            AutomationProperties.SetName(peaks, "Peak players, last 7 days");
+            var peakCard = McUi.Card(peaks, 16); peakCard.Margin = new Thickness(0, 0, 0, 14);
+            root.Children.Add(peakCard);
+
             var two = new Grid { Margin = new Thickness(0, 4, 0, 0) };
             two.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3, GridUnitType.Star) });
             two.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
@@ -72,7 +78,7 @@ namespace MonitoringTools.UI.Minecraft
                 bool newer; lock (McScheduler.FoundUpdates) newer = McScheduler.FoundUpdates.ContainsKey(s.Id);
                 var sig = string.Join("|", st0, live0.PlayersOnline, live0.PlayersMax, string.Join(",", live0.PlayerNames), live0.Tps, live0.MemoryBytes / 104857600, live0.StartedAt, live0.MemoryNote, live0.UptimeNote,
                     live0.PlayersAt == null ? "" : McUi.Age(live0.PlayersAt.Value), live0.StartedAt == null ? "" : McUi.Span(DateTime.Now - live0.StartedAt.Value), lines0.Count, lines0.Count > 0 ? lines0[^1].Raw : "",
-                    live0.LastFailure, ActualWidth < 980, newer, UpdateChecks.TryGetValue(s.Id, out var uc) ? uc.Newer?.Id + uc.Unavailable : "", Core.Language.Mode, DateTime.Now.ToString("HH:mm"), s.IsLocal ? McBackups.List(s.BackupFolder).Count : 0);
+                    live0.LastFailure, McPeaks.PeakToday(s.Id), McPeaks.Peak7Days(s.Id), ActualWidth < 980, newer, UpdateChecks.TryGetValue(s.Id, out var uc) ? uc.Newer?.Id + uc.Unavailable : "", Core.Language.Mode, DateTime.Now.ToString("HH:mm"), s.IsLocal ? McBackups.List(s.BackupFolder).Count : 0);
                 if (sig == lastSig) return;
                 lastSig = sig;
                 KeepFocus(root, Draw);
@@ -91,6 +97,8 @@ namespace MonitoringTools.UI.Minecraft
                 tiles.Children.Add(Tile(Icons.Box, "Memory", up && live.MemoryBytes is long m ? $"{m / 1073741824.0:0.0} / {s.MemoryMb / 1024.0:0.#} GB" : $"– / {s.MemoryMb / 1024.0:0.#} GB", up ? (live.MemoryNote.Length > 0 ? live.MemoryNote : "reading…") : "the allowance; not running"));
                 tiles.Children.Add(Tile(Icons.Clock, "Uptime", up && live.StartedAt is DateTime sa ? McUi.Span(DateTime.Now - sa) : "–", up ? (live.UptimeNote.Length > 0 ? live.UptimeNote : "reading…") : "not running"));
                 tiles.Children.Add(Tile(Icons.Wifi, "Port", s.Port.ToString(), PortNote(s, up)));
+
+                DrawPeaks(s, peaks);
 
                 log.Children.Clear();
                 var lines = live.Lines().TakeLast(6).ToList();
@@ -118,6 +126,51 @@ namespace MonitoringTools.UI.Minecraft
             if (!McDemo.IsSample(s) && s.Flavour != Flavour.Vanilla && !string.IsNullOrEmpty(s.Build) && !UpdateChecks.ContainsKey(s.Id))
                 _ = CheckUpdate(s, Fill);
             return root;
+        }
+
+        /// <summary>The peak today and in seven days as two figures, and a bar for each of the last seven days. A day with no reading is a dash, never a zero.</summary>
+        private static void DrawPeaks(ServerDef s, StackPanel host)
+        {
+            host.Children.Clear();
+            bool sample = McDemo.IsSample(s);
+            var days = sample ? McPeaks.Sample() : McPeaks.Last(s.Id, 7);
+            int? today = days[^1].Peak, week = days.Where(d => d.Peak != null).Select(d => d.Peak.Value).DefaultIfEmpty(-1).Max() is int m && m >= 0 ? m : (int?)null;
+            var head = new WrapPanel();
+            head.Children.Add(McUi.Title("Players over the last 7 days", 16));
+            host.Children.Add(head);
+            var figures = new WrapPanel { Margin = new Thickness(0, 6, 0, 8) };
+            figures.Children.Add(PeakFigure("Peak today", today));
+            figures.Children.Add(PeakFigure("Peak in 7 days", week));
+            host.Children.Add(figures);
+            var bars = new UniformGrid { Rows = 1, Columns = 7, Height = 96 };
+            int top = Math.Max(1, week ?? 1);
+            foreach (var (day, peak) in days)
+            {
+                var col = new Grid { Margin = new Thickness(0, 0, 8, 0) };
+                col.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                col.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                var stack = new StackPanel { VerticalAlignment = VerticalAlignment.Bottom };
+                stack.Children.Add(new TextBlock { Text = peak?.ToString() ?? "–", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) });
+                stack.Children.Add(new Border { Height = peak == null ? 3 : Math.Max(4, 52.0 * peak.Value / top), CornerRadius = new CornerRadius(6), Background = Ui.Res(peak == null ? "B.LineStrong" : day.Date == DateTime.Now.Date ? "B.Mint" : "B.SecondaryContainer"), HorizontalAlignment = HorizontalAlignment.Stretch });
+                col.Children.Add(stack);
+                var label = new TextBlock { Text = day.ToString("ddd", System.Globalization.CultureInfo.InvariantCulture), FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 4, 0, 0) };
+                Core.Language.SetLiteral(label, true);
+                Grid.SetRow(label, 1); col.Children.Add(label);
+                AutomationProperties.SetName(col, day.ToString("dddd", System.Globalization.CultureInfo.InvariantCulture) + ": " + (peak == null ? "no reading" : "peak " + peak.Value + (peak == 1 ? " player" : " players")));
+                bars.Children.Add(col);
+            }
+            host.Children.Add(bars);
+            host.Children.Add(McUi.Body(sample ? "Sample values: nothing was read from a real server." : "The most players online at once on each day, from the list answers this app read. A dash is a day with no reading, not an empty server.", "B.TextMute", 11.5));
+            Core.Language.Refresh(host);
+        }
+
+        private static FrameworkElement PeakFigure(string label, int? value)
+        {
+            var sp = new StackPanel { Margin = new Thickness(0, 0, 28, 0) };
+            sp.Children.Add(new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") });
+            sp.Children.Add(new TextBlock { Text = value?.ToString() ?? "–", FontSize = 24, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Display") });
+            AutomationProperties.SetName(sp, label + ": " + (value?.ToString() ?? "no reading"));
+            return sp;
         }
 
         private static async Task CheckUpdate(ServerDef s, Action done)

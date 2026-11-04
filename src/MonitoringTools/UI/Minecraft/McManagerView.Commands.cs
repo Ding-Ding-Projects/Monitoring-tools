@@ -176,6 +176,7 @@ namespace MonitoringTools.UI.Minecraft
                 (_registries, _) = await McRegistries.LoadAsync(s.Version);
                 host.Content = CommandsBody(s);
                 Core.Language.Refresh(host);
+                StartLiveRead(s, false);
             }
             Load(false);
             return root;
@@ -272,11 +273,14 @@ namespace MonitoringTools.UI.Minecraft
                     }
                 }
                 int shown = 0;
-                foreach (var group in McCommandTasks.Groups)
+                foreach (var group in McCommandTasks.Groups.Append(LiveGroup))
                 {
-                    var tasks = McCommandTasks.All.Where(t => t.Group == group && (search.State.Matches(t.Label) || search.State.Matches(t.Shown) || search.State.Matches(t.Help))).ToList();
-                    if (tasks.Count == 0) continue;
-                    list.Children.Add(GroupTitle(group));
+                    bool liveGroup = group == LiveGroup;
+                    var tasks = (liveGroup ? McCommandTasks.LiveFor(s.Id) : McCommandTasks.All.Where(t => t.Group == group).ToList())
+                        .Where(t => search.State.Matches(t.Label) || search.State.Matches(t.Shown) || search.State.Matches(t.Help) || (t.Usage != null && search.State.Matches(t.Usage))).ToList();
+                    if (liveGroup) LiveGroupHeader(s, list, Paint, tasks.Count);
+                    else if (tasks.Count == 0) continue;
+                    if (!liveGroup) list.Children.Add(GroupTitle(group));
                     WrapPanel chips = null;
                     if (_galleryCompact) { chips = new WrapPanel(); AutomationProperties.SetName(chips, group); list.Children.Add(chips); }
                     foreach (var t in tasks)
@@ -329,7 +333,7 @@ namespace MonitoringTools.UI.Minecraft
                         list.Children.Add(wrap);
                     }
                 }
-                search.SetCount(shown, McCommandTasks.All.Length, "tasks");
+                search.SetCount(shown, McCommandTasks.All.Length + McCommandTasks.LiveFor(s.Id).Count, "tasks");
                 if (shown == 0 && list.Children.Count == 0) list.Children.Add(McUi.Body("No task matches. Every command has all of them.", "B.TextMute", 12.5));
                 Core.Language.Refresh(list);
             }
@@ -340,6 +344,52 @@ namespace MonitoringTools.UI.Minecraft
             Paint();
             return McUi.Card(sp, 14);
         }
+
+        internal const string LiveGroup = "Plugins and mods";
+
+        /// <summary>The Plugins and mods group title with a plain note about where its commands came from and a button to read them again.</summary>
+        private void LiveGroupHeader(ServerDef s, StackPanel list, Action repaint, int shown)
+        {
+            var read = McLiveCommands.Get(s.Id);
+            bool running = McDemo.IsSample(s) || McState.Cached(s).State == McRunState.Running;
+            list.Children.Add(GroupTitle(LiveGroup));
+            string note = read?.Reading == true ? "Asking the server for its commands…"
+                : read == null ? (running ? "Not read yet." : "Start the server and its plugin and mod commands appear here, read from the live server.")
+                : read.Problem != null ? read.Problem
+                : read.Sample ? "Sample commands, shown to illustrate the form. Nothing was asked of a real server."
+                : $"{read.Commands.Count} commands the running server reports that the jar's own list does not have. Read from the live server {McUi.Age(read.At)}.";
+            var t = McUi.Body(note, "B.TextMute", 12);
+            t.Margin = new Thickness(8, 0, 8, 6);
+            list.Children.Add(t);
+            if (running)
+            {
+                var again = Ui.Button(read == null ? "Read the server's commands" : "Read the server's commands again", () => StartLiveRead(s, true), "Btn.Ghost", Icons.Restart);
+                again.IsEnabled = read?.Reading != true;
+                again.HorizontalAlignment = HorizontalAlignment.Left; again.Margin = new Thickness(8, 0, 0, 6);
+                list.Children.Add(again);
+            }
+        }
+
+        /// <summary>Asks the running server for its plugin and mod commands once the jar's own list is loaded, then repaints the gallery.</summary>
+        private async void StartLiveRead(ServerDef s, bool force)
+        {
+            if (_tree == null) return;
+            bool sample = McDemo.IsSample(s);
+            if (!sample && McState.Cached(s).State != McRunState.Running) return;
+            var cur = McLiveCommands.Get(s.Id);
+            if (cur?.Reading == true) return;
+            if (!force && cur != null && cur.Problem == null && (DateTime.Now - cur.At).TotalMinutes < 10) return;
+            McLiveCommands.Set(s.Id, new McLiveRead { Reading = true, Sample = sample });
+            _galleryPaint?.Invoke();
+            McLiveRead r;
+            try { r = await McLiveCommands.ReadAsync(s, _tree); }
+            catch (Exception ex) { r = new McLiveRead { Problem = "The server's command list could not be read: " + ex.Message }; }
+            McLiveCommands.Set(s.Id, r);
+            McCommandTasks.SetLive(s.Id, r.Commands.Select(McLiveCommands.ToTask));
+            _galleryPaint?.Invoke();
+        }
+
+        internal Task<bool> LiveReadForTest(ServerDef s) { StartLiveRead(s, true); return Task.FromResult(true); }
 
         private static IEnumerable<T> Logical<T>(DependencyObject d) where T : DependencyObject
         {
@@ -368,7 +418,7 @@ namespace MonitoringTools.UI.Minecraft
 
         private FrameworkElement TaskForm(ServerDef s, Action rebuild)
         {
-            var task = McCommandTasks.Find(CommandTaskId) ?? McCommandTasks.All[0];
+            var task = McCommandTasks.Find(CommandTaskId, s.Id) ?? McCommandTasks.All[0];
             var values = ValuesFor(s, task.Id);
             var card = new StackPanel();
             var head = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 16) };
@@ -380,10 +430,20 @@ namespace MonitoringTools.UI.Minecraft
             var help = McUi.Body(task.Help, "B.TextSoft", 13);
             help.MaxWidth = 560;
             ht.Children.Add(help);
+            if (task.Live)
+            {
+                var from = McUi.Body("From the live server. The fields follow the usage text the server printed.", "B.Amber", 12);
+                from.MaxWidth = 560;
+                ht.Children.Add(from);
+                var usage = McUi.Literal(string.IsNullOrEmpty(task.Usage) ? task.Label : task.Label + " " + task.Usage, "B.TextMute", 12, true);
+                usage.TextWrapping = TextWrapping.Wrap; usage.MaxWidth = 560;
+                AutomationProperties.SetName(usage, "Usage the server printed");
+                ht.Children.Add(usage);
+            }
             head.Children.Add(ht);
             card.Children.Add(head);
 
-            var build = McCommandTasks.Build(task, _tree, values, _registries);
+            var build = McCommandTasks.Build(task, task.Synthetic ?? _tree, values, _registries);
             if (build.Unavailable != null)
                 card.Children.Add(McUi.Body(build.Unavailable + " Every command lists what this version has.", "B.Amber", 13));
             if (build.Fields.Count == 0 && build.Unavailable == null)
@@ -517,8 +577,8 @@ namespace MonitoringTools.UI.Minecraft
                 CommandBuild = null;
                 return (steps, McCommandTree.Validate(steps, _registries), null);
             }
-            var task = McCommandTasks.Find(CommandTaskId) ?? McCommandTasks.All[0];
-            var b = McCommandTasks.Build(task, _tree, ValuesFor(s, task.Id), _registries);
+            var task = McCommandTasks.Find(CommandTaskId, s.Id) ?? McCommandTasks.All[0];
+            var b = McCommandTasks.Build(task, task.Synthetic ?? _tree, ValuesFor(s, task.Id), _registries);
             CommandBuild = b;
             return (b.Steps, b.Problem, task);
         }

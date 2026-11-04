@@ -264,8 +264,13 @@ namespace MonitoringTools.Minecraft
                 {
                     var id = v.Split('[', '{')[0];
                     if (!IdRx.IsMatch(id)) return $"{arg.Name} must be an item id such as minecraft:diamond.";
-                    return Known(id, "minecraft:item");
+                    var unknown = Known(id, "minecraft:item");
+                    if (unknown != null) return unknown;
+                    return arg.Parser == "minecraft:item_stack" ? McItemComponents.Check(registries?.Version, McItemComponents.SplitValue(v).Suffix, registries) : null;
                 }
+                case "minecraft:nbt_compound_tag":
+                case "minecraft:nbt_tag":
+                    return v.Length > 0 && v[0] == '{' && McSnbt.LooksValid(v) ? null : $"{arg.Name} must be NBT in curly braces, like {{Invulnerable:1b}}.";
                 case "minecraft:block_state":
                 case "minecraft:block_predicate":
                 {
@@ -311,9 +316,16 @@ namespace MonitoringTools.Minecraft
         public static List<Step> ParseLine(McCommandNode root, string line)
         {
             if (root == null || string.IsNullOrWhiteSpace(line)) return null;
-            var words = line.Trim().TrimStart('/').Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var words = Words(line.Trim().TrimStart('/'));
             var steps = new List<Step>();
             return Walk(root, words, 0, steps) ? steps : null;
+        }
+
+        /// <summary>Splits a line at spaces, keeping a quoted or bracketed part (item components, NBT) in one word; plain splitting when the line is unbalanced.</summary>
+        internal static string[] Words(string line)
+        {
+            if (!McSnbt.Balanced(line)) return line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return McSnbt.SplitTop(line, ' ').Where(w => w.Length > 0).ToArray();
         }
 
         // Tries each way the words can follow the node, and backs out of a choice that leaves words nothing can take
