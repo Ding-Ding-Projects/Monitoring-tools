@@ -56,7 +56,7 @@ C:\Code\my-repo:push            stages, commits with your default message and pu
 D:\Footage:mp4                  converts every compatible file in the folder
 ```
 
-Formats: `mp4 mov mkv webm avi gif mp3 wav flac m4a ogg opus png jpg webp bmp tiff avif ico`. Existing files are never overwritten. Conversion uses FFmpeg; if it is missing, the toast offers to install it with winget.
+Formats (39, searchable on the Conversion page): video `mp4 hevc av1 webm mkv mov m4v avi wmv flv mpg ts 3gp`, animation `gif apng`, audio `mp3 m4a aac opus ogg flac alac wav aiff wma ac3 mka`, images `png jpg webp avif jxl bmp tiff tga qoi ppm jp2 ico`. Existing files are never overwritten. Conversion uses FFmpeg; if it is missing, the toast offers to install it with winget.
 
 The first `:push` asks for a default commit message, with snippets such as `{date}`, `{time}`, `{branch}`, `{repo}` and `{files}`.
 

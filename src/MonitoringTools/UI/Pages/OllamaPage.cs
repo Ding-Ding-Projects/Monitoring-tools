@@ -41,14 +41,36 @@ namespace MonitoringTools.UI
             Button installBtn = null, startBtn = null, stopBtn = null;
             OllamaSuite suite = null;
             OllamaChatUi chatUi = null;
+            Border heroCard = null;
 
             void Say(string text, string brush = "B.TextMute") { notice.Text = text; notice.Foreground = Ui.Res(brush); }
 
-            // ---- status card
+            // ---- status hero: a live dot that breathes while the server runs, the status in large type, then three numbers.
+            // Design: design/motion-and-pages/Main.dc.html.
             var statusBox = new StackPanel();
-            statusBox.Children.Add(CardTitle("Ollama on this computer", "Detected from the installed program and the local server's version endpoint. Default address: 127.0.0.1:11434."));
-            statusBox.Children.Add(statusLine);
-            statusBox.Children.Add(detail);
+            var (heroDot, setHeroDot) = Ui.LiveDot(Ui.Res("B.TextMute"), false, 14);
+            statusLine.FontSize = 22; statusLine.FontFamily = Ui.Font("F.Body"); statusLine.FontWeight = FontWeights.Medium;
+            var heroHead = new StackPanel { Orientation = Orientation.Horizontal };
+            heroHead.Children.Add(heroDot);
+            var heroText = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 0, 0) };
+            heroText.Children.Add(statusLine);
+            heroText.Children.Add(detail);
+            heroHead.Children.Add(heroText);
+            statusBox.Children.Add(heroHead);
+            var tiles = new System.Windows.Controls.Primitives.UniformGrid { Columns = 3, Margin = new Thickness(0, 18, 0, 0) };
+            TextBlock Tile(string label)
+            {
+                var n = new TextBlock { Text = "–", FontSize = 28, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Display") };
+                var sp = new StackPanel();
+                sp.Children.Add(n);
+                sp.Children.Add(new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body") });
+                tiles.Children.Add(new Border { Background = Ui.Res("B.Window"), CornerRadius = new CornerRadius(20), Padding = new Thickness(16, 12, 16, 14), Margin = new Thickness(0, 0, 10, 0), Child = sp });
+                return n;
+            }
+            var tileInstalled = Tile("installed models");
+            var tileDisk = Tile("on disk");
+            var tileLoaded = Tile("loaded in memory");
+            statusBox.Children.Add(tiles);
 
             var actions = new WrapPanel { Margin = new Thickness(0, 12, 0, 0) };
             installBtn = Ui.Button("Install with winget", () => ConfirmInstall(), "Btn.Accent", Icons.Plus);
@@ -95,7 +117,16 @@ namespace MonitoringTools.UI
             portRow.Children.Add(new StackPanel { Children = { Ui.Mono("PORT (default 11434)", Ui.Res("B.TextMute"), 11), portBox } });
             statusBox.Children.Add(portRow);
             statusBox.Children.Add(notice);
-            root.Children.Add(Card(statusBox, "#FF2B4A3F"));
+            heroCard = Card(statusBox);
+            heroCard.CornerRadius = new CornerRadius(28);
+            root.Children.Add(heroCard);
+            void PaintHero(bool up, bool installed)
+            {
+                // Primary container while the server runs; amber wash when it is installed but stopped or missing.
+                heroCard.Background = Ui.Res(up ? "B.MintWash" : "B.AmberWash");
+                setHeroDot(Ui.Res(up ? "B.Mint" : "B.Amber"), up);
+                statusLine.Foreground = Ui.Res(up ? "B.OnPrimaryContainer" : "B.Amber");
+            }
 
             void ConfirmInstall()
             {
@@ -135,7 +166,7 @@ namespace MonitoringTools.UI
             pullBox.Children.Add(CardTitle("Pull a model", "Type a model name and tag, for example llama3.2 or qwen2.5:7b. The local server downloads it and reports progress here."));
             var pullName = Input("", 280, "Model name with an optional tag, for example llama3.2:3b");
             AutomationProperties.SetName(pullName, "Model to pull");
-            var pullBar = new ProgressBar { Height = 6, Minimum = 0, Maximum = 1, Margin = new Thickness(0, 6, 0, 6), Foreground = Ui.Res("B.Mint"), Background = Ui.Res("B.Sunken"), Visibility = Visibility.Collapsed };
+            var pullBar = new ProgressBar { Height = 8, Minimum = 0, Maximum = 1, Margin = new Thickness(0, 6, 0, 6), Foreground = Ui.Res("B.Mint"), Background = Ui.Res("B.Sunken"), Visibility = Visibility.Collapsed };
             var pullText = Ui.Mono("", Ui.Res("B.TextMute"), 11);
             CancellationTokenSource pullCts = null;
             var pullBtn = Ui.Button("Pull", null, "Btn.Accent", Icons.Plus);
@@ -147,7 +178,8 @@ namespace MonitoringTools.UI
                 if (name.Length == 0) { pullText.Text = "Type a model name first."; pullText.Foreground = Ui.Res("B.Amber"); return; }
                 if (await Ollama.VersionAsync() == null) { pullText.Text = "The Ollama server is not running. Start it above first."; pullText.Foreground = Ui.Res("B.Amber"); return; }
                 pullBtn.IsEnabled = false; cancelPull.IsEnabled = true;
-                pullBar.Visibility = Visibility.Visible; pullBar.IsIndeterminate = true; pullBar.Value = 0;
+                pullBar.Visibility = Visibility.Visible; pullBar.IsIndeterminate = true; pullBar.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, null); pullBar.Value = 0;
+                Ui.Expand(pullBar);
                 pullText.Text = "Contacting the server…"; pullText.Foreground = Ui.Res("B.TextMute");
                 pullCts = new CancellationTokenSource();
                 try
@@ -155,7 +187,7 @@ namespace MonitoringTools.UI
                     await Ollama.PullAsync(name, (s, f) =>
                     {
                         pullText.Text = f >= 0 ? $"{s} · {f * 100:0}%" : s;
-                        if (f >= 0) { pullBar.IsIndeterminate = false; pullBar.Value = f; } else pullBar.IsIndeterminate = true;
+                        if (f >= 0) { pullBar.IsIndeterminate = false; Ui.Glide(pullBar, f); } else pullBar.IsIndeterminate = true;
                     }, pullCts.Token);
                     pullText.Text = $"✓ {name} is ready."; pullText.Foreground = Ui.Res("B.Mint"); Sounds.Play(Cue.Complete);
                 }
@@ -196,7 +228,7 @@ namespace MonitoringTools.UI
             root.Children.Add(suite.Troubleshooter);
 
             // ---------------------------------------------------------------- refresh logic
-            void PaintModels()
+            void PaintModels(bool animate = false)
             {
                 modelsHost.Children.Clear();
                 bulk.Begin();
@@ -226,10 +258,21 @@ namespace MonitoringTools.UI
                     var g = new Grid { Margin = new Thickness(0, 0, 0, 8) };
                     g.ColumnDefinitions.Add(new ColumnDefinition());
                     g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                    var info = new StackPanel();
-                    info.Children.Add(new TextBlock { Text = m.Name, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
-                    var meta = string.Join(" · ", new[] { Ollama.Bytes(m.Size), m.Family, m.ParameterSize, m.Quantization }.Where(x => !string.IsNullOrWhiteSpace(x)));
-                    info.Children.Add(Ui.Mono(meta, Ui.Res("B.TextMute"), 11));
+                    // avatar tile with the model's initial, its name, then size, family, parameters and quantisation as chips
+                    var info = new StackPanel { Orientation = Orientation.Horizontal };
+                    var initial = string.IsNullOrEmpty(m.Name) ? "?" : m.Name.Substring(0, 1).ToUpperInvariant();
+                    info.Children.Add(new Border
+                    {
+                        Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.TertiaryContainer"), Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Center,
+                        Child = new TextBlock { Text = initial, FontWeight = FontWeights.Bold, FontSize = 15, Foreground = Ui.Res("B.OnTertiaryContainer"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontFamily = Ui.Font("F.Body") }
+                    });
+                    var words = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+                    words.Children.Add(new TextBlock { Text = m.Name, Foreground = Ui.Res("B.Text"), FontSize = 15, FontFamily = Ui.Font("F.Body") });
+                    var chipsRow = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
+                    foreach (var x in new[] { Ollama.Bytes(m.Size), m.Family, m.ParameterSize, m.Quantization }.Where(x => !string.IsNullOrWhiteSpace(x)))
+                        chipsRow.Children.Add(Ui.Pill(x));
+                    words.Children.Add(chipsRow);
+                    info.Children.Add(words);
                     g.Children.Add(info);
                     var detailBtn = Ui.Button("Details", () => suite.ShowDetails(m.Name), "Btn.Ghost", Icons.Lines);
                     detailBtn.ToolTip = "Show parameters, template, context length and licence for " + m.Name + ".";
@@ -254,6 +297,7 @@ namespace MonitoringTools.UI
                     modelsHost.Children.Add(bulk.Wrap(m, g, m.Name));
                 }
                 filter.SetCount(hits.Count, models.Count, "models");
+                if (animate) Ui.RiseAll(modelsHost.Children);
 
                 chatModelChips.Children.Clear();
                 if (models.Count == 0) chatModelChips.Children.Add(Ui.Mono(st.ServerUp ? "No installed models." : "Server not running.", Ui.Res("B.TextMute"), 11));
@@ -289,17 +333,20 @@ namespace MonitoringTools.UI
             {
                 try { models = st.ServerUp ? await Ollama.ModelsAsync() : new List<OllamaModel>(); }
                 catch (Exception ex) { models = new List<OllamaModel>(); Say("Could not read the model list: " + ex.Message, "B.Amber"); }
-                PaintModels();
+                PaintModels(animate: true);
+                tileInstalled.Text = st.ServerUp ? models.Count.ToString() : "–";
+                tileDisk.Text = st.ServerUp ? Ollama.Bytes(models.Sum(m => m.Size)) : "–";
                 await RefreshRunning();
             }
 
             async Task RefreshRunning()
             {
                 runningHost.Children.Clear();
-                if (!st.ServerUp) { runningHost.Children.Add(Ui.Text("The server is not running.")); return; }
+                if (!st.ServerUp) { tileLoaded.Text = "–"; runningHost.Children.Add(Ui.Text("The server is not running.")); return; }
                 try
                 {
                     var running = await Ollama.RunningAsync();
+                    tileLoaded.Text = running.Count.ToString();
                     if (running.Count == 0) runningHost.Children.Add(Ui.Text("No model is loaded right now."));
                     foreach (var r in running)
                     {
@@ -310,6 +357,17 @@ namespace MonitoringTools.UI
                         info.Children.Add(new TextBlock { Text = r.Name, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
                         var where = r.SizeVram >= r.Size && r.Size > 0 ? "fully on the GPU" : r.SizeVram > 0 ? $"{Ollama.Bytes(r.SizeVram)} on the GPU" : "on the CPU";
                         info.Children.Add(Ui.Mono($"{Ollama.Bytes(r.Size)} in memory · {where}" + (r.Expires > DateTime.Now ? $" · unloads at {r.Expires:HH:mm}" : ""), Ui.Res("B.TextMute"), 11));
+                        // GPU and CPU share as one split bar: mint for the GPU part, amber for the rest.
+                        double gpu = r.Size > 0 ? Math.Clamp((double)r.SizeVram / r.Size, 0, 1) : 0;
+                        var split = new Grid { Height = 8, Margin = new Thickness(0, 8, 16, 0) };
+                        split.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(Math.Max(gpu, 0.0001), GridUnitType.Star) });
+                        split.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(Math.Max(1 - gpu, 0.0001), GridUnitType.Star) });
+                        var gpuPart = new Border { Background = Ui.Res("B.Mint"), CornerRadius = new CornerRadius(4, 0, 0, 4) };
+                        var cpuPart = new Border { Background = Ui.Res("B.Amber"), CornerRadius = new CornerRadius(0, 4, 4, 0) };
+                        Grid.SetColumn(cpuPart, 1);
+                        split.Children.Add(gpuPart); split.Children.Add(cpuPart);
+                        split.ToolTip = $"{gpu * 100:0}% on the GPU, {(1 - gpu) * 100:0}% on the CPU";
+                        info.Children.Add(split);
                         g.Children.Add(info);
                         var name = r.Name;
                         var unload = Ui.Button("Unload", async () =>
@@ -340,6 +398,7 @@ namespace MonitoringTools.UI
                 installBtn.Visibility = st.Installed ? Visibility.Collapsed : Visibility.Visible;
                 startBtn.IsEnabled = st.Installed && !st.ServerUp;
                 stopBtn.IsEnabled = st.ServerUp || Process.GetProcessesByName("ollama").Length > 0;
+                PaintHero(st.ServerUp, st.Installed);
                 await RefreshModels();
                 Core.Language.Refresh(root);   // text written after the page loaded still follows the language
             }

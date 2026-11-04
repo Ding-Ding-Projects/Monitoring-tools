@@ -27,6 +27,8 @@ namespace MonitoringTools.UI
             var root = PageRoot("Minecraft", "Minecraft servers",
                 "Create and run Java edition servers on this computer, in Docker, or on another machine over SSH. Versions come straight from Mojang's official catalogue.");
 
+            if (ServerManager.Servers.Count > 0) root.Children.Add(ServerSummary());
+            else root.Children.Add(NoServersCard());
             foreach (var s in ServerManager.Servers.ToList()) root.Children.Add(ServerCard(s));
             root.Children.Add(WorldGenCard());
             root.Children.Add(CreateCard());
@@ -35,28 +37,59 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- a server
 
+        private readonly HashSet<string> _openSettings = new HashSet<string>();
+
+        /// <summary>
+        /// One server: an icon tile, its name and metadata chips, a live status pill (the dot breathes while it runs),
+        /// the main actions, then a terminal console with the command builder and a settings drawer, both opened on demand.
+        /// Design: design/motion-and-pages/Minecraft.dc.html.
+        /// </summary>
         private FrameworkElement ServerCard(ServerDef s)
         {
             var sp = new StackPanel();
             var head = new Grid();
+            head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             head.ColumnDefinitions.Add(new ColumnDefinition());
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var title = new StackPanel();
-            title.Children.Add(new TextBlock { Text = s.Name, Style = Ui.Style("T.Title"), FontSize = 17 });
-            title.Children.Add(Ui.Mono($"{s.Version} · {s.Flavour} · {TargetLabel(s.Target)}{(string.IsNullOrEmpty(s.SshHost) ? "" : " · " + s.SshHost)} · port {s.Port}", Ui.Res("B.TextMute"), 11));
-            head.Children.Add(title);
-            var status = new TextBlock { Text = "checking…", FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), VerticalAlignment = VerticalAlignment.Top };
-            Grid.SetColumn(status, 1); head.Children.Add(status);
+            var tile = Ui.IconChip(Icons.Box, Ui.Res("B.TextMute"), Ui.Res("B.Raised"), 52, 26);
+            tile.CornerRadius = new CornerRadius(16);
+            tile.Margin = new Thickness(0, 0, 16, 0);
+            head.Children.Add(tile);
+            var title = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            title.Children.Add(new TextBlock { Text = s.Name, Style = Ui.Style("T.Title"), FontSize = 20 });
+            var meta = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+            meta.Children.Add(Ui.Pill(s.Version ?? "?"));
+            meta.Children.Add(Ui.Pill(s.Flavour.ToString()));
+            meta.Children.Add(Ui.Pill(TargetLabel(s.Target) + (string.IsNullOrEmpty(s.SshHost) ? "" : " · " + s.SshHost)));
+            meta.Children.Add(Ui.Pill(":" + s.Port, mono: true));
+            title.Children.Add(meta);
+            Grid.SetColumn(title, 1); head.Children.Add(title);
+
+            // status pill: dot + word, tinted by state
+            var (dot, setDot) = Ui.LiveDot(Ui.Res("B.TextMute"), false, 10);
+            var statusText = new TextBlock { Text = "checking…", FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center, FontFamily = Ui.Font("F.Body") };
+            var pillRow = new StackPanel { Orientation = Orientation.Horizontal };
+            pillRow.Children.Add(dot); pillRow.Children.Add(statusText);
+            var pill = new Border { CornerRadius = new CornerRadius(999), Padding = new Thickness(4, 2, 14, 2), Background = Ui.Res("B.Raised"), Child = pillRow, VerticalAlignment = VerticalAlignment.Center };
+            AutomationProperties.SetName(pill, "Server status");
+            Grid.SetColumn(pill, 2); head.Children.Add(pill);
             sp.Children.Add(head);
             _ = Refresh();
             async System.Threading.Tasks.Task Refresh()
             {
                 var st = await ServerManager.StatusAsync(s);
-                status.Text = st;
-                status.Foreground = Ui.Res(st == "running" ? "B.Mint" : st.Contains("unreach") || st == "missing" ? "B.Amber" : "B.TextMute");
+                bool running = st == "running";
+                bool warn = st.Contains("unreach") || st == "missing";
+                statusText.Text = running ? "Running" : st.Length > 0 ? char.ToUpperInvariant(st[0]) + st.Substring(1) : st;
+                statusText.Foreground = Ui.Res(running ? "B.OnPrimaryContainer" : warn ? "B.Amber" : "B.TextSoft");
+                pill.Background = Ui.Res(running ? "B.MintWash" : warn ? "B.AmberWash" : "B.Raised");
+                setDot(Ui.Res(running ? "B.Mint" : warn ? "B.Amber" : "B.TextMute"), running);
+                tile.Background = Ui.Res(running ? "B.MintWash" : "B.Raised");
+                if (tile.Child is System.Windows.Shapes.Path ic) ic.Stroke = Ui.Res(running ? "B.Mint" : "B.TextMute");
             }
 
             var result = Ui.Mono("", Ui.Res("B.TextMute"), 11);
+            result.Margin = new Thickness(0, 4, 0, 0);
             async void Do(string what, Func<System.Threading.Tasks.Task> act)
             {
                 result.Text = what + "…"; result.Foreground = Ui.Res("B.TextMute");
@@ -65,17 +98,21 @@ namespace MonitoringTools.UI
                 await Refresh();
             }
 
-            var actions = new WrapPanel { Margin = new Thickness(0, 12, 0, 0) };
+            bool consoleOpen = _openConsole == s.Id, settingsOpen = _openSettings.Contains(s.Id);
+            bool local = s.Target == Target.LocalProcess || s.Target == Target.LocalDocker;
+            var actions = new WrapPanel { Margin = new Thickness(0, 16, 0, 0) };
             actions.Children.Add(Ui.Button("Start", () => Do("Start", () => ServerManager.StartAsync(s, t => Dispatcher.BeginInvoke(new Action(() => result.Text = t)))), "Btn.Accent", Icons.Play));
             actions.Children.Add(Ui.Button("Stop", () => Do("Stop", () => ServerManager.StopAsync(s)), "Btn.Ghost", Icons.Pause));
             actions.Children.Add(Ui.Button("Restart", () => Do("Restart", async () => { await ServerManager.StopAsync(s); await ServerManager.StartAsync(s, null); }), "Btn.Ghost", Icons.Restart));
-            actions.Children.Add(Ui.Button(_openConsole == s.Id ? "Hide console" : "Console", () => { _openConsole = _openConsole == s.Id ? null : s.Id; Navigate("minecraft", animate: false); }, "Btn.Ghost", Icons.Lines));
+            actions.Children.Add(Ui.Button(consoleOpen ? "Hide console" : "Console", () => { _openConsole = consoleOpen ? null : s.Id; Navigate("minecraft", animate: false); }, "Btn.Ghost", Icons.Lines));
+            if (local)
+                actions.Children.Add(Ui.Button(settingsOpen ? "Hide settings" : "Settings", () => { if (!_openSettings.Remove(s.Id)) _openSettings.Add(s.Id); Navigate("minecraft", animate: false); }, "Btn.Ghost", Icons.Wand));
             actions.Children.Add(Ui.Button("Add plugin or mod…", () =>
             {
                 var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Plugin or mod (*.jar)|*.jar", Title = "Choose a plugin or mod" };
                 if (dlg.ShowDialog(this) == true) { result.Text = ServerManager.InstallPlugin(s, dlg.FileName); result.Foreground = Ui.Res("B.TextSoft"); }
             }, "Btn.Ghost", Icons.Plus));
-            if (s.Target == Target.LocalProcess || s.Target == Target.LocalDocker)
+            if (local)
                 actions.Children.Add(Ui.Button("Open folder", () => ActionProvider.Shell(s.Folder), "Btn.Ghost", Icons.Folder));
             actions.Children.Add(Ui.Button("Remove", () =>
             {
@@ -86,39 +123,54 @@ namespace MonitoringTools.UI
             sp.Children.Add(actions);
             sp.Children.Add(result);
 
-            // typed command builder: a known command plus its arguments, never a shell
-            var cmdRow = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
-            var commands = new[] { "say", "list", "op", "deop", "whitelist add", "whitelist remove", "kick", "ban", "pardon", "time set", "weather", "difficulty", "gamemode", "save-all" };
-            string chosen = "say";
-            var chips = new WrapPanel();
-            var arg = Input("", 260, "Arguments, for example a player name or 'day'");
-            var send = Ui.Button("Send", async () =>
+            // ---- console: a terminal panel with the live log and the typed command builder (a known command plus its arguments, never a shell)
+            if (consoleOpen)
             {
-                var c = chosen + (string.IsNullOrWhiteSpace(arg.Text) ? "" : " " + arg.Text.Trim());
-                result.Text = await ServerManager.CommandAsync(s, c);
-                result.Foreground = Ui.Res("B.TextSoft");
-            }, "Btn.Ghost", Icons.Bolt);
-            void PaintCmds()
-            {
-                chips.Children.Clear();
-                foreach (var c in commands)
+                var term = new StackPanel();
+                _console = new TextBlock { Style = Ui.Style("T.Mono"), FontSize = 11.5, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap };
+                var logView = new ScrollViewer { Content = _console, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 280 };
+                term.Children.Add(logView);
+                var commands = new[] { "say", "list", "op", "deop", "whitelist add", "whitelist remove", "kick", "ban", "pardon", "time set", "weather", "difficulty", "gamemode", "save-all" };
+                string chosen = "say";
+                var chips = new WrapPanel { Margin = new Thickness(0, 12, 0, 4) };
+                var prompt = new TextBlock { Text = "> say", FontFamily = Ui.Font("F.Mono"), FontSize = 12.5, Foreground = Ui.Res("B.Mint"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) };
+                void PaintCmds()
                 {
-                    var cc = c;
-                    var b = Ui.Button(c, () => { chosen = cc; PaintCmds(); }, "Btn.Chip");
-                    b.Height = 26; b.Margin = new Thickness(0, 0, 4, 4);
-                    bool on = c == chosen;
-                    b.Background = Ui.Res(on ? "B.Mint" : "B.Raised"); b.Foreground = Ui.Res(on ? "B.MintInk" : "B.TextSoft");
-                    chips.Children.Add(b);
+                    chips.Children.Clear();
+                    foreach (var c in commands)
+                    {
+                        var cc = c;
+                        var b = Ui.Button(c, () => { chosen = cc; prompt.Text = "> " + cc; PaintCmds(); }, "Btn.Chip");
+                        b.Height = 28; b.Margin = new Thickness(0, 0, 4, 4); b.FontFamily = Ui.Font("F.Mono"); b.FontSize = 12;
+                        bool on = c == chosen;
+                        b.Background = Ui.Res(on ? "B.Mint" : "B.Raised"); b.Foreground = Ui.Res(on ? "B.MintInk" : "B.TextSoft");
+                        chips.Children.Add(b);
+                    }
                 }
+                PaintCmds();
+                term.Children.Add(chips);
+                var arg = Input("", 260, "Arguments, for example a player name or 'day'");
+                AutomationProperties.SetName(arg, "Command arguments");
+                var send = Ui.Button("Send", async () =>
+                {
+                    var c = chosen + (string.IsNullOrWhiteSpace(arg.Text) ? "" : " " + arg.Text.Trim());
+                    result.Text = await ServerManager.CommandAsync(s, c);
+                    result.Foreground = Ui.Res("B.TextSoft");
+                    arg.Text = "";
+                }, "Btn.Accent", Icons.Bolt);
+                var cmdRow = new WrapPanel();
+                cmdRow.Children.Add(prompt); cmdRow.Children.Add(arg); cmdRow.Children.Add(send);
+                term.Children.Add(cmdRow);
+                var box = new Border { Background = Ui.Res("B.Ground"), CornerRadius = new CornerRadius(16), Padding = new Thickness(16), Margin = new Thickness(0, 12, 0, 0), Child = term };
+                SearchScope.SetItem(box, "console command say list op kick ban time weather");
+                sp.Children.Add(box);
+                Ui.Expand(box);
+                _ = Fill();
+                async System.Threading.Tasks.Task Fill() { _console.Text = await ServerManager.LogTailAsync(s); logView.ScrollToEnd(); }
             }
-            PaintCmds();
-            sp.Children.Add(Ui.Mono("COMMAND", Ui.Res("B.TextMute"), 11));
-            sp.Children.Add(chips);
-            cmdRow.Children.Add(arg); cmdRow.Children.Add(send);
-            sp.Children.Add(cmdRow);
 
-            // settings with rich controls (local targets keep server.properties here)
-            if (s.Target == Target.LocalProcess || s.Target == Target.LocalDocker)
+            // ---- settings drawer (local targets keep server.properties here)
+            if (local && settingsOpen)
             {
                 var props = ServerManager.ReadProperties(s);
                 var grid = new UniformGrid { Columns = 2, Margin = new Thickness(0, 10, 0, 0) };
@@ -150,20 +202,51 @@ namespace MonitoringTools.UI
                     }
                     grid.Children.Add(control);
                 }
-                sp.Children.Add(new TextBlock { Text = "Settings · saved to server.properties, applied on the next start", Style = Ui.Style("T.Eyebrow"), Margin = new Thickness(0, 14, 0, 0) });
-                sp.Children.Add(grid);
-            }
-
-            if (_openConsole == s.Id)
-            {
-                _console = new TextBlock { Style = Ui.Style("T.Mono"), FontSize = 11.5, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap };
-                var box = new Border { Background = Ui.Res("B.Ground"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12), Margin = new Thickness(0, 12, 0, 0), MaxHeight = 320,
-                    Child = new ScrollViewer { Content = _console, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
-                sp.Children.Add(box);
-                _ = Fill();
-                async System.Threading.Tasks.Task Fill() { _console.Text = await ServerManager.LogTailAsync(s); ((ScrollViewer)box.Child).ScrollToEnd(); }
+                var drawer = new StackPanel { Margin = new Thickness(0, 14, 0, 0) };
+                drawer.Children.Add(new TextBlock { Text = "Settings · saved to server.properties, applied on the next start", Style = Ui.Style("T.Eyebrow") });
+                drawer.Children.Add(grid);
+                sp.Children.Add(drawer);
+                Ui.Expand(drawer);
             }
             return Card(sp, s.Target == Target.SshProcess || s.Target == Target.SshDocker ? "#FF3A2F5A" : null);
+        }
+
+        /// <summary>Page summary: how many servers there are and how many run right now (filled in as each status arrives).</summary>
+        private FrameworkElement ServerSummary()
+        {
+            var row = new WrapPanel { Margin = new Thickness(0, 0, 0, Appearance.Gap(14)) };
+            int total = ServerManager.Servers.Count;
+            var running = Ui.Pill("checking…", Ui.Res("B.MintWash"), Ui.Res("B.OnPrimaryContainer"), size: 13);
+            running.Padding = new Thickness(14, 6, 14, 7); running.CornerRadius = new CornerRadius(999);
+            var count = Ui.Pill(total == 1 ? "1 server" : $"{total} servers", null, null, size: 13);
+            count.Padding = new Thickness(14, 6, 14, 7); count.CornerRadius = new CornerRadius(999);
+            row.Children.Add(running); row.Children.Add(count);
+            _ = Count();
+            async System.Threading.Tasks.Task Count()
+            {
+                int n = 0;
+                foreach (var s in ServerManager.Servers.ToList())
+                {
+                    try { if (await ServerManager.StatusAsync(s) == "running") n++; } catch { }
+                }
+                ((TextBlock)running.Child).Text = $"{n} running";
+            }
+            return row;
+        }
+
+        /// <summary>Shown instead of server cards when there are none yet.</summary>
+        private FrameworkElement NoServersCard()
+        {
+            var g = new StackPanel { Orientation = Orientation.Horizontal };
+            var chip = Ui.IconChip(Icons.Box, Ui.Res("B.Mint"), Ui.Res("B.MintWash"), 52, 26);
+            chip.CornerRadius = new CornerRadius(16);
+            chip.Margin = new Thickness(0, 0, 16, 0);
+            g.Children.Add(chip);
+            var t = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            t.Children.Add(new TextBlock { Text = "No servers yet", Style = Ui.Style("T.Title"), FontSize = 18 });
+            t.Children.Add(new TextBlock { Text = "Create one with the guide below. Nothing is downloaded until the last step.", Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap });
+            g.Children.Add(t);
+            return Card(g);
         }
 
         private static string TargetLabel(Target t) => t switch
