@@ -318,6 +318,48 @@
     "height": 1576
   },
   {
+    "file": "lang-cantonese-ollama.png",
+    "caption": "ollama page in cantonese mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-cantonese-safety.png",
+    "caption": "safety page in cantonese mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-cantonese-modes.png",
+    "caption": "modes page in cantonese mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-cantonese-tools.png",
+    "caption": "tools page in cantonese mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-cantonese-records.png",
+    "caption": "records page in cantonese mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-cantonese-appearance.png",
+    "caption": "appearance page in cantonese mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-cantonese-activity.png",
+    "caption": "activity page in cantonese mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
     "file": "lang-bilingual-overview.png",
     "caption": "Overview in bilingual mode",
     "width": 2088,
@@ -326,6 +368,48 @@
   {
     "file": "lang-bilingual-language.png",
     "caption": "Language page in bilingual mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-bilingual-ollama.png",
+    "caption": "ollama page in bilingual mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-bilingual-safety.png",
+    "caption": "safety page in bilingual mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-bilingual-modes.png",
+    "caption": "modes page in bilingual mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-bilingual-tools.png",
+    "caption": "tools page in bilingual mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-bilingual-records.png",
+    "caption": "records page in bilingual mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-bilingual-appearance.png",
+    "caption": "appearance page in bilingual mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-bilingual-activity.png",
+    "caption": "activity page in bilingual mode",
     "width": 2088,
     "height": 1576
   },
@@ -402,6 +486,30 @@
     "height": 1080
   },
   {
+    "file": "school-hello.png",
+    "caption": "School mode: the optional Windows Hello way to turn it off, with its honest state",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "guided-look.png",
+    "caption": "Make a look: the review step lists exactly what would change before anything is applied",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "logo-custom.png",
+    "caption": "Logo: a custom PNG in the drawer header and the tray preview, with the glyph choices and reset",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "export-everything.png",
+    "caption": "Export everything: one zip with every dataset in five formats, clipboard history left out unless chosen",
+    "width": 2088,
+    "height": 1576
+  },
+  {
     "file": "super-confirm-start.png",
     "caption": "Destructive actions need two keys and a full slide",
     "width": 960,
@@ -454,5 +562,167 @@
     "caption": "Uninstall confirmation",
     "width": 960,
     "height": 1010
+  },
+  {
+    "file": "menu-toast.png",
+    "caption": "Element menu on a toast",
+    "width": 1350,
+    "height": 1208
+  },
+  {
+    "file": "menu-offline.png",
+    "caption": "Element menu on the offline dialog",
+    "width": 1048,
+    "height": 1306
+  },
+  {
+    "file": "menu-setup.png",
+    "caption": "Element menu on the setup wizard",
+    "width": 1560,
+    "height": 1280
+  },
+  {
+    "file": "menu-confirm.png",
+    "caption": "Element menu on the confirmation window: Copy text only",
+    "width": 1190,
+    "height": 914
+  },
+  {
+    "file": "menu-filetools.png",
+    "caption": "Element menu on file tools",
+    "width": 1040,
+    "height": 924
+  },
+  {
+    "file": "modes-schedule-edit.png",
+    "caption": "Scheduled settings: editing a rule with a date range in place",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "bulk-activity.png",
+    "caption": "Select mode on activity: two rows chosen",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "bulk-notifications.png",
+    "caption": "Select mode on notifications: two rows chosen",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "bulk-shortcuts.png",
+    "caption": "Select mode on shortcuts: two rows chosen",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "bulk-library.png",
+    "caption": "Select mode on the regex Library: two rows chosen",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "guided-dns-1.png",
+    "caption": "Add a DNS profile, step 1: name",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "guided-dns-2.png",
+    "caption": "Add a DNS profile, step 2: servers",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "guided-dns-3.png",
+    "caption": "Add a DNS profile, step 3: review and save",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "guided-minecraft-1.png",
+    "caption": "New server, step 1: name and version",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "guided-minecraft-2.png",
+    "caption": "New server, step 2: where it runs",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "guided-minecraft-3.png",
+    "caption": "New server, step 3: memory and port",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "guided-minecraft-4.png",
+    "caption": "New server, step 4: review and accept the EULA",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "adhd-spotlight.png",
+    "caption": "Focus spotlight on: everything dims except the card under focus",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "school-on-language.png",
+    "caption": "School mode on: the Language page offers English only",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "appearance-editor-font.png",
+    "caption": "Appearance editor: Font tab",
+    "width": 840,
+    "height": 1392
+  },
+  {
+    "file": "appearance-editor-colour.png",
+    "caption": "Appearance editor: Colour tab",
+    "width": 840,
+    "height": 1392
+  },
+  {
+    "file": "appearance-editor-shape.png",
+    "caption": "Appearance editor: Shape tab",
+    "width": 840,
+    "height": 1192
+  },
+  {
+    "file": "appearance-editor-library.png",
+    "caption": "Appearance editor: Library tab",
+    "width": 840,
+    "height": 1392
+  },
+  {
+    "file": "appearance-editor-states.png",
+    "caption": "Appearance editor: a different colour for the Pressed state",
+    "width": 840,
+    "height": 1392
+  },
+  {
+    "file": "appearance-editor-presets.png",
+    "caption": "Appearance editor: a saved preset in the Library tab",
+    "width": 840,
+    "height": 1392
+  },
+  {
+    "file": "colour-picker.png",
+    "caption": "Colour picker: every field shows the same colour in its own notation",
+    "width": 920,
+    "height": 1576
+  },
+  {
+    "file": "history-panel.png",
+    "caption": "Local history of a script: three saved versions and a comparison with the current text",
+    "width": 2088,
+    "height": 1576
   }
 ]
