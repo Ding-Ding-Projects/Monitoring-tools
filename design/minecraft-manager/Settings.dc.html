@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Minecraft server · settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0F0D}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+input,select{font:inherit;color:inherit}
+a{color:#6FDBB4;text-decoration:none}a:hover{color:#8CF8CF}
+.ms{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;font-size:22px;line-height:1;display:inline-block;white-space:nowrap}
+.fill{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
+.st{position:relative;overflow:hidden;isolation:isolate;transition:border-radius .35s cubic-bezier(.34,1.56,.64,1),background-color .25s cubic-bezier(.2,0,0,1)}
+.st::before{content:"";position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .2s;z-index:-1;pointer-events:none}
+.st:hover::before{opacity:.08}.st:active::before{opacity:.12}
+.st:focus-visible{outline:3px solid #6FDBB4;outline-offset:2px}
+.btn{height:40px;padding:0 20px;border-radius:20px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn:active{border-radius:12px}
+.filled{background:#6FDBB4;color:#003827}
+.tonal{background:#354B41;color:#CFE9DB}
+.tab{height:48px;padding:0 16px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#BFC9C2;border-bottom:3px solid transparent}
+.tab[aria-current="page"]{color:#6FDBB4;border-bottom-color:#6FDBB4}
+.card{background:#1B211E;border-radius:24px;padding:8px 20px}
+.mono{font-family:'Roboto Mono',ui-monospace,monospace}
+.badge{height:24px;padding:0 10px;border-radius:12px;display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:500}
+.num{display:inline-flex;align-items:center;height:48px;border-radius:12px;background:#303633;overflow:hidden}
+.num input{width:96px;height:48px;border:0;background:none;text-align:right;padding:0 6px;font-size:15px;outline:none}
+.num:focus-within{box-shadow:0 0 0 2px #6FDBB4}
+.num button{width:44px;height:48px;display:flex;align-items:center;justify-content:center;color:#BFC9C2}
+.sel{height:48px;border-radius:12px;border:0;background:#303633;padding:0 14px;font-size:15px;color:#DEE4DF;min-width:180px}
+.rise{animation:rise .45s cubic-bezier(.05,.7,.1,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.barin{animation:barin .5s cubic-bezier(.05,.7,.1,1) both}
+@keyframes barin{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.rise,.barin{animation:none}.st{transition:none}}
+</style>
+</helmet>
+<div style="min-height: 1180px; background: #0F1512; color: #DEE4DF; font-family: 'Roboto Flex','Segoe UI Variable Text',system-ui,sans-serif; padding: 24px 32px 120px; display: flex; flex-direction: column; gap: 20px; position: relative;">
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px;">
+    <a class="st" href="Main.dc.html" aria-label="Back to the server list" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center;"><span class="ms" aria-hidden="true">arrow_back</span></a>
+    <h2 style="margin: 0; font-size: 28px; font-weight: 400; flex: 1 1 240px;">Friends survival</h2>
+    <span class="badge" style="background: #00513A; color: #8CF8CF; height: 32px; padding: 0 14px; font-size: 14px;">Running</span>
+  </header>
+  <nav aria-label="Server sections" style="display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid #404943;">
+    <a class="tab st" href="Main.dc.html"><span class="ms" aria-hidden="true">dashboard</span>Overview</a>
+    <a class="tab st" href="Console.dc.html"><span class="ms" aria-hidden="true">terminal</span>Console</a>
+    <a class="tab st" href="Console.dc.html"><span class="ms" aria-hidden="true">group</span>Players</a>
+    <a class="tab st" href="Settings.dc.html" aria-current="page"><span class="ms" aria-hidden="true">tune</span>Settings</a>
+    <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">public</span>Worlds</a>
+    <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">extension</span>Plugins</a>
+    <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">backup</span>Backups</a>
+    <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">schedule</span>Schedules</a>
+  </nav>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+    <!-- categories -->
+    <nav aria-label="Setting groups" style="flex: 1 1 220px; max-width: 260px; display: flex; flex-direction: column; gap: 4px;">
+      <label style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 24px; background: #262B28; color: #BFC9C2; margin-bottom: 8px;">
+        <span class="ms" aria-hidden="true">search</span>
+        <input type="search" placeholder="Search 74 settings" aria-label="Search settings" style="flex: 1; min-width: 0; border: 0; background: none; outline: none;">
+        <span class="mono" style="font-size: 12px;">.*</span>
+      </label>
+      <sc-for list="{{groups}}" as="g" hint-placeholder-count="8">
+        <button onClick="{{g.pick}}" aria-current="{{g.cur}}" class="st" style="{{g.style}}">
+          <span class="ms" aria-hidden="true">{{g.icon}}</span><span style="flex: 1; text-align: left;">{{g.label}}</span><span style="font-size: 12px; opacity: .8;">{{g.count}}</span>
+        </button>
+      </sc-for>
+    </nav>
+
+    <!-- settings list -->
+    <section style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <h3 style="margin: 0; font-size: 22px; font-weight: 400;">{{groupTitle}}</h3>
+        <span style="font-size: 13px; color: #89938C;">Values and limits come from this server's version (Paper 1.21.4). Unknown keys in server.properties are kept as they are.</span>
+      </div>
+      <div class="card">
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
+          <div class="rise" style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid #262B28;">
+            <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+              <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 16px;">{{r.label}}</span>
+                <span class="badge" style="{{r.applyStyle}}"><span class="ms" style="font-size: 14px;" aria-hidden="true">{{r.applyIcon}}</span>{{r.apply}}</span>
+                <sc-if value="{{r.changed}}" hint-placeholder-val="{{false}}"><span class="badge" style="background: #2B2640; color: #CFBCFF;">Changed</span></sc-if>
+              </span>
+              <span style="font-size: 13px; color: #BFC9C2; line-height: 1.45;">{{r.help}}</span>
+              <span class="mono" style="font-size: 11.5px; color: #89938C;">{{r.key}} · default {{r.def}}</span>
+            </div>
+            <sc-if value="{{r.isSwitch}}" hint-placeholder-val="{{true}}">
+              <button role="switch" aria-checked="{{r.on}}" aria-label="{{r.label}}" onClick="{{r.toggle}}" style="{{r.swStyle}}"><i style="{{r.knob}}"></i></button>
+            </sc-if>
+            <sc-if value="{{r.isNum}}" hint-placeholder-val="{{false}}">
+              <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                <span class="num">
+                  <button aria-label="Decrease" onClick="{{r.dec}}" class="st"><span class="ms" aria-hidden="true">remove</span></button>
+                  <input inputmode="numeric" aria-label="{{r.label}}" value="{{r.value}}">
+                  <span style="padding: 0 4px 0 2px; font-size: 13px; color: #89938C;">{{r.unit}}</span>
+                  <button aria-label="Increase" onClick="{{r.inc}}" class="st"><span class="ms" aria-hidden="true">add</span></button>
+                </span>
+                <span style="font-size: 11.5px; color: #89938C;">{{r.range}}</span>
+              </span>
+            </sc-if>
+            <sc-if value="{{r.isSel}}" hint-placeholder-val="{{false}}">
+              <select class="sel" aria-label="{{r.label}}"><sc-for list="{{r.opts}}" as="o"><option>{{o}}</option></sc-for></select>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+
+  <!-- unsaved bar -->
+  <sc-if value="{{dirty}}" hint-placeholder-val="{{true}}">
+    <div class="barin" role="region" aria-label="Unsaved changes" style="position: absolute; left: 32px; right: 32px; bottom: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px 12px 24px; border-radius: 28px; background: #262B28; box-shadow: 0 8px 24px rgba(0,0,0,.45);">
+      <span class="ms" style="color: #CFBCFF;" aria-hidden="true">edit_note</span>
+      <span style="flex: 1 1 260px;">{{dirtyText}}</span>
+      <button class="btn st" style="color: #6FDBB4;" onClick="{{discard}}">Discard</button>
+      <button class="btn tonal st">Save, apply at next start</button>
+      <button class="btn filled st"><span class="ms" aria-hidden="true">restart_alt</span>Save and restart</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { g: 0, v: {} }; }
+  renderVals() {
+    const G = [
+      ['sports_esports', 'Gameplay', [
+        ['switch', 'PvP', 'pvp', 'true', 'Players can hurt each other.', 'live'],
+        ['select', 'Difficulty', 'difficulty', 'easy', 'How dangerous mobs are and how fast hunger drains.', 'live', ['peaceful', 'easy', 'normal', 'hard']],
+        ['select', 'Game mode for new players', 'gamemode', 'survival', 'The mode a player starts in the first time they join.', 'restart', ['survival', 'creative', 'adventure', 'spectator']],
+        ['switch', 'Hardcore', 'hardcore', 'false', 'Players are switched to spectator when they die. Only takes effect for a new world.', 'world'],
+        ['switch', 'Allow flight', 'allow-flight', 'false', 'Stops the server kicking players whose client flies, for example with a flight mod.', 'restart'],
+        ['num', 'Spawn protection', 'spawn-protection', '16', 'Radius around spawn that only operators can build in. 0 turns it off.', 'restart', 'blocks', 0, 29999984, 1],
+        ['switch', 'Command blocks', 'enable-command-block', 'false', 'Lets command blocks run commands.', 'restart']
+      ]],
+      ['public', 'World', [
+        ['num', 'View distance', 'view-distance', '10', 'How many chunks around each player are sent to their game.', 'restart', 'chunks', 3, 32, 1],
+        ['num', 'Simulation distance', 'simulation-distance', '10', 'How far from players mobs move and crops grow.', 'restart', 'chunks', 3, 32, 1],
+        ['num', 'World size limit', 'max-world-size', '29999984', 'Radius of the world border the server allows.', 'restart', 'blocks', 1, 29999984, 1000],
+        ['switch', 'Generate structures', 'generate-structures', 'true', 'Villages, temples and other structures in new chunks.', 'world']
+      ]],
+      ['group', 'Players and access', [
+        ['num', 'Maximum players', 'max-players', '20', 'How many people can be online at once.', 'restart', 'players', 0, 2147483647, 1],
+        ['switch', 'Whitelist', 'white-list', 'false', 'Only players on the whitelist can join.', 'live'],
+        ['switch', 'Online mode', 'online-mode', 'true', 'Checks every player with Mojang. Turning it off lets anyone use any name.', 'restart'],
+        ['num', 'Idle kick', 'player-idle-timeout', '0', 'Minutes a player can stand still before being kicked. 0 never kicks.', 'live', 'min', 0, 2147483647, 1]
+      ]],
+      ['lan', 'Network', [
+        ['num', 'Port', 'server-port', '25565', 'The port players connect to.', 'restart', '', 1, 65535, 1],
+        ['num', 'Compression threshold', 'network-compression-threshold', '256', 'Packets larger than this are compressed. -1 turns compression off.', 'restart', 'bytes', -1, 2147483647, 64]
+      ]],
+      ['speed', 'Performance', [
+        ['num', 'Memory', '(launcher)', '4096', 'Memory given to the Java server.', 'restart', 'MB', 512, 65536, 256],
+        ['num', 'Max tick time', 'max-tick-time', '60000', 'A tick slower than this stops the server as frozen. -1 turns the watchdog off.', 'restart', 'ms', -1, 2147483647, 1000]
+      ]],
+      ['rule', 'Game rules', [
+        ['switch', 'Keep inventory', 'keepInventory', 'false', 'Players keep their items when they die.', 'live'],
+        ['switch', 'Daylight cycle', 'doDaylightCycle', 'true', 'Time of day moves on.', 'live'],
+        ['num', 'Random tick speed', 'randomTickSpeed', '3', 'How fast crops grow and leaves decay.', 'live', '', 0, 4096, 1]
+      ]],
+      ['admin_panel_settings', 'Management (1.21.9 and newer)', [
+        ['switch', 'Management API', 'management-server-enabled', 'false', 'JSON-RPC management over WebSocket. Not available on 1.21.4; shown for newer versions.', 'na']
+      ]],
+      ['data_object', 'Other keys', [
+        ['select', 'paper-custom-key', 'paper-custom-key', '(kept)', 'A key this version does not document. It is kept exactly as written in server.properties.', 'restart', ['(kept as written)']]
+      ]]
+    ];
+    const ap = {
+      live: ['Applies now', 'bolt', 'background:#00513A;color:#8CF8CF'],
+      restart: ['Needs restart', 'restart_alt', 'background:#3B2A12;color:#FFDDB3'],
+      world: ['New worlds only', 'public', 'background:#244C5D;color:#C2E8FD'],
+      na: ['Not on this version', 'block', 'background:#303633;color:#89938C']
+    };
+    const groups = G.map((g, i) => ({ icon: g[0], label: g[1], count: g[2].length, cur: i === this.state.g ? 'page' : 'false', pick: () => this.setState({ g: i }),
+      style: 'display:flex;align-items:center;gap:12px;height:48px;padding:0 16px;border-radius:24px;font-size:14px;font-weight:500;background:' + (i === this.state.g ? '#354B41' : 'transparent') + ';color:' + (i === this.state.g ? '#CFE9DB' : '#BFC9C2') }));
+    const v = this.state.v; const g = G[this.state.g];
+    const sw = (on) => 'width:52px;height:32px;border-radius:16px;border:2px solid ' + (on ? '#6FDBB4' : '#89938C') + ';background:' + (on ? '#6FDBB4' : '#303633') + ';position:relative;flex:none;transition:background-color .3s';
+    const knob = (on) => 'position:absolute;top:50%;transform:translateY(-50%);left:' + (on ? '24px' : '6px') + ';width:' + (on ? '22px' : '16px') + ';height:' + (on ? '22px' : '16px') + ';border-radius:50%;background:' + (on ? '#003827' : '#89938C') + ';transition:left .35s cubic-bezier(.34,1.56,.64,1),width .35s,height .35s';
+    const set = (k, val) => this.setState({ v: { ...this.state.v, [k]: val } });
+    const rows = g[2].map(([kind, label, key, def, help, apply, a, b, c, d]) => {
+      const cur = v[key] ?? def; const A = ap[apply];
+      const r = { label, key, def, help, apply: A[0], applyIcon: A[1], applyStyle: A[2], changed: v[key] !== undefined && v[key] !== def, isSwitch: kind === 'switch', isNum: kind === 'num', isSel: kind === 'select' };
+      if (kind === 'switch') { const on = cur === 'true'; Object.assign(r, { on: String(on), swStyle: sw(on), knob: knob(on), toggle: () => set(key, on ? 'false' : 'true') }); }
+      if (kind === 'num') { const n = Number(cur); Object.assign(r, { value: cur, unit: a, range: b + ' to ' + c + (a ? ' ' + a : ''), dec: () => set(key, String(Math.max(b, n - d))), inc: () => set(key, String(Math.min(c, n + d))) }); }
+      if (kind === 'select') r.opts = a;
+      return r;
+    });
+    const changed = Object.keys(v).length;
+    return { groups, rows, groupTitle: g[1], dirty: changed > 0, dirtyText: changed + ' unsaved change' + (changed === 1 ? '' : 's') + '. Some need a restart to take effect.', discard: () => this.setState({ v: {} }) };
+  }
+}
+</script>
+</body>
+</html>
