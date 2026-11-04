@@ -185,6 +185,63 @@ namespace MonitoringTools.UI
                 return code == "94287082" ? null : "got " + code;
             });
 
+            // ---- QR pairing
+            Check("qr: encode then decode an otpauth link in the app", () =>
+            {
+                const string uri = "otpauth://totp/Example:alice@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Example&digits=6&period=30";
+                if (!QrEncoder.TryEncode(uri, out var modules, out var version, out var err)) return "encode failed: " + err;
+                var bmp = QrEncoder.ToBitmap(modules, 6, 4);
+                if (!QrDecoder.TryDecode(bmp, out var text, out var derr)) return "decode failed: " + derr;
+                return text == uri ? null : "decoded a different text (version " + version + ")";
+            });
+
+            // ---- regex debugger and compare
+            Check("regex debug: the tracer agrees with .NET and records steps", () =>
+            {
+                var r = RegexTrace.Run(@"(\w+)@(\w+)\.com", RegexOptions.None, "mail alice@example.com now");
+                if (r.Unsupported != null || r.Disagreement != null) return r.Unsupported ?? r.Disagreement;
+                return r.Steps.Count > 5 ? null : "too few steps: " + r.Steps.Count;
+            });
+            Check("regex debug: unsupported constructs are named, not faked", () =>
+            {
+                var r = RegexTrace.Run(@"(?<=a)b", RegexOptions.None, "ab");
+                return r.Unsupported != null && r.Steps.Count == 0 ? null : "lookbehind was traced";
+            });
+            Check("regex compare: non-backtracking refuses lookbehind with the engine's message", () =>
+            {
+                var modes = RegexBench.Compare(@"(?<=a)b", RegexOptions.None, "ab ab");
+                var nb = modes.FirstOrDefault(m => m.Mode.IndexOf("non", StringComparison.OrdinalIgnoreCase) >= 0);
+                var bt = modes.FirstOrDefault();
+                return nb != null && !nb.Supported && bt != null && bt.Supported && bt.Matches == 2 ? null : "compare results unexpected";
+            });
+
+            // ---- locks
+            Check("locks: a lock closes an element, refuses removal while locked, and opens with its PIN", () =>
+            {
+                var err = Locks.Create("selftest", "Selftest button", "Selftest button", LockPolicy.Pin, 5, "4826", null, null);
+                if (err != null) return "lock not created: " + err;
+                var e = Locks.Find("selftest", "Selftest button");
+                var closed = Locks.IsLocked("selftest", "Selftest button");
+                var refused = Locks.Remove(e.Id) != null;
+                var wrong = new Locks.Session(e).Submit("0000");
+                var right = new Locks.Session(e).Submit("4826");
+                var open = !Locks.IsLocked("selftest", "Selftest button");
+                var removed = Locks.Remove(e.Id) == null;
+                return closed && refused && open && removed ? null : $"closed={closed} refused={refused} wrong={wrong} right={right} open={open} removed={removed}";
+            });
+
+            // ---- density
+            Check("density: compact rows are shorter", () =>
+            {
+                var s = Settings.Current;
+                s.CompactDensity = false; Appearance.Apply();
+                var normal = Appearance.Row(40);
+                s.CompactDensity = true; Appearance.Apply();
+                var compact = Appearance.Row(40);
+                s.CompactDensity = false; Appearance.Apply();
+                return compact < normal ? null : $"rows {normal} / {compact}";
+            });
+
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>

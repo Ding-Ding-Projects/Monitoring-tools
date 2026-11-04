@@ -15,7 +15,7 @@
                 Effect="{StaticResource Fx.Shadow}" MouseLeftButtonDown="OnDrag">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="250"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
@@ -55,7 +55,7 @@
                         <TextBlock x:Name="StepTitle" Style="{StaticResource T.Title}" FontSize="26" Margin="0,6,0,6"/>
                         <TextBlock x:Name="StepIntro" Style="{StaticResource T.Body}" Foreground="{DynamicResource B.TextMute}" FontSize="14" LineHeight="20"/>
                     </StackPanel>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,18,0,0">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,18,0,0" Padding="0,6,14,6">
                         <ContentControl x:Name="StepBody" Focusable="False"/>
                     </ScrollViewer>
                     <Grid Grid.Row="2" Margin="0,16,0,0">
