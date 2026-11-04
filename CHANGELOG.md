@@ -4,6 +4,13 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.30 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.30)
+
+- Real clicks, native pickers, encrypted snapshots, Momentum next step, QR perspective ([`5d2cd8c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/5d2cd8c691478e86d3ba6335cfac6693304bd4aa))
+- Record v1.0.29 figures and changelog ([`b39f3e8`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b39f3e89d409c88779fba3fa0a43adfb37d49ce7))
+
 ## 1.0.29 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.29)
