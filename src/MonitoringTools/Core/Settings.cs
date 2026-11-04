@@ -13,6 +13,8 @@ namespace MonitoringTools.Core
         public bool KeepOpenOnHover { get; set; } = true;
         public bool RenderMarkdown { get; set; } = true;
         public bool IgnoreSensitiveSources { get; set; } = true;
+        /// <summary>Copying the path of a valid personal wording file applies it, like dropping it on a window.</summary>
+        public bool ApplyCopiedWordingFile { get; set; } = true;
         public int HistorySize { get; set; } = 50;
 
         // Network

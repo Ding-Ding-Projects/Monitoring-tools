@@ -961,6 +961,8 @@ namespace MonitoringTools.UI
             if (PersonalWording.Active)
                 pwRow.Children.Add(Ui.Button("Clear and restore original wording", () => { PersonalWording.Clear(); Navigate("service", animate: false); }, "Btn.Ghost", Icons.Restart));
             pw.Children.Add(pwRow);
+            pw.Children.Add(Switch("Apply a copied wording file", "Copy the path of a valid wording file (or the file itself in Explorer) and it is applied at once, like a drop. Other JSON files are left alone. Default: on.",
+                Settings.Current.ApplyCopiedWordingFile, v => { Settings.Current.ApplyCopiedWordingFile = v; Settings.Save(); }));
             pw.Children.Add(Ui.Mono("Format: {schemaVersion: 1, entries: {ordinary phrase: your words}} · up to 256 KiB", Ui.Res("B.TextMute"), 11));
             root.Children.Add(Card(pw));
             }

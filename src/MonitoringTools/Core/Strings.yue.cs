@@ -414,6 +414,7 @@ namespace MonitoringTools.Core
             // ---- School mode password, Focus spotlight and the Modes page controls
             AddNew("Focus spotlight", "專注聚光燈"); AddNew("Password to turn off", "關閉用嘅密碼"); AddNew("PIN or password to turn off", "關閉用嘅 PIN 或密碼");
             AddNew("New password (8 or more characters)", "新密碼（8 個字元或以上）"); AddNew("Repeat password", "重複密碼");
+            AddNew("Apply a copied wording file", "複製咗用字檔就即刻套用"); AddNew("Personal wording applied", "個人用字已套用");
             AddNew("Choose a way to turn the mode off: a PIN of 4 to 12 digits, a password of at least 8 characters, or both. Either one works later. They are stored only as salted PBKDF2-SHA256 hashes (200,000 rounds).",
                 "請揀一個關閉模式嘅方法：4 至 12 位數字嘅 PIN、至少 8 個字元嘅密碼，或者兩個都設。之後用邊個都得。兩者只會以加鹽 PBKDF2-SHA256 雜湊（200,000 輪）儲存。");
             AddNew("Off by default. Dims everything except the card under keyboard focus or the mouse, so one thing stands out. Also switched with Ctrl+Shift+Space from any window of this app. It never blocks clicks, and it moves without animation when motion is reduced.",

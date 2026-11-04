@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Windows;
@@ -115,6 +116,7 @@ namespace MonitoringTools
         private void OnClipboard(ClipItem item)
         {
             History.Add(item);
+            if (TryApplyCopiedWording(item)) return;
             if (!Modes.ClipboardToastsOn) return;
 
             if (item.Command != null && Settings.Current.QuickCommandsEnabled)
@@ -125,6 +127,28 @@ namespace MonitoringTools
             }
             if (ShouldSuppress) return;
             Toasts.ShowClip(item);
+        }
+
+        // A copied path to a valid personal wording file is applied at once, exactly like a drop: same validation,
+        // same celebration and sound. Unrelated JSON files fall through to the ordinary clipboard toast.
+        internal static bool TryApplyCopiedWording(ClipItem item)
+        {
+            if (!Settings.Current.ApplyCopiedWordingFile || item.Kind != ClipKind.Files || item.Files == null || item.Files.Length != 1) return false;
+            var path = item.Files[0];
+            if (!PersonalWording.IsWordingFile(path)) return false;
+            if (PersonalWording.TryApply(path, out var message))
+            {
+                Sounds.Play(Cue.Tada);
+                var over = Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive && w.IsVisible) ?? Current.MainWindow;
+                if (over != null && over.IsVisible) UI.WordingLayer.Celebrate(over);
+                else Toasts.ShowNotice("Personal wording applied", message, Toasts.Mint, 4, icon: Icons.Text);
+            }
+            else
+            {
+                Sounds.Play(Cue.Invalid);
+                Toasts.ShowNotice("Wording file refused", message, Toasts.Amber, 6, icon: Icons.Text);
+            }
+            return true;
         }
 
         public static void RunCommand(QuickCommand c)

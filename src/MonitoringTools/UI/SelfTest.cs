@@ -775,6 +775,29 @@ namespace MonitoringTools.UI
                 finally { FocusSpotlight.Set(false); cc.Close(); }
             });
 
+            Check("wording: a copied wording file path is applied and an unrelated JSON file is left alone", () =>
+            {
+                var dir = System.IO.Path.Combine(Settings.DataDir, "wording-test");
+                System.IO.Directory.CreateDirectory(dir);
+                var good = System.IO.Path.Combine(dir, "words.json");
+                var other = System.IO.Path.Combine(dir, "package.json");
+                System.IO.File.WriteAllText(good, "{\"schemaVersion\": 1, \"entries\": {\"Clipboard history\": \"Copy pile\"}}");
+                System.IO.File.WriteAllText(other, "{\"name\": \"demo\", \"version\": \"1.0.0\"}");
+                var saved = Settings.Current.ApplyCopiedWordingFile;
+                try
+                {
+                    Settings.Current.ApplyCopiedWordingFile = true;
+                    if (App.TryApplyCopiedWording(new MonitoringTools.Clip.ClipItem { Kind = MonitoringTools.Clip.ClipKind.Files, Files = new[] { other } })) return "an unrelated JSON file was taken";
+                    if (!App.TryApplyCopiedWording(new MonitoringTools.Clip.ClipItem { Kind = MonitoringTools.Clip.ClipKind.Files, Files = new[] { good } })) return "the wording file was not taken";
+                    if (PersonalWording.Apply("Clipboard history") != "Copy pile") return "the wording was not applied";
+                    PersonalWording.Clear();
+                    Settings.Current.ApplyCopiedWordingFile = false;
+                    if (App.TryApplyCopiedWording(new MonitoringTools.Clip.ClipItem { Kind = MonitoringTools.Clip.ClipKind.Files, Files = new[] { good } })) return "applied while the switch was off";
+                    return PersonalWording.Count == 0 ? null : "clear left phrases behind";
+                }
+                finally { Settings.Current.ApplyCopiedWordingFile = saved; PersonalWording.Clear(); }
+            });
+
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>

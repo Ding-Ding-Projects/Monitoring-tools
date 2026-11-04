@@ -74,6 +74,20 @@ namespace MonitoringTools.Core
             catch (Exception) { message = "That file could not be read, so nothing was changed."; return false; }
         }
 
+        /// <summary>True when the path names a JSON file that passes validation. Reads nothing larger than the cap
+        /// and says nothing about why another file failed, so copying an unrelated JSON file stays silent.</summary>
+        public static bool IsWordingFile(string path)
+        {
+            try
+            {
+                if (!string.Equals(Path.GetExtension(path), ".json", StringComparison.OrdinalIgnoreCase)) return false;
+                var info = new FileInfo(path);
+                if (!info.Exists || info.Length == 0 || info.Length > MaxBytes) return false;
+                return Validate(File.ReadAllBytes(path), out _, out _);
+            }
+            catch { return false; }
+        }
+
         public static void Clear()
         {
             try { if (File.Exists(CachePath)) File.Delete(CachePath); } catch { }
