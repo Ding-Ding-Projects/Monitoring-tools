@@ -45,10 +45,10 @@ namespace MonitoringTools.Core
 
         private static readonly Assembly Asm = typeof(Docs).Assembly;
         private static List<DocArticle> _all;
-        private static List<DocCategory> _cats;
+        private static List<DocCategory> _categories;
 
         public static IReadOnlyList<DocArticle> All { get { Load(); return _all; } }
-        public static IReadOnlyList<DocCategory> Categories { get { Load(); return _cats; } }
+        public static IReadOnlyList<DocCategory> Categories { get { Load(); return _categories; } }
 
         public static DocArticle Find(string id)
         {
@@ -76,36 +76,36 @@ namespace MonitoringTools.Core
                 }
                 catch { continue; }
 
-                string id, cat, source; bool index = false;
-                if (n.Equals("docs/README.md", StringComparison.OrdinalIgnoreCase)) { id = "readme"; cat = ""; source = "README.md"; }
+                string id, category, source; bool index = false;
+                if (n.Equals("docs/README.md", StringComparison.OrdinalIgnoreCase)) { id = "readme"; category = ""; source = "README.md"; }
                 else if (n.StartsWith("docs/features/", StringComparison.OrdinalIgnoreCase))
                 {
                     var rel = n.Substring("docs/features/".Length);
                     source = "docs/features/" + rel;
                     rel = rel.Substring(0, rel.Length - 3);
                     var parts = rel.Split('/');
-                    cat = parts[0];
-                    if (parts.Length == 2 && parts[1].Equals("README", StringComparison.OrdinalIgnoreCase)) { id = cat; index = true; }
+                    category = parts[0];
+                    if (parts.Length == 2 && parts[1].Equals("README", StringComparison.OrdinalIgnoreCase)) { id = category; index = true; }
                     else id = rel;
                 }
                 else continue;
 
-                var a = new DocArticle { Id = id, Category = cat, Markdown = md, SourcePath = source, IsIndex = index };
+                var a = new DocArticle { Id = id, Category = category, Markdown = md, SourcePath = source, IsIndex = index };
                 Parse(a);
                 all.Add(a);
             }
             _all = all;
 
-            var cats = new List<DocCategory>();
+            var categories = new List<DocCategory>();
             foreach (var g in all.Where(a => a.Category.Length > 0).GroupBy(a => a.Category).OrderBy(g => CategoryOrder(g.Key)).ThenBy(g => g.Key))
             {
                 var c = new DocCategory { Id = g.Key, Index = g.FirstOrDefault(a => a.IsIndex) };
                 c.Title = c.Index?.Title ?? g.Key;
                 c.Intro = c.Index?.Summary ?? "";
                 c.Articles = g.Where(a => !a.IsIndex).OrderBy(a => a.Title, StringComparer.OrdinalIgnoreCase).ToList();
-                cats.Add(c);
+                categories.Add(c);
             }
-            _cats = cats;
+            _categories = categories;
         }
 
         private static int CategoryOrder(string id)

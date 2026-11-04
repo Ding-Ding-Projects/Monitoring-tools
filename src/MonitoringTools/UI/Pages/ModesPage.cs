@@ -52,11 +52,19 @@ namespace MonitoringTools.UI
 
         private static PasswordBox ModesPin(string name)
         {
+            // A Material 3 filled field with its label above the box, so each PIN box says what it is for.
             var p = new PasswordBox
             {
-                Width = 180, MaxLength = 12, Padding = new Thickness(10, 7, 10, 7), Margin = new Thickness(0, 0, 8, 8), HorizontalAlignment = HorizontalAlignment.Left,
-                Background = Ui.Res("B.Raised"), Foreground = Ui.Res("B.Text"), BorderBrush = Ui.Res("B.LineStrong"), CaretBrush = Ui.Res("B.Text"), FontSize = 14
+                Width = 200, MaxLength = 12, Margin = new Thickness(0, 0, 12, 8), HorizontalAlignment = HorizontalAlignment.Left,
+                Foreground = Ui.Res("B.Text"), CaretBrush = Ui.Res("B.Mint"), FontSize = 15, Tag = name
             };
+            p.Template = (ControlTemplate)System.Windows.Markup.XamlReader.Parse(
+                "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='PasswordBox'>" +
+                "<StackPanel><TextBlock Text='{TemplateBinding Tag}' FontSize='12' Margin='4,0,0,4' Foreground='{DynamicResource B.TextSoft}' FontFamily='{DynamicResource F.Body}'/>" +
+                "<Border x:Name='Bd' Height='44' CornerRadius='12' Background='{DynamicResource B.Sunken}' BorderBrush='Transparent' BorderThickness='2' Padding='12,0'>" +
+                "<ScrollViewer x:Name='PART_ContentHost' VerticalAlignment='Center'/></Border></StackPanel>" +
+                "<ControlTemplate.Triggers><Trigger Property='IsKeyboardFocused' Value='True'><Setter TargetName='Bd' Property='BorderBrush' Value='{DynamicResource B.Mint}'/></Trigger></ControlTemplate.Triggers>" +
+                "</ControlTemplate>");
             AutomationProperties.SetName(p, name);
             return p;
         }
@@ -132,7 +140,9 @@ namespace MonitoringTools.UI
             sp.Children.Add(result);
 
             sp.Children.Add(ModesNote("This is a user-experience lock, not a security boundary. There is no way to recover a forgotten PIN: close the app and delete the shared record below, which turns the mode off and forgets its name and PIN. Anyone with this computer can do the same.", "B.TextMute"));
-            sp.Children.Add(Ui.Mono(Modes.SchoolRecordPath, Ui.Res("B.TextMute"), 11));
+            // Shown with the profile folder as a variable so the user name does not appear on screen.
+            var shownPath = Modes.SchoolRecordPath.Replace(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "%LOCALAPPDATA%");
+            sp.Children.Add(Ui.Mono(shownPath, Ui.Res("B.TextMute"), 11));
             var open = Ui.Button("Open the record's folder", () => ActionProvider.Shell(System.IO.Path.GetDirectoryName(Modes.SchoolRecordPath)));
             open.Margin = new Thickness(0, 8, 8, 0);
             sp.Children.Add(open);

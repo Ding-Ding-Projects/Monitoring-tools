@@ -168,8 +168,8 @@ namespace MonitoringTools.Core
             if (cp == 0xFE0F || cp == 0x200D || cp == 0x20E3) return true;
             if (cp >= 0x1F000) return true;
             if (cp >= 0x2600 && cp <= 0x27BF) return true;
-            var cat = Rune.GetUnicodeCategory(r);
-            return (cp >= 0x2300 && cp <= 0x23FF || cp >= 0x2B00 && cp <= 0x2BFF) && cat == UnicodeCategory.OtherSymbol;
+            var category = Rune.GetUnicodeCategory(r);
+            return (cp >= 0x2300 && cp <= 0x23FF || cp >= 0x2B00 && cp <= 0x2BFF) && category == UnicodeCategory.OtherSymbol;
         }
 
         // ------------------------------------------------------------------ humour headlines

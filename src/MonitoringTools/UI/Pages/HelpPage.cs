@@ -207,7 +207,7 @@ namespace MonitoringTools.UI
             h.Children.Add(grid);
 
             h.Children.Add(HelpSectionTitle("Browse by topic", "Every article, grouped by what it is about."));
-            var cats = new UniformGrid { Columns = 2, Margin = new Thickness(0, 0, -14, 0) };
+            var categories = new UniformGrid { Columns = 2, Margin = new Thickness(0, 0, -14, 0) };
             foreach (var c in Docs.Categories)
             {
                 var sp = new StackPanel();
@@ -225,9 +225,9 @@ namespace MonitoringTools.UI
                 var cid = c.Id;
                 HelpClickable(card, "Topic: " + c.Title, () => HelpOpen(cid, null));
                 SearchScope.SetItem(card, c.Title + " " + c.Intro);
-                cats.Children.Add(card);
+                categories.Children.Add(card);
             }
-            h.Children.Add(cats);
+            h.Children.Add(categories);
 
             var readme = Docs.Find("readme");
             var foot = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 0) };
@@ -287,8 +287,8 @@ namespace MonitoringTools.UI
                 var title = new TextBlock { Style = Ui.Style("T.Title"), FontSize = 15 };
                 HelpHighlight(title, a.Title, HelpRanges(a.Title, st));
                 sp.Children.Add(title);
-                var cat = Docs.CategoryOf(a);
-                var crumb = Ui.Mono(a.IsIndex ? "Topic" : (cat?.Title ?? "Docs"), Ui.Res("B.TextMute"), 11);
+                var category = Docs.CategoryOf(a);
+                var crumb = Ui.Mono(a.IsIndex ? "Topic" : (category?.Title ?? "Docs"), Ui.Res("B.TextMute"), 11);
                 crumb.Margin = new Thickness(0, 2, 0, 6);
                 sp.Children.Add(crumb);
                 var snip = new TextBlock { Style = Ui.Style("T.Body"), FontSize = 12.5 };
@@ -393,14 +393,14 @@ namespace MonitoringTools.UI
         {
             _helpArticle = a;
             var h = _helpHost;
-            var cat = Docs.CategoryOf(a);
+            var category = Docs.CategoryOf(a);
 
             var bar = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 10) };
             bar.Children.Add(Ui.Button("Back", HelpGoBack, "Btn.Ghost", Icons.Restart));
             bar.Children.Add(Ui.Button("All docs", HelpHome, "Btn.Ghost", Icons.Text));
             h.Children.Add(bar);
 
-            var crumb = a.Id == "readme" ? "Project overview" : a.IsIndex ? "Topic" : (cat?.Title ?? "Docs");
+            var crumb = a.Id == "readme" ? "Project overview" : a.IsIndex ? "Topic" : (category?.Title ?? "Docs");
             h.Children.Add(new TextBlock { Text = crumb.ToUpperInvariant(), Style = Ui.Style("T.Eyebrow"), FontSize = 12 });
             h.Children.Add(new TextBlock { Text = a.Title, Style = Ui.Style("T.Title"), FontSize = 28, Margin = new Thickness(0, 4, 0, 14), TextWrapping = TextWrapping.Wrap });
 

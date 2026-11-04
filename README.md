@@ -49,6 +49,28 @@ Create your own `:name` commands in the control centre. Each one is a batch or P
 
 ![Regex builder](docs/screenshots/search-builder-build.png)
 
+**Material 3 design**
+- The whole app uses Material 3 colour roles, Roboto, pill buttons with state layers, filled 24-corner cards, a pill navigation indicator and spring motion. Choose Light, Dark or System and one of five seed colours (Mint, Violet, Amber, Ocean, Rose); text size runs from 90 to 150 %, and Reduce motion turns the movement off.
+
+![Light theme, Violet seed](docs/screenshots/theme-light-violet.png)
+
+**Language and voice**
+- English, Hong Kong Cantonese or both side by side, with separate English and Cantonese humour levels from 1 to 5, an emoji switch for dialogs and an optional narrator that reads toasts aloud with Windows voices.
+
+![Cantonese mode](docs/screenshots/lang-cantonese-overview.png)
+
+**Modes**
+- School mode (renamable, PIN-protected), five ADHD helpers, an occasional dim sum surprise, and scheduled settings that change language, theme, sounds, toasts or game mode by weekday and time, or follow a settings file.
+
+**Records, exports and help**
+- A notification centre, settings history with restore, exports in JSON, CSV, Markdown, HTML and text, a changelog viewer and an offline Help and docs page led by real tasks.
+- Clipboard history has a Select mode for copying, saving or removing several copies at once.
+- Every element has a right-click menu (also Shift+F10) with its own filter, and destructive actions need two keys and a full slide.
+
+![Two-key confirmation](docs/screenshots/super-confirm-armed.png)
+
+What is finished and what is not: [docs/features/required-features.md](docs/features/required-features.md).
+
 **Internet watch**
 - When the connection drops, an always-on-top dialog explains where it broke (adapter, IP address, gateway, DNS, upstream, captive portal) with live details, and stays until the connection returns or you dismiss it.
 - One-press **Release & renew** (`ipconfig /release`, `/renew`, `/flushdns`), DNS flush, sign-in page for captive portals, copyable report.
