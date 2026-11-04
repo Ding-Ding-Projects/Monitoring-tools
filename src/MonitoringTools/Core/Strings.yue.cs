@@ -411,6 +411,24 @@ namespace MonitoringTools.Core
             AddNew("Searches every open tab in this app. There is one window and one strip, shown on each result.", "搜尋呢個程式所有已開分頁。得一個視窗同一個分頁列，每個結果都會顯示。");
             AddNew("Locked", "已鎖"); AddNew("Unlock…", "解鎖…");
             AddNew("This item is locked and will not run until it is unlocked.", "呢個項目已鎖，解鎖之前唔會執行。");
+            // ---- School mode password, Focus spotlight and the Modes page controls
+            AddNew("Focus spotlight", "專注聚光燈"); AddNew("Password to turn off", "關閉用嘅密碼"); AddNew("PIN or password to turn off", "關閉用嘅 PIN 或密碼");
+            AddNew("New password (8 or more characters)", "新密碼（8 個字元或以上）"); AddNew("Repeat password", "重複密碼");
+            AddNew("Choose a way to turn the mode off: a PIN of 4 to 12 digits, a password of at least 8 characters, or both. Either one works later. They are stored only as salted PBKDF2-SHA256 hashes (200,000 rounds).",
+                "請揀一個關閉模式嘅方法：4 至 12 位數字嘅 PIN、至少 8 個字元嘅密碼，或者兩個都設。之後用邊個都得。兩者只會以加鹽 PBKDF2-SHA256 雜湊（200,000 輪）儲存。");
+            AddNew("Off by default. Dims everything except the card under keyboard focus or the mouse, so one thing stands out. Also switched with Ctrl+Shift+Space from any window of this app. It never blocks clicks, and it moves without animation when motion is reduced.",
+                "預設關閉。將鍵盤焦點或者滑鼠所在嘅卡片以外嘅嘢全部調暗，令一樣嘢突出。喺呢個程式任何視窗都可以用 Ctrl+Shift+Space 開關。佢唔會擋住點擊，減少動態效果時亦唔會有動畫。");
+            AddNew("Five independent modes and a Focus spotlight, each off by default. Turn on any mix. They are aids for focus, not medical advice, and they never hide anything you cannot get back with one click.",
+                "五個獨立模式加一個專注聚光燈，預設全部關閉。可以隨意組合。呢啲係幫手專注嘅輔助，並非醫療建議，亦唔會隱藏任何撳一下就攞得返嘅嘢。");
+            AddNew("Mode name", "模式名稱"); AddNew("Rule name", "規則名稱"); AddNew("Start time", "開始時間"); AddNew("End time", "結束時間");
+            AddNew("New PIN", "新 PIN"); AddNew("Repeat PIN", "重複 PIN"); AddNew("PIN to turn off", "關閉用嘅 PIN");
+            AddNew("Turn on", "開啟"); AddNew("Turn off", "關閉"); AddNew("Rename", "重新命名");
+            AddNew("Dialogs", "對話框");
+            AddNew("Headlines are plain while School mode is on. The humour levels are left out until it is off.", "學校模式開咗，標題會用簡單直接嘅講法，幽默程度要等關咗先有。");
+            AddNew("Choose a PIN of 4 to 12 digits or a password of at least 8 characters.", "請設定 4 至 12 位數字嘅 PIN 或者至少 8 個字元嘅密碼。");
+            AddNew("Choose a PIN of 4 to 12 digits.", "請設定 4 至 12 位數字嘅 PIN。"); AddNew("The two PINs do not match.", "兩個 PIN 唔一致。");
+            AddNew("The two passwords do not match.", "兩個密碼唔一致。");
+            AddNew("Choose a password of 8 to 128 characters.", "請設定 8 至 128 個字元嘅密碼。");
             return t;
         }
 
@@ -424,6 +442,12 @@ namespace MonitoringTools.Core
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), fn));
 
+            string Cred(string w) => w == "password" ? "密碼" : w == "PIN" ? "PIN" : "PIN 或密碼";
+            AddFn(@"^Wrong (PIN|password|PIN or password)\. (\d+) tries left before a short wait\.$", m => $"{Cred(m.Groups[1].Value)}唔啱。再錯 {m.Groups[2].Value} 次就要等一陣。");
+            AddFn(@"^Wrong (PIN|password|PIN or password)\. Wait (\d+) seconds before the next try\.$", m => $"{Cred(m.Groups[1].Value)}唔啱。要等 {m.Groups[2].Value} 秒先可以再試。");
+            Add(@"^Too many wrong tries\. Wait (\d+) seconds\.$", "錯咗太多次，請等 $1 秒。"); Add(@"^Locked for another (\d+) seconds\.$", "仲要鎖 $1 秒。");
+            Add(@"^(.+) is on\. The app shows English only, and the language choices, humour levels and personal wording are left out until it is off\.$", "$1 開咗。程式只會顯示英文，語言選擇、幽默程度同個人用語要等關咗先有。");
+            Add(@"^(.+) is on\. Personal wording is left out until it is off\.$", "$1 開咗。個人用語要等關咗先有。");
             Add(@"^The last (\d+) copies, kept in memory only\. Quitting the app forgets them\.$", "最近 $1 次複製，只留喺記憶體。退出程式就會忘記。");
             AddFn(@"^(\d+) text · (\d+) links · (\d+) files · (\d+) media$", m => $"{m.Groups[1].Value} 段文字 · {m.Groups[2].Value} 條連結 · {m.Groups[3].Value} 個檔案 · {m.Groups[4].Value} 個媒體");
             Add(@"^(\d+) m ago$", "$1 分鐘前"); Add(@"^(\d+) h ago$", "$1 個鐘前"); Add(@"^(\d+) s ago$", "$1 秒前");

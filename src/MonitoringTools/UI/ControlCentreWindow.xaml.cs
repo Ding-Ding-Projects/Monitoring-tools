@@ -859,6 +859,14 @@ namespace MonitoringTools.UI
             root.Children.Add(Card(b));
 
             var pw = new StackPanel();
+            if (Modes.Blocks(ModeFeature.PersonalVocabulary))
+            {
+                pw.Children.Add(CardTitle("Personal wording"));
+                pw.Children.Add(new TextBlock { Text = Modes.SchoolName + " is on. Personal wording is left out until it is off.", Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap });
+                root.Children.Add(Card(pw));
+            }
+            else
+            {
             pw.Children.Add(CardTitle("Personal wording", "Optional. A local JSON file that swaps ordinary phrases in on-screen text for your own words. Drop it on any window, or choose it here. It never leaves this computer; paths, commands and code are never changed."));
             pw.Children.Add(new TextBlock
             {
@@ -872,6 +880,7 @@ namespace MonitoringTools.UI
             pw.Children.Add(pwRow);
             pw.Children.Add(Ui.Mono("Format: {schemaVersion: 1, entries: {ordinary phrase: your words}} · up to 256 KiB", Ui.Res("B.TextMute"), 11));
             root.Children.Add(Card(pw));
+            }
 
             var u = new StackPanel();
             u.Children.Add(CardTitle("Uninstall", "Stops the service, removes it from start-up and deletes the program."));

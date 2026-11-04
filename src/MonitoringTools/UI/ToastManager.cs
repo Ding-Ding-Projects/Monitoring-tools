@@ -310,7 +310,7 @@ namespace MonitoringTools.UI
         {
             var w = new ToastWindow();
             w.SetAccent(accent, accent);
-            w.SetHeader(icon, title, "");
+            w.SetHeader(icon, Core.Language.NoticeTitle(title), "");
             w.SetBody(Ui.Text(body));
             if (actions != null) { w.SetActions(actions); w.ExpandNow(); }
             w.StartTimer(seconds);
@@ -324,7 +324,7 @@ namespace MonitoringTools.UI
         {
             var w = new ToastWindow();
             w.SetAccent(Ui.C("C.Violet"), Ui.C("C.VioletWash"));
-            w.SetHeader(Icons.Globe, "Public IP changed", current.Org ?? "");
+            w.SetHeader(Icons.Globe, Core.Language.Headline("ip.changed", current.Ip), current.Org ?? "");
             var body = new StackPanel();
             var row = new WrapPanel();
             row.Children.Add(new TextBlock { Text = previous.Ip, FontFamily = Ui.Font("F.Mono"), FontSize = 15, Foreground = Ui.Res("B.TextMute"), TextDecorations = TextDecorations.Strikethrough, VerticalAlignment = VerticalAlignment.Center });
@@ -357,7 +357,7 @@ namespace MonitoringTools.UI
 
             var w = new ToastWindow();
             w.SetAccent(Mint, Ui.C("C.MintWash"));
-            w.SetHeader(Icons.Bolt, $"Converting to {job.Format.Label}", "starting");
+            w.SetHeader(Icons.Bolt, Core.Language.Headline("convert.start", job.Format.Label), "starting");
             w.SetWhen("");
 
             var body = new StackPanel();
@@ -391,7 +391,7 @@ namespace MonitoringTools.UI
                 if (job.Failed)
                 {
                     w.SetAccent(Amber, Ui.C("C.AmberWash"));
-                    w.SetHeader(Icons.Bolt, job.Error == "Cancelled" ? "Conversion cancelled" : "Conversion failed", Path.GetFileName(job.Source));
+                    w.SetHeader(Icons.Bolt, job.Error == "Cancelled" ? Core.Language.Headline("convert.cancelled") : Core.Language.Headline("convert.failed", job.Format.Label), Path.GetFileName(job.Source));
                     w.SetBody(Ui.Text(job.Error == "Cancelled" ? "Nothing was written." : ActionProvider.Tail(job.Error, 3)));
                     w.SetActions(new List<ToastAction>
                     {
@@ -402,7 +402,7 @@ namespace MonitoringTools.UI
                     return;
                 }
                 fill.BeginAnimation(FrameworkElement.WidthProperty, new DoubleAnimation(track.ActualWidth, TimeSpan.FromMilliseconds(260)));
-                w.SetHeader(Icons.Check, $"Saved as {job.Format.Label}", $"{Ui.Bytes(job.SourceBytes)} → {Ui.Bytes(job.OutputBytes)}");
+                w.SetHeader(Icons.Check, Core.Language.Headline("convert.done", job.Format.Label), $"{Ui.Bytes(job.SourceBytes)} → {Ui.Bytes(job.OutputBytes)}");
                 var done = Ui.Mono(job.Output, Ui.Res("B.TextSoft"));
                 w.SetBody(done);
                 ToastWindow.EnableDrag(done, () => FileDrop(new[] { job.Output }));
@@ -424,7 +424,7 @@ namespace MonitoringTools.UI
             w.SetAccent(Amber, Ui.C("C.AmberWash"));
             // Release builds carry FFmpeg inside; this only shows for a build without the bundle,
             // and it says exactly where it looked so a dead bundle is obvious.
-            w.SetHeader(Icons.Bolt, "FFmpeg is missing from this build", "");
+            w.SetHeader(Icons.Bolt, Core.Language.Headline("ffmpeg.missing"), "");
             var searched = string.Join("\n", Converter.FfmpegSearched.Take(6)) + (Converter.FfmpegSearched.Count > 6 ? $"\n+{Converter.FfmpegSearched.Count - 6} more places" : "");
             var body = new StackPanel();
             body.Children.Add(Ui.Text("This copy does not carry its bundled FFmpeg. It can fetch it now and then run this job."));
@@ -453,10 +453,14 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- generic background task toast
 
-        public void ShowTask(string title, string subtitle, Func<Task<(bool Ok, string Summary, string Detail)>> work)
-            => ShowTask(title, subtitle, _ => work());
+        public void ShowTask(string title, string subtitle, Func<Task<(bool Ok, string Summary, string Detail)>> work, Func<bool, string, string> headline = null)
+            => ShowTask(title, subtitle, _ => work(), headline);
 
-        public void ShowTask(string title, string subtitle, Func<Action<string>, Task<(bool Ok, string Summary, string Detail)>> work)
+        /// <summary>
+        /// Runs a background task under one toast. <paramref name="headline"/> turns the outcome (success, summary) into the
+        /// finished toast's headline; without it the generic task headline is used. Either way the summary's facts stay in the text.
+        /// </summary>
+        public void ShowTask(string title, string subtitle, Func<Action<string>, Task<(bool Ok, string Summary, string Detail)>> work, Func<bool, string, string> headline = null)
         {
             if (App.ShouldSuppress)
             {
@@ -486,7 +490,8 @@ namespace MonitoringTools.UI
                 Activity.Add(title.StartsWith(":") ? ActivityKind.Shortcut : title.StartsWith("Commit") ? ActivityKind.Push : title.StartsWith("docker") ? ActivityKind.Docker : ActivityKind.Service,
                     $"{title} · {r.Summary}", ActionProvider.Tail(r.Detail, 1), r.Ok);
                 if (!r.Ok) w.SetAccent(Amber, Ui.C("C.AmberWash"));
-                w.SetHeader(r.Ok ? Icons.Check : Icons.Bolt, r.Summary, subtitle);
+                var head = headline != null ? headline(r.Ok, r.Summary) : Core.Language.Headline(r.Ok ? "task.done" : "task.failed", r.Summary);
+                w.SetHeader(r.Ok ? Icons.Check : Icons.Bolt, head, headline != null ? r.Summary : subtitle);
                 var body = Ui.Mono(string.IsNullOrWhiteSpace(r.Detail) ? (r.Ok ? "Finished." : "No output.") : ActionProvider.Tail(r.Detail, 6), Ui.Res("B.TextSoft"));
                 body.MaxHeight = 120;
                 w.SetBody(body);
@@ -508,21 +513,24 @@ namespace MonitoringTools.UI
                 return;
             }
             var root = GitPush.FindRepoRoot(path);
-            ShowTask("Commit and push", root == null ? path : Path.GetFileName(root), async () =>
+            var repoName = root == null ? path : Path.GetFileName(root);
+            ShowTask("Commit and push", repoName, async () =>
             {
                 var r = await GitPush.RunAsync(path, null);
                 var detail = r.Message != null ? $"\"{r.Message}\"\n{r.Detail}" : r.Detail;
                 return (r.Ok, r.Summary, detail);
-            });
+            }, (ok, summary) => Core.Language.Headline(ok ? "push.done" : "push.failed", repoName));
         }
 
         public void RunShortcut(Shortcut s, string input)
         {
+            string took = "0.0"; int exitCode = 0;
             ShowTask(":" + s.Name, string.IsNullOrEmpty(input) ? s.Shell.ToString() : Path.GetFileName(input.TrimEnd('\\')), async () =>
             {
                 var r = await Shortcuts.RunAsync(s, input);
-                return (r.ExitCode == 0, r.ExitCode == 0 ? $":{s.Name} finished in {r.Took.TotalSeconds:0.0} s" : $":{s.Name} exited with {r.ExitCode}", r.Output);
-            });
+                took = r.Took.TotalSeconds.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture); exitCode = r.ExitCode;
+                return (r.ExitCode == 0, r.ExitCode == 0 ? $":{s.Name} finished in {took} s" : $":{s.Name} exited with {r.ExitCode}", r.Output);
+            }, (ok, summary) => ok ? Core.Language.Headline("shortcut.done", ":" + s.Name, took) : Core.Language.Headline("shortcut.failed", ":" + s.Name, exitCode.ToString(System.Globalization.CultureInfo.InvariantCulture)));
         }
     }
 

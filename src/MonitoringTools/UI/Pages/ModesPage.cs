@@ -6,6 +6,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using MonitoringTools.Core;
+using Lang = MonitoringTools.Core.Language;
 using MonitoringTools.UI.Search;
 
 namespace MonitoringTools.UI
@@ -39,6 +40,7 @@ namespace MonitoringTools.UI
             {
                 if (!root.IsLoaded) return;
                 if (Snapshot() != shape) { Navigate("modes", animate: false); return; }
+                if (_spotlightSwitch != null && _spotlightSwitch.IsChecked != Settings.Current.AdhdSpotlight) _spotlightSwitch.IsChecked = Settings.Current.AdhdSpotlight;
                 PaintExternal();
                 foreach (var r in refreshRules) r();
             };
@@ -50,12 +52,12 @@ namespace MonitoringTools.UI
         private static TextBlock ModesNote(string text, string brush = "B.TextMute", double size = 12)
             => new TextBlock { Text = text, Style = Ui.Style("T.Body"), FontSize = size, Foreground = Ui.Res(brush), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 8) };
 
-        private static PasswordBox ModesPin(string name)
+        private static PasswordBox ModesPin(string name, int maxLength = 12)
         {
-            // A Material 3 filled field with its label above the box, so each PIN box says what it is for.
+            // A Material 3 filled field with its label above the box, so each PIN or password box says what it is for.
             var p = new PasswordBox
             {
-                Width = 200, MaxLength = 12, Margin = new Thickness(0, 0, 12, 8), HorizontalAlignment = HorizontalAlignment.Left,
+                Width = 200, MaxLength = maxLength, Margin = new Thickness(0, 0, 12, 8), HorizontalAlignment = HorizontalAlignment.Left,
                 Foreground = Ui.Res("B.Text"), CaretBrush = Ui.Res("B.Mint"), FontSize = 15, Tag = name
             };
             p.Template = (ControlTemplate)System.Windows.Markup.XamlReader.Parse(
@@ -75,17 +77,18 @@ namespace MonitoringTools.UI
         {
             string n = Modes.SchoolName;
             var sp = new StackPanel();
-            sp.Children.Add(CardTitle(n, "A shared switch. While it is on: game mode stays on and cannot be switched off, sounds are muted, quick commands that push to git are paused, and the app shows English only, with Cantonese, bilingual, humour levels, personal wording and the dim sum surprise left out entirely. Starts off."));
+            sp.Children.Add(CardTitle(n, "A shared switch. While it is on: game mode stays on and cannot be switched off, sounds are muted, quick commands that push to git are paused, and the app shows English only, with Cantonese, bilingual, humour levels, personal wording and the dim sum surprise left out entirely. It is turned off with the PIN or the password you set. Starts off."));
 
             if (Modes.SchoolRecordError != null)
             {
                 sp.Children.Add(ModesNote(Modes.SchoolRecordError, "B.Amber"));
                 sp.Children.Add(Ui.Button("Reset the shared record", () => { Modes.ResetSchoolRecord(); Navigate("modes", animate: false); }, "Btn.Alert"));
-                sp.Children.Add(ModesNote("Resetting deletes the record, which turns the mode off and forgets the name and PIN."));
+                sp.Children.Add(ModesNote("Resetting deletes the record, which turns the mode off and forgets the name, PIN and password."));
             }
             if (Modes.SchoolWatchError != null) sp.Children.Add(ModesNote(Modes.SchoolWatchError, "B.Amber"));
 
             var result = ModesNote("");
+            void Say(string text) { result.Text = text; result.Foreground = Ui.Res("B.Amber"); Lang.Refresh(result); }
             bool on = Modes.SchoolActive;
             sp.Children.Add(new TextBlock { Text = on ? "Status: on" : "Status: off", Foreground = Ui.Res(on ? "B.Mint" : "B.TextSoft"), FontFamily = Ui.Font("F.Body"), FontSize = 14, Margin = new Thickness(0, 0, 0, 8) });
 
@@ -97,7 +100,7 @@ namespace MonitoringTools.UI
             nameRow.Children.Add(Ui.Button("Rename", () =>
             {
                 if (Modes.RenameSchool(nameBox.Text, out var err)) Navigate("modes", animate: false);
-                else { result.Text = err; result.Foreground = Ui.Res("B.Amber"); }
+                else Say(err);
             }));
             sp.Children.Add(nameRow);
             sp.Children.Add(ModesNote("Rename it to anything up to 60 characters. After a rename only the new name appears in this app."));
@@ -106,30 +109,39 @@ namespace MonitoringTools.UI
             {
                 if (!on)
                 {
-                    PasswordBox pin = null, again = null;
+                    PasswordBox pin = null, again = null, pw = null, pwAgain = null;
+                    if (!Modes.CredentialIsSet)
+                        sp.Children.Add(ModesNote("Choose a way to turn the mode off: a PIN of 4 to 12 digits, a password of at least 8 characters, or both. Either one works later. They are stored only as salted PBKDF2-SHA256 hashes (200,000 rounds)."));
                     if (!Modes.PinIsSet)
                     {
-                        sp.Children.Add(ModesNote("Set a PIN of 4 to 12 digits. You will need it to turn the mode off. It is stored only as a salted PBKDF2-SHA256 hash (200,000 rounds)."));
                         var row = new StackPanel { Orientation = Orientation.Horizontal };
                         pin = ModesPin("New PIN"); again = ModesPin("Repeat PIN");
                         row.Children.Add(pin); row.Children.Add(again);
                         sp.Children.Add(row);
                     }
+                    if (!Modes.PasswordIsSet)
+                    {
+                        var row = new StackPanel { Orientation = Orientation.Horizontal };
+                        pw = ModesPin("New password (8 or more characters)", Modes.PasswordMaxLength); pwAgain = ModesPin("Repeat password", Modes.PasswordMaxLength);
+                        row.Children.Add(pw); row.Children.Add(pwAgain);
+                        sp.Children.Add(row);
+                    }
                     sp.Children.Add(Ui.Button("Turn on", () =>
                     {
-                        if (Modes.EnableSchool(pin?.Password, again?.Password, out var err)) Navigate("modes", animate: false);
-                        else { result.Text = err; result.Foreground = Ui.Res("B.Amber"); }
+                        if (Modes.EnableSchool(pin?.Password, again?.Password, pw?.Password, pwAgain?.Password, out var err)) Navigate("modes", animate: false);
+                        else Say(err);
                     }, "Btn.Accent", Icons.Shield));
                 }
                 else
                 {
-                    var pin = ModesPin("PIN to turn off");
+                    var word = Modes.CredentialWord;
+                    var secret = ModesPin(word == "PIN" ? "PIN to turn off" : word == "password" ? "Password to turn off" : "PIN or password to turn off", Modes.PasswordMaxLength);
                     var row = new StackPanel { Orientation = Orientation.Horizontal };
-                    row.Children.Add(pin);
+                    row.Children.Add(secret);
                     var off = Ui.Button("Turn off", () =>
                     {
-                        if (Modes.DisableSchool(pin.Password, out var err)) Navigate("modes", animate: false);
-                        else { pin.Clear(); result.Text = err; result.Foreground = Ui.Res("B.Amber"); }
+                        if (Modes.DisableSchool(secret.Password, out var err)) Navigate("modes", animate: false);
+                        else { secret.Clear(); Say(err); }
                     }, "Btn.Alert");
                     row.Children.Add(off);
                     sp.Children.Add(row);
@@ -139,7 +151,7 @@ namespace MonitoringTools.UI
             }
             sp.Children.Add(result);
 
-            sp.Children.Add(ModesNote("This is a user-experience lock, not a security boundary. There is no way to recover a forgotten PIN: close the app and delete the shared record below, which turns the mode off and forgets its name and PIN. Anyone with this computer can do the same.", "B.TextMute"));
+            sp.Children.Add(ModesNote("This is a user-experience lock, not a security boundary. There is no way to recover a forgotten PIN or password: close the app and delete the shared record below, which turns the mode off and forgets its name, PIN and password. Anyone with this computer can do the same.", "B.TextMute"));
             // Shown with the profile folder as a variable so the user name does not appear on screen.
             var shownPath = Modes.SchoolRecordPath.Replace(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "%LOCALAPPDATA%");
             sp.Children.Add(Ui.Mono(shownPath, Ui.Res("B.TextMute"), 11));
@@ -151,11 +163,13 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- ADHD modes
 
+        private CheckBox _spotlightSwitch;
+
         private FrameworkElement ModesAdhdCard()
         {
             var s = Settings.Current;
             var sp = new StackPanel();
-            sp.Children.Add(CardTitle("ADHD modes", "Five independent modes, each off by default. Turn on any mix. They are aids for focus, not medical advice, and they never hide anything you cannot get back with one click."));
+            sp.Children.Add(CardTitle("ADHD modes", "Five independent modes and a Focus spotlight, each off by default. Turn on any mix. They are aids for focus, not medical advice, and they never hide anything you cannot get back with one click."));
             sp.Children.Add(Switch("Focus", "Off by default. Messages that are not urgent (a copied item, an address change) go quietly to History instead of popping up. Failures and lost connections still show.",
                 s.AdhdFocus, v => { s.AdhdFocus = v; Modes.NotifyChanged(); }, "B.Violet"));
             sp.Children.Add(Switch("Low stimulation", "Off by default. No fade or slide motion, and only warnings and failures make a sound. It adds to Windows' own animation setting and never overrides it. Windows animation is currently " + (SystemParameters.ClientAreaAnimation ? "on." : "off, so this app already moves less."),
@@ -168,6 +182,9 @@ namespace MonitoringTools.UI
                 s.AdhdOneThing, v => { s.AdhdOneThing = v; Modes.NotifyChanged(); }, "B.Violet"));
             sp.Children.Add(Switch("Momentum", "Off by default. This window reopens on the page you were last using, so you can pick up where you stopped.",
                 s.AdhdMomentum, v => { s.AdhdMomentum = v; Modes.NotifyChanged(); }, "B.Violet"));
+            _spotlightSwitch = (CheckBox)Switch("Focus spotlight", "Off by default. Dims everything except the card under keyboard focus or the mouse, so one thing stands out. Also switched with Ctrl+Shift+Space from any window of this app. It never blocks clicks, and it moves without animation when motion is reduced.",
+                s.AdhdSpotlight, v => FocusSpotlight.Set(v), "B.Violet");
+            sp.Children.Add(_spotlightSwitch);
             sp.Children.Add(ModesNote($"While {Modes.SchoolName} is on, these modes stay as you set them. {Modes.SchoolName} only adds its own limits on top."));
             return Card(sp);
         }

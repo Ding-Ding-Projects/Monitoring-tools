@@ -17,6 +17,8 @@ namespace MonitoringTools.Core
         public bool AdhdTimeAwareness { get; set; } = false;
         public bool AdhdOneThing { get; set; } = false;
         public bool AdhdMomentum { get; set; } = false;
+        /// <summary>Focus spotlight: dim everything except the card under keyboard focus or the mouse. Default off.</summary>
+        public bool AdhdSpotlight { get; set; } = false;
         public int TimeReminderMinutes { get; set; } = 30;
         public string LastPage { get; set; } = "";
 

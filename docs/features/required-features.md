@@ -8,16 +8,16 @@ The maintainer's shared app requirements, checked against this app on 2026-11-04
 
 | Feature | Status | Evidence and gaps |
 | --- | --- | --- |
-| Language modes (English, Hong Kong Cantonese, bilingual) | partial | Language and voice page; about 580 table entries and 60 patterns; captures `lang-cantonese-*`, `lang-bilingual-*`. Gaps: wording not reviewed by a native speaker; text set after a window loads needs `Language.Refresh`; accessible names are not translated. |
-| Independent English and Cantonese humour levels (1 to 5) | partial | Sliders on the Language page; 14 headline keys with five variants each. Gap: not every toast call site uses the headline keys yet. |
+| Language modes (English, Hong Kong Cantonese, bilingual) | partial | Language and voice page; about 580 table entries and 60 patterns; captures `lang-cantonese-*`, `lang-bilingual-*`. Accessible names and help text are translated and restored like visible text. Gaps: wording not reviewed by a native speaker; a text block changed after it has loaded needs `Language.Refresh`. |
+| Independent English and Cantonese humour levels (1 to 5) | partial | Sliders on the Language page; about 45 headline keys with five variants each; every headline in the toast manager, the offline dialog and the app start-up path uses them, and the notice titles follow. Gap: the welcome, game mode, snooze, empty history, no results and update available keys still have no call site outside these files. |
 | Emoji in dialogs switch | done | Language page; toast titles go through `Language.Title`. |
 | Personal wording file (upload and drop) | done | Service page and drop on any window (existing). |
-| School mode | partial | Modes page: renamable, PIN with PBKDF2-SHA256, back-off, shared record. Gaps: PIN only (no passkey or password), Cantonese and humour controls are not hidden yet while it is on. |
+| School mode | partial | Modes page: renamable, PIN with PBKDF2-SHA256, back-off, shared record. PIN or password (separate PBKDF2 hashes, 8 or more characters), the Language page hides the language choices, humour sliders and personal wording while it is on, and English is forced. Gap: no passkey. |
 | Narrator | partial | Windows voices, separate English and Cantonese pickers, queue, test button. Gap: not exercised with real voices on this machine. |
 | Action sound effects | done | Existing; now governed by Modes. |
 | Scheduled and external settings | partial | Weekday and time rules, external JSON file with validation and watching. Gaps: no date ranges, no in-place rule editing. |
 | App rename | done | Appearance → display name drives the drawer title. |
-| ADHD modes | partial | Five switches and reminders. Gap: Focus spotlight and palette entries. |
+| ADHD modes | partial | Five switches and reminders, a Focus spotlight (Modes page and Ctrl+Shift+Space) and palette entries for every switch. Gap: the spotlight has not been exercised in a running build by its author. |
 | Dim sum surprise | partial | Modes page; reads the public photo catalogue, with an honest unavailable state. Gap: not exercised against the live catalogue. |
 
 ## Material 3, appearance and layout

@@ -37,6 +37,7 @@ namespace MonitoringTools.Core
             Settings.Changed += RestartReminder;
             RestartReminder();
             ScheduleDimSumDraw();
+            UI.FocusSpotlight.Install();
         }
 
         // ------------------------------------------------------------ ADHD flags
@@ -94,6 +95,10 @@ namespace MonitoringTools.Core
             public string Salt { get; set; } = "";
             public string Hash { get; set; } = "";
             public int Iterations { get; set; } = Pbkdf2Iterations;
+            // Optional password, kept apart from the PIN so apps that only know PINs keep reading the record.
+            public string PasswordSalt { get; set; } = "";
+            public string PasswordHash { get; set; } = "";
+            public int PasswordIterations { get; set; } = Pbkdf2Iterations;
         }
 
         private const int Pbkdf2Iterations = 200_000;
@@ -109,9 +114,18 @@ namespace MonitoringTools.Core
         /// <summary>Null when the record is readable (or absent); otherwise why it could not be read.</summary>
         public static string SchoolRecordError { get; private set; }
 
-        public static bool SchoolActive => _school.On && SchoolRecordError == null;
+        public static bool SchoolActive => (_school.On || _testSchool) && SchoolRecordError == null;
+
+        // Lets the self-test switch the mode on in memory without touching the shared record on disk.
+        private static bool _testSchool;
+        internal static void ForceSchoolForTest(bool on) { _testSchool = on; NotifyChanged(); }
         public static string SchoolName => string.IsNullOrWhiteSpace(_school.Name) ? DefaultSchoolName : _school.Name;
         public static bool PinIsSet => !string.IsNullOrEmpty(_school.Hash);
+        public static bool PasswordIsSet => !string.IsNullOrEmpty(_school.PasswordHash);
+        /// <summary>True once at least one way to turn the mode off exists.</summary>
+        public static bool CredentialIsSet => PinIsSet || PasswordIsSet;
+        /// <summary>The word used in messages: PIN, password, or both.</summary>
+        public static string CredentialWord => PinIsSet && PasswordIsSet ? "PIN or password" : PasswordIsSet ? "password" : "PIN";
 
         /// <summary>Features School mode removes. See <see cref="ModeFeature"/> for the names.</summary>
         public static bool Blocks(string feature)
@@ -202,21 +216,59 @@ namespace MonitoringTools.Core
             return true;
         }
 
-        /// <summary>Turn the mode on. The first time, a PIN is required and stored as a salted PBKDF2 hash.</summary>
+        public const int PasswordMinLength = 8, PasswordMaxLength = 128;
+        public static bool PasswordLooksValid(string password)
+            => password != null && password.Length >= PasswordMinLength && password.Length <= PasswordMaxLength;
+
+        /// <summary>Salted PBKDF2-SHA256 hash of a PIN or password, as base64 text.</summary>
+        internal static (string Salt, string Hash, int Iterations) MakeCredential(string secret)
+        {
+            var salt = RandomNumberGenerator.GetBytes(16);
+            return (Convert.ToBase64String(salt), Convert.ToBase64String(Derive(secret, salt, Pbkdf2Iterations)), Pbkdf2Iterations);
+        }
+
+        internal static bool MatchesCredential(string secret, string saltB64, string hashB64, int iterations)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(hashB64) || string.IsNullOrEmpty(saltB64)) return false;
+                var h = Derive(secret, Convert.FromBase64String(saltB64), Math.Clamp(iterations, 1000, 5_000_000));
+                return CryptographicOperations.FixedTimeEquals(h, Convert.FromBase64String(hashB64));
+            }
+            catch { return false; }
+        }
+
+        /// <summary>Turn the mode on with a PIN. See the longer overload for a password.</summary>
         public static bool EnableSchool(string pin, string confirm, out string error)
+            => EnableSchool(pin, confirm, null, null, out error);
+
+        /// <summary>
+        /// Turn the mode on. At least one way to turn it off must exist: a PIN of 4 to 12 digits, a password of at least
+        /// 8 characters, or both. Each is stored as its own salted PBKDF2-SHA256 hash. A credential that is already set is
+        /// left as it is.
+        /// </summary>
+        public static bool EnableSchool(string pin, string confirm, string password, string passwordConfirm, out string error)
         {
             error = null;
             try
             {
-                if (!PinIsSet)
+                (string Salt, string Hash, int Iterations)? newPin = null, newPassword = null;
+                if (!PinIsSet && !string.IsNullOrEmpty(pin + confirm))
                 {
                     if (!PinLooksValid(pin)) { error = "Choose a PIN of 4 to 12 digits."; return false; }
                     if (pin != confirm) { error = "The two PINs do not match."; return false; }
-                    var salt = RandomNumberGenerator.GetBytes(16);
-                    _school.Salt = Convert.ToBase64String(salt);
-                    _school.Iterations = Pbkdf2Iterations;
-                    _school.Hash = Convert.ToBase64String(Derive(pin, salt, Pbkdf2Iterations));
+                    newPin = MakeCredential(pin);
                 }
+                if (!PasswordIsSet && !string.IsNullOrEmpty(password + passwordConfirm))
+                {
+                    if (!PasswordLooksValid(password)) { error = $"Choose a password of {PasswordMinLength} to {PasswordMaxLength} characters."; return false; }
+                    if (password != passwordConfirm) { error = "The two passwords do not match."; return false; }
+                    newPassword = MakeCredential(password);
+                }
+                if (!CredentialIsSet && newPin == null && newPassword == null)
+                { error = "Choose a PIN of 4 to 12 digits or a password of at least 8 characters."; return false; }
+                if (newPin is { } np) { _school.Salt = np.Salt; _school.Hash = np.Hash; _school.Iterations = np.Iterations; }
+                if (newPassword is { } pw) { _school.PasswordSalt = pw.Salt; _school.PasswordHash = pw.Hash; _school.PasswordIterations = pw.Iterations; }
                 _school.On = true;
                 WriteSchool();
                 NotifyChanged();
@@ -235,8 +287,8 @@ namespace MonitoringTools.Core
             }
         }
 
-        /// <summary>Turn the mode off. Needs the PIN; five wrong tries start a growing wait, never a permanent lock.</summary>
-        public static bool DisableSchool(string pin, out string error)
+        /// <summary>Turn the mode off. Needs the PIN or the password; five wrong tries start a growing wait, never a permanent lock.</summary>
+        public static bool DisableSchool(string secret, out string error)
         {
             error = null;
             var s = Settings.Current;
@@ -244,22 +296,19 @@ namespace MonitoringTools.Core
             try
             {
                 bool ok = false;
-                if (PinLooksValid(pin) && PinIsSet)
-                {
-                    var salt = Convert.FromBase64String(_school.Salt);
-                    var h = Derive(pin, salt, Math.Clamp(_school.Iterations, 1000, 5_000_000));
-                    ok = CryptographicOperations.FixedTimeEquals(h, Convert.FromBase64String(_school.Hash));
-                }
+                if (PinIsSet && PinLooksValid(secret)) ok = MatchesCredential(secret, _school.Salt, _school.Hash, _school.Iterations);
+                if (!ok && PasswordIsSet && PasswordLooksValid(secret)) ok = MatchesCredential(secret, _school.PasswordSalt, _school.PasswordHash, _school.PasswordIterations);
                 if (!ok)
                 {
+                    var what = CredentialWord;
                     s.SchoolFailures++;
                     if (s.SchoolFailures >= 5)
                     {
                         var wait = Math.Min(900, 30 * Math.Pow(2, Math.Min(10, s.SchoolFailures - 5)));
                         s.SchoolLockUntilUtc = DateTime.UtcNow.AddSeconds(wait);
-                        error = $"Wrong PIN. Wait {(int)wait} seconds before the next try.";
+                        error = $"Wrong {what}. Wait {(int)wait} seconds before the next try.";
                     }
-                    else error = $"Wrong PIN. {5 - s.SchoolFailures} tries left before a short wait.";
+                    else error = $"Wrong {what}. {5 - s.SchoolFailures} tries left before a short wait.";
                     Settings.Save();
                     return false;
                 }

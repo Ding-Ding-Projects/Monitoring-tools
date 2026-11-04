@@ -37,7 +37,7 @@ namespace MonitoringTools.UI
         public void Update(NetworkState s)
         {
             _state = s;
-            Headline.Text = s.Headline ?? "Internet connection lost";
+            Headline.Text = Core.Language.NetHeadline(s.Headline ?? "Internet connection lost");
             Explain.Text = s.Explanation ?? "";
             BadgeIcon.Content = Ui.Icon(s.Cause == Cause.CaptivePortal ? Icons.Globe : Icons.WifiOff, Ui.Res("B.Amber"), 24);
 
@@ -219,7 +219,7 @@ namespace MonitoringTools.UI
             Ui.ColorTo(BadgeBrush, Ui.C("C.MintWash"), 400);
             BadgeIcon.Content = Ui.Icon(Icons.Check, Ui.Res("B.Mint"), 24, 3);
             Ui.Rise((FrameworkElement)BadgeIcon, 0, 6);
-            Headline.Text = "Back online";
+            Headline.Text = Core.Language.Headline("online.title");
             var took = s.DownSince.HasValue ? DateTime.Now - s.DownSince.Value : TimeSpan.Zero;
             Explain.Text = took > TimeSpan.Zero ? $"Offline for {(int)took.TotalMinutes} m {took.Seconds:00} s." : "The connection is back.";
             Ui.Fade(Body, 0, 200, 0, () =>
