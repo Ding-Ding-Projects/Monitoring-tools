@@ -8,17 +8,18 @@
         <Grid.RenderTransform>
             <ScaleTransform x:Name="RootScale"/>
         </Grid.RenderTransform>
-        <Border CornerRadius="20" Background="{StaticResource B.Surface}" BorderThickness="1" Effect="{StaticResource Fx.Shadow}" Padding="24,22,24,20">
+        <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderThickness="1" Effect="{StaticResource Fx.Shadow}" Padding="24,22,24,20">
             <Border.BorderBrush>
                 <SolidColorBrush x:Name="Edge" Color="{StaticResource C.Line}"/>
             </Border.BorderBrush>
-            <StackPanel>
+            <StackPanel x:Name="Body">
                 <ContentControl x:Name="IconHost" HorizontalAlignment="Left" Margin="0,0,0,14"/>
                 <TextBlock x:Name="TitleText" Style="{StaticResource T.Title}" FontSize="20"/>
                 <TextBlock x:Name="BodyText" Style="{StaticResource T.Body}" Margin="0,8,0,0" LineHeight="20"/>
                 <CheckBox x:Name="Extra" Style="{StaticResource Switch}" Margin="0,16,0,0"/>
+                <StackPanel x:Name="Gate" Visibility="Collapsed" Margin="0,18,0,0"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                    <Button Content="Keep it" Style="{StaticResource Btn.Ghost}" Margin="0,0,8,0" Click="OnCancel" IsCancel="True"/>
+                    <Button x:Name="CancelBtn" Content="Keep it" Style="{StaticResource Btn.Ghost}" Margin="0,0,8,0" Click="OnCancel" IsCancel="True"/>
                     <Button x:Name="OkBtn" Style="{StaticResource Btn.Danger}" Click="OnOk"/>
                 </StackPanel>
             </StackPanel>
