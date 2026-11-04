@@ -53,7 +53,8 @@ namespace MonitoringTools.UI
                 AutomationProperties.SetName(tray, "Tray icon preview");
                 preview.Children.Add(tray);
 
-                host.Content = Choice("Glyph", LogoKit.Glyphs.Select(g => (g.Label, g.Id)).ToArray(), LogoKit.HasCustomImage ? "" : LogoKit.GlyphId, v => { var e = LogoKit.SetGlyph(v); Say(e ?? "Glyph changed. A custom image, if any, was removed.", e != null); Paint(); });
+                host.Content = Choice("Glyph", LogoKit.Glyphs.Select(g => (g.Label, g.Id)).ToArray(), LogoKit.HasCustomImage ? "" : LogoKit.GlyphId, v => { var e = LogoKit.SetGlyph(v); Say(e ?? "Glyph changed. A custom image, if any, was removed.", e != null); Paint(); },
+                    sub: "The symbol drawn in the drawer header and the tray icon. Choosing one replaces a custom image. Default: the pulse line.");
             }
             sp.Children.Add(preview);
             sp.Children.Add(host);
