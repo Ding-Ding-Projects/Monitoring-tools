@@ -183,11 +183,16 @@ namespace MonitoringTools.UI
             var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = value, Tag = Ui.Res(accent), Margin = new Thickness(0, Appearance.Gap(4), 0, Appearance.Gap(10)) };
             var text = new StackPanel();
             text.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
-            if (sub != null) text.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) });
+            if (sub != null) text.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
             // The label, an info button explaining the setting and its default, then the text; the button sits inside the switch's content so the row stays one search item.
-            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            // A grid, so the description wraps inside the space left of the switch instead of running under it (Cantonese and bilingual text is longer).
+            var row = new Grid();
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             row.Children.Add(text);
-            row.Children.Add(InfoIcon.ForSwitch(label, sub, () => cb.IsChecked == true));
+            var info = InfoIcon.ForSwitch(label, sub, () => cb.IsChecked == true);
+            Grid.SetColumn(info, 1);
+            row.Children.Add(info);
             cb.Content = row;
             SearchScope.SetItem(cb, (value ? "on " : "off ") + "setting switch");
             cb.Checked += (s, e) => { set(true); Settings.Save(); App.Tray.Refresh(); };
@@ -195,7 +200,7 @@ namespace MonitoringTools.UI
             return cb;
         }
 
-        private static FrameworkElement Choice<T>(string label, IEnumerable<(string Label, T Value)> options, T current, Action<T> set, string sub = null)
+        private static FrameworkElement Choice<T>(string label, IEnumerable<(string Label, T Value)> options, T current, Action<T> set, string sub = null, bool literalOptions = false)
         {
             var sp = new StackPanel { Margin = new Thickness(0, Appearance.Gap(4), 0, Appearance.Gap(10)) };
             var opts = options.ToList();
@@ -209,6 +214,7 @@ namespace MonitoringTools.UI
                 sp.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8) });
             }
             var wrap = new WrapPanel();
+            if (literalOptions) Core.Language.SetLiteral(wrap, true);   // the options are names (accounts, owners) that are not translated
             var buttons = new List<(Button B, T V)>();
             void Paint()
             {
@@ -258,7 +264,7 @@ namespace MonitoringTools.UI
         {
             var net = App.Net.Current;
             bool online = net == null || net.Online;
-            var root = PageRoot("Overview", online ? (App.ShouldSuppress ? "Quiet while you play" : "Everything is quiet") : (net.Headline ?? "Offline"));
+            var root = PageRoot("Overview", online ? (App.ShouldSuppress ? (App.Games.IsGaming ? Core.Language.Headline("game.mode", App.Games.ActiveGame) : App.IsSnoozed ? Core.Language.Headline("snooze", App.SnoozeUntil.ToString("HH:mm")) : "Quiet while you play") : "Everything is quiet") : (net.Headline ?? "Offline"));
 
             var tiles = new UniformGrid { Columns = 3, Margin = new Thickness(0, 0, -14, 0) };
             tiles.Children.Add(Tile("Internet", online ? "Online" : "Offline",
@@ -327,7 +333,7 @@ namespace MonitoringTools.UI
             var root = PageRoot("Clipboard", "History", $"The last {Settings.Current.HistorySize} copies, kept in memory only. Quitting the app forgets them.");
             if (App.History.Items.Count == 0)
             {
-                root.Children.Add(Card(Ui.Text("Nothing yet. Copy something and it shows up here.")));
+                var emptyNote = new StackPanel(); var emptyHead = Ui.Text(Core.Language.Headline("history.empty")); emptyHead.FontWeight = FontWeights.SemiBold; emptyHead.Margin = new Thickness(0, 0, 0, 4); emptyNote.Children.Add(emptyHead); emptyNote.Children.Add(Ui.Text("Nothing yet. Copy something and it shows up here.")); root.Children.Add(Card(emptyNote));
                 return root;
             }
             var list = new StackPanel();
@@ -820,14 +826,14 @@ namespace MonitoringTools.UI
                 var proc = p;
                 if (_gameBulk.Selecting)
                 {
-                    var line = new TextBlock { Text = proc, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 5, 0, 5) };
+                    var line = new TextBlock { Text = proc, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 5, 0, 5) }; Core.Language.SetLiteral(line, true);
                     SearchScope.SetItem(line, "watched game process");
                     g.Children.Add(_gameBulk.Wrap(proc, line, proc));
                     continue;
                 }
                 var chip = new Border { Height = 32, CornerRadius = new CornerRadius(16), Background = Ui.Res("B.VioletWash"), BorderBrush = new SolidColorBrush(Color.FromRgb(0x3A, 0x2F, 0x5A)), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(12, 0, 4, 0) };
                 var sp = new StackPanel { Orientation = Orientation.Horizontal };
-                sp.Children.Add(new TextBlock { Text = proc, Foreground = new SolidColorBrush(Color.FromRgb(0xD8, 0xCC, 0xFF)), FontSize = 12, FontFamily = Ui.Font("F.Mono"), VerticalAlignment = VerticalAlignment.Center });
+                sp.Children.Add(LiteralText(new TextBlock { Text = proc, Foreground = new SolidColorBrush(Color.FromRgb(0xD8, 0xCC, 0xFF)), FontSize = 12, FontFamily = Ui.Font("F.Mono"), VerticalAlignment = VerticalAlignment.Center }));
                 var x = new Button { Style = Ui.Style("Btn.Row"), Width = 24, Height = 24, Padding = new Thickness(0), Margin = new Thickness(6, 0, 0, 0), Content = Ui.Icon(Icons.Close, Ui.Res("B.Violet"), 9, 2.5), ToolTip = "Remove" };
                 x.Click += (o, e) => { s.GameProcesses.Remove(proc); Settings.Save(); Navigate("game", animate: false); };
                 sp.Children.Add(x);
@@ -1433,7 +1439,7 @@ namespace MonitoringTools.UI
                 using var doc = System.Text.Json.JsonDocument.Parse(json);
                 var tag = doc.RootElement.GetProperty("tag_name").GetString()?.TrimStart('v') ?? "";
                 if (Version.TryParse(tag, out var latest) && Version.TryParse(current, out var mine))
-                    return latest > mine ? $"Version {latest} is out. You have {mine}. Grab it from Release notes." : $"You are up to date ({mine}).";
+                    return latest > mine ? Core.Language.Headline("update.available", latest.ToString()) + "\n" + $"You have {mine}. Grab it from Release notes." : $"You are up to date ({mine}).";
                 return "Could not read the latest version.";
             }
             catch (Exception ex) { return "Update check failed: " + ex.Message; }

@@ -186,6 +186,9 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- settings history
 
+        // Release notes are written on GitHub in English; the language layer leaves their text as published.
+        private static T LiteralText<T>(T element) where T : DependencyObject { Core.Language.SetLiteral(element, true); return element; }
+
         private FrameworkElement RecordsSettingsHistory()
         {
             var box = new StackPanel();
@@ -214,6 +217,7 @@ namespace MonitoringTools.UI
                     head.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                     head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                     var text = new StackPanel();
+                    Core.Language.SetLiteral(text, true);   // the summary names internal setting keys, so it stays as recorded
                     var when = Ui.Mono(snap.At.ToString("yyyy-MM-dd HH:mm:ss") + (i == 0 ? "  ·  current" : ""), Ui.Res("B.TextMute"));
                     text.Children.Add(when);
                     text.Children.Add(new TextBlock { Text = snap.Summary, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 12, 0) });
@@ -376,7 +380,7 @@ namespace MonitoringTools.UI
                     if (r.Published != null) inner.Children.Add(Ui.Mono(r.Published.Value.ToString("yyyy-MM-dd HH:mm"), Ui.Res("B.TextMute")));
                     inner.Children.Add(string.IsNullOrWhiteSpace(r.Body)
                         ? new TextBlock { Text = "No notes were written for this release.", Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 8, 0, 0) }
-                        : (UIElement)new ContentControl { Content = Markdown.Render(r.Body, 40), Margin = new Thickness(0, 8, 0, 0) });
+                        : (UIElement)LiteralText(new ContentControl { Content = Markdown.Render(r.Body, 40), Margin = new Thickness(0, 8, 0, 0) }));
                     var card = Card(inner, running ? Ui.C("C.Mint").ToString() : null, 14);
                     card.Background = Ui.Res("B.Raised");
                     SearchScope.SetItem(card, "release " + r.Tag);

@@ -165,7 +165,7 @@ namespace MonitoringTools.UI.Search
                 _count.Text = $"{shown} of {total}";
                 _empty.Text = State.TimedOut
                     ? "Some items took longer than 200 ms to check and were left out. The builder's warning explains why."
-                    : $"No {noun} match “{State.Query}”.";
+                    : Core.Language.Headline("search.none", State.Query);
                 _emptyRow.Visibility = shown == 0 || State.TimedOut ? Visibility.Visible : Visibility.Collapsed;
                 _everywhere.Visibility = SearchEverywhere != null && shown == 0 ? Visibility.Visible : Visibility.Collapsed;
             }

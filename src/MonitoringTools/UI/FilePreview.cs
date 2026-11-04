@@ -221,11 +221,17 @@ namespace MonitoringTools.UI
             }
         }
 
-        private static Border Frame(UIElement child) => new Border
+        // The framed content is the person's own file, so the language layer leaves it as it is.
+        private static Border Frame(UIElement child)
         {
-            Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 8),
-            BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), Child = child, ClipToBounds = true
-        };
+            var b = new Border
+            {
+                Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 8),
+                BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), Child = child, ClipToBounds = true
+            };
+            Core.Language.SetLiteral(b, true);
+            return b;
+        }
 
         private static TextBlock Meta(string s)
         {

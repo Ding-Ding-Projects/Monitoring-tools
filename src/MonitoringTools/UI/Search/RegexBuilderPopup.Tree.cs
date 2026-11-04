@@ -163,7 +163,7 @@ namespace MonitoringTools.UI.Search
             var chev = new TextBlock { Text = hasKids ? (collapsed ? "▸" : "▾") : "", Width = 16, FontSize = 12, Foreground = Ui.Res("B.TextMute"), VerticalAlignment = VerticalAlignment.Center };
             if (hasKids) { chev.Cursor = Cursors.Hand; chev.MouseLeftButtonDown += (o, e) => { e.Handled = true; Toggle(n); }; }
             var code = Ui.Mono(Snippet(text, 26), Ui.Res("B.Mint"), 12);
-            code.MinWidth = 84; code.Margin = new Thickness(0, 0, 10, 0); code.VerticalAlignment = VerticalAlignment.Center;
+            code.MinWidth = 84; code.Margin = new Thickness(0, 0, 10, 0); code.VerticalAlignment = VerticalAlignment.Center; Core.Language.SetLiteral(code, true);   // the pattern text itself
             var label = new TextBlock { Text = _detailed ? Sentence(n.Detailed) : n.Brief, Foreground = Ui.Res("B.TextSoft"), FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
             var dock = new DockPanel();
             DockPanel.SetDock(chev, Dock.Left); dock.Children.Add(chev);
@@ -429,7 +429,7 @@ namespace MonitoringTools.UI.Search
                 var row = new DockPanel { Margin = new Thickness(0, 2, 0, 2) };
                 var isLiteral = t.Meaning.StartsWith("literal text", StringComparison.Ordinal);
                 var code = Ui.Mono(Snippet(t.Text, 24), t.Problem ? Ui.Res("B.Amber") : isLiteral ? Ui.Res("B.TextMute") : Ui.Res("B.Mint"), 12);
-                code.MinWidth = 84; code.Margin = new Thickness(0, 0, 10, 0);
+                code.MinWidth = 84; code.Margin = new Thickness(0, 0, 10, 0); Core.Language.SetLiteral(code, true);
                 DockPanel.SetDock(code, Dock.Left); row.Children.Add(code);
                 row.Children.Add(new TextBlock { Text = t.Meaning, Foreground = t.Problem ? Ui.Res("B.Amber") : Ui.Res("B.TextSoft"), FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body") });
                 _replExplain.Children.Add(row);

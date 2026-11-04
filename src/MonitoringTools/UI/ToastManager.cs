@@ -76,7 +76,7 @@ namespace MonitoringTools.UI
                 case ClipKind.Json: Json(w, item); break;
                 case ClipKind.Markdown:
                     w.SetHeader(Icons.Text, "Markdown", Counts(item.Text));
-                    w.SetBody(Settings.Current.RenderMarkdown ? (UIElement)Markdown.Render(item.Text) : PlainText(item.Text));
+                    w.SetBody(Settings.Current.RenderMarkdown ? (UIElement)Literal(Markdown.Render(item.Text)) : PlainText(item.Text));
                     break;
                 case ClipKind.Files: Files(w, item); break;
                 case ClipKind.Image: Bitmap(w, item); break;
@@ -100,6 +100,9 @@ namespace MonitoringTools.UI
             return $"{t.Length:N0} chars · {words:N0} words{(lines > 1 ? $" · {lines} lines" : "")}";
         }
 
+        // What was copied is the person's own text, so the language layer leaves it as it is.
+        private static UIElement Literal(UIElement e) { Core.Language.SetLiteral(e, true); return e; }
+
         private static UIElement PlainText(string t)
         {
             var tb = new TextBlock
@@ -107,6 +110,7 @@ namespace MonitoringTools.UI
                 FontFamily = Ui.Font("F.Body"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"),
                 TextWrapping = TextWrapping.Wrap, MaxHeight = 120, TextTrimming = TextTrimming.CharacterEllipsis, LineHeight = 19
             };
+            Core.Language.SetLiteral(tb, true);
             var text = t.Length > 1200 ? t[..1200] + "…" : t;
             // bare links stay clickable in plain text
             int last = 0;
@@ -181,7 +185,7 @@ namespace MonitoringTools.UI
             if (item.Files.Length > 1)
             {
                 w.SetHeader(Icons.File, $"{item.Files.Length} files", Ui.Bytes(item.Files.Where(File.Exists).Sum(p => new FileInfo(p).Length)));
-                var list = Ui.Mono(item.Preview, Ui.Res("B.TextSoft"));
+                var list = Ui.Mono(item.Preview, Ui.Res("B.TextSoft")); Core.Language.SetLiteral(list, true);   // a list of file names
                 list.MaxHeight = 110;
                 w.SetBody(list);
                 ToastWindow.EnableDrag(list, () => FileDrop(item.Files));

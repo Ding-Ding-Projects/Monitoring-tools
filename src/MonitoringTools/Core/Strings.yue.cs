@@ -10,7 +10,7 @@ namespace MonitoringTools.Core
     /// the interface uses (matched ignoring case, so upper-cased eyebrows work too). Paths,
     /// commands, codes, formats, game titles and product names are deliberately not translated.
     /// </summary>
-    internal static class Strings
+    internal static partial class Strings
     {
         internal static readonly Dictionary<string, string> Table = Build();
 
@@ -50,7 +50,7 @@ namespace MonitoringTools.Core
             // ---- history
             Add("Nothing yet. Copy something and it shows up here.", "暫時未有嘢，複製啲嘢就會出現喺度。");
             Add("Copy again", "再複製一次");
-            Add("Builder", "砌 pattern"); Add("Search every page", "搜尋所有頁面"); Add("Filter actions", "篩選動作"); Add("Filter this menu", "篩選呢個選單");
+            Add("Builder", "砌表達式"); Add("Search every page", "搜尋所有頁面"); Add("Filter actions", "篩選動作"); Add("Filter this menu", "篩選呢個選單");
             Add("Select", "揀選"); Add("Done selecting", "揀完"); Add("Select all shown", "揀晒顯示緊嘅"); Add("Save as text…", "存做文字檔…"); Add("Remove from history", "喺紀錄度移除");
             Add("Regex builder", "正則表達式砌法"); Add("Back to plain text", "返去普通文字"); Add("Done", "完成"); Add("Use this list as the sample", "用呢張清單做樣本");
             Add("Emergency exit", "緊急出口"); Add("First key", "第一條鎖匙"); Add("Second key", "第二條鎖匙"); Add("To go ahead, turn both keys, then slide all the way.", "要繼續，就扭兩條鎖匙，再一路拉到盡。");
@@ -430,6 +430,7 @@ namespace MonitoringTools.Core
             AddNew("Choose a PIN of 4 to 12 digits.", "請設定 4 至 12 位數字嘅 PIN。"); AddNew("The two PINs do not match.", "兩個 PIN 唔一致。");
             AddNew("The two passwords do not match.", "兩個密碼唔一致。");
             AddNew("Choose a password of 8 to 128 characters.", "請設定 8 至 128 個字元嘅密碼。");
+            AddMore(t);
             return t;
         }
 
@@ -440,6 +441,7 @@ namespace MonitoringTools.Core
         private static List<(Regex, Func<Match, string>)> BuildPatterns()
         {
             var p = new List<(Regex, Func<Match, string>)>();
+            AddMorePatterns(p);
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), fn));
 

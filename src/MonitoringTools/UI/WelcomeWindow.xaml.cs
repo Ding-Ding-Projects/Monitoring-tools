@@ -13,6 +13,7 @@ namespace MonitoringTools.UI
         public WelcomeWindow()
         {
             InitializeComponent();
+            Title = Core.Language.Headline("welcome");
             Card("Clipboard toasts", "Every copy slides in for 3 seconds. Hover to hold it and see actions made for what you copied.", Icons.Clipboard, "Try it", Demo.TryClipboard, primary: true);
             Card("Quick commands", "Copy a path with :mp4, :gif or :push on the end and it just happens. Try converts a sample picture.", Icons.Bolt, "Try it", Demo.TryQuickCommand);
             Card("Internet watch", "When the line drops you see where it broke, plus one-press fixes. It stays until it is back.", Icons.Wifi, "Preview the dialog", Demo.PreviewOffline, tint: "B.AmberWash");
