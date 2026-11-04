@@ -19,6 +19,10 @@ If School mode removes dim sum, the ladder starts at the sums, with no mention o
 - At most 3 waits can be skipped per rolling hour. After that the clock is the only way through. This cap is stored in a protected file, so a restart does not refill it.
 - Each challenge has a single-use nonce that is consumed before grading, and expires. A whack-a-mole answer sent before the round could have finished is refused, each mole counts once, and only on the right square while it was up.
 
+## Windows Hello instead of the games
+
+When Windows Hello is available, the ladder also offers **Unlock with Windows Hello instead**. A yes from Windows opens the lock outright and closes the ladder and the prompt; it does not use up the hourly cap on skipped waits. See [Element locks](element-locks.md).
+
 ## Honest limits
 
 This is a local toy. The games are generated and graded inside the app, so someone with a debugger could get around them, just as they could around the lock itself. That is why the lock says it is just for fun.

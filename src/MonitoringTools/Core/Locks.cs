@@ -233,10 +233,24 @@ namespace MonitoringTools.Core
             Raise();
         }
 
-        private static void MarkOpen(LockEntry e)
+        /// <summary>
+        /// Opens a lock after Windows Hello confirmed the Windows user. This is a separate route beside the PIN and password: it
+        /// does not touch the stored PIN or password. Like a correct PIN it clears the failed-try count and any wait, and the history
+        /// records that Windows Hello was the route.
+        /// </summary>
+        public static void OpenWithHello(string id)
+        {
+            var e = ById(id);
+            if (e == null) return;
+            lock (Gate) { var st = StateOf(id); st.Failures = 0; st.LockedUntil = DateTime.Now; }
+            PersistState();
+            MarkOpen(e, " (Windows Hello)");
+        }
+
+        private static void MarkOpen(LockEntry e, string via = "")
         {
             lock (Gate) Open[e.Id] = e.Minutes <= 0 ? DateTime.MaxValue : DateTime.Now.AddMinutes(e.Minutes);
-            SafetyHistory.Record("Lock opened", e.Label);
+            SafetyHistory.Record("Lock opened" + via, e.Label);
             Raise();
         }
 
