@@ -516,7 +516,7 @@ namespace MonitoringTools.Minecraft
         {
             var f = PropertiesPath(s);
             if (f != null) return File.Exists(f) ? File.ReadAllText(f) : "";
-            var r = Ssh(s, $"cat {Sh(s.RemoteFolder)}/server.properties 2>/dev/null || true", 30000);
+            var r = Ssh(s, $"tail -n +1 {Sh(s.RemoteFolder)}/server.properties 2>/dev/null || true", 30000);
             return r.Code == 0 ? r.Out.Replace("\r\n", "\n") + (r.Out.Length > 0 ? "\n" : "") : null;
         }
 

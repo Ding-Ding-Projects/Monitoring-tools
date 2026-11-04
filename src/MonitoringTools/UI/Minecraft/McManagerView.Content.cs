@@ -85,9 +85,9 @@ namespace MonitoringTools.UI.Minecraft
             find.Children.Add(go);
             var hits = new StackPanel();
             find.Children.Add(hits);
-            var cat = McUi.Body("Results come from the public Modrinth catalogue, filtered to this version and software. Each download is checked against the catalogue's SHA-512 before it is copied in. Hangar is not searched yet.", "B.TextMute", 12);
-            cat.Margin = new Thickness(0, 8, 0, 0);
-            find.Children.Add(cat);
+            var catalogueNote = McUi.Body("Results come from the public Modrinth catalogue, filtered to this version and software. Each download is checked against the catalogue's SHA-512 before it is copied in. Hangar is not searched yet.", "B.TextMute", 12);
+            catalogueNote.Margin = new Thickness(0, 8, 0, 0);
+            find.Children.Add(catalogueNote);
             root.Children.Add(McUi.Card(find));
 
             void ShowHits(List<McCatalogHit> found)
