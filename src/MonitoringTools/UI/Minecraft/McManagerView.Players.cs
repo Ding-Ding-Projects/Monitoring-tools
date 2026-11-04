@@ -20,6 +20,17 @@ namespace MonitoringTools.UI.Minecraft
         private FrameworkElement BuildPlayers(ServerDef s)
         {
             var root = new StackPanel();
+            if (s.IsBedrock)
+            {
+                var b = new StackPanel();
+                b.Children.Add(McUi.Title("Players"));
+                b.Children.Add(McUi.Body("A Bedrock server keeps its players in allowlist.json and permissions.json, which this section does not edit yet. While the server runs, the console takes allowlist add, allowlist remove, op, deop and kick.", "B.TextSoft", 13));
+                var open = Ui.Button("Open console", () => ShowSection("console"), "Btn.Ghost", Icons.Code);
+                open.HorizontalAlignment = HorizontalAlignment.Left; open.Margin = new Thickness(0, 10, 0, 0);
+                b.Children.Add(open);
+                root.Children.Add(McUi.Card(b));
+                return root;
+            }
             var card = new StackPanel();
             var head = new Grid();
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -90,7 +101,7 @@ namespace MonitoringTools.UI.Minecraft
                 var files = s.IsLocal ? string.Join("|", new[] { "ops.json", "whitelist.json", "banned-players.json" }.Select(f => System.IO.File.GetLastWriteTimeUtc(System.IO.Path.Combine(s.Folder, f)).Ticks)) : "";
                 return IsUp(s) + "|" + string.Join(",", McLive.For(s).PlayerNames) + "|" + files;
             }
-            _tick = () => { var now = Signature(); if (now != last) { last = now; Fill(); } };
+            _tick = () => { var now = Signature(); if (now != last) { last = now; KeepFocus(card, Fill); } };
             last = Signature();
             Fill();
             return root;

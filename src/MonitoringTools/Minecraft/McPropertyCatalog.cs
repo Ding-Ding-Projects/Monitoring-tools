@@ -138,5 +138,38 @@ namespace MonitoringTools.Minecraft
         }
 
         public static McPropDef Find(string key) => All.FirstOrDefault(d => d.Key == key);
+
+        /// <summary>The catalogue that matches the server: Bedrock reads a different server.properties from Java edition.</summary>
+        public static List<McPropDef> For(ServerDef s) => s != null && s.IsBedrock ? Bedrock : All;
+        public static McPropDef Find(string key, ServerDef s) => For(s).FirstOrDefault(d => d.Key == key);
+
+        /// <summary>
+        /// The Bedrock Dedicated Server's own server.properties keys, as the file that ships with the server documents them.
+        /// A key the file has that is not listed here is shown under "Other keys" and kept exactly as written.
+        /// </summary>
+        public static readonly List<McPropDef> Bedrock = new List<McPropDef>
+        {
+            Ch("Gameplay", "gamemode", "Game mode for new players", "survival", "The mode a player starts in the first time they join.", new[] { "survival", "creative", "adventure" }),
+            Sw("Gameplay", "force-gamemode", "Force the game mode", "false", "Puts every player back in the default game mode each time they join."),
+            Ch("Gameplay", "difficulty", "Difficulty", "easy", "How dangerous mobs are and how fast hunger drains.", new[] { "peaceful", "easy", "normal", "hard" }),
+            Sw("Gameplay", "allow-cheats", "Allow cheats", "false", "Lets players use commands such as give and time."),
+            Tx("World", "level-name", "World name", "Bedrock level", "The world's folder inside the worlds folder."),
+            Tx("World", "level-seed", "Seed", "", "The seed for a new world. Empty picks one at random.", McApplies.NewWorlds),
+            Num("World", "view-distance", "View distance", "32", "How many chunks around each player are sent to their game.", 5, 96, "chunks"),
+            Num("World", "tick-distance", "Simulation distance", "4", "How far from players the world keeps running.", 4, 12, "chunks"),
+            Tx("Players and access", "server-name", "Server name", "Dedicated Server", "The name players see in their server list."),
+            Num("Players and access", "max-players", "Maximum players", "10", "How many people can be online at once.", 1, 2147483647, "players"),
+            Sw("Players and access", "online-mode", "Online mode", "true", "Every player must sign in with a Microsoft account."),
+            Sw("Players and access", "allow-list", "Allow list", "false", "Only players in allowlist.json can join."),
+            Num("Players and access", "player-idle-timeout", "Idle kick", "30", "Minutes a player can stand still before being kicked. 0 never kicks.", 0, 2147483647, "min"),
+            Ch("Players and access", "default-player-permission-level", "Permission for new players", "member", "What a player who joins for the first time may do.", new[] { "visitor", "member", "operator" }),
+            Sw("Players and access", "texturepack-required", "Require the server's packs", "false", "Players must accept the server's resource packs to join."),
+            Num("Network", "server-port", "Port (IPv4)", "19132", "The UDP port players connect to.", 1, 65535),
+            Num("Network", "server-portv6", "Port (IPv6)", "19133", "The UDP port for IPv6 players.", 1, 65535),
+            Sw("Network", "enable-lan-visibility", "Show on the local network", "true", "Players on the same network see the server in their Friends tab."),
+            Num("Network", "compression-threshold", "Compression threshold", "1", "Packets larger than this are compressed.", 0, 65535, "bytes"),
+            Num("Performance", "max-threads", "Worker threads", "8", "Threads the server may use. 0 lets it pick as many as it can.", 0, 256),
+            Sw("Performance", "content-log-file-enabled", "Content log file", "false", "Writes errors from packs and add-ons to a log file."),
+        };
     }
 }

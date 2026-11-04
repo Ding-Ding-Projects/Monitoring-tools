@@ -91,6 +91,36 @@ namespace MonitoringTools.Minecraft
             return dest;
         }
 
+        /// <summary>The newest dated backup of the folder, or null.</summary>
+        public static string LatestBackup(string folder)
+        {
+            var root = folder + "-backups";
+            return Directory.Exists(root) ? Directory.EnumerateDirectories(root).OrderByDescending(d => Path.GetFileName(d), StringComparer.Ordinal).FirstOrDefault() : null;
+        }
+
+        /// <summary>
+        /// Puts the folder back as the backup holds it: jars that were added since are removed and every backed-up file is
+        /// copied back. The folder as it is now is backed up first, so even a rollback can be undone.
+        /// </summary>
+        public static void RestoreFrom(string folder, string backup, bool keepCurrent = false)
+        {
+            if (backup == null || !Directory.Exists(backup)) throw new DirectoryNotFoundException("That backup is not there any more.");
+            if (keepCurrent) BackUpFolder(folder);
+            Directory.CreateDirectory(folder);
+            var inBackup = new HashSet<string>(Directory.EnumerateFiles(backup, "*", SearchOption.AllDirectories).Select(f => Path.GetRelativePath(backup, f)), StringComparer.OrdinalIgnoreCase);
+            foreach (var f in Directory.EnumerateFiles(folder))
+            {
+                bool jar = f.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".jar" + DisabledSuffix, StringComparison.OrdinalIgnoreCase);
+                if (jar && !inBackup.Contains(Path.GetFileName(f))) File.Delete(f);
+            }
+            foreach (var rel in inBackup)
+            {
+                var to = Path.Combine(folder, rel);
+                Directory.CreateDirectory(Path.GetDirectoryName(to));
+                File.Copy(Path.Combine(backup, rel), to, true);
+            }
+        }
+
         /// <summary>Turns a jar on or off by renaming it. Returns the new path.</summary>
         public static string SetEnabled(McAddon a, bool on)
         {

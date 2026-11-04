@@ -18,6 +18,9 @@ namespace MonitoringTools.UI.Minecraft
     {
         public bool Bedrock;
         public string Version;
+        /// <summary>The Bedrock release Mojang links to right now (only the newest is offered), or null until it is read.</summary>
+        public string BedrockVersion;
+        public string BedrockProblem;
         public bool Snapshots, OldVersions;
         public Flavour Flavour = Flavour.Vanilla;
         public string Build = "";
@@ -55,7 +58,7 @@ namespace MonitoringTools.UI.Minecraft
 
             var steps = new List<GuidedStep>
             {
-                new GuidedStep { Title = StepTitles[0], Help = "Every version in Mojang's official catalogue. Nothing is downloaded until the last step.", Build = () => VersionStep(d), Validate = () => d.Bedrock ? "The Bedrock dedicated server is not managed by this app yet. Choose Java edition." : d.Version == null ? "Choose a version first." : null },
+                new GuidedStep { Title = StepTitles[0], Help = "Every version in Mojang's official catalogue. Nothing is downloaded until the last step.", Build = () => VersionStep(d), Validate = () => d.Bedrock ? (d.BedrockVersion == null ? d.BedrockProblem ?? "Wait for Mojang's download link to be read." : null) : d.Version == null ? "Choose a version first." : null },
                 new GuidedStep { Title = StepTitles[1], Help = "Only software with a build for the chosen version can be picked.", Build = () => Fresh(() => SoftwareStep(d)), Validate = () => SoftwareProblem(d) },
                 new GuidedStep { Title = StepTitles[2], Help = "Each place is checked as you pick it.", Build = () => Fresh(() => TargetStep(d)), Validate = () => TargetProblem(d) },
                 new GuidedStep { Title = StepTitles[3], Help = "Typed numbers with their limits. The port is checked against this computer.", Build = () => Fresh(() => ResourceStep(d)), Validate = () => ResourceProblem(d) },
@@ -106,11 +109,11 @@ namespace MonitoringTools.UI.Minecraft
             {
                 var s = new ServerDef
                 {
-                    Name = d.Name.Trim(), Version = d.Version, Flavour = d.Flavour, Build = d.Flavour == Flavour.Vanilla ? "" : d.Build, Target = d.Target,
+                    Name = d.Name.Trim(), Version = d.Bedrock ? d.BedrockVersion : d.Version, Flavour = d.Bedrock ? Flavour.Bedrock : d.Flavour, Build = d.Bedrock || d.Flavour == Flavour.Vanilla ? "" : d.Build, Target = d.Target,
                     Port = (int)d.Port, MemoryMb = (int)d.MemoryMb, EulaAccepted = d.Eula, SshHost = d.SshHost.Trim(), RemoteDir = d.RemoteDir.Trim()
                 };
                 var initial = new Dictionary<string, string> { ["max-players"] = d.MaxPlayers.ToString(CultureInfo.InvariantCulture) };
-                if (d.WorldMode == "new") { initial["level-seed"] = d.Seed.Trim(); initial["level-type"] = d.LevelType; }
+                if (d.WorldMode == "new") { initial["level-seed"] = d.Seed.Trim(); if (!d.Bedrock) initial["level-type"] = d.LevelType; }
                 try
                 {
                     await ServerManager.CreateAsync(s, t => Dispatcher.BeginInvoke(new Action(() => _form.Report(t))), initial, d.WorldMode == "new" ? null : d.WorldSource);
@@ -135,10 +138,10 @@ namespace MonitoringTools.UI.Minecraft
 
         private static string Summary(McCreateDraft d, int step) => step switch
         {
-            0 => (d.Bedrock ? "Bedrock " : "Java ") + d.Version,
-            1 => d.Flavour + (d.Build.Length > 0 && d.Flavour != Flavour.Vanilla ? " " + d.Build : ""),
+            0 => d.Bedrock ? "Bedrock " + d.BedrockVersion : "Java " + d.Version,
+            1 => d.Bedrock ? "Bedrock Dedicated Server" : d.Flavour + (d.Build.Length > 0 && d.Flavour != Flavour.Vanilla ? " " + d.Build : ""),
             2 => McUi.TargetLabel(d.Target) + (d.Target == Target.SshProcess || d.Target == Target.SshDocker ? " · " + d.SshHost : ""),
-            3 => $"{d.MemoryMb} MB · port {d.Port}",
+            3 => d.Bedrock ? $"port {d.Port}" : $"{d.MemoryMb} MB · port {d.Port}",
             4 => d.WorldMode == "new" ? "New world" + (d.Seed.Length > 0 ? " · seed " + d.Seed : "") : Path.GetFileName(d.WorldSource ?? ""),
             _ => "",
         };
@@ -150,13 +153,60 @@ namespace MonitoringTools.UI.Minecraft
             return p;
         }
 
+        /// <summary>A free UDP port pair for Bedrock (the IPv6 port is the next one), starting at the given one.</summary>
+        internal static int FreeBedrockPort(int from)
+        {
+            int p = from;
+            while (p < 65534 && (ServerManager.Servers.Any(s => s.IsLocal && (s.Port == p || s.Port == p + 1)) || !ServerManager.UdpPortFree(p) || !ServerManager.UdpPortFree(p + 1))) p += 2;
+            return p;
+        }
+
         // ---- step 1: edition and version
 
         private FrameworkElement VersionStep(McCreateDraft d)
         {
+            var outer = new StackPanel();
+            var below = new ContentControl { IsTabStop = false };
+            outer.Children.Add(McUi.Choice("Edition", "Java edition is every version in Mojang's catalogue plus Paper, Fabric, Forge and others. Bedrock is the dedicated server for phones, consoles and Windows players.",
+                new[] { ("Java edition", false), ("Bedrock edition", true) }, d.Bedrock, v =>
+                {
+                    if (d.Bedrock == v) return;
+                    d.Bedrock = v;
+                    d.Target = Target.LocalProcess;
+                    d.Port = v ? FreeBedrockPort(McBedrock.DefaultPort) : FreePort(25565);
+                    if (v) d.WorldMode = "new";
+                    below.Content = v ? BedrockVersionPanel(d) : JavaVersionPanel(d);
+                    Core.Language.Refresh(below);
+                }));
+            outer.Children.Add(below);
+            below.Content = d.Bedrock ? BedrockVersionPanel(d) : JavaVersionPanel(d);
+            return outer;
+        }
+
+        /// <summary>Bedrock: Mojang links only the newest Windows server, so that is shown and installed.</summary>
+        private FrameworkElement BedrockVersionPanel(McCreateDraft d)
+        {
+            var sp = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
+            var card = new StackPanel();
+            card.Children.Add(McUi.Title("Bedrock Dedicated Server for Windows", 16));
+            var note = McUi.Body(d.BedrockVersion != null ? "Version " + d.BedrockVersion + " from minecraft.net." : "Reading Mojang's download link…", d.BedrockVersion != null ? "B.Mint" : "B.TextMute", 13);
+            AutomationProperties.SetLiveSetting(note, AutomationLiveSetting.Polite);
+            card.Children.Add(note);
+            card.Children.Add(McUi.Body("Mojang offers only the newest release of the Bedrock server, so that is the one installed. It runs as a process on this computer and players connect over UDP. Mojang publishes no checksum for it; the server program must carry Microsoft's signature before it is installed.", "B.TextSoft", 12.5));
+            sp.Children.Add(new Border { Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(16), Padding = new Thickness(16, 12, 16, 12), Child = card, MaxWidth = 720, HorizontalAlignment = HorizontalAlignment.Left });
+            if (d.BedrockVersion == null)
+                _ = McBedrock.LatestAsync().ContinueWith(t => Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (t.IsFaulted) { d.BedrockProblem = "Mojang's download link could not be read: " + t.Exception.InnerException.Message; note.Text = d.BedrockProblem; note.Foreground = Ui.Res("B.Amber"); }
+                    else { d.BedrockVersion = t.Result.Version; d.BedrockProblem = null; note.Text = "Version " + d.BedrockVersion + " from minecraft.net."; note.Foreground = Ui.Res("B.Mint"); }
+                    Core.Language.Refresh(note);
+                })));
+            return sp;
+        }
+
+        private FrameworkElement JavaVersionPanel(McCreateDraft d)
+        {
             var sp = new StackPanel();
-            sp.Children.Add(McUi.Choice("Edition", "Java edition is every version in Mojang's catalogue plus Paper, Fabric, Forge and others. Bedrock is the dedicated server for phones, consoles and Windows players.",
-                new[] { ("Java edition", false), ("Bedrock edition", true) }, d.Bedrock, v => { d.Bedrock = v; }));
             var filter = new SearchField("minecraft:versions", "Search versions", compact: true) { Margin = new Thickness(0, 4, 0, 6) };
             sp.Children.Add(filter);
             var toggles = new WrapPanel();
@@ -240,7 +290,7 @@ namespace MonitoringTools.UI.Minecraft
 
         private string SoftwareProblem(McCreateDraft d)
         {
-            if (d.Flavour == Flavour.Vanilla) return null;
+            if (d.Bedrock || d.Flavour == Flavour.Vanilla) return null;
             if (!SoftwareSeen.TryGetValue(d.Flavour + "|" + d.Version, out var l)) return $"Wait for the {d.Flavour} build list, or choose Vanilla.";
             if (l.Unavailable != null) return l.Unavailable;
             if (string.IsNullOrEmpty(d.Build)) d.Build = l.Latest?.Id ?? "";
@@ -250,6 +300,18 @@ namespace MonitoringTools.UI.Minecraft
         private FrameworkElement SoftwareStep(McCreateDraft d)
         {
             var sp = new StackPanel();
+            if (d.Bedrock)
+            {
+                sp.Children.Add(McUi.Title($"Server software for Bedrock {d.BedrockVersion}", 18));
+                var card = new StackPanel { Width = 320 };
+                card.Children.Add(new TextBlock { Text = "Bedrock Dedicated Server", FontSize = 16, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body") });
+                card.Children.Add(new TextBlock { Text = "Mojang's own server for Bedrock players on phones, consoles and Windows.", FontSize = 12.5, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 4, 0, 6) });
+                var b = new Border { Background = Ui.Res("B.SecondaryContainer"), CornerRadius = new CornerRadius(20), Padding = new Thickness(16, 14, 16, 14), Margin = new Thickness(0, 10, 0, 0), Child = card, HorizontalAlignment = HorizontalAlignment.Left };
+                System.Windows.Documents.TextElement.SetForeground(b, Ui.Res("B.OnSecondaryContainer"));
+                sp.Children.Add(b);
+                sp.Children.Add(McUi.Body("Bedrock has no other server software; plugins and mods are for Java edition.", "B.TextMute", 12.5));
+                return sp;
+            }
             sp.Children.Add(McUi.Title($"Server software for {d.Version}", 18));
             var opts = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
             sp.Children.Add(opts);
@@ -313,6 +375,7 @@ namespace MonitoringTools.UI.Minecraft
 
         private string TargetProblem(McCreateDraft d)
         {
+            if (d.Bedrock && d.Target != Target.LocalProcess) return "The Bedrock server runs as a process on this computer. Choose This computer.";
             if ((d.Target == Target.SshProcess || d.Target == Target.SshDocker) && string.IsNullOrWhiteSpace(d.SshHost)) return "Enter the SSH host.";
             if (d.Target == Target.LocalProcess && !McSoftware.RunsAsLocalProcess(d.Flavour)) return $"{d.Flavour} runs in Docker. Choose a Docker target, or go back and choose Vanilla, Paper or Purpur.";
             if (d.Target == Target.SshProcess && d.Flavour != Flavour.Vanilla) return "A process over SSH runs Vanilla. Choose Docker over SSH for other software.";
@@ -339,6 +402,7 @@ namespace MonitoringTools.UI.Minecraft
                     {
                         case Target.LocalProcess:
                         {
+                            if (d.Bedrock) { msg = "The Windows Bedrock server runs here. It needs no Java."; ok = true; break; }
                             if (d.Version == null) { msg = "Choose a version first."; ok = false; break; }
                             var dist = await ServerManager.ResolveAsync(d.Version);
                             var have = Directory.Exists(Path.Combine(Settings.DataDir, "runtimes", "jre-" + dist.JavaMajor));
@@ -447,7 +511,7 @@ namespace MonitoringTools.UI.Minecraft
             if (d.Target == Target.LocalProcess || d.Target == Target.LocalDocker)
             {
                 if (ServerManager.Servers.Any(x => x.Port == d.Port && x.IsLocal)) return $"Another server here already uses port {d.Port}. Pick a different one.";
-                if (!ServerManager.PortFree((int)d.Port)) return $"Port {d.Port} is in use by another program on this computer.";
+                if (d.Bedrock ? !ServerManager.UdpPortFree((int)d.Port) : !ServerManager.PortFree((int)d.Port)) return $"Port {d.Port} is in use by another program on this computer.";
             }
             return null;
         }
@@ -469,10 +533,10 @@ namespace MonitoringTools.UI.Minecraft
                 if (local)
                 {
                     if (ServerManager.Servers.Any(x => x.Port == d.Port && x.IsLocal)) problems.Add($"Port {d.Port} is used by another server here.");
-                    else if (!ServerManager.PortFree((int)d.Port)) problems.Add($"Port {d.Port} is in use by another program.");
-                    if (d.MemoryMb > installed * 3 / 4) problems.Add($"{d.MemoryMb} MB is more than three quarters of the {installed} MB this computer has.");
+                    else if (d.Bedrock ? !ServerManager.UdpPortFree((int)d.Port) : !ServerManager.PortFree((int)d.Port)) problems.Add($"Port {d.Port} is in use by another program.");
+                    if (!d.Bedrock && d.MemoryMb > installed * 3 / 4) problems.Add($"{d.MemoryMb} MB is more than three quarters of the {installed} MB this computer has.");
                 }
-                check.Text = problems.Count > 0 ? string.Join(" ", problems) : local ? $"Port {d.Port} is free on this computer. {installed / 1024} GB of memory is installed, so {d.MemoryMb} MB is comfortable." : "The port and memory are checked on the host when the server starts.";
+                check.Text = problems.Count > 0 ? string.Join(" ", problems) : d.Bedrock ? $"UDP port {d.Port} is free on this computer. The Bedrock server takes the memory it needs." : local ? $"Port {d.Port} is free on this computer. {installed / 1024} GB of memory is installed, so {d.MemoryMb} MB is comfortable." : "The port and memory are checked on the host when the server starts.";
                 check.Foreground = Ui.Res(problems.Count > 0 ? "B.Amber" : "B.Mint");
                 Core.Language.Refresh(check);
             }
@@ -491,8 +555,8 @@ namespace MonitoringTools.UI.Minecraft
                 Grid.SetColumn(nb, 1); g.Children.Add(nb);
                 return g;
             }
-            sp.Children.Add(Num("Memory", "Memory for the Java server. 512 MB to 65536 MB. Default: 2048 MB.", d.MemoryMb, 512, 65536, 256, "MB", v => d.MemoryMb = v));
-            sp.Children.Add(Num("Port", "The port players connect to. 1024 to 65535. A free one is suggested.", d.Port, 1024, 65535, 1, "", v => d.Port = v));
+            if (!d.Bedrock) sp.Children.Add(Num("Memory", "Memory for the Java server. 512 MB to 65536 MB. Default: 2048 MB.", d.MemoryMb, 512, 65536, 256, "MB", v => d.MemoryMb = v));
+            sp.Children.Add(Num("Port", d.Bedrock ? "The UDP port players connect to; the next port is used for IPv6. 1024 to 65535. A free pair is suggested." : "The port players connect to. 1024 to 65535. A free one is suggested.", d.Port, 1024, 65535, 1, "", v => d.Port = v));
             sp.Children.Add(Num("Maximum players", "How many can be online at once. 1 to 1000. Default: 20.", d.MaxPlayers, 1, 1000, 1, "players", v => d.MaxPlayers = v));
             sp.Children.Add(new Border { Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(16), Padding = new Thickness(16, 10, 16, 12), Margin = new Thickness(0, 16, 0, 0), Child = check, MaxWidth = 720, HorizontalAlignment = HorizontalAlignment.Left });
             Check();
@@ -504,6 +568,7 @@ namespace MonitoringTools.UI.Minecraft
         private string WorldProblem(McCreateDraft d)
         {
             if (d.WorldMode == "new") return d.Seed.Trim().Contains(' ') ? "A seed has no spaces." : null;
+            if (d.Bedrock) return "A Bedrock server starts with a new world here. Copy an existing world into its worlds folder after it is made.";
             if (d.Target == Target.SshProcess || d.Target == Target.SshDocker) return "An existing world can be copied to an SSH host after the server is made. Choose a new world here.";
             if (string.IsNullOrEmpty(d.WorldSource)) return d.WorldMode == "backup" ? "Choose a backup." : "Choose a world folder or ZIP.";
             return McWorlds.Validate(d.WorldSource).Problem;
@@ -522,7 +587,7 @@ namespace MonitoringTools.UI.Minecraft
                     var seed = McUi.Field(d.Seed, "Seed", 320, "For example 4127803392");
                     seed.TextChanged += (o, e) => d.Seed = seed.Text;
                     host.Children.Add(seed);
-                    host.Children.Add(McUi.Choice("World type", "The generator for the new world. Default: normal.",
+                    if (!d.Bedrock) host.Children.Add(McUi.Choice("World type", "The generator for the new world. Default: normal.",
                         new[] { ("Normal", "minecraft:normal"), ("Superflat", "minecraft:flat"), ("Large biomes", "minecraft:large_biomes"), ("Amplified", "minecraft:amplified") }, d.LevelType, v => d.LevelType = v));
                 }
                 else if (d.WorldMode == "existing")
@@ -592,13 +657,13 @@ namespace MonitoringTools.UI.Minecraft
             {
                 table.Children.Clear();
                 Row("Name", d.Name);
-                Row("Edition", "Java " + d.Version);
-                Row("Software", d.Flavour + (d.Flavour == Flavour.Vanilla ? "" : " " + d.Build));
+                Row("Edition", d.Bedrock ? "Bedrock " + d.BedrockVersion : "Java " + d.Version);
+                Row("Software", d.Bedrock ? "Bedrock Dedicated Server" : d.Flavour + (d.Flavour == Flavour.Vanilla ? "" : " " + d.Build));
                 Row("Runs on", McUi.TargetLabel(d.Target) + (d.Target == Target.SshProcess || d.Target == Target.SshDocker ? " · " + d.SshHost : ""));
-                Row("Memory", d.MemoryMb + " MB");
+                if (!d.Bedrock) Row("Memory", d.MemoryMb + " MB");
                 Row("Port", d.Port.ToString());
                 Row("Maximum players", d.MaxPlayers.ToString());
-                Row("World", d.WorldMode == "new" ? (d.Seed.Length > 0 ? "New world, seed " + d.Seed : "New world, random seed") + " · " + d.LevelType : PathDisplay.Shown(d.WorldSource ?? ""));
+                Row("World", d.WorldMode == "new" ? (d.Seed.Length > 0 ? "New world, seed " + d.Seed : "New world, random seed") + (d.Bedrock ? "" : " · " + d.LevelType) : PathDisplay.Shown(d.WorldSource ?? ""));
             }
             Fill();
             sp.Children.Add(new Border { Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(20), Padding = new Thickness(18, 4, 18, 4), Child = table, Margin = new Thickness(0, 0, 0, 14) });

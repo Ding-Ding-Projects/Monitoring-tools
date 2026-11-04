@@ -74,6 +74,41 @@ namespace MonitoringTools.Minecraft
                 "[14:15:44 INFO]: <Ben> found diamonds at y -58", "[14:16:20 INFO]: Chloe joined the game",
             }) live.Add(l);
             McLive.For(c).SetSample(0, 20, Array.Empty<string>(), null, 3_400_000_000L, DateTime.Now.AddMinutes(-52));
+
+            // What the catalogues would say about the three sample plugins (sample values; nothing is looked up).
+            McCatalogue.Last[a.Id] = new Dictionary<string, McCompatInfo>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["EssentialsX-2.21.0.jar"] = new McCompatInfo { Kind = McCompat.Compatible, Source = "Modrinth", Current = "2.21.0", Newest = "2.21.0" },
+                ["LuckPerms-Bukkit-5.4.141.jar"] = new McCompatInfo { Kind = McCompat.Update, Source = "Modrinth", Current = "5.4.141", Newest = "5.4.156" },
+                ["Chunky-1.4.28.jar.disabled"] = new McCompatInfo { Kind = McCompat.MayNotWork, Source = "Hangar", Current = "1.4.28" },
+            };
+        }
+
+        /// <summary>
+        /// A sample of what discovery finds: a Paper server and a Bedrock server running as processes, and a Docker
+        /// container, none made by this app. Their folders are made in the throwaway data folder; nothing runs.
+        /// </summary>
+        public static (List<McProcInfo> Procs, List<McContainerInfo> Containers) FoundSample()
+        {
+            if (Core.Settings.DataDirOverride == null) throw new InvalidOperationException("Sample servers are only written into a throwaway data folder.");
+            var paper = Path.Combine(Core.Settings.DataDir, "found-sample", "survival-2024");
+            var bedrock = Path.Combine(Core.Settings.DataDir, "found-sample", "bedrock-family");
+            Directory.CreateDirectory(paper); Directory.CreateDirectory(bedrock);
+            File.WriteAllText(Path.Combine(paper, "server.properties"), "server-port=25600\nmax-players=12\nlevel-name=world\n");
+            File.WriteAllText(Path.Combine(bedrock, "server.properties"), "server-name=Family\nserver-port=19140\n");
+            File.WriteAllText(Path.Combine(bedrock, McBedrock.VersionFile), "1.26.61.1");
+            var procs = new List<McProcInfo>
+            {
+                new McProcInfo { Pid = 4120, Name = "java", CommandLine = "\"C:\\Program Files\\Java\\bin\\java.exe\" -Xmx4G -jar paper-1.21.4-232.jar --nogui", WorkingDir = paper },
+                new McProcInfo { Pid = 5560, Name = "bedrock_server", CommandLine = "bedrock_server.exe", WorkingDir = bedrock },
+                new McProcInfo { Pid = 7004, Name = "java", CommandLine = "java -jar tools/report-builder.jar --input data", WorkingDir = Path.Combine(Core.Settings.DataDir, "found-sample") },
+            };
+            var containers = new List<McContainerInfo>
+            {
+                new McContainerInfo { Id = "c0ffee", Name = "mc-creative-old", Image = "itzg/minecraft-server:java21", State = "running", HostPort = 25610, Env = { ["TYPE"] = "PURPUR", ["VERSION"] = "1.21.1" } },
+                new McContainerInfo { Id = "beef01", Name = "web-cache", Image = "nginx:alpine", State = "running" },
+            };
+            return (procs, containers);
         }
 
         /// <summary>A small but real world folder: a level.dat holding the seed, and a region file of the given size.</summary>
@@ -128,6 +163,7 @@ namespace MonitoringTools.Minecraft
 
         public static void Remove()
         {
+            McCatalogue.Last.Remove(Prefix + "-friends");
             foreach (var s in ServerManager.Servers.Where(IsSample).ToList())
             {
                 ServerManager.Servers.Remove(s);

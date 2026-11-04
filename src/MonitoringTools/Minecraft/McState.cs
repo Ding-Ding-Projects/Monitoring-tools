@@ -60,7 +60,9 @@ namespace MonitoringTools.Minecraft
             switch (s.Target)
             {
                 case Target.LocalProcess:
-                    return new McStatus { State = ServerManager.ProcessOf(s) != null ? McRunState.Running : McRunState.Stopped, Detail = "a process on this computer" };
+                    if (ServerManager.ProcessOf(s) != null) return new McStatus { State = McRunState.Running, Detail = "a process on this computer" };
+                    if (McDiscovery.ExternalProcess(s) is McProcInfo ext) return new McStatus { State = McRunState.Running, Detail = $"process {ext.Pid}, started outside this app" };
+                    return new McStatus { State = McRunState.Stopped, Detail = "a process on this computer" };
                 case Target.LocalDocker:
                 {
                     var info = ServerManager.Run("docker", "info --format \"{{.ServerVersion}}\"", 15000);

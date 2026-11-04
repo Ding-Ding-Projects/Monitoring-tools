@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using MonitoringTools.Core;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using MonitoringTools.Minecraft;
@@ -39,11 +41,105 @@ namespace MonitoringTools.UI.Minecraft
             _rows = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
             AutomationProperties.SetName(_rows, "Server list");
             sp.Children.Add(_rows);
-            var note = McUi.Body("Servers are listed here when this app created them. Their files stay in their own folders, and removing one from the list never deletes its world.", "B.TextMute", 12);
+            var note = McUi.Body("Servers are listed here when this app created or adopted them. Their files stay in their own folders, and removing one from the list never deletes its world.", "B.TextMute", 12);
             note.Margin = new Thickness(4, 12, 4, 0);
             sp.Children.Add(note);
+            sp.Children.Add(BuildDiscovered());
             RebuildList();
             return sp;
+        }
+
+        // ---- servers found on this computer that the app does not manage yet
+
+        private StackPanel _found;
+        private TextBlock _foundNote;
+        internal static List<McFound> Found = new List<McFound>();
+        private static bool _lookedOnce;
+        internal IEnumerable<string> FoundTitles => Found.Select(f => f.Title);
+
+        private FrameworkElement BuildDiscovered()
+        {
+            var sp = new StackPanel { Margin = new Thickness(0, 18, 0, 0) };
+            AutomationProperties.SetName(sp, "Found on this computer");
+            var head = new Grid();
+            head.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var t = McUi.Title("Found on this computer", 15);
+            t.VerticalAlignment = VerticalAlignment.Center; t.Margin = new Thickness(4, 0, 0, 0);
+            head.Children.Add(t);
+            var look = McUi.IconButton(Icons.Search, "Look for servers", () => _ = Discover());
+            look.ToolTip = "Look for servers";
+            Grid.SetColumn(look, 1); head.Children.Add(look);
+            sp.Children.Add(head);
+            _foundNote = McUi.Body("Java and Bedrock servers that run here, and Minecraft containers in Docker, that this app did not make. Nothing is touched until you adopt one.", "B.TextMute", 12);
+            _foundNote.Margin = new Thickness(4, 4, 4, 4);
+            sp.Children.Add(_foundNote);
+            _found = new StackPanel();
+            AutomationProperties.SetName(_found, "Servers found");
+            sp.Children.Add(_found);
+            PaintFound();
+            if (!_lookedOnce) { _lookedOnce = true; Dispatcher.BeginInvoke(new Action(() => _ = Discover()), System.Windows.Threading.DispatcherPriority.Background); }
+            return sp;
+        }
+
+        /// <summary>Looks again: running Java and Bedrock processes and Minecraft containers. Only reads.</summary>
+        internal async Task Discover()
+        {
+            if (_foundNote != null) { _foundNote.Text = "Looking…"; Core.Language.Refresh(_foundNote); }
+            try { Found = await McDiscovery.FindAsync(); }
+            catch (Exception ex) { Found = new List<McFound>(); Core.Log.Error("Minecraft discovery", ex); }
+            if (_foundNote != null) { _foundNote.Text = "Java and Bedrock servers that run here, and Minecraft containers in Docker, that this app did not make. Nothing is touched until you adopt one."; Core.Language.Refresh(_foundNote); }
+            PaintFound();
+        }
+
+        private void PaintFound()
+        {
+            if (_found == null) return;
+            _found.Children.Clear();
+            if (Found.Count == 0) _found.Children.Add(new TextBlock { Text = "None found.", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(4, 2, 0, 0) });
+            foreach (var f in Found)
+            {
+                var g = new Grid { Margin = new Thickness(0, 6, 0, 0) };
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                var text = new StackPanel { Margin = new Thickness(4, 0, 8, 0) };
+                var name = McUi.Literal(f.Title, "B.Text", 13.5);
+                name.FontWeight = FontWeights.Medium; name.TextWrapping = TextWrapping.NoWrap; name.TextTrimming = TextTrimming.CharacterEllipsis;
+                text.Children.Add(name);
+                var kind = new TextBlock { Text = (f.Kind == "docker" ? "Docker container" : f.Flavour == Flavour.Bedrock ? "Bedrock process" : "Java process") + " · " + f.Flavour + " " + f.Version + (f.Running ? " · running" : " · not running"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap };
+                text.Children.Add(kind);
+                var where = McUi.Literal(f.Kind == "docker" ? f.Container + " · " + f.Image : PathDisplay.Shown(f.Folder), "B.TextMute", 11.5, mono: true);
+                where.TextWrapping = TextWrapping.NoWrap; where.TextTrimming = TextTrimming.CharacterEllipsis;
+                where.ToolTip = f.Kind == "docker" ? f.Container : f.Folder;
+                text.Children.Add(where);
+                g.Children.Add(text);
+                var ff = f;
+                var adopt = Ui.Button("Adopt", () => ConfirmAdopt(ff), "Btn.Ghost", Icons.Plus);
+                AutomationProperties.SetName(adopt, "Adopt " + f.Title);
+                adopt.VerticalAlignment = VerticalAlignment.Top;
+                Grid.SetColumn(adopt, 1); g.Children.Add(adopt);
+                _found.Children.Add(new Border { Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(16), Padding = new Thickness(10, 8, 8, 8), Margin = new Thickness(0, 0, 0, 4), Child = g });
+            }
+            Core.Language.Refresh(_found);
+        }
+
+        private void ConfirmAdopt(McFound f)
+        {
+            var what = f.Kind == "docker" ? $"the container {f.Container}" : $"the folder {PathDisplay.Shown(f.Folder)}";
+            var dlg = new ConfirmWindow($"Adopt {f.Title}?",
+                $"The server is added to this list and points at {what}. Nothing is stopped, moved or changed. " +
+                (f.Kind == "docker" ? "Start, stop and commands then go through Docker." : "A server started elsewhere takes commands, and a graceful stop, only over RCON; once stopped it can be started from here."), "Adopt", danger: false);
+            dlg.Confirmed += _ => AdoptNow(f);
+            dlg.Show();
+        }
+
+        internal ServerDef AdoptNow(McFound f)
+        {
+            var s = McDiscovery.Adopt(f);
+            Found.Remove(f);
+            PaintFound();
+            Select(s.Id);
+            return s;
         }
 
         /// <summary>The text a server row is searched by: its name, version, software, target and host.</summary>

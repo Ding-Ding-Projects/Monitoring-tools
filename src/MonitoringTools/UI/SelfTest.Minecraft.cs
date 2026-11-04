@@ -246,7 +246,7 @@ namespace MonitoringTools.UI
                     return McContent.List(dir).Count == 1 ? null : "the list counts files that are not jars";
                 });
 
-                await CheckAsync("minecraft: the create flow refuses Bedrock, software a target cannot run, and numbers out of range", async () =>
+                await CheckAsync("minecraft: the create flow holds Bedrock until Mojang's link is read, and refuses software a target cannot run and numbers out of range", async () =>
                 {
                     var mc = cc.MinecraftManager;
                     McManagerView.Draft = null;
@@ -255,7 +255,7 @@ namespace MonitoringTools.UI
                     var d = McManagerView.Draft;
                     d.Bedrock = true; d.Version = "1.21.4";
                     Press(McForm(mc), "Next"); await Task.Delay(120);
-                    if (!McStep(McForm(mc)).StartsWith("Step 1 of 6")) return "Bedrock was allowed through";
+                    if (!McStep(McForm(mc)).StartsWith("Step 1 of 6")) return "Bedrock was allowed through before its version was known";
                     d.Bedrock = false;
                     Press(McForm(mc), "Next"); await Task.Delay(200);
                     if (!McStep(McForm(mc)).StartsWith("Step 2 of 6")) return "Java 1.21.4 did not reach step 2: " + McStep(McForm(mc));
@@ -304,6 +304,8 @@ namespace MonitoringTools.UI
                     var again = JsonSerializer.Deserialize<List<ServerDef>>(JsonSerializer.Serialize(list)).Single();
                     return again.Name == "Old one" && again.Id == "abc1234567" ? null : "the migrated list did not round trip";
                 });
+
+                await McWave8ChecksAsync(cc);
             }
             finally
             {

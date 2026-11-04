@@ -19,6 +19,16 @@ and the reason is written beside it.
 | Forge | Publishes a folder to a test Gitea/Forgejo or GitLab server with a one-time token, then reads the pushed file back through the server's API. |
 | Minecraft | Downloads the real server jar and Java, lists game rules, blocks and biomes from the jar's own reports, and writes a noise-settings and dimension-type edit from the jar's default files. |
 | Minecraft server | Creates a real Vanilla server with the server manager in the throwaway data folder (the EULA is accepted for that test server only), starts it, waits for "Done", sends `list` and reads the answer, then stops it gracefully. `MT_LIVE_ONLY=minecraft-server` runs only this check. |
+| Minecraft catalogues | Searches Modrinth and Hangar for real, installs the newest Hangar file and an older Modrinth file into a throwaway Paper server folder (each hash checked against the catalogue), reads the badges (the older file must be **Update**, the Hangar one **Compatible**) and runs **Update all**. |
+| Minecraft Bedrock | Creates a real Bedrock Dedicated Server from Mojang's current Windows link (signature checked), starts it, waits for "Server started.", reads `0 of 7` from `list`, takes a backup while it runs, and stops it. |
+| Minecraft discovery, process | Starts a real Java server the way a person would (not through the app) with RCON on, discovers it (command line and folder read from the process), adopts it, sends `list` over RCON and stops it over RCON. |
+| Minecraft discovery, container | Starts an `itzg/minecraft-server` container without the app's label, discovers and adopts it, reads its state and `server.properties` through Docker, confirms the app refuses to remove it, then removes it. |
+| Minecraft Docker target | Creates a Vanilla server on the local Docker target, starts it, waits for "Done", sends `list`, stops it and removes the container after checking the app's label. |
+| Minecraft SSH target | Starts a throwaway `linuxserver/openssh-server` container on 127.0.0.1 with a generated key pair, adds Java 21 to it, approves its host key through the app's own flow, then creates, starts, asks `list` and stops a Vanilla server over SSH. |
+| Minecraft SSH Docker target | Starts a throwaway privileged `docker:dind` container (its own Docker engine, separate from this computer's) with an SSH server on 127.0.0.1, approves its host key, then creates, starts, asks `list` and stops a server in Docker over SSH. |
+
+`MT_LIVE_ONLY=minecraft-wave8` runs only the last seven checks. Every container, process and folder they make is removed
+afterwards, whether the check passed or not.
 
 ## Settings
 
@@ -47,5 +57,12 @@ token with `gitea admin user create` and `gitea admin user generate-access-token
 | Forge | passed (Gitea 1.22.6 in a local container; repository created, commit pushed, README read back) |
 | Minecraft | passed (1.21.4 jar: game rules, blocks, biomes, noise and dimension edits) |
 | Minecraft server | passed (1.21.4 Vanilla: created, started, `list` answered 0 of 7, stopped; 46 s) |
+| Minecraft catalogues | passed (Modrinth 6 hits, Hangar 10 hits; ViaVersion 5.12.2 from Hangar, SHA-256 matched; Chunky 1.4.36 from Modrinth, SHA-512 matched; badges Update to 1.4.40 and Compatible; Update all updated 1; 3.8 s) |
+| Minecraft Bedrock | passed (1.26.61.1 installed in 21 s with its signature checked; "Server started." after 15 s; `list` 0 of 7; a running backup held `worlds`; 41.9 s) |
+| Minecraft discovery, process | passed (process found with jar, version 1.21.4 and port read from it; adopted; `list` over RCON; stopped over RCON, exit code 0; 34.7 s) |
+| Minecraft discovery, container | passed (found, adopted, Running, `server.properties` read through `docker exec`, removal refused; 15.1 s) |
+| Minecraft Docker target | passed (created in 3 s, Done after 85 s, `list` 0 of 7, stopped, removed by label; 99.8 s) |
+| Minecraft SSH target | passed (host key approved, created in 3 s, Done after 25 s, `list` 0 of 7, stopped; 60.3 s) |
+| Minecraft SSH Docker target | passed (Docker-in-Docker host ready in 5 s, created in 26 s, Done after 37 s, `list` 0 of 7, stopped; 79.4 s) |
 
 GitLab was not run: no GitLab server was available.

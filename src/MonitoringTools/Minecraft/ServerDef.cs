@@ -7,7 +7,7 @@ namespace MonitoringTools.Minecraft
     public enum Target { LocalProcess, LocalDocker, SshProcess, SshDocker }
 
     // Stored as numbers in servers.json, so new members are only ever appended.
-    public enum Flavour { Vanilla, Paper, Fabric, Purpur, Forge, NeoForge }
+    public enum Flavour { Vanilla, Paper, Fabric, Purpur, Forge, NeoForge, Bedrock }
 
     /// <summary>
     /// One server the app created. servers.json keeps a list of these; every field added after the first release has a
@@ -38,8 +38,21 @@ namespace MonitoringTools.Minecraft
         /// <summary>The last commands sent from the command builder, newest first.</summary>
         public List<string> RecentCommands { get; set; } = new List<string>();
 
-        public string Folder => Path.Combine(ServerManager.Root, Id);
-        public string ContainerName => "monitoring-tools-mc-" + Id;
+        // ---- added with discovery, Bedrock and SSH keys
+        /// <summary>A private key file for the SSH host. Empty uses the keys ssh finds by itself.</summary>
+        public string SshKey { get; set; } = "";
+        /// <summary>True when the server was found on this computer and adopted, rather than created by this app.</summary>
+        public bool Adopted { get; set; }
+        /// <summary>The folder of an adopted server. Empty for a server this app created (it lives under the app's own folder).</summary>
+        public string FolderPath { get; set; } = "";
+        /// <summary>The container of an adopted Docker server. Empty for one this app created.</summary>
+        public string Container { get; set; } = "";
+        /// <summary>The jar a Java process server starts. Adopted servers keep the jar they were found running.</summary>
+        public string JarName { get; set; } = "server.jar";
+
+        public string Folder => string.IsNullOrWhiteSpace(FolderPath) ? Path.Combine(ServerManager.Root, Id) : FolderPath;
+        public string ContainerName => string.IsNullOrWhiteSpace(Container) ? "monitoring-tools-mc-" + Id : Container;
+        public bool IsBedrock => Flavour == Flavour.Bedrock;
         public string RemoteFolder => string.IsNullOrWhiteSpace(RemoteDir) ? $"monitoring-tools-mc/{Id}" : RemoteDir.Trim();
         public bool IsLocal => Target == Target.LocalProcess || Target == Target.LocalDocker;
         public bool IsSsh => Target == Target.SshProcess || Target == Target.SshDocker;

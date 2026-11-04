@@ -22,8 +22,9 @@ namespace MonitoringTools.Core
     /// Optional environment: MT_LIVE_OLLAMA_MODEL (default: the smallest installed model), MT_LIVE_MC (Minecraft version,
     /// default 1.21.4), MT_LIVE_FORGE_URL, MT_LIVE_FORGE_KIND (gitea or gitlab), MT_LIVE_FORGE_OWNER and
     /// MT_LIVE_FORGE_TOKEN for a throwaway test server. The token is used for that one push and is never written out.
+    /// MT_LIVE_ONLY=minecraft-wave8 runs only the catalogue, Bedrock, discovery, Docker and SSH checks.
     /// </summary>
-    public static class LiveCheck
+    public static partial class LiveCheck
     {
         private sealed class Result
         {
@@ -41,6 +42,11 @@ namespace MonitoringTools.Core
             var pngRed = RedSquarePng();   // made here, on the STA thread, before any await
             Task.Run(async () =>
             {
+                if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-wave8")   // catalogues, Bedrock, discovery, Docker and SSH
+                {
+                    await McWave8(results);
+                    return;
+                }
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-server")   // run only the server manager end to end
                 {
                     await Check(results, "minecraft: a real server is created, started, answers list and stops", MinecraftServer);
@@ -55,6 +61,7 @@ namespace MonitoringTools.Core
                 await Check(results, "forge: publishing creates the repository and pushes the commit", () => Forge(dir));
                 await Check(results, "minecraft: the real server jar lists its game rules, blocks and biomes", Minecraft);
                 await Check(results, "minecraft: a real server is created, started, answers list and stops", MinecraftServer);
+                await McWave8(results);
             }).GetAwaiter().GetResult();
 
             File.WriteAllText(Path.Combine(dir, "livecheck.json"), JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true }));
@@ -67,6 +74,7 @@ namespace MonitoringTools.Core
         {
             var sw = Stopwatch.StartNew();
             var r = new Result { Name = name };
+            lock (Note) Note.Clear();
             try
             {
                 var fail = await body();
@@ -76,6 +84,7 @@ namespace MonitoringTools.Core
             catch (Skip s) { r.State = "skipped"; r.Detail = s.Message; }
             catch (Exception ex) { r.State = "failed"; r.Detail = ex.GetType().Name + ": " + ex.Message; }
             r.Seconds = Math.Round(sw.Elapsed.TotalSeconds, 1);
+            lock (Note) if (Note.Length > 0) r.Detail += " | " + Note;
             results.Add(r);
         }
 

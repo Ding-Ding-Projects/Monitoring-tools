@@ -63,7 +63,7 @@ namespace MonitoringTools.Minecraft
                 if (_lines.Count > Keep) _lines.RemoveRange(0, _lines.Count - Keep);
             }
             Learn(l.Message);
-            if (l.Message.StartsWith("Done (", StringComparison.Ordinal)) { Starting = false; StartingSince = null; }
+            if (IsReady(l.Message)) { Starting = false; StartingSince = null; }
             if (raw.StartsWith("[server exited with code", StringComparison.Ordinal))
             {
                 bool failed = Starting || !raw.Contains("code 0");
@@ -79,9 +79,12 @@ namespace MonitoringTools.Minecraft
             var parsed = (tail ?? "").Split('\n').Where(x => x.Trim().Length > 0).Select(McLogLine.Parse).ToList();
             lock (_lines) { _lines.Clear(); _lines.AddRange(parsed.TakeLast(Keep)); }
             foreach (var l in parsed.TakeLast(60)) Learn(l.Message);
-            if (parsed.Any(l => l.Message.StartsWith("Done (", StringComparison.Ordinal))) { Starting = false; StartingSince = null; }
+            if (parsed.Any(l => IsReady(l.Message))) { Starting = false; StartingSince = null; }
             Updated?.Invoke(ServerId);
         }
+
+        /// <summary>The line a server prints once players can join: "Done (6.2s)!" on Java, "Server started." on Bedrock.</summary>
+        public static bool IsReady(string message) => message != null && (message.StartsWith("Done (", StringComparison.Ordinal) || message.StartsWith("Server started.", StringComparison.Ordinal));
 
         /// <summary>Reads the answer to "list" and "tps" wherever it arrives: a console line or a remote console reply.</summary>
         public void Learn(string text)
@@ -140,9 +143,10 @@ namespace MonitoringTools.Minecraft
                     case Target.LocalProcess:
                     {
                         var p = ServerManager.ProcessOf(s);
+                        if (p == null && McDiscovery.ExternalProcess(s) is McProcInfo ext) { try { p = System.Diagnostics.Process.GetProcessById(ext.Pid); } catch { } }
                         if (p == null) { MemoryBytes = null; StartedAt = null; return; }
                         p.Refresh();
-                        MemoryBytes = p.WorkingSet64; MemoryNote = "Java process working set";
+                        MemoryBytes = p.WorkingSet64; MemoryNote = s.IsBedrock ? "server process working set" : "Java process working set";
                         StartedAt = p.StartTime; UptimeNote = "since the last start";
                         break;
                     }

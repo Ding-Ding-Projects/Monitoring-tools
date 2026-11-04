@@ -33,7 +33,13 @@ namespace MonitoringTools.UI.Minecraft
             card.Children.Add(result);
             void Say(string text, string fg) { result.Text = text; result.Foreground = Ui.Res(fg); Core.Language.Refresh(result); }
 
-            if (!s.IsLocal)
+            if (s.IsBedrock)
+            {
+                var worlds = System.IO.Path.Combine(s.Folder, "worlds");
+                var names = System.IO.Directory.Exists(worlds) ? System.IO.Directory.GetDirectories(worlds).Select(System.IO.Path.GetFileName).ToList() : new System.Collections.Generic.List<string>();
+                list.Children.Add(McUi.Body(names.Count == 0 ? "The Bedrock server makes its world in the worlds folder at its first start." : "Bedrock worlds in the worlds folder: " + string.Join(", ", names) + ". Backups hold the whole worlds folder. Import, reset and the world generator are for Java edition.", "B.TextSoft", 13));
+            }
+            else if (!s.IsLocal)
             {
                 list.Children.Add(McUi.Body("This server keeps its world on the SSH host, so import, download and reset happen there. The world generator below can still build a world on this computer to copy over.", "B.TextSoft", 13));
             }
@@ -78,6 +84,7 @@ namespace MonitoringTools.UI.Minecraft
                 card.Children.Add(foot);
             }
             root.Children.Add(McUi.Card(card));
+            if (s.IsBedrock) return root;   // the generator runs the Java server jar
 
             var gen = new StackPanel();
             var gh = new Grid();

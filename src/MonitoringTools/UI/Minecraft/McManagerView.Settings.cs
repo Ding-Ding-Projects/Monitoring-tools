@@ -77,15 +77,15 @@ namespace MonitoringTools.UI.Minecraft
             right.Children.Add(McUi.Card(rows, 18));
 
             var rules = McCommandTree.GameRules(_rulesTree);
-            var unknown = doc.Keys.Where(k => McPropertyCatalog.Find(k) == null).ToList();
-            int CountOf(string group) => group == "Game rules" ? rules.Count : group == "Other keys" ? unknown.Count : McPropertyCatalog.All.Count(d => d.Group == group);
+            var unknown = doc.Keys.Where(k => McPropertyCatalog.Find(k, s) == null).ToList();
+            int CountOf(string group) => group == "Game rules" ? rules.Count : group == "Other keys" ? unknown.Count : McPropertyCatalog.For(s).Count(d => d.Group == group);
             string Value(string key) => pending.TryGetValue(key, out var v) ? v : key == McPropertyCatalog.MemoryKey ? s.MemoryMb.ToString() : doc.Get(key);
 
             void Bar()
             {
                 if (pending.Count == 0) { bar.Content = null; return; }
                 var b = new StackPanel();
-                bool restartNeeded = pending.Keys.Any(k => { var d = McPropertyCatalog.Find(k); return d == null ? !k.StartsWith("gamerule:") : d.Applies == McApplies.Restart; });
+                bool restartNeeded = pending.Keys.Any(k => { var d = McPropertyCatalog.Find(k, s); return d == null ? !k.StartsWith("gamerule:") : d.Applies == McApplies.Restart; });
                 var text = McUi.Body(pending.Count == 1 ? "1 unsaved change." + (restartNeeded ? " It needs a restart to take effect." : "") : $"{pending.Count} unsaved changes." + (restartNeeded ? " Some need a restart to take effect." : ""), "B.Text", 13.5);
                 text.VerticalAlignment = VerticalAlignment.Center;
                 b.Children.Add(text);
@@ -104,7 +104,7 @@ namespace MonitoringTools.UI.Minecraft
             void Set(string key, string value)
             {
                 var original = key == McPropertyCatalog.MemoryKey ? s.MemoryMb.ToString() : doc.Get(key);
-                var def = McPropertyCatalog.Find(key)?.Default;
+                var def = McPropertyCatalog.Find(key, s)?.Default;
                 if (value == original || (original == null && value == def)) pending.Remove(key); else pending[key] = value;
                 Bar();
             }
@@ -252,7 +252,7 @@ namespace MonitoringTools.UI.Minecraft
                 bool searching = search.State.IsActive;
                 title.Text = searching ? "Matching settings" : SettingsGroup;
                 IEnumerable<string> groups = searching ? McPropertyCatalog.Groups : new[] { SettingsGroup };
-                int shown = 0, total = McPropertyCatalog.All.Count + rules.Count + unknown.Count;
+                int shown = 0, total = McPropertyCatalog.For(s).Count + rules.Count + unknown.Count;
                 foreach (var grp in groups)
                 {
                     if (grp == "Game rules")
@@ -295,7 +295,7 @@ namespace MonitoringTools.UI.Minecraft
                         continue;
                     }
                     if (grp == "Management" && !searching) rows.Children.Add(McUi.Body("Settings for the management interface that arrived with 1.21.9.", "B.TextMute", 12.5));
-                    foreach (var d in McPropertyCatalog.All.Where(d => d.Group == grp && search.State.Matches(d.Key + " " + d.Label + " " + d.Help))) { rows.Children.Add(Row(d)); shown++; }
+                    foreach (var d in McPropertyCatalog.For(s).Where(d => d.Group == grp && search.State.Matches(d.Key + " " + d.Label + " " + d.Help))) { rows.Children.Add(Row(d)); shown++; }
                 }
                 if (rows.Children.Count == 0) rows.Children.Add(McUi.Body("No settings match the search.", "B.TextMute", 13));
                 search.SetCount(searching ? shown : total, total, "settings");
@@ -324,7 +324,7 @@ namespace MonitoringTools.UI.Minecraft
                 }
             }
 
-            search.SampleSource = () => McPropertyCatalog.All.Select(d => d.Key + " " + d.Label);
+            search.SampleSource = () => McPropertyCatalog.For(s).Select(d => d.Key + " " + d.Label);
             search.Filter += () => { Groups(); Fill(); };
             if (_rulesTree == null && System.IO.File.Exists(McCommandTree.FileFor(s.Version)))
             {
@@ -361,7 +361,7 @@ namespace MonitoringTools.UI.Minecraft
                     {
                         string line = null;
                         if (k.StartsWith("gamerule:")) line = $"gamerule {k[9..]} {v}";
-                        else if (McPropertyCatalog.Find(k) is McPropDef d && d.LiveCommand != null && McPropertyCatalog.AppliesOn(d, s.Version) == McApplies.Now)
+                        else if (McPropertyCatalog.Find(k, s) is McPropDef d && d.LiveCommand != null && McPropertyCatalog.AppliesOn(d, s.Version) == McApplies.Now)
                             line = string.Format(CultureInfo.InvariantCulture, d.LiveCommand, d.Kind == McPropKind.Switch ? (v == "true" ? "on" : "off") : v);
                         if (line != null) { await ServerManager.CommandAsync(s, line); sent.Add("/" + line); }
                     }

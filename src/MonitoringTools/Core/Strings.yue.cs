@@ -432,6 +432,7 @@ namespace MonitoringTools.Core
             AddNew("Choose a password of 8 to 128 characters.", "請設定 8 至 128 個字元嘅密碼。");
             AddMore(t);
             AddMinecraft(t);
+            AddMinecraftCatalogue(t);
             return t;
         }
 
@@ -442,6 +443,7 @@ namespace MonitoringTools.Core
         private static List<(Regex, Func<Match, string>)> BuildPatterns()
         {
             var p = new List<(Regex, Func<Match, string>)>();
+            AddMinecraftCataloguePatterns(p);
             AddMinecraftPatterns(p);
             AddMorePatterns(p);
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => m.Result(yue)));

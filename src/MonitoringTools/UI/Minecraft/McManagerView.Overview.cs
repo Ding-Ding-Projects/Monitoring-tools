@@ -61,7 +61,23 @@ namespace MonitoringTools.UI.Minecraft
             att.Children.Add(attention);
             root.Children.Add(McUi.Card(att));
 
+            // The poll calls this every 4 seconds. It redraws only when something shown has changed, and then keeps keyboard
+            // focus on the same control and the page at the same scroll position.
+            string lastSig = null;
             void Fill()
+            {
+                var st0 = McState.Cached(s).State;
+                var live0 = McLive.For(s);
+                var lines0 = live0.Lines();
+                bool newer; lock (McScheduler.FoundUpdates) newer = McScheduler.FoundUpdates.ContainsKey(s.Id);
+                var sig = string.Join("|", st0, live0.PlayersOnline, live0.PlayersMax, string.Join(",", live0.PlayerNames), live0.Tps, live0.MemoryBytes / 104857600, live0.StartedAt, live0.MemoryNote, live0.UptimeNote,
+                    live0.PlayersAt == null ? "" : McUi.Age(live0.PlayersAt.Value), live0.StartedAt == null ? "" : McUi.Span(DateTime.Now - live0.StartedAt.Value), lines0.Count, lines0.Count > 0 ? lines0[^1].Raw : "",
+                    live0.LastFailure, ActualWidth < 980, newer, UpdateChecks.TryGetValue(s.Id, out var uc) ? uc.Newer?.Id + uc.Unavailable : "", Core.Language.Mode, DateTime.Now.ToString("HH:mm"), s.IsLocal ? McBackups.List(s.BackupFolder).Count : 0);
+                if (sig == lastSig) return;
+                lastSig = sig;
+                KeepFocus(root, Draw);
+            }
+            void Draw()
             {
                 var st = McState.Cached(s).State;
                 var live = McLive.For(s);

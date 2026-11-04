@@ -1,12 +1,13 @@
 # Minecraft servers
 
-Create and run Java edition servers on this computer, in Docker, or on another machine over SSH.
+Create and run Java edition servers on this computer, in Docker, or on another machine over SSH, and the official Bedrock Dedicated Server on this computer.
+Servers the app did not make can be [found and adopted](discovery.md).
 
 ![The server manager](../../screenshots/mc-overview.png)
 
 ## The server list
 
-The left side lists every server this app created. Each row shows a state dot, the name, the software and version,
+The left side lists every server this app created or adopted. Each row shows a state dot, the name, the software and version,
 the players online (or the state), and a badge for where it runs: **This PC**, **Docker**, **SSH** or **SSH Docker**.
 
 - **New server** opens the [guided create flow](create.md).
@@ -14,7 +15,8 @@ the players online (or the state), and a badge for where it runs: **This PC**, *
   regex builder, `Aa` for matching case. It searches the name, version, software, target and SSH host.
 - The filter chips **All**, **Running**, **Stopped** and **Offline host** show how many servers each one holds.
 
-Removing a server from the list never deletes its world, settings or backups.
+Removing a server from the list never deletes its world, settings or backups. Below the list, **Found on this computer**
+shows servers that run here but were not made by this app, each with **Adopt**; see [discovery](discovery.md).
 
 ## The header
 
@@ -41,10 +43,25 @@ host's name and port. **Open folder** opens the server folder for servers on thi
 | Docker on this computer | The `itzg/minecraft-server` image with the server folder as its volume | All six |
 | Another computer over SSH | A Java process on the host, signed in with your SSH key | Vanilla |
 | Docker over SSH | The same image on the host | All six |
+| This computer, Bedrock | `bedrock_server.exe` from minecraft.net, started by the app | Bedrock Dedicated Server |
 
 Fabric, Forge and NeoForge need their own installers, so they run on the Docker targets. For SSH targets, **Check host
 key** shows the machine's key first so you can confirm you are connecting to the right one; it is stored in the app's own
-`known_hosts`, and connections use key authentication only.
+`known_hosts`, and connections use key authentication only. A server can name its own private key file (`SshKey` in
+`servers.json`); it is passed to ssh and scp with `IdentitiesOnly`, so only that key is offered. When `ssh-keyscan` cannot
+agree a key exchange with a newer server (the Windows build lacks some of OpenSSH 10's methods), the key is read by ssh
+itself into a scratch file instead, and still shown for approval before anything is trusted.
+
+## Bedrock
+
+The Bedrock Dedicated Server for Windows is downloaded from the link Mojang's download links service gives (only
+minecraft.net over HTTPS is accepted; Mojang publishes no checksum, so `bedrock_server.exe` must carry a valid Microsoft
+Corporation signature). It runs as a process the app starts, with its console on standard input and output: the log
+reads Bedrock's `[date time:ms LEVEL]` lines, the state turns Running at "Server started.", `list` answers fill the
+player tiles, and Stop sends `stop`. Its [settings](settings.md) come from its own `server.properties` keys (server name,
+allow list, tick distance and the rest), not Java's. Backups hold the `worlds` folder and use `save hold` and `save
+resume` while it runs. The console takes a typed command line, since Bedrock has no command list to build from; the
+Players section points to the console (`allowlist`, `op`), and add-ons are not managed yet.
 
 ## The sections
 
@@ -67,9 +84,13 @@ them the next time it is saved. A list that cannot be read is copied aside rathe
 
 ## Verification
 
-Self-test checks drive the list filter and regex search, the Host offline state of an unreachable SSH host, and an older
-`servers.json`. The [live check](../tools/live-check.md) creates a real Vanilla 1.21.4 server in a throwaway folder,
-starts it, asks it `list` and stops it.
+Self-test checks drive the list filter and regex search, the Host offline state of an unreachable SSH host, an older
+`servers.json`, the SSH key arguments, and keyboard focus and the scroll position in every section through two polls
+(the live parts redraw in place and put focus back on the same control). The [live check](../tools/live-check.md)
+runs, each in a throwaway folder or container: a Vanilla 1.21.4 process server; a Bedrock server (create, start,
+"Server started.", `list`, a backup while running, stop); a Vanilla server on the local Docker target (create, start,
+`list`, stop, remove by label); a server over SSH on a throwaway OpenSSH container, after approving its host key; and a
+server in Docker on an SSH host (a throwaway Docker-in-Docker container with an SSH server).
 
 ## Related
 

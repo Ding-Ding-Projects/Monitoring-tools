@@ -26,12 +26,12 @@ namespace MonitoringTools.Minecraft
         private const string Suffix = ".zip";
         private const string Meta = ".backup.json";
 
-        /// <summary>The folders a backup holds: the world and its Nether and End folders, and the plugins or mods folder.</summary>
+        /// <summary>The folders a backup holds: the world and its Nether and End folders, the plugins or mods folder, and a Bedrock server's worlds folder.</summary>
         public static List<string> Parts(string serverFolder, string levelName)
         {
             levelName = string.IsNullOrWhiteSpace(levelName) ? "world" : levelName;
             var parts = new List<string>();
-            foreach (var d in new[] { levelName, levelName + "_nether", levelName + "_the_end", "plugins", "mods", "config" })
+            foreach (var d in new[] { levelName, levelName + "_nether", levelName + "_the_end", "plugins", "mods", "config", "worlds" })
                 if (Directory.Exists(System.IO.Path.Combine(serverFolder, d))) parts.Add(d);
             return parts;
         }
@@ -158,8 +158,12 @@ namespace MonitoringTools.Minecraft
             if (running)
             {
                 report?.Invoke("Pausing saves…");
-                await ServerManager.CommandAsync(s, "save-off");
-                await ServerManager.CommandAsync(s, "save-all flush");
+                if (s.IsBedrock) await ServerManager.CommandAsync(s, "save hold");   // Bedrock: hold saving so the files stay consistent while copied
+                else
+                {
+                    await ServerManager.CommandAsync(s, "save-off");
+                    await ServerManager.CommandAsync(s, "save-all flush");
+                }
                 await Task.Delay(3000);
             }
             try
@@ -169,7 +173,7 @@ namespace MonitoringTools.Minecraft
             }
             finally
             {
-                if (running) await ServerManager.CommandAsync(s, "save-on");
+                if (running) await ServerManager.CommandAsync(s, s.IsBedrock ? "save resume" : "save-on");
             }
         }
 

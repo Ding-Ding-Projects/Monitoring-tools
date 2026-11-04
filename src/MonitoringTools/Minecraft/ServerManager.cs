@@ -68,6 +68,10 @@ namespace MonitoringTools.Minecraft
             if (s.KeepBackups <= 0) s.KeepBackups = 14;
             s.Schedules ??= new List<McSchedule>();
             s.RecentCommands ??= new List<string>();
+            s.SshKey ??= "";
+            s.FolderPath ??= "";
+            s.Container ??= "";
+            if (string.IsNullOrWhiteSpace(s.JarName)) s.JarName = "server.jar";
         }
 
         /// <summary>Reloads servers.json (used when the data folder changes under a self-test).</summary>
@@ -176,6 +180,12 @@ namespace MonitoringTools.Minecraft
         public static bool PortFree(int port) =>
             !IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners().Any(e => e.Port == port);
 
+        /// <summary>Bedrock players connect over UDP, so a Bedrock port is checked against UDP listeners.</summary>
+        public static bool UdpPortFree(int port) =>
+            !IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners().Any(e => e.Port == port);
+
+        public static bool PortFreeFor(ServerDef s) => s.IsBedrock ? UdpPortFree(s.Port) : PortFree(s.Port);
+
         /// <summary>Runs a tool and collects its output. <paramref name="workingDir"/> matters for a Minecraft jar: its bundler
         /// unpacks libraries/, versions/ and logs/ into the working folder, so a jar must never run in the app's own.</summary>
         public static (int Code, string Out) Run(string exe, string args, int timeoutMs = 120000, string stdin = null, string workingDir = null)
@@ -220,24 +230,42 @@ namespace MonitoringTools.Minecraft
             if (File.Exists(KnownHosts) && Run(Path.Combine(Path.GetDirectoryName(SshExe()), "ssh-keygen.exe"), $"-F \"{(port == "22" ? bare : $"[{bare}]:{port}")}\" -f \"{KnownHosts}\"").Code == 0)
                 return (true, "approved");
             var scan = Run(Path.Combine(Path.GetDirectoryName(SshExe()), "ssh-keyscan.exe"), $"-p {port} {bare}", 20000);
-            return (false, scan.Code == 0 ? scan.Out : "Could not reach the host to read its key: " + scan.Out);
+            if (scan.Code == 0 && KeyLines(scan.Out).Any()) return (false, scan.Out);
+            // ssh-keyscan cannot agree a key exchange with some newer servers (OpenSSH 10 offers only methods the Windows
+            // build of ssh-keyscan lacks), while ssh itself can. So ssh is asked to record the key into a scratch file it
+            // is told to accept new keys into; nothing is signed in, and the app's own known_hosts is not touched.
+            var scratch = Path.Combine(Path.GetTempPath(), "mt-hostkey-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Run(SshExe(), $"-p {port} -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=\"{scratch}\" -o PreferredAuthentications=none -o ConnectTimeout=15 {host} exit", 25000);
+                var lines = File.Exists(scratch) ? KeyLines(File.ReadAllText(scratch)).ToList() : new List<string>();
+                if (lines.Count > 0) return (false, string.Join("\n", lines));
+            }
+            finally { try { File.Delete(scratch); } catch { } }
+            return (false, "Could not reach the host to read its key: " + ActionLine(scan.Out));
         }
+
+        private static IEnumerable<string> KeyLines(string text) =>
+            (text ?? "").Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0 && !l.StartsWith("#") && (l.Contains(" ssh-") || l.Contains(" ecdsa-")));
 
         public static void ApproveHostKey(string scanOutput)
         {
-            var lines = scanOutput.Split('\n').Where(l => l.Length > 0 && !l.StartsWith("#"));
-            File.AppendAllLines(KnownHosts, lines);
+            // Only key lines are kept; any message ssh-keyscan printed beside them is left out.
+            File.AppendAllLines(KnownHosts, KeyLines(scanOutput));
         }
 
         /// <summary>Runs a command on the SSH host with key authentication only and a strict, app-owned known_hosts.</summary>
         public static (int Code, string Out) Ssh(ServerDef s, string remote, int timeoutMs = 180000)
         {
             var (host, port) = SplitHost(s.SshHost);
-            var args = $"-p {port} -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=\"{KnownHosts}\" -o ConnectTimeout=15 {host} {Quote(remote)}";
+            var args = $"-p {port} {KeyArgs(s)}-o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=\"{KnownHosts}\" -o ConnectTimeout=15 {host} {Quote(remote)}";
             return Run(SshExe(), args, timeoutMs);
         }
 
         private static string Quote(string s) => "\"" + s.Replace("\"", "\\\"") + "\"";
+
+        /// <summary>The identity file option when the server names its own key, so ssh uses that key and no other.</summary>
+        internal static string KeyArgs(ServerDef s) => string.IsNullOrWhiteSpace(s.SshKey) ? "" : $"-i \"{s.SshKey.Trim()}\" -o IdentitiesOnly=yes ";
         internal static string Sh(string s) => "'" + s.Replace("'", "'\\''") + "'";
 
         // -------------------------------------------------------------- create
@@ -249,8 +277,15 @@ namespace MonitoringTools.Minecraft
             if (!s.EulaAccepted) throw new InvalidOperationException("Accept the Minecraft EULA for this server first.");
             var props = new Dictionary<string, string> { ["server-port"] = s.Port.ToString(), ["motd"] = Escape(s.Name) };
             if (initial != null) foreach (var (k, v) in initial) props[k] = Escape(v);
+            if (s.IsBedrock && s.Target != Target.LocalProcess) throw new NotSupportedException("The Bedrock server runs as a process on this computer. Choose This computer.");
             switch (s.Target)
             {
+                case Target.LocalProcess when s.IsBedrock:
+                {
+                    if (worldSource != null) throw new NotSupportedException("Bedrock worlds are made new here; copy an existing world into its worlds folder after the server is made.");
+                    await McBedrock.InstallAsync(s, report, initial);
+                    break;
+                }
                 case Target.LocalProcess:
                 {
                     if (!McSoftware.RunsAsLocalProcess(s.Flavour)) throw new NotSupportedException($"{s.Flavour} needs its own installer, so it runs on the Docker targets. On this computer as a process, choose Vanilla, Paper or Purpur.");
@@ -366,7 +401,7 @@ namespace MonitoringTools.Minecraft
         {
             switch (s.Target)
             {
-                case Target.LocalProcess: return Running.TryGetValue(s.Id, out var p) && !p.HasExited;
+                case Target.LocalProcess: return (Running.TryGetValue(s.Id, out var p) && !p.HasExited) || McDiscovery.ExternalProcess(s) != null;
                 case Target.LocalDocker: return Run("docker", $"inspect -f \"{{{{.State.Running}}}}\" {s.ContainerName}", 15000).Out.Trim() == "true";
                 default: return false;   // remote state is read on demand with Status()
             }
@@ -387,7 +422,7 @@ namespace MonitoringTools.Minecraft
         public static async Task StartAsync(ServerDef s, Action<string> report)
         {
             if (s.Target == Target.LocalProcess && IsRunning(s)) return;
-            if (!PortFree(s.Port) && (s.Target == Target.LocalProcess || s.Target == Target.LocalDocker))
+            if (!PortFreeFor(s) && (s.Target == Target.LocalProcess || s.Target == Target.LocalDocker))
                 throw new InvalidOperationException($"Port {s.Port} is already in use on this computer.");
             McLive.For(s).MarkStarting();
             switch (s.Target)
@@ -395,10 +430,22 @@ namespace MonitoringTools.Minecraft
                 case Target.LocalProcess:
                 {
                     if (IsRunning(s)) return;
-                    var d = await ResolveAsync(s.Version);
-                    var java = await JavaAsync(d.JavaMajor == 0 ? 8 : d.JavaMajor, report);
-                    var psi = new ProcessStartInfo(java, $"-Xms{Math.Min(1024, s.MemoryMb)}M -Xmx{s.MemoryMb}M -jar server.jar nogui")
-                    { WorkingDirectory = s.Folder, UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
+                    ProcessStartInfo psi;
+                    if (s.IsBedrock)
+                    {
+                        var exe = Path.Combine(s.Folder, McBedrock.Exe);
+                        if (!File.Exists(exe)) throw new FileNotFoundException("bedrock_server.exe is not in the server's folder.");
+                        psi = new ProcessStartInfo(exe, "");
+                    }
+                    else
+                    {
+                        var d = await ResolveAsync(s.Version);
+                        var java = await JavaAsync(d.JavaMajor == 0 ? 8 : d.JavaMajor, report);
+                        var jarName = string.IsNullOrWhiteSpace(s.JarName) ? "server.jar" : s.JarName;
+                        psi = new ProcessStartInfo(java, $"-Xms{Math.Min(1024, s.MemoryMb)}M -Xmx{s.MemoryMb}M -jar \"{jarName}\" nogui");
+                    }
+                    psi.WorkingDirectory = s.Folder; psi.UseShellExecute = false; psi.CreateNoWindow = true;
+                    psi.RedirectStandardInput = true; psi.RedirectStandardOutput = true; psi.RedirectStandardError = true;
                     var p = new Process { StartInfo = psi, EnableRaisingEvents = true };
                     var log = Path.Combine(s.Folder, "console.log");
                     void Line(string l) { if (l == null) return; try { File.AppendAllText(log, l + Environment.NewLine); } catch { } Output?.Invoke(s.Id, l); }
@@ -431,11 +478,21 @@ namespace MonitoringTools.Minecraft
                         p.StandardInput.WriteLine("stop");
                         if (!p.WaitForExit(60000)) { try { p.Kill(true); } catch { } }
                     }
+                    else if (McDiscovery.ExternalProcess(s) != null)
+                    {
+                        // Started outside this app: its console belongs to another program, so the only graceful stop is RCON.
+                        // The process is never killed from here.
+                        var rc = McRcon.From(s) ?? throw new InvalidOperationException("This server was started outside the app. Turn on RCON in its settings (enable-rcon and rcon.password) to stop it from here, or stop it where it was started.");
+                        McRcon.SendAsync(rc.Port, rc.Password, "stop").GetAwaiter().GetResult();
+                        for (int i = 0; i < 60 && McDiscovery.ExternalProcess(s) != null; i++) System.Threading.Thread.Sleep(1000);
+                        if (McDiscovery.ExternalProcess(s) != null) throw new InvalidOperationException("The server was asked to stop over RCON but is still running after a minute.");
+                    }
                     break;
                 case Target.LocalDocker: Check(Run("docker", $"stop -t 60 {s.ContainerName}", 90000), "stop"); break;
                 case Target.SshProcess: Check(Ssh(s, $"cd {Sh(s.RemoteFolder)} && test -f server.pid && {{ echo stop > console.in; sleep 20; kill $(head -n1 server.pid) 2>/dev/null; rm -f server.pid; }} || true", 90000), "stop"); break;
                 case Target.SshDocker: Check(Ssh(s, $"docker stop -t 60 {s.ContainerName}", 90000), "stop"); break;
             }
+            McLive.For(s).Stopped();
             Activity.Add(ActivityKind.Service, $"Minecraft server stopped: {s.Name}", s.Target.ToString());
             Changed?.Invoke();
         });
@@ -452,8 +509,15 @@ namespace MonitoringTools.Minecraft
             switch (s.Target)
             {
                 case Target.LocalProcess:
-                    if (!Running.TryGetValue(s.Id, out var p) || p.HasExited) return "The server is not running.";
-                    p.StandardInput.WriteLine(command); return "Sent.";
+                    if (Running.TryGetValue(s.Id, out var p) && !p.HasExited) { p.StandardInput.WriteLine(command); return "Sent."; }
+                    if (McDiscovery.ExternalProcess(s) != null)
+                    {
+                        var rc = McRcon.From(s);
+                        if (rc == null) return "This server was started outside the app, so commands need RCON. Turn on enable-rcon and set rcon.password in its settings.";
+                        try { var a = McRcon.SendAsync(rc.Port, rc.Password, command).GetAwaiter().GetResult(); return a.Length > 0 ? a : "Sent."; }
+                        catch (Exception ex) { return "RCON: " + ex.Message; }
+                    }
+                    return "The server is not running.";
                 case Target.LocalDocker: { var r = Run("docker", $"exec {s.ContainerName} rcon-cli {command}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
                 case Target.SshProcess: { var r = Ssh(s, $"cd {Sh(s.RemoteFolder)} && echo {Sh(command)} > console.in", 30000); return r.Code == 0 ? "Sent." : ActionLine(r.Out); }
                 case Target.SshDocker: { var r = Ssh(s, $"docker exec {s.ContainerName} rcon-cli {Sh(command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
@@ -468,7 +532,14 @@ namespace MonitoringTools.Minecraft
                 case Target.LocalProcess:
                 {
                     var f = Path.Combine(s.Folder, "console.log");
-                    return File.Exists(f) ? string.Join("\n", File.ReadLines(f).TakeLast(lines)) : "";
+                    // An adopted Java server that was started elsewhere writes its log to logs/latest.log.
+                    if (s.Adopted && !s.IsBedrock && !Running.ContainsKey(s.Id)) { var latest = Path.Combine(s.Folder, "logs", "latest.log"); if (File.Exists(latest)) f = latest; }
+                    if (!File.Exists(f)) return "";
+                    using var fs = new FileStream(f, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                    using var sr = new StreamReader(fs);
+                    var all = new List<string>(); string l;
+                    while ((l = sr.ReadLine()) != null) { all.Add(l); if (all.Count > lines * 4) all.RemoveRange(0, all.Count - lines); }
+                    return string.Join("\n", all.TakeLast(lines));
                 }
                 case Target.LocalDocker: return Run("docker", $"logs --tail {lines} {s.ContainerName}", 20000).Out;
                 case Target.SshProcess: return Ssh(s, $"tail -n {lines} {Sh(s.RemoteFolder)}/console.log 2>/dev/null", 30000).Out;
@@ -499,12 +570,18 @@ namespace MonitoringTools.Minecraft
         public static Dictionary<string, string> ReadProperties(ServerDef s)
         {
             var f = PropertiesPath(s);
-            return f == null ? new Dictionary<string, string>() : McProperties.Load(f).ToDictionary();
+            if (f == null) return new Dictionary<string, string>();
+            if (InContainerOnly(s)) { var t = ReadPropertiesText(s); return t == null ? new Dictionary<string, string>() : McProperties.Parse(t).ToDictionary(); }
+            return McProperties.Load(f).ToDictionary();
         }
+
+        /// <summary>An adopted container whose /data is a Docker volume rather than a folder here: its files are read and written through docker exec.</summary>
+        internal static bool InContainerOnly(ServerDef s) => s.Target == Target.LocalDocker && s.Adopted && string.IsNullOrWhiteSpace(s.FolderPath);
 
         /// <summary>Updates only the given keys and keeps every other line, comment and unknown setting.</summary>
         public static void WriteProperties(ServerDef s, IDictionary<string, string> changes)
         {
+            if (InContainerOnly(s)) { var d0 = McProperties.Parse(ReadPropertiesText(s) ?? ""); foreach (var (k, v) in changes) d0.Set(k, v); WritePropertiesText(s, d0.ToString()); return; }
             var f = PropertiesPath(s) ?? throw new NotSupportedException("Edit remote settings on the host; this target keeps them there.");
             var doc = McProperties.Load(f);
             foreach (var (k, v) in changes) doc.Set(k, v);
@@ -514,6 +591,11 @@ namespace MonitoringTools.Minecraft
         /// <summary>The whole server.properties file, from this computer or from the SSH host. Null when it cannot be read.</summary>
         public static string ReadPropertiesText(ServerDef s)
         {
+            if (InContainerOnly(s))
+            {
+                var dr = Run("docker", $"exec {s.ContainerName} cat /data/server.properties", 20000);
+                return dr.Code == 0 ? dr.Out.Replace("\r\n", "\n") + (dr.Out.Length > 0 ? "\n" : "") : null;
+            }
             var f = PropertiesPath(s);
             if (f != null) return File.Exists(f) ? File.ReadAllText(f) : "";
             var r = Ssh(s, $"tail -n +1 {Sh(s.RemoteFolder)}/server.properties 2>/dev/null || true", 30000);
@@ -523,6 +605,13 @@ namespace MonitoringTools.Minecraft
         /// <summary>Writes the whole file back. On an SSH host it travels as base64, so no character of it is interpreted by a shell.</summary>
         public static void WritePropertiesText(ServerDef s, string text)
         {
+            if (InContainerOnly(s))
+            {
+                var b = Convert.ToBase64String(Encoding.UTF8.GetBytes(text));
+                var dr = Run("docker", $"exec {s.ContainerName} sh -c \"echo {b} | base64 -d > /data/server.properties.tmp && mv /data/server.properties.tmp /data/server.properties\"", 20000);
+                if (dr.Code != 0) throw new InvalidOperationException("Could not write server.properties in the container: " + ActionLine(dr.Out));
+                return;
+            }
             var f = PropertiesPath(s);
             if (f != null) { McProperties.Parse(text).Save(f); return; }
             var b64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(text));
@@ -550,9 +639,23 @@ namespace MonitoringTools.Minecraft
                     var scp = Path.Combine(Path.GetDirectoryName(SshExe()), "scp.exe");
                     var mk = Ssh(s, $"mkdir -p {Sh(s.RemoteFolder)}/{sub}", 30000);
                     if (mk.Code != 0) return "Could not reach the host: " + ActionLine(mk.Out);
-                    var r = Run(scp, $"-P {port} -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=\"{KnownHosts}\" \"{jarPath}\" {host}:{s.RemoteFolder}/{sub}/", 300000);
+                    var r = Run(scp, $"-P {port} {KeyArgs(s)}-o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=\"{KnownHosts}\" \"{jarPath}\" {host}:{s.RemoteFolder}/{sub}/", 300000);
                     return r.Code == 0 ? $"Copied into {sub} on the host. Restart the server to load it." : "Copy failed: " + ActionLine(r.Out);
             }
+        }
+
+        /// <summary>
+        /// Removes the container of a local Docker server, only when Docker reports this app's own label on it for this
+        /// server. An adopted container, or any container without that label, is never removed from here.
+        /// </summary>
+        public static void DeleteContainer(ServerDef s)
+        {
+            if (s.Target != Target.LocalDocker) throw new NotSupportedException("Only a local Docker server has a container to remove.");
+            var label = Run("docker", "inspect -f \"{{ index .Config.Labels \\\"monitoring-tools.server\\\" }}\" " + s.ContainerName, 15000);
+            if (label.Code != 0) throw new InvalidOperationException("The container is not on this computer: " + ActionLine(label.Out));
+            if (label.Out.Trim() != s.Id) throw new InvalidOperationException("That container does not carry this app's label for this server, so it was not removed.");
+            Check(Run("docker", "rm -f " + s.ContainerName, 60000), "remove");
+            Changed?.Invoke();
         }
 
         /// <summary>Stops every local process server gracefully when the service exits.</summary>

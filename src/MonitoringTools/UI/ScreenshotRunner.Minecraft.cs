@@ -67,12 +67,80 @@ namespace MonitoringTools.UI
                 }
                 McManagerView.Draft = null;
                 mc.CloseCreate();
+                await CatalogueAndDiscoveryScenesAsync(cc, mc);
             }
             finally
             {
+                McDiscovery.FakeProcesses = null; McDiscovery.FakeContainers = null;
+                McBedrock.SetLatestForTest(null);
                 cc.Close();
                 McDemo.Remove();
             }
+        }
+
+        /// <summary>Hangar results, the compatibility badges, the Bedrock create steps, the Found list and an adopted server.</summary>
+        private static async Task CatalogueAndDiscoveryScenesAsync(ControlCentreWindow cc, McManagerView mc)
+        {
+            void ScrollTo(System.Windows.FrameworkElement target)
+            {
+                cc.UpdateLayout();
+                var top = target.TranslatePoint(new System.Windows.Point(0, 0), cc.Scroller);
+                cc.Scroller.ScrollToVerticalOffset(cc.Scroller.VerticalOffset + top.Y - 24);
+            }
+
+            // ---- plugins: the badges, then Hangar results (sample hits; nothing is downloaded)
+            mc.Select("sample-friends");
+            McManagerView.CatalogueSource = "Modrinth";
+            mc.ShowSection("content");
+            await Task.Delay(700);
+            ScrollTo(mc.SectionBody);
+            await Shot(cc, "mc-plugins-badges", "Minecraft servers: installed plugins with a compatibility badge each, Update all and Undo (sample data)", 700);
+            cc.Scroller.ScrollToTop();
+            McManagerView.LastFinds["sample-friends|Hangar"] = new System.Collections.Generic.List<McCatalogHit>
+            {
+                new McCatalogHit { Source = "Hangar", ProjectId = "31", Title = "ViaVersion", Author = "ViaVersion", Downloads = 525367, Description = "Allow newer clients to join older server versions." },
+                new McCatalogHit { Source = "Hangar", ProjectId = "12", Title = "ViaBackwards", Author = "ViaVersion", Downloads = 301442, Description = "Allow older clients to join newer server versions." },
+                new McCatalogHit { Source = "Hangar", ProjectId = "1822", Title = "Chunky", Author = "pop4959", Downloads = 98210, Description = "Pre-generates chunks, quickly and efficiently." },
+            };
+            McManagerView.CatalogueSource = "Hangar";
+            mc.ShowSection("content");
+            await Task.Delay(700);
+            if (mc.SectionBody is System.Windows.Controls.Panel body && body.Children.Count > 1) ScrollTo((System.Windows.FrameworkElement)body.Children[body.Children.Count - 1]);
+            await Shot(cc, "mc-plugins-hangar", "Minecraft servers: Hangar results beside Modrinth for a Paper server (sample results)", 700);
+            cc.Scroller.ScrollToTop();
+            McManagerView.CatalogueSource = "Modrinth";
+            McManagerView.LastFinds.Remove("sample-friends|Hangar");
+
+            // ---- Bedrock in the create flow
+            McBedrock.SetLatestForTest(new McBedrock.Release { Version = "1.26.61.1", Url = "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.61.1.zip" });
+            McManagerView.Draft = new McCreateDraft { Name = "Family Bedrock", Port = 25570 };
+            mc.OpenCreate();
+            await Task.Delay(500);
+            SelfTest.Press(mc.CreateForm, "Bedrock edition");
+            await Shot(cc, "mc-create-bedrock", "New server: Bedrock edition, with Mojang's newest Windows server", 1200);
+            for (int i = 0; i < 5; i++) { SelfTest.Press(mc.CreateForm, "Next"); await Task.Delay(500); }
+            await Shot(cc, "mc-create-bedrock-review", "New server: the review step for a Bedrock server", 1000);
+            McManagerView.Draft = null;
+            mc.CloseCreate();
+
+            // ---- servers found on this computer, and one adopted (sample processes; nothing runs)
+            var (procs, containers) = McDemo.FoundSample();
+            McDiscovery.FakeProcesses = () => procs; McDiscovery.FakeContainers = () => containers;
+            await mc.Discover();
+            mc.Select("sample-friends");
+            mc.ShowSection("overview");
+            await Task.Delay(600);
+            var found = SelfTest.Descend<System.Windows.Controls.StackPanel>(mc).FirstOrDefault(p => System.Windows.Automation.AutomationProperties.GetName(p) == "Found on this computer");
+            if (found != null) ScrollTo(found);
+            await Shot(cc, "mc-found", "Minecraft servers: servers found on this computer that the app did not make, each with Adopt (sample processes)", 700);
+            cc.Scroller.ScrollToTop();
+            var adopted = mc.AdoptNow(McManagerView.Found[0]);
+            await McState.ProbeAsync(adopted);
+            mc.ShowSection("overview");
+            await Shot(cc, "mc-adopted", "Minecraft servers: an adopted Paper server that was started outside the app (sample process)", 1200);
+            ServerManager.Servers.Remove(adopted); ServerManager.Save();
+            McManagerView.Found.Clear();
+            mc.Select("sample-friends");
         }
     }
 }

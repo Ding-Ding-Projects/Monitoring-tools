@@ -14,6 +14,8 @@ namespace MonitoringTools.Minecraft
         // Vanilla: "[14:02:11] [Server thread/INFO]: Done". Paper and itzg images: "[14:02:11 INFO]: Done".
         private static readonly Regex Vanilla = new Regex(@"^\[(?<t>\d{1,2}:\d{2}:\d{2})\]\s*\[(?<th>[^\]/]*)/(?<l>[A-Z]+)\][^:]*:\s?(?<m>.*)$", RegexOptions.Compiled);
         private static readonly Regex Paper = new Regex(@"^\[(?<t>\d{1,2}:\d{2}:\d{2})\s+(?<l>[A-Z]+)\]:?\s?(?<m>.*)$", RegexOptions.Compiled);
+        // Bedrock: "[2026-11-04 10:00:00:123 INFO] Server started."
+        private static readonly Regex Bedrock = new Regex(@"^\[\d{4}-\d{2}-\d{2} (?<t>\d{1,2}:\d{2}:\d{2})(:\d+)?\s+(?<l>[A-Z]+)\]\s?(?<m>.*)$", RegexOptions.Compiled);
         private static readonly Regex ChatMsg = new Regex(@"^(\[Not Secure\]\s*)?<[^>]{1,32}>\s", RegexOptions.Compiled);
         private static readonly Regex Colour = new Regex("§.", RegexOptions.Compiled);
 
@@ -23,6 +25,7 @@ namespace MonitoringTools.Minecraft
             var l = new McLogLine { Raw = raw, Message = raw };
             var m = Vanilla.Match(raw);
             if (!m.Success) m = Paper.Match(raw);
+            if (!m.Success) m = Bedrock.Match(raw);
             string level = "INFO";
             if (m.Success) { l.Time = m.Groups["t"].Value; l.Message = m.Groups["m"].Value; level = m.Groups["l"].Value; }
             if (level == "WARN" || level == "ERROR" || level == "FATAL") l.Level = McLogLevel.Warn;

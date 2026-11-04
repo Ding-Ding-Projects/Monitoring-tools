@@ -79,6 +79,7 @@ namespace MonitoringTools.UI.Minecraft
             };
             string state = st.State switch
             {
+                McRunState.Running when s.Adopted && st.Detail.Contains("outside this app") => st.Detail,
                 McRunState.Running when live.StartedAt is DateTime t => "started " + McUi.Span(DateTime.Now - t) + " ago",
                 McRunState.HostOffline => "the host cannot be reached, so its state is unknown",
                 McRunState.Missing => st.Detail,
@@ -88,6 +89,11 @@ namespace MonitoringTools.UI.Minecraft
             Core.Language.Refresh(_detail);
             if (st.State == _shownState) return;
             _shownState = st.State;
+            KeepFocus(_actions, () => PaintActions(s, st));
+        }
+
+        private void PaintActions(ServerDef s, McStatus st)
+        {
             _badgeHost.Content = McUi.StateBadge(st.State, true);
             Core.Language.Refresh(_badgeHost);
             _actions.Children.Clear();

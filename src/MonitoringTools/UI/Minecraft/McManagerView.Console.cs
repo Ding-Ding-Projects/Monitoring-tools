@@ -81,8 +81,40 @@ namespace MonitoringTools.UI.Minecraft
             Lines(true);
             _tick = () => Lines();
 
-            root.Children.Add(BuildCommandBuilder(s));
+            root.Children.Add(s.IsBedrock ? BuildBedrockCommand(s) : BuildCommandBuilder(s));
             return root;
+        }
+
+        /// <summary>Bedrock has no command list to read from a jar, so its console takes a typed line, sent as it is.</summary>
+        private FrameworkElement BuildBedrockCommand(ServerDef s)
+        {
+            var card = new StackPanel();
+            card.Children.Add(McUi.Title("Run a command", 16));
+            var where = McUi.Body("The Bedrock server has no command list to build from, so type the command as you would in its own console, for example list or allowlist add Ava.", "B.TextMute", 12.5);
+            where.Margin = new Thickness(0, 2, 0, 10);
+            card.Children.Add(where);
+            var row = new WrapPanel();
+            var box = McUi.Field("", "Command", 360, "A Bedrock server command, without the slash");
+            box.FontFamily = Ui.Font("F.Mono");
+            row.Children.Add(box);
+            var answer = McUi.Body("", "B.TextMute", 12.5);
+            AutomationProperties.SetLiveSetting(answer, AutomationLiveSetting.Polite);
+            async Task Send()
+            {
+                var line = box.Text.Trim().TrimStart('/');
+                if (line.Length == 0) return;
+                answer.Text = "Sending…";
+                string r = McDemo.IsSample(s) ? "Sample server: nothing was sent." : !IsUp(s) ? "The server is not running, so nothing was sent." : await ServerManager.CommandAsync(s, line);
+                answer.Text = "/" + line + " · " + r;
+                Core.Language.Refresh(answer);
+            }
+            var run = Ui.Button("Run", () => _ = Send(), "Btn.Accent", Icons.Play);
+            run.Margin = new Thickness(8, 0, 0, 0);
+            row.Children.Add(run);
+            box.KeyDown += (o, e) => { if (e.Key == System.Windows.Input.Key.Enter) _ = Send(); };
+            card.Children.Add(row);
+            card.Children.Add(answer);
+            return McUi.Card(card);
         }
 
         private FrameworkElement BuildCommandBuilder(ServerDef s)
