@@ -30,6 +30,7 @@ namespace MonitoringTools.UI
         private readonly SearchField _search;
         private readonly StackPanel _list = new StackPanel();
         private readonly TextBlock _summary = new TextBlock();
+        private readonly List<Button> _chips = new List<Button>();
         private readonly Button _go;
         private FormatSpec _picked;
         private string _filter = "all";
@@ -117,6 +118,7 @@ namespace MonitoringTools.UI
                 chip.Tag = fid;
                 chip.Margin = new Thickness(0, 0, 6, 6);
                 AutomationProperties.SetName(chip, $"Show {label.ToLowerInvariant()}, {n} formats");
+                _chips.Add(chip);
                 chips.Children.Add(chip);
             }
             head.Children.Add(chips);
@@ -138,7 +140,7 @@ namespace MonitoringTools.UI
             where.ToolTip = "Where the converted file goes. Default: the original's own folder. A file with the same name is never overwritten; a number is added instead.";
             var cancel = Ui.Button("Cancel", Close, "Btn.Ghost");
             Grid.SetColumn(cancel, 1); Grid.SetColumn(_go, 2);
-            cancel.Margin = new Thickness(8, 0, 8, 0);
+            cancel.Margin = new Thickness(8, 0, 8, 0); _go.Margin = new Thickness(0); where.Margin = new Thickness(0);
             actions.Children.Add(where); actions.Children.Add(cancel); actions.Children.Add(_go);
             foot.Children.Add(actions);
             Grid.SetRow(foot, 2);
@@ -182,6 +184,13 @@ namespace MonitoringTools.UI
         private void Render()
         {
             _list.Children.Clear();
+            foreach (var c in _chips)
+            {
+                bool on = (string)c.Tag == _filter;
+                c.Background = on ? Ui.Res("B.SecondaryContainer") : Brushes.Transparent;
+                c.Foreground = on ? Ui.Res("B.OnSecondaryContainer") : Ui.Res("B.TextSoft");
+                AutomationProperties.SetItemStatus(c, on ? "selected" : "");
+            }
             int shown = 0;
             foreach (var group in new[] { "video", "audio", "image" })
             {
@@ -248,7 +257,7 @@ namespace MonitoringTools.UI
             int n = _files.Count(p => Converter.Compatible(p, _picked));
             var where = _outFolder != null ? PathDisplay.Shown(_outFolder) : "the same folder as the original";
             return n == 1 && _files.Length == 1
-                ? $"{Path.GetFileNameWithoutExtension(_files[0])}{_picked.Extension} will be saved in {where}."
+                ? $"{Path.GetFileName(Converter.OutputPathFor(_files[0], _picked, _outFolder))} will be saved in {where}."
                 : $"{n} of {_files.Length} files become {_picked.Label}, saved in {where}. The rest are skipped.";
         }
 

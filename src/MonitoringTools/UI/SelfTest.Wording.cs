@@ -23,6 +23,7 @@ namespace MonitoringTools.UI
         };
 
         /// <summary>Every piece of interface text in a tree that still carries a phrase the wording file replaces.</summary>
+        private static string WordingDebug;
         private static List<string> WordingLeftovers(DependencyObject root)
         {
             var rx = new Regex(@"(?<![\p{L}\p{N}])(" + string.Join("|", WordingSample.Keys.Select(Regex.Escape)) + @")(?![\p{L}\p{N}])", RegexOptions.IgnoreCase);
@@ -36,7 +37,12 @@ namespace MonitoringTools.UI
                 if (d is TextBox || d is PasswordBox) return;   // what is typed is the person's own text
                 if (d is UIElement ui && !ui.IsVisible) return;
                 if (Language.GetLiteral(d)) return;
-                if (d is TextBlock tb) foreach (var r in tb.Inlines.OfType<Run>()) if (!Language.GetLiteral(r) && r.Parent is not Hyperlink) Look("text", r.Text, tb);
+                if (d is TextBlock tb) foreach (var r in tb.Inlines.OfType<Run>()) if (!Language.GetLiteral(r) && r.Parent is not Hyperlink)
+                {
+                    var before = found.Count;
+                    Look("text", r.Text, tb);
+                    if (found.Count > before && WordingDebug == null) WordingDebug = $"runs {tb.Inlines.Count}, en '{Language.OriginalText(r)}', literal {Language.IsLiteral(tb)}, loaded {tb.IsLoaded}";
+                }
                 if (d is FrameworkElement fe && fe.ToolTip is string tip) Look("tooltip", tip, fe);
                 if (d is UIElement) Look("accessible name", AutomationProperties.GetName(d), d);
                 int n = d is Visual ? VisualTreeHelper.GetChildrenCount(d) : 0;
@@ -60,6 +66,10 @@ namespace MonitoringTools.UI
                 try
                 {
                     if (!PersonalWording.TryApply(file, out var msg)) return "the sample file was refused: " + msg;
+                    var lone = new TextBlock { Text = "Clipboard today" };
+                    Language.Refresh(lone);
+                    var loneRun = lone.Inlines.OfType<Run>().FirstOrDefault();
+                    var probe = $"lone label after refresh '{lone.Text}' run '{loneRun?.Text}' en '{(loneRun == null ? "-" : Language.OriginalText(loneRun))}', mode {Language.Mode}, active {PersonalWording.Active}, count {PersonalWording.Count}, apply('Clipboard toasts') = '{PersonalWording.Apply("Clipboard toasts")}'";
                     cc.Show();
                     await Task.Delay(700);
                     var problems = new List<string>();
@@ -83,7 +93,7 @@ namespace MonitoringTools.UI
                     foreach (var x in WordingLeftovers(cc).Distinct().Take(60)) problems.Add("after a refresh network · " + x);
 
                     File.WriteAllLines(Path.Combine(dir, "wording-leftovers.txt"), problems);
-                    return problems.Count == 0 ? null : problems.Count + " places still show the original wording: " + string.Join(" | ", problems.Take(25));
+                    return problems.Count == 0 ? null : problems.Count + " places still show the original wording (" + probe + "; first leftover " + WordingDebug + "): " + string.Join(" | ", problems.Take(25));
                 }
                 finally { PersonalWording.Clear(); Settings.Current.LanguageMode = saved; cc.Close(); }
             });

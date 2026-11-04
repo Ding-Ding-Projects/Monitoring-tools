@@ -27,6 +27,8 @@ namespace MonitoringTools.UI
         // Product names, units, keys and abbreviations that are written the same way in every language.
         private static readonly HashSet<string> Keep = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
+            "AIFF", "XL", "PCX", "PPM", "QOI", "Targa", "WavPack", "QuickTime", "ProRes", "HEVC", "AV1", "Theora", "Vorbis", "Opus", "ALAC", "AMR", "Dolby",
+            "Matroska", "MPEG", "FLV", "WMV", "M4V", "3GP", "OGV", "M4A", "WMA", "MKA", "APNG", "AVIF", "JXL", "TGA", "AC", "VP9", "H", "Flash", "Ogg", "Bitmap",
             "Ollama", "Minecraft", "GitHub", "Git", "FFmpeg", "PowerShell", "Windows", "Monitoring", "Tools", "Docker", "Compose", "Notepad",
             "Wi", "Fi", "DNS", "IP", "IPv", "TCP", "UDP", "URL", "URI", "JSON", "CSV", "MP", "GIF", "PNG", "WebP", "JPEG", "JPG", "PDF", "ZIP", "HTTP", "HTTPS",
             "PIN", "TOTP", "HOTP", "QR", "SHA", "PBKDF", "AES", "GCM", "UTF", "USB", "CPU", "GPU", "RAM", "ms", "KB", "MB", "GB", "TB", "kB", "Hz", "px", "fps", "kbps", "Mbps",

@@ -37,6 +37,14 @@ namespace MonitoringTools.UI
         public static IEnumerable<T> All<T>(DependencyObject root) where T : DependencyObject => Descendants(root).OfType<T>();
 
         /// <summary>The text a button shows, whether its content is a string or a panel holding a text block.</summary>
+        /// <summary>The English a translated label was made from, or null when the label was never translated.</summary>
+        public static string OriginalLabelOf(ContentControl b)
+        {
+            var tb = b.Content as TextBlock ?? (b.Content is DependencyObject d ? Descendants(d).OfType<TextBlock>().FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Text)) : null);
+            var run = tb?.Inlines.OfType<System.Windows.Documents.Run>().FirstOrDefault();
+            return run == null ? null : Core.Language.OriginalText(run);
+        }
+
         public static string LabelOf(ContentControl b)
         {
             if (b.Content is string s) return s;
@@ -56,7 +64,7 @@ namespace MonitoringTools.UI
             {
                 if (visibleOnly && !e.IsVisible) continue;
                 if (AutomationProperties.GetName(e) == name || Core.Language.OriginalName(e) == name) return e;   // a translated name still answers to its English original
-                if (e is ContentControl cc && LabelOf(cc) == name) return e;
+                if (e is ContentControl cc && (LabelOf(cc) == name || OriginalLabelOf(cc) == name)) return e;   // a translated label still answers to its English original
             }
             return null;
         }

@@ -14,6 +14,12 @@ namespace MonitoringTools.Core
             void Add(string en, string yue) => t.TryAdd(en, yue);
 
             // ---- file converter formats and the convert dialog
+            Add("In effect now", "而家生效緊");
+            Add("Choose a file to convert…", "揀個檔案嚟轉換…");
+            Add("Copy a file, then pick its Convert button, or copy its path with :format on the end. Convert opens a list of every format the file can become.", "複製一個檔案，再撳佢嘅「轉換」掣，或者喺路徑後面加 :格式 再複製。「轉換」會打開一個清單，列出個檔案可以變成嘅所有格式。");
+            Add("Choose a video, audio or picture file", "揀一個影片、音訊或者圖片檔");
+            Add("Video, audio and pictures", "影片、音訊同圖片");
+            Add("All files", "所有檔案");
             Add("MP4 (H.264)", "MP4（H.264）");
             Add("MP4 (H.265 / HEVC)", "MP4（H.265 / HEVC）");
             Add("MP4 (AV1)", "MP4（AV1）");

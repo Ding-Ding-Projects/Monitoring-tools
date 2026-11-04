@@ -98,16 +98,15 @@ namespace MonitoringTools.Core
             if (_installed) return;
             _installed = true;
 
-            EventManager.RegisterClassHandler(typeof(TextBlock), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) => { var tb = (TextBlock)e; Rewrite(tb); Follow(tb); }));
-            EventManager.RegisterClassHandler(typeof(TextBlock), FrameworkElement.UnloadedEvent, new RoutedEventHandler((e, a) => Unfollow((TextBlock)e)));
-            // Tooltips and accessible names on content added after its window loaded (a new page, a new card) need the layer too.
-            EventManager.RegisterClassHandler(typeof(FrameworkElement), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) =>
-            {
-                var fe = (FrameworkElement)e;
-                if (fe.ToolTip is string) Retip(fe);
-                Retext(fe, AutomationProperties.NameProperty, NameEnProp, NameFinalProp);
-                Retext(fe, AutomationProperties.HelpTextProperty, HelpEnProp, HelpFinalProp);
-            }));
+            EventManager.RegisterClassHandler(typeof(TextBlock), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) => Rewrite((TextBlock)e)));
+            // WPF raises Loaded only on elements that have their own Loaded handler, so the class handler above misses most
+            // labels added after a window opened (every page the control centre builds on a tab switch, cards, dialogs).
+            // Each window instead marks itself when its layout changes, and a short coalescing timer re-applies the language
+            // and the personal wording to marked windows. Rewriting is idempotent, so a pass over finished text changes nothing.
+            EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) => Watch((Window)e)));
+            _sweep = new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(250) };
+            _sweep.Tick += (s2, e2) => Sweep();
+            _sweep.Start();
             PersonalWording.Changed += () => Refresh();
             EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) => Walk((Window)e)));
             Narrator.Attach();
@@ -116,29 +115,29 @@ namespace MonitoringTools.Core
             Refresh();
         }
 
-        // Text the app writes into a label after it loaded (a tab strip renaming its tabs, a status line) is rewritten
-        // again, so the language and the personal wording never fall back to the original words.
-        private static readonly System.ComponentModel.DependencyPropertyDescriptor TextDescriptor =
-            System.ComponentModel.DependencyPropertyDescriptor.FromProperty(TextBlock.TextProperty, typeof(TextBlock));
-        private static readonly DependencyProperty FollowingProp = DependencyProperty.RegisterAttached("Following", typeof(bool), typeof(Language), new PropertyMetadata(false));
-        private static bool _rewriting;
-        private static void OnTextChanged(object sender, EventArgs e)
+        private static System.Windows.Threading.DispatcherTimer _sweep;
+        private static readonly HashSet<Window> _dirty = new HashSet<Window>();
+        private static readonly DependencyProperty WatchedProp = DependencyProperty.RegisterAttached("Watched", typeof(bool), typeof(Language), new PropertyMetadata(false));
+
+        private static void Watch(Window w)
         {
-            if (_rewriting || !(sender is TextBlock tb)) return;
-            _rewriting = true;
-            try { Rewrite(tb); } finally { _rewriting = false; }
+            if ((bool)w.GetValue(WatchedProp)) return;
+            w.SetValue(WatchedProp, true);
+            w.LayoutUpdated += (s, e) => _dirty.Add(w);
+            w.Closed += (s, e) => _dirty.Remove(w);
+            _dirty.Add(w);
         }
-        private static void Follow(TextBlock tb)
+
+        /// <summary>Re-applies the language and wording to every window whose layout changed since the last pass.</summary>
+        internal static void Sweep()
         {
-            if ((bool)tb.GetValue(FollowingProp)) return;
-            tb.SetValue(FollowingProp, true);
-            TextDescriptor.AddValueChanged(tb, OnTextChanged);
-        }
-        private static void Unfollow(TextBlock tb)
-        {
-            if (!(bool)tb.GetValue(FollowingProp)) return;
-            tb.SetValue(FollowingProp, false);
-            TextDescriptor.RemoveValueChanged(tb, OnTextChanged);
+            if (_dirty.Count == 0) return;
+            if (Plain) { _dirty.Clear(); return; }   // English without personal wording: nothing to apply (Refresh restores originals)
+            var list = _dirty.ToList();
+            _dirty.Clear();
+            foreach (var w in list)
+                if (w.IsVisible) { try { Walk(w); } catch (Exception ex) { Log.Warn("Language sweep: " + ex.Message); } }
+            _dirty.Clear();   // the rewrite itself caused layout passes; those need no second sweep
         }
 
         /// <summary>Re-applies the language to every open window and tells listeners. Call after changing the mode.</summary>

@@ -48,7 +48,9 @@ namespace MonitoringTools.UI
             await CheckAsync("converter: the bundled FFmpeg really makes every format, and FFprobe reads each result", async () =>
             {
                 var ffmpeg = Converter.FindFfmpeg();
-                if (ffmpeg == null) return "FFmpeg is not available in this build";
+                var given = Environment.GetEnvironmentVariable("MT_FFMPEG");   // a development build carries no FFmpeg; point at the pinned copy
+                if (ffmpeg == null && !string.IsNullOrEmpty(given) && File.Exists(given)) { Settings.Current.FfmpegPath = given; ffmpeg = Converter.FindFfmpeg(); }
+                if (ffmpeg == null) return "FFmpeg is not available in this build (set MT_FFMPEG to test a development build)";
                 var ffprobe = Path.Combine(Path.GetDirectoryName(ffmpeg), "ffprobe.exe");
                 var tmp = Path.Combine(Settings.DataDir, "convert-real"); Directory.CreateDirectory(tmp);
                 var video = Path.Combine(tmp, "source.mp4");
@@ -71,6 +73,7 @@ namespace MonitoringTools.UI
                 {
                     foreach (var (spec, _) in ConvertDialog.TargetsFor(new[] { src }))
                     {
+                        if (!File.Exists(src)) break;
                         var job = new ConversionJob { Source = src, Format = spec, Output = Converter.OutputPathFor(src, spec, tmp), SourceBytes = new FileInfo(src).Length };
                         await Converter.RunAsync(job);
                         var name = Path.GetExtension(src).TrimStart('.') + " to " + spec.Id;
@@ -83,6 +86,8 @@ namespace MonitoringTools.UI
                         made++;
                     }
                 }
+                foreach (var src in new[] { video, audio, picture })
+                    if (!File.Exists(src)) failures.Add("the original " + Path.GetFileName(src) + " was deleted, and it lives in the temp folder like a mail attachment would");
                 File.WriteAllLines(Path.Combine(dir, "convert-results.txt"), new[] { $"made {made}" }.Concat(failures));
                 return failures.Count == 0 ? null : $"{failures.Count} failed, {made} made: " + string.Join(" | ", failures.Take(20));
             });

@@ -241,6 +241,7 @@ namespace MonitoringTools.Media
             using (var fs = File.Create(tmp)) png.Save(fs);
             var renamed = Unique(Path.Combine(Path.GetTempPath(), stamp + ".png"));
             File.Move(tmp, renamed);
+            lock (OwnedTemp) OwnedTemp.Add(renamed);
             Start(renamed, formatId, folder);
             return null;
         }
@@ -385,6 +386,8 @@ namespace MonitoringTools.Media
             catch (Exception ex) { Finish(job, ex.Message); }
         }
 
+        private static readonly HashSet<string> OwnedTemp = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         private static void Finish(ConversionJob job, string error)
         {
             job.Done = true;
@@ -394,8 +397,10 @@ namespace MonitoringTools.Media
             {
                 job.Progress = 1;
                 try { job.OutputBytes = new FileInfo(job.Output).Length; } catch { }
-                if (job.Source.StartsWith(Path.GetTempPath(), StringComparison.OrdinalIgnoreCase))
-                    try { File.Delete(job.Source); } catch { }
+                // Only the temporary picture this app wrote from the clipboard is removed. A person's own file is never deleted,
+                // even when it lives in the temp folder (an attachment opened from mail, a browser download).
+                bool owned; lock (OwnedTemp) owned = OwnedTemp.Remove(job.Source);
+                if (owned) try { File.Delete(job.Source); } catch { }
             }
             Activity.Add(ActivityKind.Convert,
                 job.Failed ? $"{Path.GetFileName(job.Source)} to {job.Format.Label} failed" : $"{Path.GetFileName(job.Source)} → {Path.GetFileName(job.Output)}",
