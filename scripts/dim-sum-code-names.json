@@ -1,847 +1,833 @@
 {
- "source": "https://github.com/Ding-Ding-Projects/dim-sum-photos",
- "catalog": "https://raw.githubusercontent.com/Ding-Ding-Projects/dim-sum-photos/main/catalog/index.json",
- "note": "Names are copied exactly from name.en and name.zhHant. Only dishes whose photo asset was published in a catalog-v1 release when this list was written are included. No photo is stored in this repository.",
- "dishes": [
-  {
-   "id": "hk-dish-0001",
-   "en": "Classic Har Gow",
-   "zhHant": "蝦餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0001-classic-har-gow.png"
-  },
-  {
-   "id": "hk-dish-0002",
-   "en": "Scallop Har Gow",
-   "zhHant": "帶子蝦餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0002-scallop-har-gow.png"
-  },
-  {
-   "id": "hk-dish-0003",
-   "en": "Bamboo Shoot Har Gow",
-   "zhHant": "筍尖蝦餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0003-bamboo-shoot-har-gow.png"
-  },
-  {
-   "id": "hk-dish-0004",
-   "en": "Crab Roe Har Gow",
-   "zhHant": "蟹籽蝦餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0004-crab-roe-har-gow.png"
-  },
-  {
-   "id": "hk-dish-0005",
-   "en": "Chive Shrimp Dumpling",
-   "zhHant": "韭菜蝦餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0005-chive-shrimp-dumpling.png"
-  },
-  {
-   "id": "hk-dish-0006",
-   "en": "Spinach Shrimp Dumpling",
-   "zhHant": "菠菜蝦餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0006-spinach-shrimp-dumpling.png"
-  },
-  {
-   "id": "hk-dish-0007",
-   "en": "Pea Shoot Shrimp Dumpling",
-   "zhHant": "豆苗蝦餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0007-pea-shoot-shrimp-dumpling.png"
-  },
-  {
-   "id": "hk-dish-0008",
-   "en": "Lobster Dumpling",
-   "zhHant": "龍蝦餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0008-lobster-dumpling.png"
-  },
-  {
-   "id": "hk-dish-0009",
-   "en": "Dried Scallop Shrimp Dumpling",
-   "zhHant": "瑤柱蝦餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0009-dried-scallop-shrimp-dumpling.png"
-  },
-  {
-   "id": "hk-dish-0010",
-   "en": "Cuttlefish Shrimp Dumpling",
-   "zhHant": "墨魚蝦餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0010-cuttlefish-shrimp-dumpling.png"
-  },
-  {
-   "id": "hk-dish-0011",
-   "en": "Classic Siu Mai",
-   "zhHant": "燒賣",
-   "release": "catalog-v1",
-   "file": "hk-dish-0011-classic-siu-mai.png"
-  },
-  {
-   "id": "hk-dish-0012",
-   "en": "Crab Roe Siu Mai",
-   "zhHant": "蟹籽燒賣",
-   "release": "catalog-v1",
-   "file": "hk-dish-0012-crab-roe-siu-mai.png"
-  },
-  {
-   "id": "hk-dish-0013",
-   "en": "Quail Egg Siu Mai",
-   "zhHant": "鵪鶉蛋燒賣",
-   "release": "catalog-v1",
-   "file": "hk-dish-0013-quail-egg-siu-mai.png"
-  },
-  {
-   "id": "hk-dish-0014",
-   "en": "Scallop Siu Mai",
-   "zhHant": "帶子燒賣",
-   "release": "catalog-v1",
-   "file": "hk-dish-0014-scallop-siu-mai.png"
-  },
-  {
-   "id": "hk-dish-0015",
-   "en": "Beef Siu Mai",
-   "zhHant": "牛肉燒賣",
-   "release": "catalog-v1",
-   "file": "hk-dish-0015-beef-siu-mai.png"
-  },
-  {
-   "id": "hk-dish-0016",
-   "en": "Chicken Siu Mai",
-   "zhHant": "雞肉燒賣",
-   "release": "catalog-v1",
-   "file": "hk-dish-0016-chicken-siu-mai.png"
-  },
-  {
-   "id": "hk-dish-0017",
-   "en": "Mushroom Siu Mai",
-   "zhHant": "北菇燒賣",
-   "release": "catalog-v1",
-   "file": "hk-dish-0017-mushroom-siu-mai.png"
-  },
-  {
-   "id": "hk-dish-0018",
-   "en": "Fish Maw Siu Mai",
-   "zhHant": "花膠燒賣",
-   "release": "catalog-v1",
-   "file": "hk-dish-0018-fish-maw-siu-mai.png"
-  },
-  {
-   "id": "hk-dish-0019",
-   "en": "Black Truffle Siu Mai",
-   "zhHant": "黑松露燒賣",
-   "release": "catalog-v1",
-   "file": "hk-dish-0019-truffle-siu-mai.png"
-  },
-  {
-   "id": "hk-dish-0020",
-   "en": "Dark Chocolate Crystal Dumpling",
-   "zhHant": "黑朱古力水晶餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0020-dark-chocolate-crystal-dumpling.png"
-  },
-  {
-   "id": "hk-dish-0021",
-   "en": "Steamed Beef Balls",
-   "zhHant": "山竹牛肉",
-   "release": "catalog-v1",
-   "file": "hk-dish-0021-steamed-beef-balls.png"
-  },
-  {
-   "id": "hk-dish-0022",
-   "en": "Dried Tangerine Peel Beef Balls",
-   "zhHant": "陳皮牛肉球",
-   "release": "catalog-v1",
-   "file": "hk-dish-0022-tangerine-peel-beef-balls.png"
-  },
-  {
-   "id": "hk-dish-0023",
-   "en": "Watercress Beef Balls",
-   "zhHant": "西洋菜牛肉球",
-   "release": "catalog-v1",
-   "file": "hk-dish-0023-watercress-beef-balls.png"
-  },
-  {
-   "id": "hk-dish-0024",
-   "en": "Steamed Pork Ribs with Black Bean",
-   "zhHant": "豉汁蒸排骨",
-   "release": "catalog-v1",
-   "file": "hk-dish-0024-black-bean-pork-ribs.png"
-  },
-  {
-   "id": "hk-dish-0025",
-   "en": "Steamed Pork Ribs with Garlic",
-   "zhHant": "蒜香蒸排骨",
-   "release": "catalog-v1",
-   "file": "hk-dish-0025-garlic-pork-ribs.png"
-  },
-  {
-   "id": "hk-dish-0026",
-   "en": "Steamed Pork Ribs with Plum Sauce",
-   "zhHant": "梅子蒸排骨",
-   "release": "catalog-v1",
-   "file": "hk-dish-0026-plum-sauce-pork-ribs.png"
-  },
-  {
-   "id": "hk-dish-0027",
-   "en": "Steamed Chicken Feet in Black Bean Sauce",
-   "zhHant": "豉汁蒸鳳爪",
-   "release": "catalog-v1",
-   "file": "hk-dish-0027-black-bean-chicken-feet.png"
-  },
-  {
-   "id": "hk-dish-0028",
-   "en": "Satay Chicken Feet",
-   "zhHant": "沙嗲蒸鳳爪",
-   "release": "catalog-v1",
-   "file": "hk-dish-0028-satay-chicken-feet.png"
-  },
-  {
-   "id": "hk-dish-0029",
-   "en": "Steamed Beef Tripe with Ginger and Scallion",
-   "zhHant": "薑蔥牛柏葉",
-   "release": "catalog-v1",
-   "file": "hk-dish-0029-ginger-scallion-beef-tripe.png"
-  },
-  {
-   "id": "hk-dish-0030",
-   "en": "Steamed Beef Tripe with Chu Hou Sauce",
-   "zhHant": "柱侯金錢肚",
-   "release": "catalog-v1",
-   "file": "hk-dish-0030-chu-hou-beef-tripe.png"
-  },
-  {
-   "id": "hk-dish-0031",
-   "en": "Steamed Curry Cuttlefish",
-   "zhHant": "咖喱蒸魷魚",
-   "release": "catalog-v1",
-   "file": "hk-dish-0031-curry-cuttlefish.png"
-  },
-  {
-   "id": "hk-dish-0032",
-   "en": "Steamed Fish Maw with Oyster Sauce",
-   "zhHant": "蠔皇蒸花膠",
-   "release": "catalog-v1",
-   "file": "hk-dish-0032-oyster-sauce-fish-maw.png"
-  },
-  {
-   "id": "hk-dish-0033",
-   "en": "Steamed Tofu Stuffed with Shrimp",
-   "zhHant": "百花釀豆腐",
-   "release": "catalog-v1",
-   "file": "hk-dish-0033-shrimp-stuffed-tofu.png"
-  },
-  {
-   "id": "hk-dish-0034",
-   "en": "Steamed Eggplant Stuffed with Shrimp",
-   "zhHant": "百花釀茄子",
-   "release": "catalog-v1",
-   "file": "hk-dish-0034-shrimp-stuffed-eggplant.png"
-  },
-  {
-   "id": "hk-dish-0035",
-   "en": "Steamed Bitter Melon Stuffed with Fish",
-   "zhHant": "鯪魚釀苦瓜",
-   "release": "catalog-v1",
-   "file": "hk-dish-0035-fish-stuffed-bitter-melon.png"
-  },
-  {
-   "id": "hk-dish-0036",
-   "en": "Steamed Bean Curd Skin Roll",
-   "zhHant": "鮮竹卷",
-   "release": "catalog-v1",
-   "file": "hk-dish-0036-steamed-bean-curd-roll.png"
-  },
-  {
-   "id": "hk-dish-0037",
-   "en": "Oyster Sauce Bean Curd Skin Roll",
-   "zhHant": "蠔皇鮮竹卷",
-   "release": "catalog-v1",
-   "file": "hk-dish-0037-oyster-sauce-bean-curd-roll.png"
-  },
-  {
-   "id": "hk-dish-0038",
-   "en": "Chicken and Fish Maw Bean Curd Roll",
-   "zhHant": "雞絲花膠腐皮卷",
-   "release": "catalog-v1",
-   "file": "hk-dish-0038-chicken-fish-maw-bean-curd-roll.png"
-  },
-  {
-   "id": "hk-dish-0039",
-   "en": "Mushroom Pork Tofu Skin Parcel",
-   "zhHant": "北菇豬肉腐皮扎",
-   "release": "catalog-v1",
-   "file": "hk-dish-0039-mushroom-pork-tofu-skin-parcel.png"
-  },
-  {
-   "id": "hk-dish-0040",
-   "en": "Salted Caramel Chocolate Dumpling",
-   "zhHant": "海鹽焦糖朱古力餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0040-salted-caramel-chocolate-dumpling.png"
-  },
-  {
-   "id": "hk-dish-0041",
-   "en": "Steamed Pork Patty with Salted Egg",
-   "zhHant": "鹹蛋蒸肉餅",
-   "release": "catalog-v1",
-   "file": "hk-dish-0041-salted-egg-pork-patty.png"
-  },
-  {
-   "id": "hk-dish-0042",
-   "en": "Steamed Beef Patty with Tangerine Peel",
-   "zhHant": "陳皮蒸牛肉餅",
-   "release": "catalog-v1",
-   "file": "hk-dish-0042-tangerine-peel-beef-patty.png"
-  },
-  {
-   "id": "hk-dish-0043",
-   "en": "Steamed Egg with Dried Scallop",
-   "zhHant": "瑤柱蒸水蛋",
-   "release": "catalog-v1",
-   "file": "hk-dish-0043-dried-scallop-steamed-egg.png"
-  },
-  {
-   "id": "hk-dish-0044",
-   "en": "Steamed Tofu with Dried Scallop",
-   "zhHant": "瑤柱蒸豆腐",
-   "release": "catalog-v1",
-   "file": "hk-dish-0044-dried-scallop-steamed-tofu.png"
-  },
-  {
-   "id": "hk-dish-0045",
-   "en": "Steamed Squid with Garlic Vermicelli",
-   "zhHant": "蒜蓉粉絲蒸魷魚",
-   "release": "catalog-v1",
-   "file": "hk-dish-0045-garlic-vermicelli-squid.png"
-  },
-  {
-   "id": "hk-dish-0046",
-   "en": "Steamed Prawns with Garlic Vermicelli",
-   "zhHant": "蒜蓉粉絲蒸蝦",
-   "release": "catalog-v1",
-   "file": "hk-dish-0046-garlic-vermicelli-prawns.png"
-  },
-  {
-   "id": "hk-dish-0047",
-   "en": "Steamed Razor Clams with Garlic Vermicelli",
-   "zhHant": "蒜蓉粉絲蒸聖子",
-   "release": "catalog-v1",
-   "file": "hk-dish-0047-garlic-vermicelli-razor-clams.png"
-  },
-  {
-   "id": "hk-dish-0048",
-   "en": "Steamed Pearl Chicken",
-   "zhHant": "珍珠雞",
-   "release": "catalog-v1",
-   "file": "hk-dish-0048-pearl-chicken.png"
-  },
-  {
-   "id": "hk-dish-0049",
-   "en": "Mini Glutinous Rice Chicken",
-   "zhHant": "糯米雞",
-   "release": "catalog-v1",
-   "file": "hk-dish-0049-mini-lotus-leaf-rice.png"
-  },
-  {
-   "id": "hk-dish-0050",
-   "en": "Pork Belly with Preserved Mustard Greens",
-   "zhHant": "梅菜扣肉",
-   "release": "catalog-v1",
-   "file": "hk-dish-0050-mustard-green-pork-belly.png"
-  },
-  {
-   "id": "hk-dish-0051",
-   "en": "Classic Char Siu Bao",
-   "zhHant": "叉燒包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0051-classic-char-siu-bao.png"
-  },
-  {
-   "id": "hk-dish-0052",
-   "en": "Snowy Char Siu Bao",
-   "zhHant": "雪山叉燒包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0052-snowy-char-siu-bao.png"
-  },
-  {
-   "id": "hk-dish-0053",
-   "en": "Pineapple Char Siu Bao",
-   "zhHant": "菠蘿叉燒包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0053-pineapple-char-siu-bao.png"
-  },
-  {
-   "id": "hk-dish-0054",
-   "en": "Steamed Chicken Bao",
-   "zhHant": "雞包仔",
-   "release": "catalog-v1",
-   "file": "hk-dish-0054-steamed-chicken-bao.png"
-  },
-  {
-   "id": "hk-dish-0055",
-   "en": "Traditional Big Bun",
-   "zhHant": "大包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0055-traditional-big-bun.png"
-  },
-  {
-   "id": "hk-dish-0056",
-   "en": "Lotus Seed Paste Bao",
-   "zhHant": "蓮蓉包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0056-lotus-seed-paste-bao.png"
-  },
-  {
-   "id": "hk-dish-0057",
-   "en": "Salted Egg Yolk Custard Bao",
-   "zhHant": "流沙包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0057-salted-egg-custard-bao.png"
-  },
-  {
-   "id": "hk-dish-0058",
-   "en": "Steamed Custard Bao",
-   "zhHant": "奶黃包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0058-steamed-custard-bao.png"
-  },
-  {
-   "id": "hk-dish-0059",
-   "en": "Black Sesame Bao",
-   "zhHant": "芝麻包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0059-black-sesame-bao.png"
-  },
-  {
-   "id": "hk-dish-0060",
-   "en": "Hazelnut Chocolate Bao",
-   "zhHant": "榛子朱古力包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0060-hazelnut-chocolate-bao.png"
-  },
-  {
-   "id": "hk-dish-0061",
-   "en": "Purple Sweet Potato Bao",
-   "zhHant": "紫薯包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0061-purple-sweet-potato-bao.png"
-  },
-  {
-   "id": "hk-dish-0062",
-   "en": "Taro Paste Bao",
-   "zhHant": "芋蓉包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0062-taro-paste-bao.png"
-  },
-  {
-   "id": "hk-dish-0063",
-   "en": "Brown Sugar Mantou",
-   "zhHant": "黑糖饅頭",
-   "release": "catalog-v1",
-   "file": "hk-dish-0063-brown-sugar-mantou.png"
-  },
-  {
-   "id": "hk-dish-0064",
-   "en": "Plain Mantou",
-   "zhHant": "白饅頭",
-   "release": "catalog-v1",
-   "file": "hk-dish-0064-plain-mantou.png"
-  },
-  {
-   "id": "hk-dish-0065",
-   "en": "Silver Thread Roll",
-   "zhHant": "銀絲卷",
-   "release": "catalog-v1",
-   "file": "hk-dish-0065-silver-thread-roll.png"
-  },
-  {
-   "id": "hk-dish-0066",
-   "en": "Steamed Sausage Roll",
-   "zhHant": "腸仔包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0066-steamed-sausage-roll.png"
-  },
-  {
-   "id": "hk-dish-0067",
-   "en": "Scallion Flower Roll",
-   "zhHant": "蔥花卷",
-   "release": "catalog-v1",
-   "file": "hk-dish-0067-scallion-flower-roll.png"
-  },
-  {
-   "id": "hk-dish-0068",
-   "en": "Mushroom-Shaped Custard Bao",
-   "zhHant": "蘑菇奶黃包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0068-mushroom-custard-bao.png"
-  },
-  {
-   "id": "hk-dish-0069",
-   "en": "Hedgehog Red Bean Bao",
-   "zhHant": "刺蝟豆沙包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0069-hedgehog-red-bean-bao.png"
-  },
-  {
-   "id": "hk-dish-0070",
-   "en": "Piglet Custard Bao",
-   "zhHant": "豬仔奶黃包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0070-piglet-custard-bao.png"
-  },
-  {
-   "id": "hk-dish-0071",
-   "en": "Mushroom Vegetable Bao",
-   "zhHant": "冬菇菜包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0071-mushroom-vegetable-bao.png"
-  },
-  {
-   "id": "hk-dish-0072",
-   "en": "Pork and Cabbage Bao",
-   "zhHant": "津白豬肉包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0072-pork-cabbage-bao.png"
-  },
-  {
-   "id": "hk-dish-0073",
-   "en": "Steamed Beef Bao",
-   "zhHant": "牛肉包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0073-steamed-beef-bao.png"
-  },
-  {
-   "id": "hk-dish-0074",
-   "en": "Steamed Curry Beef Bao",
-   "zhHant": "咖喱牛肉包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0074-curry-beef-bao.png"
-  },
-  {
-   "id": "hk-dish-0075",
-   "en": "Lamb and Scallion Bao",
-   "zhHant": "蔥香羊肉包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0075-lamb-scallion-bao.png"
-  },
-  {
-   "id": "hk-dish-0076",
-   "en": "Pork Soup Dumplings",
-   "zhHant": "小籠包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0076-pork-soup-dumplings.png"
-  },
-  {
-   "id": "hk-dish-0077",
-   "en": "Crab Roe Soup Dumplings",
-   "zhHant": "蟹粉小籠包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0077-crab-roe-soup-dumplings.png"
-  },
-  {
-   "id": "hk-dish-0078",
-   "en": "Black Truffle Soup Dumplings",
-   "zhHant": "黑松露小籠包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0078-truffle-soup-dumplings.png"
-  },
-  {
-   "id": "hk-dish-0079",
-   "en": "Chicken Soup Dumplings",
-   "zhHant": "雞湯小籠包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0079-chicken-soup-dumplings.png"
-  },
-  {
-   "id": "hk-dish-0080",
-   "en": "White Chocolate Custard Bao",
-   "zhHant": "白朱古力奶黃包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0080-white-chocolate-custard-bao.png"
-  },
-  {
-   "id": "hk-dish-0081",
-   "en": "Steamed Radish Cake",
-   "zhHant": "蒸蘿蔔糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0081-steamed-radish-cake.png"
-  },
-  {
-   "id": "hk-dish-0082",
-   "en": "Steamed Taro Cake",
-   "zhHant": "蒸芋頭糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0082-steamed-taro-cake.png"
-  },
-  {
-   "id": "hk-dish-0083",
-   "en": "Water Chestnut Cake",
-   "zhHant": "馬蹄糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0083-water-chestnut-cake.png"
-  },
-  {
-   "id": "hk-dish-0084",
-   "en": "Brown Sugar Sponge Cake",
-   "zhHant": "馬拉糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0084-brown-sugar-sponge-cake.png"
-  },
-  {
-   "id": "hk-dish-0085",
-   "en": "Coconut Layer Cake",
-   "zhHant": "椰汁千層糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0085-coconut-layer-cake.png"
-  },
-  {
-   "id": "hk-dish-0086",
-   "en": "Red Date Cake",
-   "zhHant": "紅棗糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0086-red-date-cake.png"
-  },
-  {
-   "id": "hk-dish-0087",
-   "en": "Osmanthus Water Chestnut Cake",
-   "zhHant": "桂花馬蹄糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0087-osmanthus-water-chestnut-cake.png"
-  },
-  {
-   "id": "hk-dish-0088",
-   "en": "Pandan Coconut Layer Cake",
-   "zhHant": "班蘭椰汁糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0088-pandan-coconut-layer-cake.png"
-  },
-  {
-   "id": "hk-dish-0089",
-   "en": "Black Sesame Layer Cake",
-   "zhHant": "芝麻千層糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0089-black-sesame-layer-cake.png"
-  },
-  {
-   "id": "hk-dish-0090",
-   "en": "Sweet Corn Cake",
-   "zhHant": "粟米糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0090-sweet-corn-cake.png"
-  },
-  {
-   "id": "hk-dish-0091",
-   "en": "White Sugar Sponge Cake",
-   "zhHant": "白糖糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0091-white-sugar-sponge-cake.png"
-  },
-  {
-   "id": "hk-dish-0092",
-   "en": "Yellow Sugar Sponge Cake",
-   "zhHant": "黃糖糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0092-yellow-sugar-sponge-cake.png"
-  },
-  {
-   "id": "hk-dish-0093",
-   "en": "Plain Rice Cup Cake",
-   "zhHant": "砵仔糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0093-plain-rice-cup-cake.png"
-  },
-  {
-   "id": "hk-dish-0094",
-   "en": "Red Bean Rice Cup Cake",
-   "zhHant": "紅豆砵仔糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0094-red-bean-rice-cup-cake.png"
-  },
-  {
-   "id": "hk-dish-0095",
-   "en": "Mung Bean Rice Cup Cake",
-   "zhHant": "綠豆砵仔糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0095-mung-bean-rice-cup-cake.png"
-  },
-  {
-   "id": "hk-dish-0096",
-   "en": "Turnip Pudding with Chinese Sausage",
-   "zhHant": "臘味蘿蔔糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0096-sausage-turnip-pudding.png"
-  },
-  {
-   "id": "hk-dish-0097",
-   "en": "Taro Cake with Dried Shrimp",
-   "zhHant": "蝦米芋頭糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0097-dried-shrimp-taro-cake.png"
-  },
-  {
-   "id": "hk-dish-0098",
-   "en": "Steamed Pumpkin Cake",
-   "zhHant": "南瓜糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0098-steamed-pumpkin-cake.png"
-  },
-  {
-   "id": "hk-dish-0099",
-   "en": "Steamed Chestnut Cake",
-   "zhHant": "栗子糕",
-   "release": "catalog-v1",
-   "file": "hk-dish-0099-steamed-chestnut-cake.png"
-  },
-  {
-   "id": "hk-dish-0100",
-   "en": "Matcha Chocolate Crystal Dumpling",
-   "zhHant": "抹茶朱古力水晶餃",
-   "release": "catalog-v1",
-   "file": "hk-dish-0100-matcha-chocolate-crystal-dumpling.png"
-  },
-  {
-   "id": "hk-dish-0101",
-   "en": "Classic Spring Rolls",
-   "zhHant": "炸春卷",
-   "release": "catalog-v1",
-   "file": "hk-dish-0101-classic-spring-rolls.png"
-  },
-  {
-   "id": "hk-dish-0102",
-   "en": "Shrimp Spring Rolls",
-   "zhHant": "蝦春卷",
-   "release": "catalog-v1",
-   "file": "hk-dish-0102-shrimp-spring-rolls.png"
-  },
-  {
-   "id": "hk-dish-0103",
-   "en": "Taro Spring Rolls",
-   "zhHant": "芋絲春卷",
-   "release": "catalog-v1",
-   "file": "hk-dish-0103-taro-spring-rolls.png"
-  },
-  {
-   "id": "hk-dish-0104",
-   "en": "Vegetable Spring Rolls",
-   "zhHant": "素菜春卷",
-   "release": "catalog-v1",
-   "file": "hk-dish-0104-vegetable-spring-rolls.png"
-  },
-  {
-   "id": "hk-dish-0105",
-   "en": "Crispy Taro Dumplings",
-   "zhHant": "蜂巢芋角",
-   "release": "catalog-v1",
-   "file": "hk-dish-0105-crispy-taro-dumplings.png"
-  },
-  {
-   "id": "hk-dish-0106",
-   "en": "Curry Taro Dumplings",
-   "zhHant": "咖喱芋角",
-   "release": "catalog-v1",
-   "file": "hk-dish-0106-curry-taro-dumplings.png"
-  },
-  {
-   "id": "hk-dish-0107",
-   "en": "Taro Duck Dumplings",
-   "zhHant": "香芋鴨角",
-   "release": "catalog-v1",
-   "file": "hk-dish-0107-taro-duck-dumplings.png"
-  },
-  {
-   "id": "hk-dish-0108",
-   "en": "Glutinous Rice Dumplings",
-   "zhHant": "鹹水角",
-   "release": "catalog-v1",
-   "file": "hk-dish-0108-glutinous-rice-dumplings.png"
-  },
-  {
-   "id": "hk-dish-0109",
-   "en": "Shrimp Glutinous Rice Dumplings",
-   "zhHant": "鮮蝦鹹水角",
-   "release": "catalog-v1",
-   "file": "hk-dish-0109-shrimp-glutinous-rice-dumplings.png"
-  },
-  {
-   "id": "hk-dish-0110",
-   "en": "Chicken Glutinous Rice Dumplings",
-   "zhHant": "雞粒鹹水角",
-   "release": "catalog-v1",
-   "file": "hk-dish-0110-chicken-glutinous-rice-dumplings.png"
-  },
-  {
-   "id": "hk-dish-0111",
-   "en": "Sesame Balls",
-   "zhHant": "煎堆",
-   "release": "catalog-v1",
-   "file": "hk-dish-0111-sesame-balls.png"
-  },
-  {
-   "id": "hk-dish-0112",
-   "en": "Lotus Paste Sesame Balls",
-   "zhHant": "蓮蓉煎堆",
-   "release": "catalog-v1",
-   "file": "hk-dish-0112-lotus-paste-sesame-balls.png"
-  },
-  {
-   "id": "hk-dish-0113",
-   "en": "Black Sesame Balls",
-   "zhHant": "黑芝麻煎堆",
-   "release": "catalog-v1",
-   "file": "hk-dish-0113-black-sesame-balls.png"
-  },
-  {
-   "id": "hk-dish-0114",
-   "en": "Peanut Sesame Balls",
-   "zhHant": "花生煎堆",
-   "release": "catalog-v1",
-   "file": "hk-dish-0114-peanut-sesame-balls.png"
-  },
-  {
-   "id": "hk-dish-0115",
-   "en": "Deep-Fried Pork Wontons",
-   "zhHant": "炸雲吞",
-   "release": "catalog-v1",
-   "file": "hk-dish-0115-deep-fried-wontons.png"
-  },
-  {
-   "id": "hk-dish-0116",
-   "en": "Deep-Fried Shrimp Wontons",
-   "zhHant": "炸蝦雲吞",
-   "release": "catalog-v1",
-   "file": "hk-dish-0116-deep-fried-shrimp-wontons.png"
-  },
-  {
-   "id": "hk-dish-0117",
-   "en": "Shrimp-Stuffed Crab Claws",
-   "zhHant": "百花釀蟹鉗",
-   "release": "catalog-v1",
-   "file": "hk-dish-0117-shrimp-stuffed-crab-claws.png"
-  },
-  {
-   "id": "hk-dish-0118",
-   "en": "Deep-Fried Shrimp Toast",
-   "zhHant": "蝦多士",
-   "release": "catalog-v1",
-   "file": "hk-dish-0118-shrimp-toast.png"
-  },
-  {
-   "id": "hk-dish-0119",
-   "en": "Deep-Fried Bean Curd Skin Rolls",
-   "zhHant": "炸腐皮卷",
-   "release": "catalog-v1",
-   "file": "hk-dish-0119-deep-fried-bean-curd-rolls.png"
-  },
-  {
-   "id": "hk-dish-0120",
-   "en": "Orange Chocolate Bao",
-   "zhHant": "香橙朱古力包",
-   "release": "catalog-v1",
-   "file": "hk-dish-0120-orange-chocolate-bao.png"
-  }
- ]
+  "source": "https://github.com/Ding-Ding-Projects/dim-sum-photos",
+  "catalog": "https://raw.githubusercontent.com/Ding-Ding-Projects/dim-sum-photos/main/catalog/index.json",
+  "note": "Names are copied exactly from name.en and name.zhHant. Only dishes whose photo asset was published in a catalog-v1 release when this list was written are included. No photo is stored in this repository.",
+  "dishes": [
+    {
+      "id": "hk-dish-0001",
+      "en": "Classic Har Gow",
+      "zhHant": "蝦餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0001-classic-har-gow.png"
+    },
+    {
+      "id": "hk-dish-0002",
+      "en": "Scallop Har Gow",
+      "zhHant": "帶子蝦餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0002-scallop-har-gow.png"
+    },
+    {
+      "id": "hk-dish-0003",
+      "en": "Bamboo Shoot Har Gow",
+      "zhHant": "筍尖蝦餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0003-bamboo-shoot-har-gow.png"
+    },
+    {
+      "id": "hk-dish-0004",
+      "en": "Crab Roe Har Gow",
+      "zhHant": "蟹籽蝦餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0004-crab-roe-har-gow.png"
+    },
+    {
+      "id": "hk-dish-0005",
+      "en": "Chive Shrimp Dumpling",
+      "zhHant": "韭菜蝦餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0005-chive-shrimp-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0006",
+      "en": "Spinach Shrimp Dumpling",
+      "zhHant": "菠菜蝦餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0006-spinach-shrimp-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0007",
+      "en": "Pea Shoot Shrimp Dumpling",
+      "zhHant": "豆苗蝦餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0007-pea-shoot-shrimp-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0008",
+      "en": "Lobster Dumpling",
+      "zhHant": "龍蝦餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0008-lobster-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0009",
+      "en": "Dried Scallop Shrimp Dumpling",
+      "zhHant": "瑤柱蝦餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0009-dried-scallop-shrimp-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0010",
+      "en": "Cuttlefish Shrimp Dumpling",
+      "zhHant": "墨魚蝦餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0010-cuttlefish-shrimp-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0011",
+      "en": "Classic Siu Mai",
+      "zhHant": "燒賣",
+      "release": "catalog-v1",
+      "file": "hk-dish-0011-classic-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0012",
+      "en": "Crab Roe Siu Mai",
+      "zhHant": "蟹籽燒賣",
+      "release": "catalog-v1",
+      "file": "hk-dish-0012-crab-roe-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0013",
+      "en": "Quail Egg Siu Mai",
+      "zhHant": "鵪鶉蛋燒賣",
+      "release": "catalog-v1",
+      "file": "hk-dish-0013-quail-egg-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0014",
+      "en": "Scallop Siu Mai",
+      "zhHant": "帶子燒賣",
+      "release": "catalog-v1",
+      "file": "hk-dish-0014-scallop-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0015",
+      "en": "Beef Siu Mai",
+      "zhHant": "牛肉燒賣",
+      "release": "catalog-v1",
+      "file": "hk-dish-0015-beef-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0016",
+      "en": "Chicken Siu Mai",
+      "zhHant": "雞肉燒賣",
+      "release": "catalog-v1",
+      "file": "hk-dish-0016-chicken-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0017",
+      "en": "Mushroom Siu Mai",
+      "zhHant": "北菇燒賣",
+      "release": "catalog-v1",
+      "file": "hk-dish-0017-mushroom-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0018",
+      "en": "Fish Maw Siu Mai",
+      "zhHant": "花膠燒賣",
+      "release": "catalog-v1",
+      "file": "hk-dish-0018-fish-maw-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0019",
+      "en": "Black Truffle Siu Mai",
+      "zhHant": "黑松露燒賣",
+      "release": "catalog-v1",
+      "file": "hk-dish-0019-truffle-siu-mai.png"
+    },
+    {
+      "id": "hk-dish-0020",
+      "en": "Dark Chocolate Crystal Dumpling",
+      "zhHant": "黑朱古力水晶餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0020-dark-chocolate-crystal-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0021",
+      "en": "Steamed Beef Balls",
+      "zhHant": "山竹牛肉",
+      "release": "catalog-v1",
+      "file": "hk-dish-0021-steamed-beef-balls.png"
+    },
+    {
+      "id": "hk-dish-0022",
+      "en": "Dried Tangerine Peel Beef Balls",
+      "zhHant": "陳皮牛肉球",
+      "release": "catalog-v1",
+      "file": "hk-dish-0022-tangerine-peel-beef-balls.png"
+    },
+    {
+      "id": "hk-dish-0023",
+      "en": "Watercress Beef Balls",
+      "zhHant": "西洋菜牛肉球",
+      "release": "catalog-v1",
+      "file": "hk-dish-0023-watercress-beef-balls.png"
+    },
+    {
+      "id": "hk-dish-0024",
+      "en": "Steamed Pork Ribs with Black Bean",
+      "zhHant": "豉汁蒸排骨",
+      "release": "catalog-v1",
+      "file": "hk-dish-0024-black-bean-pork-ribs.png"
+    },
+    {
+      "id": "hk-dish-0025",
+      "en": "Steamed Pork Ribs with Garlic",
+      "zhHant": "蒜香蒸排骨",
+      "release": "catalog-v1",
+      "file": "hk-dish-0025-garlic-pork-ribs.png"
+    },
+    {
+      "id": "hk-dish-0026",
+      "en": "Steamed Pork Ribs with Plum Sauce",
+      "zhHant": "梅子蒸排骨",
+      "release": "catalog-v1",
+      "file": "hk-dish-0026-plum-sauce-pork-ribs.png"
+    },
+    {
+      "id": "hk-dish-0027",
+      "en": "Steamed Chicken Feet in Black Bean Sauce",
+      "zhHant": "豉汁蒸鳳爪",
+      "release": "catalog-v1",
+      "file": "hk-dish-0027-black-bean-chicken-feet.png"
+    },
+    {
+      "id": "hk-dish-0028",
+      "en": "Satay Chicken Feet",
+      "zhHant": "沙嗲蒸鳳爪",
+      "release": "catalog-v1",
+      "file": "hk-dish-0028-satay-chicken-feet.png"
+    },
+    {
+      "id": "hk-dish-0029",
+      "en": "Steamed Beef Tripe with Ginger and Scallion",
+      "zhHant": "薑蔥牛柏葉",
+      "release": "catalog-v1",
+      "file": "hk-dish-0029-ginger-scallion-beef-tripe.png"
+    },
+    {
+      "id": "hk-dish-0030",
+      "en": "Steamed Beef Tripe with Chu Hou Sauce",
+      "zhHant": "柱侯金錢肚",
+      "release": "catalog-v1",
+      "file": "hk-dish-0030-chu-hou-beef-tripe.png"
+    },
+    {
+      "id": "hk-dish-0031",
+      "en": "Steamed Curry Cuttlefish",
+      "zhHant": "咖喱蒸魷魚",
+      "release": "catalog-v1",
+      "file": "hk-dish-0031-curry-cuttlefish.png"
+    },
+    {
+      "id": "hk-dish-0032",
+      "en": "Steamed Fish Maw with Oyster Sauce",
+      "zhHant": "蠔皇蒸花膠",
+      "release": "catalog-v1",
+      "file": "hk-dish-0032-oyster-sauce-fish-maw.png"
+    },
+    {
+      "id": "hk-dish-0033",
+      "en": "Steamed Tofu Stuffed with Shrimp",
+      "zhHant": "百花釀豆腐",
+      "release": "catalog-v1",
+      "file": "hk-dish-0033-shrimp-stuffed-tofu.png"
+    },
+    {
+      "id": "hk-dish-0034",
+      "en": "Steamed Eggplant Stuffed with Shrimp",
+      "zhHant": "百花釀茄子",
+      "release": "catalog-v1",
+      "file": "hk-dish-0034-shrimp-stuffed-eggplant.png"
+    },
+    {
+      "id": "hk-dish-0035",
+      "en": "Steamed Bitter Melon Stuffed with Fish",
+      "zhHant": "鯪魚釀苦瓜",
+      "release": "catalog-v1",
+      "file": "hk-dish-0035-fish-stuffed-bitter-melon.png"
+    },
+    {
+      "id": "hk-dish-0036",
+      "en": "Steamed Bean Curd Skin Roll",
+      "zhHant": "鮮竹卷",
+      "release": "catalog-v1",
+      "file": "hk-dish-0036-steamed-bean-curd-roll.png"
+    },
+    {
+      "id": "hk-dish-0037",
+      "en": "Oyster Sauce Bean Curd Skin Roll",
+      "zhHant": "蠔皇鮮竹卷",
+      "release": "catalog-v1",
+      "file": "hk-dish-0037-oyster-sauce-bean-curd-roll.png"
+    },
+    {
+      "id": "hk-dish-0038",
+      "en": "Chicken and Fish Maw Bean Curd Roll",
+      "zhHant": "雞絲花膠腐皮卷",
+      "release": "catalog-v1",
+      "file": "hk-dish-0038-chicken-fish-maw-bean-curd-roll.png"
+    },
+    {
+      "id": "hk-dish-0039",
+      "en": "Mushroom Pork Tofu Skin Parcel",
+      "zhHant": "北菇豬肉腐皮扎",
+      "release": "catalog-v1",
+      "file": "hk-dish-0039-mushroom-pork-tofu-skin-parcel.png"
+    },
+    {
+      "id": "hk-dish-0040",
+      "en": "Salted Caramel Chocolate Dumpling",
+      "zhHant": "海鹽焦糖朱古力餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0040-salted-caramel-chocolate-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0041",
+      "en": "Steamed Pork Patty with Salted Egg",
+      "zhHant": "鹹蛋蒸肉餅",
+      "release": "catalog-v1",
+      "file": "hk-dish-0041-salted-egg-pork-patty.png"
+    },
+    {
+      "id": "hk-dish-0042",
+      "en": "Steamed Beef Patty with Tangerine Peel",
+      "zhHant": "陳皮蒸牛肉餅",
+      "release": "catalog-v1",
+      "file": "hk-dish-0042-tangerine-peel-beef-patty.png"
+    },
+    {
+      "id": "hk-dish-0043",
+      "en": "Steamed Egg with Dried Scallop",
+      "zhHant": "瑤柱蒸水蛋",
+      "release": "catalog-v1",
+      "file": "hk-dish-0043-dried-scallop-steamed-egg.png"
+    },
+    {
+      "id": "hk-dish-0044",
+      "en": "Steamed Tofu with Dried Scallop",
+      "zhHant": "瑤柱蒸豆腐",
+      "release": "catalog-v1",
+      "file": "hk-dish-0044-dried-scallop-steamed-tofu.png"
+    },
+    {
+      "id": "hk-dish-0045",
+      "en": "Steamed Squid with Garlic Vermicelli",
+      "zhHant": "蒜蓉粉絲蒸魷魚",
+      "release": "catalog-v1",
+      "file": "hk-dish-0045-garlic-vermicelli-squid.png"
+    },
+    {
+      "id": "hk-dish-0046",
+      "en": "Steamed Prawns with Garlic Vermicelli",
+      "zhHant": "蒜蓉粉絲蒸蝦",
+      "release": "catalog-v1",
+      "file": "hk-dish-0046-garlic-vermicelli-prawns.png"
+    },
+    {
+      "id": "hk-dish-0047",
+      "en": "Steamed Razor Clams with Garlic Vermicelli",
+      "zhHant": "蒜蓉粉絲蒸聖子",
+      "release": "catalog-v1",
+      "file": "hk-dish-0047-garlic-vermicelli-razor-clams.png"
+    },
+    {
+      "id": "hk-dish-0048",
+      "en": "Steamed Pearl Chicken",
+      "zhHant": "珍珠雞",
+      "release": "catalog-v1",
+      "file": "hk-dish-0048-pearl-chicken.png"
+    },
+    {
+      "id": "hk-dish-0049",
+      "en": "Mini Glutinous Rice Chicken",
+      "zhHant": "糯米雞",
+      "release": "catalog-v1",
+      "file": "hk-dish-0049-mini-lotus-leaf-rice.png"
+    },
+    {
+      "id": "hk-dish-0050",
+      "en": "Pork Belly with Preserved Mustard Greens",
+      "zhHant": "梅菜扣肉",
+      "release": "catalog-v1",
+      "file": "hk-dish-0050-mustard-green-pork-belly.png"
+    },
+    {
+      "id": "hk-dish-0051",
+      "en": "Classic Char Siu Bao",
+      "zhHant": "叉燒包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0051-classic-char-siu-bao.png"
+    },
+    {
+      "id": "hk-dish-0052",
+      "en": "Snowy Char Siu Bao",
+      "zhHant": "雪山叉燒包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0052-snowy-char-siu-bao.png"
+    },
+    {
+      "id": "hk-dish-0053",
+      "en": "Pineapple Char Siu Bao",
+      "zhHant": "菠蘿叉燒包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0053-pineapple-char-siu-bao.png"
+    },
+    {
+      "id": "hk-dish-0054",
+      "en": "Steamed Chicken Bao",
+      "zhHant": "雞包仔",
+      "release": "catalog-v1",
+      "file": "hk-dish-0054-steamed-chicken-bao.png"
+    },
+    {
+      "id": "hk-dish-0055",
+      "en": "Traditional Big Bun",
+      "zhHant": "大包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0055-traditional-big-bun.png"
+    },
+    {
+      "id": "hk-dish-0056",
+      "en": "Lotus Seed Paste Bao",
+      "zhHant": "蓮蓉包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0056-lotus-seed-paste-bao.png"
+    },
+    {
+      "id": "hk-dish-0057",
+      "en": "Salted Egg Yolk Custard Bao",
+      "zhHant": "流沙包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0057-salted-egg-custard-bao.png"
+    },
+    {
+      "id": "hk-dish-0058",
+      "en": "Steamed Custard Bao",
+      "zhHant": "奶黃包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0058-steamed-custard-bao.png"
+    },
+    {
+      "id": "hk-dish-0059",
+      "en": "Black Sesame Bao",
+      "zhHant": "芝麻包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0059-black-sesame-bao.png"
+    },
+    {
+      "id": "hk-dish-0060",
+      "en": "Hazelnut Chocolate Bao",
+      "zhHant": "榛子朱古力包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0060-hazelnut-chocolate-bao.png"
+    },
+    {
+      "id": "hk-dish-0061",
+      "en": "Purple Sweet Potato Bao",
+      "zhHant": "紫薯包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0061-purple-sweet-potato-bao.png"
+    },
+    {
+      "id": "hk-dish-0062",
+      "en": "Taro Paste Bao",
+      "zhHant": "芋蓉包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0062-taro-paste-bao.png"
+    },
+    {
+      "id": "hk-dish-0063",
+      "en": "Brown Sugar Mantou",
+      "zhHant": "黑糖饅頭",
+      "release": "catalog-v1",
+      "file": "hk-dish-0063-brown-sugar-mantou.png"
+    },
+    {
+      "id": "hk-dish-0064",
+      "en": "Plain Mantou",
+      "zhHant": "白饅頭",
+      "release": "catalog-v1",
+      "file": "hk-dish-0064-plain-mantou.png"
+    },
+    {
+      "id": "hk-dish-0065",
+      "en": "Silver Thread Roll",
+      "zhHant": "銀絲卷",
+      "release": "catalog-v1",
+      "file": "hk-dish-0065-silver-thread-roll.png"
+    },
+    {
+      "id": "hk-dish-0066",
+      "en": "Steamed Sausage Roll",
+      "zhHant": "腸仔包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0066-steamed-sausage-roll.png"
+    },
+    {
+      "id": "hk-dish-0067",
+      "en": "Scallion Flower Roll",
+      "zhHant": "蔥花卷",
+      "release": "catalog-v1",
+      "file": "hk-dish-0067-scallion-flower-roll.png"
+    },
+    {
+      "id": "hk-dish-0068",
+      "en": "Mushroom-Shaped Custard Bao",
+      "zhHant": "蘑菇奶黃包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0068-mushroom-custard-bao.png"
+    },
+    {
+      "id": "hk-dish-0069",
+      "en": "Hedgehog Red Bean Bao",
+      "zhHant": "刺蝟豆沙包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0069-hedgehog-red-bean-bao.png"
+    },
+    {
+      "id": "hk-dish-0070",
+      "en": "Piglet Custard Bao",
+      "zhHant": "豬仔奶黃包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0070-piglet-custard-bao.png"
+    },
+    {
+      "id": "hk-dish-0071",
+      "en": "Mushroom Vegetable Bao",
+      "zhHant": "冬菇菜包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0071-mushroom-vegetable-bao.png"
+    },
+    {
+      "id": "hk-dish-0072",
+      "en": "Pork and Cabbage Bao",
+      "zhHant": "津白豬肉包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0072-pork-cabbage-bao.png"
+    },
+    {
+      "id": "hk-dish-0073",
+      "en": "Steamed Beef Bao",
+      "zhHant": "牛肉包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0073-steamed-beef-bao.png"
+    },
+    {
+      "id": "hk-dish-0074",
+      "en": "Steamed Curry Beef Bao",
+      "zhHant": "咖喱牛肉包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0074-curry-beef-bao.png"
+    },
+    {
+      "id": "hk-dish-0075",
+      "en": "Lamb and Scallion Bao",
+      "zhHant": "蔥香羊肉包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0075-lamb-scallion-bao.png"
+    },
+    {
+      "id": "hk-dish-0076",
+      "en": "Pork Soup Dumplings",
+      "zhHant": "小籠包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0076-pork-soup-dumplings.png"
+    },
+    {
+      "id": "hk-dish-0077",
+      "en": "Crab Roe Soup Dumplings",
+      "zhHant": "蟹粉小籠包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0077-crab-roe-soup-dumplings.png"
+    },
+    {
+      "id": "hk-dish-0078",
+      "en": "Black Truffle Soup Dumplings",
+      "zhHant": "黑松露小籠包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0078-truffle-soup-dumplings.png"
+    },
+    {
+      "id": "hk-dish-0079",
+      "en": "Chicken Soup Dumplings",
+      "zhHant": "雞湯小籠包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0079-chicken-soup-dumplings.png"
+    },
+    {
+      "id": "hk-dish-0080",
+      "en": "White Chocolate Custard Bao",
+      "zhHant": "白朱古力奶黃包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0080-white-chocolate-custard-bao.png"
+    },
+    {
+      "id": "hk-dish-0081",
+      "en": "Steamed Radish Cake",
+      "zhHant": "蒸蘿蔔糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0081-steamed-radish-cake.png"
+    },
+    {
+      "id": "hk-dish-0082",
+      "en": "Steamed Taro Cake",
+      "zhHant": "蒸芋頭糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0082-steamed-taro-cake.png"
+    },
+    {
+      "id": "hk-dish-0083",
+      "en": "Water Chestnut Cake",
+      "zhHant": "馬蹄糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0083-water-chestnut-cake.png"
+    },
+    {
+      "id": "hk-dish-0084",
+      "en": "Brown Sugar Sponge Cake",
+      "zhHant": "馬拉糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0084-brown-sugar-sponge-cake.png"
+    },
+    {
+      "id": "hk-dish-0085",
+      "en": "Coconut Layer Cake",
+      "zhHant": "椰汁千層糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0085-coconut-layer-cake.png"
+    },
+    {
+      "id": "hk-dish-0086",
+      "en": "Red Date Cake",
+      "zhHant": "紅棗糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0086-red-date-cake.png"
+    },
+    {
+      "id": "hk-dish-0087",
+      "en": "Osmanthus Water Chestnut Cake",
+      "zhHant": "桂花馬蹄糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0087-osmanthus-water-chestnut-cake.png"
+    },
+    {
+      "id": "hk-dish-0088",
+      "en": "Pandan Coconut Layer Cake",
+      "zhHant": "班蘭椰汁糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0088-pandan-coconut-layer-cake.png"
+    },
+    {
+      "id": "hk-dish-0089",
+      "en": "Black Sesame Layer Cake",
+      "zhHant": "芝麻千層糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0089-black-sesame-layer-cake.png"
+    },
+    {
+      "id": "hk-dish-0090",
+      "en": "Sweet Corn Cake",
+      "zhHant": "粟米糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0090-sweet-corn-cake.png"
+    },
+    {
+      "id": "hk-dish-0091",
+      "en": "White Sugar Sponge Cake",
+      "zhHant": "白糖糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0091-white-sugar-sponge-cake.png"
+    },
+    {
+      "id": "hk-dish-0092",
+      "en": "Yellow Sugar Sponge Cake",
+      "zhHant": "黃糖糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0092-yellow-sugar-sponge-cake.png"
+    },
+    {
+      "id": "hk-dish-0093",
+      "en": "Plain Rice Cup Cake",
+      "zhHant": "砵仔糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0093-plain-rice-cup-cake.png"
+    },
+    {
+      "id": "hk-dish-0094",
+      "en": "Red Bean Rice Cup Cake",
+      "zhHant": "紅豆砵仔糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0094-red-bean-rice-cup-cake.png"
+    },
+    {
+      "id": "hk-dish-0095",
+      "en": "Mung Bean Rice Cup Cake",
+      "zhHant": "綠豆砵仔糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0095-mung-bean-rice-cup-cake.png"
+    },
+    {
+      "id": "hk-dish-0096",
+      "en": "Turnip Pudding with Chinese Sausage",
+      "zhHant": "臘味蘿蔔糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0096-sausage-turnip-pudding.png"
+    },
+    {
+      "id": "hk-dish-0097",
+      "en": "Taro Cake with Dried Shrimp",
+      "zhHant": "蝦米芋頭糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0097-dried-shrimp-taro-cake.png"
+    },
+    {
+      "id": "hk-dish-0098",
+      "en": "Steamed Pumpkin Cake",
+      "zhHant": "南瓜糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0098-steamed-pumpkin-cake.png"
+    },
+    {
+      "id": "hk-dish-0099",
+      "en": "Steamed Chestnut Cake",
+      "zhHant": "栗子糕",
+      "release": "catalog-v1",
+      "file": "hk-dish-0099-steamed-chestnut-cake.png"
+    },
+    {
+      "id": "hk-dish-0100",
+      "en": "Matcha Chocolate Crystal Dumpling",
+      "zhHant": "抹茶朱古力水晶餃",
+      "release": "catalog-v1",
+      "file": "hk-dish-0100-matcha-chocolate-crystal-dumpling.png"
+    },
+    {
+      "id": "hk-dish-0101",
+      "en": "Classic Spring Rolls",
+      "zhHant": "炸春卷",
+      "release": "catalog-v1",
+      "file": "hk-dish-0101-classic-spring-rolls.png"
+    },
+    {
+      "id": "hk-dish-0102",
+      "en": "Shrimp Spring Rolls",
+      "zhHant": "蝦春卷",
+      "release": "catalog-v1",
+      "file": "hk-dish-0102-shrimp-spring-rolls.png"
+    },
+    {
+      "id": "hk-dish-0103",
+      "en": "Taro Spring Rolls",
+      "zhHant": "芋絲春卷",
+      "release": "catalog-v1",
+      "file": "hk-dish-0103-taro-spring-rolls.png"
+    },
+    {
+      "id": "hk-dish-0104",
+      "en": "Vegetable Spring Rolls",
+      "zhHant": "素菜春卷",
+      "release": "catalog-v1",
+      "file": "hk-dish-0104-vegetable-spring-rolls.png"
+    },
+    {
+      "id": "hk-dish-0105",
+      "en": "Crispy Taro Dumplings",
+      "zhHant": "蜂巢芋角",
+      "release": "catalog-v1",
+      "file": "hk-dish-0105-crispy-taro-dumplings.png"
+    },
+    {
+      "id": "hk-dish-0106",
+      "en": "Curry Taro Dumplings",
+      "zhHant": "咖喱芋角",
+      "release": "catalog-v1",
+      "file": "hk-dish-0106-curry-taro-dumplings.png"
+    },
+    {
+      "id": "hk-dish-0107",
+      "en": "Taro Duck Dumplings",
+      "zhHant": "香芋鴨角",
+      "release": "catalog-v1",
+      "file": "hk-dish-0107-taro-duck-dumplings.png"
+    },
+    {
+      "id": "hk-dish-0108",
+      "en": "Glutinous Rice Dumplings",
+      "zhHant": "鹹水角",
+      "release": "catalog-v1",
+      "file": "hk-dish-0108-glutinous-rice-dumplings.png"
+    },
+    {
+      "id": "hk-dish-0109",
+      "en": "Shrimp Glutinous Rice Dumplings",
+      "zhHant": "鮮蝦鹹水角",
+      "release": "catalog-v1",
+      "file": "hk-dish-0109-shrimp-glutinous-rice-dumplings.png"
+    },
+    {
+      "id": "hk-dish-0110",
+      "en": "Chicken Glutinous Rice Dumplings",
+      "zhHant": "雞粒鹹水角",
+      "release": "catalog-v1",
+      "file": "hk-dish-0110-chicken-glutinous-rice-dumplings.png"
+    },
+    {
+      "id": "hk-dish-0111",
+      "en": "Sesame Balls",
+      "zhHant": "煎堆",
+      "release": "catalog-v1",
+      "file": "hk-dish-0111-sesame-balls.png"
+    },
+    {
+      "id": "hk-dish-0112",
+      "en": "Lotus Paste Sesame Balls",
+      "zhHant": "蓮蓉煎堆",
+      "release": "catalog-v1",
+      "file": "hk-dish-0112-lotus-paste-sesame-balls.png"
+    },
+    {
+      "id": "hk-dish-0113",
+      "en": "Black Sesame Balls",
+      "zhHant": "黑芝麻煎堆",
+      "release": "catalog-v1",
+      "file": "hk-dish-0113-black-sesame-balls.png"
+    },
+    {
+      "id": "hk-dish-0114",
+      "en": "Peanut Sesame Balls",
+      "zhHant": "花生煎堆",
+      "release": "catalog-v1",
+      "file": "hk-dish-0114-peanut-sesame-balls.png"
+    },
+    {
+      "id": "hk-dish-0117",
+      "en": "Shrimp-Stuffed Crab Claws",
+      "zhHant": "百花釀蟹鉗",
+      "release": "catalog-v1",
+      "file": "hk-dish-0117-shrimp-stuffed-crab-claws.png"
+    },
+    {
+      "id": "hk-dish-0118",
+      "en": "Deep-Fried Shrimp Toast",
+      "zhHant": "蝦多士",
+      "release": "catalog-v1",
+      "file": "hk-dish-0118-shrimp-toast.png"
+    },
+    {
+      "id": "hk-dish-0119",
+      "en": "Deep-Fried Bean Curd Skin Rolls",
+      "zhHant": "炸腐皮卷",
+      "release": "catalog-v1",
+      "file": "hk-dish-0119-deep-fried-bean-curd-rolls.png"
+    },
+    {
+      "id": "hk-dish-0120",
+      "en": "Orange Chocolate Bao",
+      "zhHant": "香橙朱古力包",
+      "release": "catalog-v1",
+      "file": "hk-dish-0120-orange-chocolate-bao.png"
+    }
+  ]
 }

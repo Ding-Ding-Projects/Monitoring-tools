@@ -124,25 +124,25 @@ for (const slug of catDirs) {
     return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib) || a.localeCompare(b);
   });
   if (!names.length) fail(`category ${slug} has no articles`);
-  const cat = { slug, ...CATEGORY_META[slug], readme: { repo: readmeRepo, src: readmeSrc }, articles: [] };
+  const category = { slug, ...CATEGORY_META[slug], readme: { repo: readmeRepo, src: readmeSrc }, articles: [] };
   for (const n of names) {
     const repo = `docs/features/${slug}/${n}`;
-    const doc = { repo, cat, slug: n.replace(/\.md$/, ''), src: read(path.join(dir, n)), page: `docs/${slug}/${n.replace(/\.md$/, '.html')}` };
+    const doc = { repo, category, slug: n.replace(/\.md$/, ''), src: read(path.join(dir, n)), page: `docs/${slug}/${n.replace(/\.md$/, '.html')}` };
     docs.set(repo, doc);
-    cat.articles.push(doc);
+    category.articles.push(doc);
   }
-  cat.page = `docs/${slug}/index.html`;
-  docs.set(readmeRepo, { repo: readmeRepo, cat, isReadme: true, page: cat.page, src: readmeSrc });
-  categories.push(cat);
+  category.page = `docs/${slug}/index.html`;
+  docs.set(readmeRepo, { repo: readmeRepo, category, isReadme: true, page: category.page, src: readmeSrc });
+  categories.push(category);
 }
 // the delivery inventory is the status category: one article, same treatment
 {
   const repo = 'docs/features/required-features.md';
-  const cat = { slug: STATUS_SLUG, label: 'Delivery status', blurb: 'What is done, partial or missing, stated honestly.', icon: 'M5 12l4 4 10-10', articles: [], page: `docs/${STATUS_SLUG}/index.html`, readme: { repo: '', src: '' } };
-  const doc = { repo, cat, slug: 'required-features', src: read(path.join(root, repo)), page: `docs/${STATUS_SLUG}/required-features.html` };
+  const category = { slug: STATUS_SLUG, label: 'Delivery status', blurb: 'What is done, partial or missing, stated honestly.', icon: 'M5 12l4 4 10-10', articles: [], page: `docs/${STATUS_SLUG}/index.html`, readme: { repo: '', src: '' } };
+  const doc = { repo, category, slug: 'required-features', src: read(path.join(root, repo)), page: `docs/${STATUS_SLUG}/required-features.html` };
   docs.set(repo, doc);
-  cat.articles.push(doc);
-  categories.push(cat);
+  category.articles.push(doc);
+  categories.push(category);
 }
 const byKey = new Map();
 for (const c of categories) for (const a of c.articles) byKey.set(`${c.slug}/${a.slug}`, a);
@@ -180,7 +180,7 @@ function makeCtx(doc) {
 }
 for (const d of docs.values()) {
   const r = render(d.src, makeCtx(d));
-  d.html = r.html; d.headings = r.headings; d.title = r.title || d.cat.label;
+  d.html = r.html; d.headings = r.headings; d.title = r.title || d.category.label;
   d.plain = plainText(d.src);
   const firstPara = d.src.replace(/\r/g, '').split('\n').filter((l, i, a) => l.trim() && !/^#/.test(l) && !/^[|>`\-*\d]/.test(l.trim())).shift() || '';
   d.excerpt = trunc(plainText(firstPara), 200);
@@ -328,7 +328,7 @@ ${footer(page)}
 
 // ---------------------------------------------------------------- pages
 const sectionOf = (c) => `${c.label}`;
-const articleCard = (from, a, showCat = false) => `<a class="card article-card" href="${relUrl(from, a.page)}">${showCat ? `<span class="eyebrow">${esc(a.cat.label)}</span>` : ''}<h3>${esc(a.title)}</h3><p>${esc(a.excerpt)}</p></a>`;
+const articleCard = (from, a, showCat = false) => `<a class="card article-card" href="${relUrl(from, a.page)}">${showCat ? `<span class="eyebrow">${esc(a.category.label)}</span>` : ''}<h3>${esc(a.title)}</h3><p>${esc(a.excerpt)}</p></a>`;
 const crumbs = (page, items) => `<nav class="crumbs" aria-label="Breadcrumb"><ol>${items.map(([label, to], i) => i === items.length - 1 ? `<li aria-current="page">${esc(label)}</li>` : `<li><a href="${relUrl(page, to)}">${esc(label)}</a></li>`).join('')}</ol></nav>`;
 
 // Home
@@ -365,7 +365,7 @@ function buildHome() {
       ${TASK_GROUPS.map(([k, l], i) => `<button type="button" class="chip" data-group="${k}" aria-pressed="${i === 0}">${l}</button>`).join('')}
     </div>
     <ul class="card-grid" id="task-grid">
-      ${TASKS.map((t) => { const a = byKey.get(t.to); return `<li data-group="${t.group}"><a class="card task-card" href="${relUrl(page, a.page)}"><span class="eyebrow">${esc(a.cat.label)}</span><h3>${esc(t.title)}</h3><p>${esc(a.excerpt)}</p></a></li>`; }).join('\n      ')}
+      ${TASKS.map((t) => { const a = byKey.get(t.to); return `<li data-group="${t.group}"><a class="card task-card" href="${relUrl(page, a.page)}"><span class="eyebrow">${esc(a.category.label)}</span><h3>${esc(t.title)}</h3><p>${esc(a.excerpt)}</p></a></li>`; }).join('\n      ')}
     </ul>
     <p class="hint" id="task-count" role="status" aria-live="polite"></p>
   </div>
@@ -394,9 +394,9 @@ function buildHome() {
   <div class="wrap">
     <h2 id="all-h">Every feature, with its own article</h2>
     <p class="section-lead">${[...docs.values()].filter((d) => !d.isReadme).length} articles in ${categories.length} categories. Each ends with suggested next reading.</p>
-    <div class="cat-grid">
-      ${categories.map((c) => `<section class="cat-card" aria-labelledby="cat-${c.slug}">
-        <h3 id="cat-${c.slug}"><a href="${relUrl(page, c.page)}"><span class="cat-ico">${icon(c.icon, 22)}</span>${esc(c.label)}</a></h3>
+    <div class="category-grid">
+      ${categories.map((c) => `<section class="category-card" aria-labelledby="category-${c.slug}">
+        <h3 id="category-${c.slug}"><a href="${relUrl(page, c.page)}"><span class="category-ico">${icon(c.icon, 22)}</span>${esc(c.label)}</a></h3>
         <p>${esc(c.blurb)}</p>
         <ul>${c.articles.map((a) => `<li><a href="${relUrl(page, a.page)}">${esc(a.title)}</a></li>`).join('')}</ul>
       </section>`).join('\n      ')}
@@ -433,9 +433,9 @@ function buildDocsHome() {
   <h1>Documentation</h1>
   <p class="lead">Every feature has an article: what it does, how to set it up, how it fails, and how to check it worked. Start from a task, or browse a category.</p>
   <h2>Start from a task</h2>
-  <ul class="card-grid">${TASKS.map((t) => { const a = byKey.get(t.to); return `<li><a class="card task-card" href="${relUrl(page, a.page)}"><span class="eyebrow">${esc(a.cat.label)}</span><h3>${esc(t.title)}</h3><p>${esc(a.excerpt)}</p></a></li>`; }).join('')}</ul>
+  <ul class="card-grid">${TASKS.map((t) => { const a = byKey.get(t.to); return `<li><a class="card task-card" href="${relUrl(page, a.page)}"><span class="eyebrow">${esc(a.category.label)}</span><h3>${esc(t.title)}</h3><p>${esc(a.excerpt)}</p></a></li>`; }).join('')}</ul>
   <h2>Browse by category</h2>
-  <div class="cat-grid">${categories.map((c) => `<section class="cat-card" aria-labelledby="c-${c.slug}"><h3 id="c-${c.slug}"><a href="${relUrl(page, c.page)}"><span class="cat-ico">${icon(c.icon, 22)}</span>${esc(c.label)}</a></h3><p>${esc(c.blurb)}</p><ul>${c.articles.map((a) => `<li><a href="${relUrl(page, a.page)}">${esc(a.title)}</a></li>`).join('')}</ul></section>`).join('')}</div>
+  <div class="category-grid">${categories.map((c) => `<section class="category-card" aria-labelledby="c-${c.slug}"><h3 id="c-${c.slug}"><a href="${relUrl(page, c.page)}"><span class="category-ico">${icon(c.icon, 22)}</span>${esc(c.label)}</a></h3><p>${esc(c.blurb)}</p><ul>${c.articles.map((a) => `<li><a href="${relUrl(page, a.page)}">${esc(a.title)}</a></li>`).join('')}</ul></section>`).join('')}</div>
 </div>`;
   writeOut(page, pageHtml({ page, title: 'Documentation', description: 'Every Monitoring Tools feature has its own article, organised by what you want to do.', active: 'docs', body }));
 }
@@ -488,7 +488,7 @@ function buildArticle(c, a) {
       <p class="source-note"><a href="${REPO_URL}/blob/main/${a.repo}" rel="noopener noreferrer">View this article's Markdown source on GitHub</a></p>
       <section class="suggested" aria-labelledby="sugg-h">
         <h2 id="sugg-h">Suggested articles</h2>
-        <ul class="card-grid">${suggested.map((d) => `<li>${articleCard(page, d, d.cat !== c)}</li>`).join('')}</ul>
+        <ul class="card-grid">${suggested.map((d) => `<li>${articleCard(page, d, d.category !== c)}</li>`).join('')}</ul>
         <nav class="prevnext" aria-label="Neighbouring articles">${prev ? `<a href="${relUrl(page, prev.page)}" rel="prev"><span>Previous in ${esc(c.label)}</span>${esc(prev.title)}</a>` : '<span></span>'}${next ? `<a href="${relUrl(page, next.page)}" rel="next"><span>Next in ${esc(c.label)}</span>${esc(next.title)}</a>` : '<span></span>'}</nav>
         <p><a class="btn text" href="${relUrl(page, c.page)}">All ${esc(c.label)} articles</a></p>
       </section>
