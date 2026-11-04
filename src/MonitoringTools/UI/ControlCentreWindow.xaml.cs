@@ -400,7 +400,7 @@ namespace MonitoringTools.UI
             var chip = Ui.IconChip(icon, Ui.Res("B.OnPrimaryContainer"), Ui.Res("B.MintWash"));
             Grid.SetColumn(chip, c0); g.Children.Add(chip);
             var mid = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
-            var prev = (it.Preview ?? "").Replace("\r", " ").Replace("\n", " ");
+            var prev = Core.PathDisplay.Shown(it.Preview ?? "").Replace("\r", " ").Replace("\n", " ");
             mid.Children.Add(new TextBlock { Text = prev.Length > 140 ? prev[..140] + "…" : prev, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = it.Kind == ClipKind.Files ? Ui.Font("F.Mono") : Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
             mid.Children.Add(Ui.Mono($"{it.Kind.ToString().ToLowerInvariant()} · {it.At:HH:mm:ss}", Ui.Res("B.TextMute"), 11));
             Grid.SetColumn(mid, c0 + 1); g.Children.Add(mid);

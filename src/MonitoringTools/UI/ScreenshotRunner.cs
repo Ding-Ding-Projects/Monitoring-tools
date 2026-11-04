@@ -116,6 +116,7 @@ namespace MonitoringTools.UI
                 // search and the regex builder, anchored to the page's own search field
                 await SearchScenes(cc);
                 await LookScenes(cc);
+                await ScaleScenes(cc);
                 cc.Close();
 
                 var gate = new ConfirmWindow("Uninstall Monitoring Tools?", "This stops the background service, removes it from start-up and deletes the program.", "Uninstall", danger: true);
@@ -215,6 +216,31 @@ namespace MonitoringTools.UI
             cc.PageSearch.State.SetQuery("sound");
             await Shot(cc, "search-settings", "Settings page searched for one option", 1000);
             cc.PageSearch.State.SetQuery("");
+        }
+
+        /// <summary>
+        /// 200 % display scale on a 1920 x 1080 screen leaves 960 x 540 of layout space, the tightest
+        /// size the control centre must still fit. Captured in English and in bilingual mode, where labels are longest.
+        /// </summary>
+        private static async Task ScaleScenes(ControlCentreWindow cc)
+        {
+            double w = cc.Width, h = cc.Height, mw = cc.MinWidth, mh = cc.MinHeight;
+            cc.MinWidth = 0; cc.MinHeight = 0; cc.Width = 960; cc.Height = 540;
+            foreach (var (mode, name) in new[] { (LanguageMode.English, "en"), (LanguageMode.Bilingual, "bilingual") })
+            {
+                Settings.Current.LanguageMode = mode;
+                foreach (var page in new[] { "overview", "history", "appearance", "safety", "ollama" })
+                {
+                    cc.Navigate(page);
+                    await Task.Delay(500);
+                    Language.Refresh();
+                    await Shot(cc, $"scale200-{name}-{page}", $"{page} at 960 x 540 (200 % on 1080p), {name}", 700);
+                }
+            }
+            Settings.Current.LanguageMode = LanguageMode.English;
+            Language.Refresh();
+            cc.Width = w; cc.Height = h; cc.MinWidth = mw; cc.MinHeight = mh;
+            await Task.Delay(400);
         }
 
         /// <summary>Language modes and a light theme on another seed, captured from the same window.</summary>
