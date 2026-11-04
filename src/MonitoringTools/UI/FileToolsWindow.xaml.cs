@@ -122,6 +122,7 @@ namespace MonitoringTools.UI
             }
 
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
+            ElementMenu.Attach(this);
             CommandPalette.Attach(this);
             Loaded += (s, e) =>
             {

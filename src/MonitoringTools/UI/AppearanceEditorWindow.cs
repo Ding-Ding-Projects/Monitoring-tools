@@ -72,6 +72,7 @@ namespace MonitoringTools.UI
             MaxHeight = Math.Max(360, SystemParameters.WorkArea.Height - 24);
             if (owner != null && owner.IsLoaded) Owner = owner;
             AutomationProperties.SetName(this, "Edit appearance");
+            ElementMenu.Attach(this, null, ElementMenu.Options.Copy);   // editing the editor's own look from inside it would replace it mid-edit
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
             Closed += (s, e) => { if (_open == this) _open = null; Locks.Changed -= OnLocksChanged; };
             Locks.Changed += OnLocksChanged;

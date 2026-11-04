@@ -26,6 +26,8 @@ namespace MonitoringTools.UI
             else Extra.Content = new TextBlock { Text = extra, Foreground = Ui.Res("B.TextSoft"), FontSize = 13, FontFamily = Ui.Font("F.Body") };
             if (danger) { Edge.Color = Ui.C("C.DangerWash"); BuildGate(ok); }
             SourceInitialized += (s, e) => Core.Native.ApplyDarkChrome(this);
+            // Copy text only: no menu entry can press the confirm button or step around its two-key gate.
+            ElementMenu.Attach(this, null, ElementMenu.Options.Copy);
             Loaded += (s, e) =>
             {
                 RootScale.ScaleX = RootScale.ScaleY = 0.92;

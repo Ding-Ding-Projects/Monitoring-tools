@@ -28,7 +28,10 @@
                     </StackPanel>
                 </Border>
 
+                <StackPanel x:Name="HistoryHost" Visibility="Collapsed"/>
+
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+                    <Button x:Name="HistoryBtn" Content="History" Style="{StaticResource Btn.Ghost}" Margin="0,0,8,0" Click="OnHistory"/>
                     <Button Content="Not now" Style="{StaticResource Btn.Ghost}" Margin="0,0,8,0" Click="OnCancel"/>
                     <Button x:Name="SaveBtn" Content="Save and push" Style="{StaticResource Btn.Accent}" Click="OnSave"/>
                 </StackPanel>

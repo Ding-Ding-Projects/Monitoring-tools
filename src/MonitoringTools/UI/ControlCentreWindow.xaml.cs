@@ -637,7 +637,16 @@ namespace MonitoringTools.UI
                 _editing = null;
                 Navigate("shortcuts", animate: false);
             }, "Btn.Danger"));
+            var historyHost = new StackPanel { Visibility = Visibility.Collapsed };
+            bar.Children.Add(Ui.Button("History", () =>
+            {
+                if (historyHost.Visibility == Visibility.Visible) { historyHost.Visibility = Visibility.Collapsed; return; }
+                if (historyHost.Children.Count == 0)
+                    historyHost.Children.Add(HistoryPanel.Build(ScriptHistory.ScriptKey(sc.Name), () => code.Text, t => { code.Text = t; Commit(); }, "script"));
+                historyHost.Visibility = Visibility.Visible;
+            }, "Btn.Ghost", Icons.Restart));
             root.Children.Add(bar);
+            root.Children.Add(historyHost);
             root.Children.Add(status);
             root.Children.Add(output);
 

@@ -31,6 +31,12 @@ namespace MonitoringTools.Core
         public string ExistingRemoteUrl;
         /// <summary>False commits locally and uploads nothing.</summary>
         public bool Push = true;
+        /// <summary>Which host the repository lives on. GitHub is the default.</summary>
+        public ForgeKind Kind = ForgeKind.GitHub;
+        /// <summary>The server address for a self-hosted GitLab or Gitea/Forgejo (for example https://git.example.org). Empty means gitlab.com.</summary>
+        public string BaseUrl;
+        /// <summary>A personal access token pasted for this one action. Held in memory only and cleared as soon as the action ends.</summary>
+        public string Token;
     }
 
     public sealed class ForgeResult
@@ -146,6 +152,12 @@ namespace MonitoringTools.Core
 
         private static ForgeResult Publish(ForgePlan plan, Action<int, string, string> report, CancellationToken ct)
         {
+            try { return PublishCore(plan, report, ct); }
+            finally { plan.Token = null; }   // a pasted token never outlives the one action
+        }
+
+        private static ForgeResult PublishCore(ForgePlan plan, Action<int, string, string> report, CancellationToken ct)
+        {
             string folder = plan.Folder;
             ForgeResult Fail(int step, ForgeFailure kind, string summary, string details, string branch = null, string remote = null)
             {
@@ -162,10 +174,18 @@ namespace MonitoringTools.Core
                 var git = GitPush.GitExe;
                 var ver = Run(git, new[] { "--version" }, folder, ct, 20000);
                 if (ver.Code != 0) return Fail(0, ForgeFailure.GitMissing, "Git is not available", "This build has no bundled Git and none was found on this computer. Install Git for Windows, then retry.\n" + ver.All);
-                var gh = GhPath();
-                if (plan.CreateRepository && gh == null)
+                var gh = plan.Kind == ForgeKind.GitHub ? GhPath() : null;
+                var forgeName = ForgeHosts.Display(plan.Kind);
+                string baseUrl = null;
+                if (plan.Kind != ForgeKind.GitHub && plan.CreateRepository)
+                {
+                    baseUrl = plan.Kind == ForgeKind.GitLab && string.IsNullOrWhiteSpace(plan.BaseUrl) ? "https://gitlab.com" : ForgeHosts.NormaliseBase(plan.BaseUrl);
+                    if (baseUrl == null) return Fail(0, ForgeFailure.Other, "The server address is not valid", "Enter the address of the server, for example https://git.example.org. It must start with http or https and carry no password.");
+                }
+                if (plan.Kind == ForgeKind.GitHub && plan.CreateRepository && gh == null)
                     return Fail(0, ForgeFailure.GhMissing, "Creating a repository needs the GitHub CLI", "The GitHub CLI (gh) was not found, so a new repository cannot be created from here. Install it from https://cli.github.com, or create an empty repository on GitHub yourself and paste its address instead.");
-                report(0, "done", ver.Out.Trim() + (gh != null ? "; GitHub CLI found" : "; GitHub CLI not installed"));
+                var otherCli = plan.Kind == ForgeKind.GitHub ? null : ForgeHosts.CliPath(plan.Kind);
+                report(0, "done", ver.Out.Trim() + (plan.Kind == ForgeKind.GitHub ? (gh != null ? "; GitHub CLI found" : "; GitHub CLI not installed") : otherCli != null ? "; " + ForgeHosts.CliName(plan.Kind) + " found" : "; " + ForgeHosts.CliName(plan.Kind) + " not installed"));
 
                 // 1. repository
                 report(1, "running", null);
@@ -218,10 +238,20 @@ namespace MonitoringTools.Core
                 string remote = origin.Code == 0 ? origin.Out.Trim() : null;
                 string route;
                 string url = null;
+                string credHelper = null;
+                string tokenUser = plan.Kind == ForgeKind.Gitea ? "token" : "oauth2";
                 if (remote != null)
                 {
                     report(3, "skipped", "origin already points to " + remote + "; no repository was created");
                     route = "Used the existing remote " + remote + ".";
+                }
+                else if (plan.CreateRepository && plan.Kind != ForgeKind.GitHub)
+                {
+                    if (!CreateElsewhere(plan, baseUrl, otherCli, folder, git, ct, out var madeRemote, out var madeUrl, out var madeNote, out var madeCred, out var madeFail))
+                        return Fail(3, madeFail.Kind, madeFail.Summary, madeFail.Details, branch);
+                    remote = madeRemote; url = madeUrl; credHelper = madeCred;
+                    report(3, "done", madeNote);
+                    route = madeNote + ".";
                 }
                 else if (plan.CreateRepository)
                 {
@@ -242,6 +272,7 @@ namespace MonitoringTools.Core
                     var addRemote = Run(git, new[] { "remote", "add", "origin", plan.ExistingRemoteUrl.Trim() }, folder, ct);
                     if (addRemote.Code != 0) return Fail(3, ForgeFailure.Other, "Could not set the remote", addRemote.All, branch);
                     remote = plan.ExistingRemoteUrl.Trim();
+                    if (plan.Kind == ForgeKind.GitHub && ForgeHosts.ParseRemote(remote)?.Kind is { } guessed && guessed != ForgeKind.GitHub) forgeName = ForgeHosts.Display(guessed);
                     report(3, "done", "remote set to " + remote);
                     route = "Pushed to an existing repository you named: " + remote + ".";
                 }
@@ -268,19 +299,33 @@ namespace MonitoringTools.Core
                     // Let the GitHub CLI answer credential requests; the token stays in its own store.
                     pushArgs.AddRange(new[] { "-c", "credential.helper=", "-c", "credential.helper=!\"" + gh.Replace('\\', '/') + "\" auth git-credential" });
                 }
+                if (gh == null && credHelper != null) pushArgs.AddRange(new[] { "-c", "credential.helper=", "-c", "credential.helper=" + credHelper });
+                Dictionary<string, string> pushEnv = null;
+                if (!string.IsNullOrEmpty(plan.Token) && remote != null && remote.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    // The pasted token reaches git only through this one process's environment, scoped to this server, never a file or argument.
+                    var rr = ForgeHosts.ParseRemote(remote);
+                    pushEnv = new Dictionary<string, string>
+                    {
+                        ["GIT_CONFIG_COUNT"] = "1",
+                        ["GIT_CONFIG_KEY_0"] = "http." + (rr?.BaseUrl ?? remote) + "/.extraHeader",
+                        ["GIT_CONFIG_VALUE_0"] = ForgeHosts.BasicHeader(tokenUser, plan.Token)
+                    };
+                }
                 pushArgs.AddRange(new[] { "push", "-u", "origin", branch });
-                var push = Run(git, pushArgs, folder, ct, 600000);
+                var push = Run(git, pushArgs, folder, ct, 600000, pushEnv);
+                if (!string.IsNullOrEmpty(plan.Token)) push = (push.Code, push.Out.Replace(plan.Token, "***"), push.All.Replace(plan.Token, "***"));
                 if (push.Code != 0)
                 {
                     var kind = LooksLikeAuth(push.All) ? ForgeFailure.Auth
                         : Regex.IsMatch(push.All, "rejected|non-fast-forward|fetch first", RegexOptions.IgnoreCase) ? ForgeFailure.Rejected
                         : Regex.IsMatch(push.All, "resolve host|timed out|unable to access|connection", RegexOptions.IgnoreCase) ? ForgeFailure.Network
                         : ForgeFailure.Other;
-                    var title = kind switch { ForgeFailure.Auth => "GitHub did not accept your sign-in", ForgeFailure.Rejected => "GitHub rejected the push", ForgeFailure.Network => "Could not reach GitHub", _ => "The upload failed" };
+                    var title = kind switch { ForgeFailure.Auth => forgeName + " did not accept your sign-in", ForgeFailure.Rejected => forgeName + " rejected the push", ForgeFailure.Network => "Could not reach " + forgeName, _ => "The upload failed" };
                     return Fail(4, kind, title, push.All, branch, remote);
                 }
                 report(4, "done", $"uploaded {branch}");
-                url ??= remote != null && remote.StartsWith("https://github.com/") ? Regex.Replace(remote, @"\.git$", "") : null;
+                url ??= remote != null && remote.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !remote.Contains('@') ? Regex.Replace(remote, @"\.git$", "") : null;
                 return new ForgeResult { Ok = true, Summary = $"Published {branch}", Route = route, Branch = branch, Remote = remote, Url = url, Details = route + (url != null ? "\n" + url : "") };
             }
             catch (OperationCanceledException) { return new ForgeResult { Ok = false, Failure = ForgeFailure.Cancelled, Summary = "Cancelled", Details = "Stopped before finishing. Steps that already completed were left as they are." }; }
@@ -315,9 +360,132 @@ namespace MonitoringTools.Core
                    "- Explain the cause first. If the remote has commits I do not have, fetch and merge or rebase only after telling me what will change.\n";
         }
 
+        // -------------------------------------------------------------- GitLab and Gitea
+
+        public sealed class CreateFailure { public ForgeFailure Kind; public string Summary; public string Details; }
+
+        /// <summary>
+        /// Creates an empty repository on GitLab or Gitea/Forgejo and adds it as origin. The installed command-line tool is preferred when it
+        /// is signed in to the server; otherwise a token the person pasted for this action is used for one REST call.
+        /// </summary>
+        private static bool CreateElsewhere(ForgePlan plan, string baseUrl, string cli, string folder, string git, CancellationToken ct,
+            out string remote, out string url, out string note, out string credHelper, out CreateFailure failure)
+        {
+            remote = url = note = credHelper = null; failure = null;
+            var host = new Uri(baseUrl).Authority;
+            var vis = plan.Private ? "private" : "public";
+            var forge = ForgeHosts.Display(plan.Kind);
+            if (cli != null && CliSignedIn(plan.Kind, cli, host, folder, ct))
+            {
+                if (plan.Kind == ForgeKind.GitLab)
+                {
+                    var path = (string.IsNullOrWhiteSpace(plan.Owner) ? "" : plan.Owner.Trim() + "/") + plan.Name.Trim();
+                    var env = new Dictionary<string, string> { ["GITLAB_HOST"] = host };
+                    var create = Run(cli, new[] { "repo", "create", path, plan.Private ? "--private" : "--public", "--defaultBranch", "main" }, folder, ct, 120000, env);
+                    if (create.Code == 0)
+                    {
+                        var got = Run(git, new[] { "remote", "get-url", "origin" }, folder, ct);
+                        if (got.Code != 0)
+                        {
+                            Run(git, new[] { "remote", "add", "origin", baseUrl + "/" + path + ".git" }, folder, ct);
+                            got = Run(git, new[] { "remote", "get-url", "origin" }, folder, ct);
+                        }
+                        remote = got.Out.Trim();
+                        url = baseUrl + "/" + path;
+                        credHelper = "!\"" + cli.Replace('\\', '/') + "\" auth git-credential";
+                        note = $"Created a new {vis} {forge} repository {path} with glab";
+                        return true;
+                    }
+                    if (string.IsNullOrEmpty(plan.Token))
+                    {
+                        failure = new CreateFailure { Kind = LooksLikeAuth(create.All) ? ForgeFailure.Auth : ForgeFailure.Other, Summary = "The repository could not be created", Details = create.All };
+                        return false;
+                    }
+                    // glab failed but a token was pasted, so fall through to the REST route.
+                }
+                else
+                {
+                    var owner = string.IsNullOrWhiteSpace(plan.Owner) ? null : plan.Owner.Trim();
+                    var create = Run(cli, new[] { "repos", "create", "--name", plan.Name.Trim(), plan.Private ? "--private" : "--public" }, folder, ct, 120000);
+                    if (create.Code == 0)
+                    {
+                        var who = owner ?? TeaLogin(cli, host, folder, ct);
+                        if (who != null)
+                        {
+                            remote = baseUrl + "/" + who + "/" + plan.Name.Trim() + ".git";
+                            Run(git, new[] { "remote", "add", "origin", remote }, folder, ct);
+                            url = baseUrl + "/" + who + "/" + plan.Name.Trim();
+                            note = $"Created a new {vis} {forge} repository {who}/{plan.Name.Trim()} with tea";
+                            return true;
+                        }
+                        failure = new CreateFailure { Kind = ForgeFailure.Other, Summary = "The repository was created but its address is unknown", Details = "tea created the repository, but this app could not read which account it belongs to. Paste the repository's address as an existing remote and publish again.\n" + create.All };
+                        return false;
+                    }
+                    if (string.IsNullOrEmpty(plan.Token))
+                    {
+                        failure = new CreateFailure { Kind = LooksLikeAuth(create.All) ? ForgeFailure.Auth : ForgeFailure.Other, Summary = "The repository could not be created", Details = create.All };
+                        return false;
+                    }
+                }
+            }
+            if (string.IsNullOrEmpty(plan.Token))
+            {
+                failure = new CreateFailure
+                {
+                    Kind = ForgeFailure.Auth,
+                    Summary = "Creating a repository needs a sign-in",
+                    Details = (cli == null ? "The " + ForgeHosts.CliName(plan.Kind) + " command-line tool is not installed" : "The " + ForgeHosts.CliName(plan.Kind) + " command-line tool is not signed in to " + host) +
+                              ", and no access token was pasted. Either sign in with that tool, paste a personal access token for this one action (it is kept in memory only and cleared afterwards), or create an empty repository on the server yourself and paste its address."
+                };
+                return false;
+            }
+            var made = (plan.Kind == ForgeKind.GitLab
+                ? ForgeHosts.CreateGitLabAsync(baseUrl, plan.Token, plan.Owner, plan.Name.Trim(), plan.Private, ct)
+                : ForgeHosts.CreateGiteaAsync(baseUrl, plan.Token, plan.Owner, plan.Name.Trim(), plan.Private, ct)).GetAwaiter().GetResult();
+            if (!made.Ok)
+            {
+                failure = new CreateFailure { Kind = made.Error != null && made.Error.Contains("HTTP 40") ? ForgeFailure.Auth : ForgeFailure.Network, Summary = "The repository could not be created", Details = made.Error };
+                return false;
+            }
+            var add = Run(git, new[] { "remote", "add", "origin", made.CloneUrl }, folder, ct);
+            if (add.Code != 0)
+            {
+                failure = new CreateFailure { Kind = ForgeFailure.Other, Summary = "Could not set the remote", Details = add.All };
+                return false;
+            }
+            remote = made.CloneUrl; url = made.WebUrl;
+            note = $"Created a new {vis} {forge} repository with a one-time access token";
+            return true;
+        }
+
+        private static bool CliSignedIn(ForgeKind kind, string cli, string host, string dir, CancellationToken ct)
+        {
+            if (kind == ForgeKind.GitLab)
+                return Run(cli, new[] { "auth", "status", "--hostname", host }, dir, ct, 20000).Code == 0;
+            var list = Run(cli, new[] { "login", "list", "-o", "csv" }, dir, ct, 20000);
+            return list.Code == 0 && list.Out.IndexOf(host, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static string TeaLogin(string cli, string host, string dir, CancellationToken ct)
+        {
+            var r = Run(cli, new[] { "login", "list", "-o", "csv" }, dir, ct, 20000);
+            if (r.Code != 0) return null;
+            var lines = r.Out.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            if (lines.Length < 2) return null;
+            var head = lines[0].Split(',').Select(h => h.Trim().Trim('"').ToLowerInvariant()).ToList();
+            int ui = head.IndexOf("user"), hi = head.IndexOf("url");
+            if (ui < 0 || hi < 0) return null;
+            foreach (var l in lines.Skip(1))
+            {
+                var c = l.Split(',');
+                if (c.Length > Math.Max(ui, hi) && c[hi].IndexOf(host, StringComparison.OrdinalIgnoreCase) >= 0) return c[ui].Trim().Trim('"');
+            }
+            return null;
+        }
+
         // -------------------------------------------------------------- process runner
 
-        private static (int Code, string Out, string All) Run(string exe, IEnumerable<string> args, string dir, CancellationToken ct, int timeoutMs = 120000)
+        private static (int Code, string Out, string All) Run(string exe, IEnumerable<string> args, string dir, CancellationToken ct, int timeoutMs = 120000, IDictionary<string, string> env = null)
         {
             ct.ThrowIfCancellationRequested();
             try
@@ -332,6 +500,7 @@ namespace MonitoringTools.Core
                 psi.EnvironmentVariables["GIT_TERMINAL_PROMPT"] = "0";
                 psi.EnvironmentVariables["GCM_INTERACTIVE"] = "never";
                 psi.EnvironmentVariables["GH_PROMPT_DISABLED"] = "1";
+                if (env != null) foreach (var kv in env) psi.EnvironmentVariables[kv.Key] = kv.Value;
                 using var p = Process.Start(psi);
                 using var reg = ct.Register(() => { try { p.Kill(true); } catch { } });
                 var o = p.StandardOutput.ReadToEndAsync();
