@@ -4,6 +4,15 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.28 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.28)
+
+- Record v1.0.27 figures and changelog ([`8999c9f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8999c9fbf2a40b435954f82e824141288018c7c3))
+- Minecraft lane: live-checked components, NBT, plugin commands, peaks and pre-generation pause ([`6ac8383`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/6ac8383862aa2c5b0f17e3d9d33d3bfe29af4c77))
+- Minecraft lane: checks, Cantonese, live checks and captures for the new controls ([`060a169`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/060a169b7c27366bb1e3af28733ad10e4a791edc))
+- Minecraft lane: item and NBT editors, live plugin commands, peak history, pause (work in progress) ([`d4f955f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/d4f955f4ee0a2ded5cc47473c0f550a07aab8e1f))
+
 ## 1.0.27 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.27)
