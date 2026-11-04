@@ -148,6 +148,18 @@ namespace MonitoringTools.UI
                             Expect("snooze", "the Overview heading", TextOf(cc), App.SnoozeUntil.ToString("HH:mm"));
                             App.SnoozeUntil = DateTime.MinValue;
 
+                            App.Games.SimulateForTest("Test Game");
+                            var gameModeBefore = s.GameModeEnabled; s.GameModeEnabled = true;
+                            cc.Navigate("overview", animate: false); await Task.Delay(450);
+                            Expect("game.mode", "the Overview heading", TextOf(cc), "Test Game");
+                            App.Games.SimulateForTest(null); s.GameModeEnabled = gameModeBefore;
+
+                            ControlCentreWindow.SimulatedLatestTagForTest = "99.0.0";
+                            cc.Navigate("about", animate: false); await Task.Delay(300);
+                            await cc.CheckUpdatesForTest(); await Task.Delay(450);
+                            Expect("update.available", "the About page update line", TextOf(cc), "99.0.0");
+                            ControlCentreWindow.SimulatedLatestTagForTest = null;
+
                             App.History.Items.Clear();
                             cc.Navigate("history", animate: false); await Task.Delay(450);
                             Expect("history.empty", "the History page", TextOf(cc));
@@ -159,17 +171,10 @@ namespace MonitoringTools.UI
                             Expect("search.none", "the Overview search message", TextOf(cc), "zzzz-no-match-zzzz");
                             f.State.SetQuery("");
                         }
-                    // call sites that need a running game or the network: the headline call itself is checked, not a rendered surface
-                    foreach (var key in new[] { "game.mode", "update.available" })
-                        foreach (var lang in new[] { LanguageMode.English, LanguageMode.Cantonese })
-                        {
-                            var set = new HashSet<string>();
-                            for (int level = 1; level <= 5; level++) set.Add(Core.Language.Variant(key, lang, level, "X"));
-                            distinct[key + "/" + lang] = set;
-                        }
                 }
                 finally
                 {
+                    App.Games.SimulateForTest(null); ControlCentreWindow.SimulatedLatestTagForTest = null;
                     (s.LanguageMode, s.EnglishHumour, s.CantoneseHumour, App.SnoozeUntil) = saved;
                     foreach (var h in history) if (!App.History.Items.Contains(h)) App.History.Items.Add(h);
                     cc.Close();
@@ -177,7 +182,7 @@ namespace MonitoringTools.UI
                 }
                 foreach (var kv in distinct)
                     if (kv.Value.Count < 3) problems.Add($"{kv.Key}: only {kv.Value.Count} distinct texts across five levels");
-                if (reads < 40) problems.Add("only " + reads + " rendered reads were made");
+                if (reads < 60) problems.Add("only " + reads + " rendered reads were made");
                 return problems.Count == 0 ? null : string.Join(" | ", problems.Take(30));
             });
         }

@@ -435,6 +435,7 @@ namespace MonitoringTools.Core
             AddMinecraft(t);
             AddMinecraftCatalogue(t);
             AddMcCommands(t);
+            AddRegexExplain(t);
             return t;
         }
 
@@ -445,6 +446,7 @@ namespace MonitoringTools.Core
         private static List<(Regex, Func<Match, string>)> BuildPatterns()
         {
             var p = new List<(Regex, Func<Match, string>)>();
+            AddRegexExplainPatterns(p);
             AddMinecraftCataloguePatterns(p);
             AddMinecraftPatterns(p);
             AddMcCommandsPatterns(p);

@@ -52,6 +52,7 @@ namespace MonitoringTools.UI
             Directory.CreateDirectory(dir);
             if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "wording") { await WordingChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexexplain") { await RegexExplainChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit
             {
@@ -830,6 +831,7 @@ namespace MonitoringTools.UI
             });
 
             await LanguageChecksAsync();
+            await RegexExplainChecksAsync(dir);
             await RunNumberFieldsAsync();
             await McChecksAsync();
             // ---- docs and pages
