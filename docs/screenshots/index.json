@@ -186,6 +186,72 @@
     "height": 1576
   },
   {
+    "file": "search-history-plain.png",
+    "caption": "Clipboard history searched as plain text",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "search-builder-build.png",
+    "caption": "Regex builder anchored to the history search: tokens, options and explanation",
+    "width": 2088,
+    "height": 1636
+  },
+  {
+    "file": "search-builder-test.png",
+    "caption": "Regex builder: matches and capture groups against the history",
+    "width": 2088,
+    "height": 1636
+  },
+  {
+    "file": "search-builder-replace.png",
+    "caption": "Regex builder: replacement preview",
+    "width": 2088,
+    "height": 1636
+  },
+  {
+    "file": "search-builder-code.png",
+    "caption": "Regex builder: generated code",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "search-builder-library.png",
+    "caption": "Regex builder: saved patterns",
+    "width": 2088,
+    "height": 1636
+  },
+  {
+    "file": "search-builder-risk.png",
+    "caption": "Regex builder warns about catastrophic backtracking",
+    "width": 2088,
+    "height": 1636
+  },
+  {
+    "file": "search-builder-invalid.png",
+    "caption": "An invalid pattern is explained and filters nothing",
+    "width": 2088,
+    "height": 1636
+  },
+  {
+    "file": "search-settings.png",
+    "caption": "Settings page searched for one option",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "search-tray-filter.png",
+    "caption": "Tray menu filtered with its own search",
+    "width": 744,
+    "height": 500
+  },
+  {
+    "file": "search-palette-regex.png",
+    "caption": "Command palette searching with a regular expression",
+    "width": 1360,
+    "height": 1120
+  },
+  {
     "file": "filetools-move.png",
     "caption": "File tools: move and copy",
     "width": 1040,
