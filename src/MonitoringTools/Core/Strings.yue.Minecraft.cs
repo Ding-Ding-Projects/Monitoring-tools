@@ -16,6 +16,9 @@ namespace MonitoringTools.Core
         {
             void Add(string en, string yue) => t.TryAdd(en, yue);
 
+            // ---- the help page's card for the Minecraft docs
+            Add("Create, run and look after Java edition servers on this computer, in Docker, or on another machine over SSH.", "喺呢部電腦、Docker，或者經 SSH 喺另一部機度建立、運行同打理 Java 版伺服器。");
+
             // ---- manager frame, server list and header
             Add("Minecraft server manager", "Minecraft 伺服器管理"); Add("Server list", "伺服器清單"); Add("Server sections", "伺服器分頁");
             Add("Search servers", "搜尋伺服器"); Add("Filter by state", "按狀態篩選"); Add("Running", "運行中"); Add("Stopped", "已停止");

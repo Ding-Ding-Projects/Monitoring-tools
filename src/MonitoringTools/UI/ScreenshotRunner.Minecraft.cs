@@ -46,7 +46,7 @@ namespace MonitoringTools.UI
                     }
                     await Task.Delay(500);
                     // Scroll the section into view below the header, as a person would; the console shows its command builder.
-                    if (mc.SectionBody is System.Windows.Controls.Panel body && body.Children.Count > 0)
+                    if (id != "overview" && mc.SectionBody is System.Windows.Controls.Panel body && body.Children.Count > 0)
                     {
                         var target = id == "console" ? (System.Windows.FrameworkElement)body.Children[body.Children.Count - 1] : mc.SectionBody;
                         var top = target.TranslatePoint(new System.Windows.Point(0, 0), cc.Scroller);
