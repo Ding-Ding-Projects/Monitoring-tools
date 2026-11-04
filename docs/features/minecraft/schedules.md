@@ -9,6 +9,7 @@ Jobs that run for one server on a timetable, each with its next run, its last re
 | Restart | Warns players in chat a chosen number of minutes before, then stops and starts the server |
 | Backup | Takes a [backup](backups.md), pausing saves while the server runs |
 | Message | Says a line in chat |
+| Run a command | Sends a command line through the console; **Schedule it** in the [command builder](commands.md) fills it in |
 | Check for updates | Compares the installed build with the newest one its project lists; it tells you and never installs anything |
 
 **New schedule, step by step** is a guided form: the job, when (daily at a time, on chosen weekdays at a time, or every
@@ -25,4 +26,6 @@ skipped, and nothing runs for a host that cannot be reached. Results go to the a
 
 A self-test check computes next runs for daily, every-four-hours and weekly schedules, confirms three missed daily runs
 are due once and not again, that a schedule that is off is never due, and runs a due message schedule through the
-background runner for a stopped server, which records it as skipped. Capture `mc-schedules`.
+background runner for a stopped server, which records it as skipped. Another opens a **Run a command** schedule from
+the command builder's **Schedule it** with the line filled in, and runs a command schedule for a stopped server, which is
+skipped. Capture `mc-schedules`.

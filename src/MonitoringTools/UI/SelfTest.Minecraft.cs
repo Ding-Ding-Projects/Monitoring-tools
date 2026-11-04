@@ -212,19 +212,17 @@ namespace MonitoringTools.UI
                     if (McCommandTree.Validate(g) == null) return "a count below the jar's minimum of 1 was accepted";
                     g[3].Value = "5";
                     if (McCommandTree.Line(g) != "/give Ava minecraft:diamond 5") return "give came out as " + McCommandTree.Line(g);
-                    if (McCommandTree.GameRules(root).Count != 2) return "the game rules were not read from the gamerule command";
-                    // drive the builder in the Console section
+                    if (McCommandTree.GameRules(root).Count != 4) return "the game rules were not read from the gamerule command";
+                    // the console opens the command builder
                     var mc = cc.MinecraftManager;
                     mc.Select("sample-friends");
                     mc.ShowSection("console");
                     await Wave6Flows.Settle(cc, 700);
-                    foreach (var token in new[] { "time", "set", "day" })
-                    {
-                        if (!Press(mc, token)) return "the builder offers no " + token;
-                        await Task.Delay(120);
-                    }
-                    return mc.PreviewLine == "/time set day" ? null : "the builder shows " + mc.PreviewLine;
+                    if (!Press(mc, "Open the command builder")) return "the console has no way into the command builder";
+                    await Wave6Flows.Settle(cc, 500);
+                    return McManagerView.Section == "commands" ? null : "the builder did not open";
                 });
+                await McCommandChecksAsync(cc);
 
                 Check("minecraft: a plugin turns off and on by renaming its jar, after backing the folder up", () =>
                 {

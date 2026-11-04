@@ -265,6 +265,8 @@ namespace MonitoringTools.UI.Minecraft
             sp.Children.Add(explain);
             sp.Children.Add(filters);
             var nameRow = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+            var or = new TextBlock { Text = "Or type a name", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) };
+            nameRow.Children.Add(or);
             nameRow.Children.Add(nameBox);
             sp.Children.Add(nameRow);
             Paint();
@@ -383,10 +385,10 @@ namespace MonitoringTools.UI.Minecraft
                 // the chosen id stays first, so it is visible whatever the search
                 if (current.Length > 0 && hits.Remove(current)) hits.Insert(0, current);
                 search.SetCount(hits.Count, ids.Count, plural);
-                foreach (var id in hits.Take(48))
+                foreach (var id in hits.Take(24))
                 {
                     var i = id;
-                    var stack = new StackPanel();
+                    var stack = new StackPanel { Width = 168, HorizontalAlignment = HorizontalAlignment.Left };
                     stack.Children.Add(new TextBlock { Text = McRegistries.Readable(id), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
                     stack.Children.Add(new TextBlock { Text = id, FontSize = 11, FontFamily = Ui.Font("F.Mono"), Opacity = 0.75, TextTrimming = TextTrimming.CharacterEllipsis });
                     var b = new Button { Style = Ui.Style("Btn.Chip"), Content = stack, Height = double.NaN, Width = 196, HorizontalContentAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(0, 0, 6, 6), ToolTip = id };
@@ -397,7 +399,7 @@ namespace MonitoringTools.UI.Minecraft
                     buttons.Add((b, id));
                     grid.Children.Add(b);
                 }
-                if (hits.Count > 48) grid.Children.Add(Hint($"{hits.Count - 48} more; narrow the search."));
+                if (hits.Count > 24) grid.Children.Add(Hint($"{hits.Count - 24} more; narrow the search."));
                 Core.Language.Refresh(grid);
             }
             search.Filter += Paint;

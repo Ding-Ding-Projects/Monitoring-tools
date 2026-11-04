@@ -22,7 +22,8 @@ namespace MonitoringTools.Core
     /// Optional environment: MT_LIVE_OLLAMA_MODEL (default: the smallest installed model), MT_LIVE_MC (Minecraft version,
     /// default 1.21.4), MT_LIVE_FORGE_URL, MT_LIVE_FORGE_KIND (gitea or gitlab), MT_LIVE_FORGE_OWNER and
     /// MT_LIVE_FORGE_TOKEN for a throwaway test server. The token is used for that one push and is never written out.
-    /// MT_LIVE_ONLY=minecraft-wave8 runs only the catalogue, Bedrock, discovery, Docker and SSH checks.
+    /// MT_LIVE_ONLY=minecraft-wave8 runs only the catalogue, Bedrock, discovery, Docker and SSH checks;
+    /// MT_LIVE_ONLY=minecraft-commands runs only the command builder against a real server.
     /// </summary>
     public static partial class LiveCheck
     {
@@ -47,6 +48,7 @@ namespace MonitoringTools.Core
                     await McWave8(results);
                     return;
                 }
+                if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-commands") { await McCommands(results); return; }   // the command builder on a real server
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-server")   // run only the server manager end to end
                 {
                     await Check(results, "minecraft: a real server is created, started, answers list and stops", MinecraftServer);
@@ -61,6 +63,7 @@ namespace MonitoringTools.Core
                 await Check(results, "forge: publishing creates the repository and pushes the commit", () => Forge(dir));
                 await Check(results, "minecraft: the real server jar lists its game rules, blocks and biomes", Minecraft);
                 await Check(results, "minecraft: a real server is created, started, answers list and stops", MinecraftServer);
+                await McCommands(results);
                 await McWave8(results);
             }).GetAwaiter().GetResult();
 

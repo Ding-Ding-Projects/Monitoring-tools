@@ -20,10 +20,11 @@ namespace MonitoringTools.UI
                 await Task.Delay(600);
                 var mc = cc.MinecraftManager;
                 mc.Select("sample-friends");
+                if (await McCommandScenesAsync(cc, mc)) return;
                 foreach (var (id, name, caption) in new[]
                 {
                     ("overview", "mc-overview", "Minecraft servers: overview of a running server (sample data)"),
-                    ("console", "mc-console", "Minecraft servers: console with the typed command builder (sample data)"),
+                    ("console", "mc-console", "Minecraft servers: console with the live log, the way into the command builder and the recent commands (sample data)"),
                     ("players", "mc-players", "Minecraft servers: players from ops.json, whitelist.json and banned-players.json (sample data)"),
                     ("settings", "mc-settings", "Minecraft servers: settings with keys, defaults and when each applies (sample data)"),
                     ("worlds", "mc-worlds", "Minecraft servers: worlds with size and seed (sample data)"),
@@ -33,11 +34,6 @@ namespace MonitoringTools.UI
                 })
                 {
                     mc.ShowSection(id);
-                    if (id == "console")
-                    {
-                        await Task.Delay(700);
-                        foreach (var token in new[] { "time", "set", "day" }) { SelfTest.Press(mc, token); await Task.Delay(120); }
-                    }
                     if (id == "settings")
                     {
                         await Task.Delay(700);

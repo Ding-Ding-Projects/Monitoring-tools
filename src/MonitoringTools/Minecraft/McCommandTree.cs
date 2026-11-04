@@ -115,6 +115,8 @@ namespace MonitoringTools.Minecraft
             return n;
         }
 
+        private static readonly Dictionary<string, McCommandNode> Parsed = new Dictionary<string, McCommandNode>(StringComparer.OrdinalIgnoreCase);
+
         /// <summary>Reads the tree for a version from the cache the world generator fills, or asks the jar for it.</summary>
         public static async Task<(McCommandNode Root, string Unavailable)> LoadAsync(string version, Action<string> report, bool allowDownload)
         {
@@ -125,7 +127,15 @@ namespace MonitoringTools.Minecraft
                 var facts = await WorldGenerator.JarFactsAsync(version, report);
                 if (!File.Exists(f)) return (null, facts.Reason ?? "The jar did not list its commands.");
             }
-            try { return (Parse(await File.ReadAllTextAsync(f)), null); }
+            try
+            {
+                // One parsed tree per file, so steps kept between page rebuilds point into the same tree.
+                var key = f + "|" + File.GetLastWriteTimeUtc(f).Ticks;
+                lock (Parsed) if (Parsed.TryGetValue(key, out var hit)) return (hit, null);
+                var root = Parse(await File.ReadAllTextAsync(f));
+                lock (Parsed) Parsed[key] = root;
+                return (root, null);
+            }
             catch (Exception ex) { return (null, "The command list had an unexpected shape: " + ex.Message); }
         }
 
@@ -303,25 +313,31 @@ namespace MonitoringTools.Minecraft
             if (root == null || string.IsNullOrWhiteSpace(line)) return null;
             var words = line.Trim().TrimStart('/').Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var steps = new List<Step>();
-            var node = root;
-            int i = 0;
-            while (i < words.Length)
+            return Walk(root, words, 0, steps) ? steps : null;
+        }
+
+        // Tries each way the words can follow the node, and backs out of a choice that leaves words nothing can take
+        // (teleport's single destination also fits a player name that is really the targets before a position).
+        private static bool Walk(McCommandNode node, string[] words, int i, List<Step> steps)
+        {
+            if (i == words.Length) return true;
+            var kids = node.Next;
+            var lit = kids.FirstOrDefault(c => c.IsLiteral && c.Name == words[i]);
+            if (lit != null)
             {
-                var kids = node.Next;
-                var lit = kids.FirstOrDefault(c => c.IsLiteral && c.Name == words[i]);
-                if (lit != null) { steps.Add(new Step { Node = lit }); node = lit; i++; continue; }
-                McCommandNode pick = null; int take = 1;
-                foreach (var a in kids.Where(c => c.IsArgument))
-                {
-                    int n = Axes(a.Parser) > 0 ? Axes(a.Parser) : a.Parser == "minecraft:message" || a.Parser == "minecraft:component" || a.StringKind == "greedy" ? words.Length - i : 1;
-                    if (i + n > words.Length) continue;
-                    if (Check(a, string.Join(" ", words, i, n)) == null) { pick = a; take = n; break; }
-                }
-                if (pick == null) return null;
-                steps.Add(new Step { Node = pick, Value = string.Join(" ", words, i, take) });
-                node = pick; i += take;
+                steps.Add(new Step { Node = lit });
+                if (Walk(lit, words, i + 1, steps)) return true;
+                steps.RemoveAt(steps.Count - 1);
             }
-            return steps;
+            foreach (var a in kids.Where(c => c.IsArgument))
+            {
+                int n = Axes(a.Parser) > 0 ? Axes(a.Parser) : a.Parser == "minecraft:message" || a.Parser == "minecraft:component" || a.StringKind == "greedy" ? words.Length - i : 1;
+                if (i + n > words.Length || Check(a, string.Join(" ", words, i, n)) != null) continue;
+                steps.Add(new Step { Node = a, Value = string.Join(" ", words, i, n) });
+                if (Walk(a, words, i + n, steps)) return true;
+                steps.RemoveAt(steps.Count - 1);
+            }
+            return false;
         }
 
         /// <summary>What a part of the line is, for the coloured preview: the command words, a target, a number or another value.</summary>

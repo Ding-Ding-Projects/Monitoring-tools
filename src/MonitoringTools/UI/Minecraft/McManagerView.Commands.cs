@@ -27,7 +27,8 @@ namespace MonitoringTools.UI.Minecraft
         private McRegistries _registries;
         private readonly Dictionary<string, FrameworkElement> _fieldFocus = new Dictionary<string, FrameworkElement>();
         private readonly List<FrameworkElement> _stepFocus = new List<FrameworkElement>();
-        private Action _refreshCommand;
+        private Action _refreshCommand, _galleryPaint;
+        private bool _galleryCompact;
         private TextBlock _cmdStatus, _cmdAnswer;
         private WrapPanel _tokens;
         private Button _runButton;
@@ -53,6 +54,37 @@ namespace MonitoringTools.UI.Minecraft
             var key = s.Id + "|" + task;
             if (!TaskValues.TryGetValue(key, out var v)) TaskValues[key] = v = new Dictionary<string, string>(StringComparer.Ordinal);
             return v;
+        }
+
+        /// <summary>
+        /// Opens every task, a selector with its filters, and Every command with a walked line, and calls
+        /// <paramref name="scan"/> on each, for the language audit and the settings walk. Values are put back afterwards.
+        /// </summary>
+        internal async Task VisitCommandStatesAsync(Func<string, Task> scan)
+        {
+            var s = Current;
+            if (s == null || s.IsBedrock) return;
+            var mode = CommandMode; var task = CommandTaskId;
+            try
+            {
+                foreach (var t in McCommandTasks.All)
+                {
+                    var v = ValuesFor(s, t.Id);
+                    var saved = new Dictionary<string, string>(v);
+                    if (t.Id == "time") v["when"] = "{time}";
+                    if (t.Id == "tp") v["targets"] = "@a[distance=..10]";
+                    OpenCommandTask(t.Id);
+                    await scan("commands " + t.Id);
+                    v.Clear(); foreach (var kv in saved) v[kv.Key] = kv.Value;
+                }
+                CommandMode = "tree";
+                ShowSection("commands");
+                await scan("commands every command");
+                for (int i = 0; i < 40 && _tree == null; i++) await Task.Delay(50);
+                OpenLine(s, "effect give @a minecraft:speed 30 1");
+                await scan("commands every command effect");
+            }
+            finally { CommandMode = mode; CommandTaskId = task; }
         }
 
         /// <summary>Opens the builder on a task (used by the self-test, the console and the header).</summary>
@@ -178,6 +210,7 @@ namespace MonitoringTools.UI.Minecraft
             void Arrange(bool narrow)
             {
                 stacked = narrow;
+                if (_galleryCompact != narrow) { _galleryCompact = narrow; _galleryPaint?.Invoke(); }
                 grid.ColumnDefinitions.Clear(); grid.RowDefinitions.Clear();
                 if (narrow)
                 {
@@ -188,7 +221,7 @@ namespace MonitoringTools.UI.Minecraft
                 }
                 else
                 {
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(310) });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(340) });
                     grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                     Grid.SetColumn(right, 1); Grid.SetRow(right, 0);
                     gallery.Margin = new Thickness(0, 0, 16, 0);
@@ -244,11 +277,21 @@ namespace MonitoringTools.UI.Minecraft
                     var tasks = McCommandTasks.All.Where(t => t.Group == group && (search.State.Matches(t.Label) || search.State.Matches(t.Shown) || search.State.Matches(t.Help))).ToList();
                     if (tasks.Count == 0) continue;
                     list.Children.Add(GroupTitle(group));
+                    WrapPanel chips = null;
+                    if (_galleryCompact) { chips = new WrapPanel(); AutomationProperties.SetName(chips, group); list.Children.Add(chips); }
                     foreach (var t in tasks)
                     {
                         shown++;
                         var task = t;
                         bool on = CommandMode == "tasks" && CommandTaskId == t.Id;
+                        if (chips != null)
+                        {
+                            // at narrow widths the gallery is a few rows of chips, so the form stays in view under it
+                            var chip = McUi.Chip(t.Label, on, () => OpenCommandTask(task.Id), t.Label);
+                            chip.ToolTip = t.Help + " (" + t.Shown + ")";
+                            chips.Children.Add(chip);
+                            continue;
+                        }
                         var g = new Grid();
                         g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -293,6 +336,7 @@ namespace MonitoringTools.UI.Minecraft
             search.Filter += Paint;
             sp.Children.Add(search);
             sp.Children.Add(list);
+            _galleryPaint = Paint;
             Paint();
             return McUi.Card(sp, 14);
         }
