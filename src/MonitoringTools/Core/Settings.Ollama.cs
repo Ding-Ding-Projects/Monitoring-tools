@@ -10,5 +10,8 @@ namespace MonitoringTools.Core
 
         /// <summary>How long a model stays loaded after a chat request: "5m" (Ollama's own default), "30m", "1h", or "0" to unload at once.</summary>
         public string OllamaKeepAlive { get; set; } = "5m";
+
+        /// <summary>Model names waiting in the pull cart, kept between sessions. Empty by default.</summary>
+        public System.Collections.Generic.List<string> OllamaCart { get; set; } = new System.Collections.Generic.List<string>();
     }
 }

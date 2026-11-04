@@ -62,6 +62,21 @@ namespace MonitoringTools.UI
             };
         }
 
+        /// <summary>
+        /// The closed lock that guards a palette item, or null. A lock is keyed by a page and an element's visible text, so an item is
+        /// guarded when a closed lock carries the item's title: on the item's own page, or on any page for a page or an action.
+        /// </summary>
+        public static LockEntry LockFor(Item it)
+        {
+            if (it == null || !Locks.Any) return null;
+            var key = ElementMenu.KeyOfText(it.Title);
+            if (key == null) return null;
+            bool anyPage = it.Page == null || it.Group == "Pages";
+            foreach (var l in Locks.All)
+                if (l.Key == key && (anyPage || l.PageId == it.Page) && Locks.IsLocked(l.PageId, l.Key)) return l;
+            return null;
+        }
+
         private static void Go(string page, string label = null) => App.Current.OpenControlCentre(page, label);
 
         public static List<Item> Items()
@@ -289,13 +304,30 @@ namespace MonitoringTools.UI
                 text.Children.Add(new TextBlock { Text = it.Title, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
                 if (!string.IsNullOrEmpty(it.Detail)) text.Children.Add(new TextBlock { Text = it.Detail, Style = Ui.Style("T.Mono"), FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis });
                 Grid.SetColumn(text, 1); g.Children.Add(text);
-                if (it.Inline != null)
+                var guard = LockFor(it);
+                if (guard != null)
+                {
+                    // A locked item shows a lock badge and an Unlock… button, and never renders its live control.
+                    var badge = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+                    var lockIcon = Ui.Icon(Icons.Shield, Ui.Res("B.Amber"), 15);
+                    lockIcon.Margin = new Thickness(0, 0, 6, 0); lockIcon.VerticalAlignment = VerticalAlignment.Center;
+                    badge.Children.Add(lockIcon);
+                    badge.Children.Add(new TextBlock { Text = Core.Language.T("Locked"), Foreground = Ui.Res("B.Amber"), FontSize = 12, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) });
+                    var unlock = Ui.Button(Core.Language.T("Unlock…"), () => Unlock(guard), "Btn.Chip");
+                    unlock.Height = 26; unlock.Margin = new Thickness(0); unlock.Focusable = false;
+                    unlock.ToolTip = Core.Language.T("This item is locked and will not run until it is unlocked.");
+                    AutomationProperties.SetName(unlock, Core.Language.T("Unlock…") + " " + it.Title);
+                    badge.Children.Add(unlock);
+                    Grid.SetColumn(badge, 2); g.Children.Add(badge);
+                    text.Opacity = 0.65;
+                }
+                else if (it.Inline != null)
                 {
                     var c = it.Inline(); c.VerticalAlignment = VerticalAlignment.Center;
                     Grid.SetColumn(c, 2); g.Children.Add(c);
                 }
                 var row = new Border { CornerRadius = new CornerRadius(12), Padding = new Thickness(0, 4, 0, 4), Background = selected ? Ui.Res("B.Raised") : Brushes.Transparent, Child = g, Cursor = Cursors.Hand };
-                AutomationProperties.SetName(row, $"{it.Group}: {it.Title}");
+                AutomationProperties.SetName(row, $"{it.Group}: {it.Title}" + (guard != null ? ", " + Core.Language.T("Locked") : ""));
                 row.MouseEnter += (s, e) => { if (_sel != index) { _sel = index; Render(); } };
                 row.MouseLeftButtonUp += (s, e) =>
                 {
@@ -311,8 +343,17 @@ namespace MonitoringTools.UI
                 return false;
             }
 
+            private void Unlock(LockEntry entry)
+            {
+                Close();
+                try { ElementMenu.PromptEntry(entry, null); } catch (Exception ex) { Log.Warn("Palette unlock failed: " + ex.Message); }
+            }
+
             private void Choose(Item it)
             {
+                // A locked item refuses to run by any route: it offers the unlock prompt instead.
+                var guard = LockFor(it);
+                if (guard != null) { Unlock(guard); return; }
                 Close();
                 try { it.Run?.Invoke(); } catch (Exception ex) { Log.Warn("Palette action failed: " + ex.Message); }
             }

@@ -43,7 +43,7 @@ namespace MonitoringTools.UI
         {
             _accent = accent;
             TimerBrush.Color = accent;
-            HaloBrush.Color = Color.FromArgb(0x1A, accent.R, accent.G, accent.B);
+            HaloBrush.Color = accent;
         }
 
         public void SetHeader(string icon, string title, string meta)
@@ -191,7 +191,7 @@ namespace MonitoringTools.UI
             var hold = Settings.Current.KeepOpenOnHover;
 
             Ui.ColorTo(CardBorder, over ? _accent : Ui.C("C.Line"), 180);
-            Ui.Fade(Halo, over ? 1 : 0, 200);
+            Ui.Fade(Halo, over ? 0.12 : 0, 200);
             Ui.Fade(CloseBtn, over ? 1 : 0, 160);
 
             if (!_persistent && hold)
@@ -228,10 +228,12 @@ namespace MonitoringTools.UI
 
         private void Enter()
         {
+            if (Still) { RootShift.X = 0; Root.Opacity = 1; Native.ForceTopmost(this); return; }
+            // Slide in with the decelerate curve (fast start, soft landing).
             RootShift.X = 80;
             Root.Opacity = 0;
-            RootShift.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(80, 0, TimeSpan.FromMilliseconds(520)) { EasingFunction = Ui.Spring });
-            Root.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260)));
+            RootShift.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(80, 0, TimeSpan.FromMilliseconds(420)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+            Root.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220)));
             if (BodyHost.Content is FrameworkElement fe) Ui.Rise(fe, 90, 6, 360);
             Native.ForceTopmost(this);
         }
@@ -241,6 +243,7 @@ namespace MonitoringTools.UI
             if (IsClosing) return;
             IsClosing = true;
             _tick.Stop();
+            if (Still) { Gone?.Invoke(); Close(); return; }
             var shift = new DoubleAnimation(0, 60, TimeSpan.FromMilliseconds(240)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
             var fade = new DoubleAnimation(0, TimeSpan.FromMilliseconds(220));
             fade.Completed += (s, e) => { Gone?.Invoke(); Close(); };
@@ -248,6 +251,8 @@ namespace MonitoringTools.UI
             RootScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(0.96, TimeSpan.FromMilliseconds(240)));
             Root.BeginAnimation(OpacityProperty, fade);
         }
+
+        private static bool Still => Core.Appearance.ReduceMotion || Core.Modes.ReduceMotion;
 
         private void OnCloseClick(object sender, RoutedEventArgs e) => CloseAnimated();
 

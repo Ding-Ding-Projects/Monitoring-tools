@@ -191,6 +191,12 @@ namespace MonitoringTools.UI
             f.State.Replacement = "${name}.webp";
             f.OpenBuilder("Replace");
             await ShotWithBuilder(cc, f, "search-builder-replace", "Regex builder: replacement preview", 1000);
+            f.OpenBuilder("Debug");
+            await ShotWithBuilder(cc, f, "search-builder-debug", "Regex builder: step-by-step trace checked against the .NET engine", 1300);
+            f.OpenBuilder("Compare");
+            await ShotWithBuilder(cc, f, "search-builder-compare", "Regex builder: the pattern in each .NET engine mode", 1500);
+            f.OpenBuilder("Files");
+            await ShotWithBuilder(cc, f, "search-builder-files", "Regex builder: search and replace in files with backups", 1000);
             f.OpenBuilder("Code");
             await ShotWithBuilder(cc, f, "search-builder-code", "Regex builder: generated code", 900);
             f.OpenBuilder("Library");

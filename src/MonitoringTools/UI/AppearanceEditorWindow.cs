@@ -35,20 +35,20 @@ namespace MonitoringTools.UI
         private readonly List<Action> _refreshers = new List<Action>();
 
         /// <summary>Opens the editor for one element, beside it. Any editor already open is replaced.</summary>
-        public static void Open(Window owner, FrameworkElement target)
+        public static void Open(Window owner, FrameworkElement target, string key = null)
         {
             if (target == null) return;
             _open?.Close();
-            var w = new AppearanceEditorWindow(owner, target);
+            var w = new AppearanceEditorWindow(owner, target, key);
             _open = w;
             w.Show();
         }
 
-        private AppearanceEditorWindow(Window owner, FrameworkElement target)
+        private AppearanceEditorWindow(Window owner, FrameworkElement target, string key)
         {
             _owner = owner;
             _target = target;
-            _key = ElementStyles.KeyFor(ElementStyles.PageIdFor(owner), target);
+            _key = key ?? ElementStyles.KeyFor(ElementStyles.PageIdFor(owner), target);
             _style = ElementStyles.Get(_key)?.Clone() ?? new ElementStyle();
             _support = ElementStyles.Support(target);
 

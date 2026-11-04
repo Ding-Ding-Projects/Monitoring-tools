@@ -36,6 +36,7 @@ namespace MonitoringTools.UI
             SearchField filter = new SearchField("ollama:models", "Search installed models");
             var chatModelChips = new WrapPanel();
             Button installBtn = null, startBtn = null, stopBtn = null;
+            OllamaSuite suite = null;
 
             void Say(string text, string brush = "B.TextMute") { notice.Text = text; notice.Foreground = Ui.Res(brush); }
 
@@ -165,6 +166,12 @@ namespace MonitoringTools.UI
             pullBox.Children.Add(pullRow); pullBox.Children.Add(pullBar); pullBox.Children.Add(pullText);
             root.Children.Add(Card(pullBox));
 
+            // ---- catalogue, cart, model details and troubleshooter (OllamaPage.Suite.cs)
+            suite = BuildOllamaSuite(() => RefreshModels());
+            root.Children.Add(suite.Catalogue);
+            root.Children.Add(suite.Cart);
+            root.Children.Add(suite.Details);
+
             // ---- running models card
             var runBox = new StackPanel();
             runBox.Children.Add(CardTitle("Loaded in memory", "From the server's process list. A model unloads by itself after its keep-alive time."));
@@ -237,8 +244,9 @@ namespace MonitoringTools.UI
             // ---- what is not here
             var scope = new StackPanel();
             scope.Children.Add(CardTitle("Not included yet", "Stated plainly so nothing here is mistaken for more than it is."));
-            scope.Children.Add(Ui.Text("There is no browsable catalogue of every model and tag, no hardware-fit verdicts, no batch cart, no file attachments in chat and no launching of other local tools from here. Ollama publishes no documented catalogue API, so a model must be named by hand to pull it. See docs/features/ollama for the full list."));
+            scope.Children.Add(Ui.Text("The built-in catalogue is a dated snapshot, not the full library, and its sizes are typical figures. Ollama publishes no documented catalogue API, so the online search reads the public search page and can break if that page changes. Hardware verdicts are a rule of thumb. There are no file attachments in chat and no launching of other local tools from here. See docs/features/ollama for the full list."));
             root.Children.Add(Card(scope));
+            root.Children.Add(suite.Troubleshooter);
 
             // ---------------------------------------------------------------- refresh logic
             void PaintModels()
@@ -260,6 +268,9 @@ namespace MonitoringTools.UI
                     var meta = string.Join(" · ", new[] { Ollama.Bytes(m.Size), m.Family, m.ParameterSize, m.Quantization }.Where(x => !string.IsNullOrWhiteSpace(x)));
                     info.Children.Add(Ui.Mono(meta, Ui.Res("B.TextMute"), 11));
                     g.Children.Add(info);
+                    var detailBtn = Ui.Button("Details", () => suite.ShowDetails(m.Name), "Btn.Ghost", Icons.Lines);
+                    detailBtn.ToolTip = "Show parameters, template, context length and licence for " + m.Name + ".";
+                    AutomationProperties.SetName(detailBtn, "Details of " + m.Name);
                     var del = Ui.Button("Delete", () =>
                     {
                         var dlg = new ConfirmWindow($"Delete {m.Name}?", $"This removes the model from disk ({Ollama.Bytes(m.Size)}). You would need to pull it again to use it.", "Delete", danger: true);
@@ -273,7 +284,9 @@ namespace MonitoringTools.UI
                     }, "Btn.Danger", Icons.Trash);
                     del.ToolTip = "Delete " + m.Name + " from disk (asks twice).";
                     AutomationProperties.SetName(del, "Delete " + m.Name);
-                    Grid.SetColumn(del, 1); g.Children.Add(del);
+                    var btnRow = new StackPanel { Orientation = Orientation.Horizontal };
+                    btnRow.Children.Add(detailBtn); btnRow.Children.Add(del);
+                    Grid.SetColumn(btnRow, 1); g.Children.Add(btnRow);
                     SearchScope.SetItem(g, "model " + m.Name + " " + m.Family);
                     modelsHost.Children.Add(g);
                 }

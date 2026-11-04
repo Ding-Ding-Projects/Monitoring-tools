@@ -56,7 +56,7 @@ namespace MonitoringTools.UI
                 {
                     var sp = new StackPanel();
                     sp.Children.Add(Switch("Start when I sign in", "Recommended. You can change this later in the control centre.", s.StartWithWindows, v => s.StartWithWindows = v));
-                    sp.Children.Add(Note($"Installed at {ServiceHost.ServiceExe}"));
+                    sp.Children.Add(Note($"Installed at {Core.PathDisplay.Shown(ServiceHost.ServiceExe)}"));
                     return sp;
                 },
                 Apply = () =>
@@ -224,7 +224,7 @@ namespace MonitoringTools.UI
                         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(120) });
                         row.ColumnDefinitions.Add(new ColumnDefinition());
                         row.Children.Add(Ui.IconChip(ok ? Icons.Check : Icons.Clock, Ui.Res(ok ? "B.Mint" : "B.TextMute"), Ui.Res(ok ? "B.MintWash" : "B.Raised"), 24, 12));
-                        var n = new TextBlock { Text = _steps[i].Name, Style = Ui.Style("T.Title"), FontSize = 14, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                        var n = new TextBlock { Text = _steps[i].Name, Style = Ui.Style("T.Title"), FontSize = 14, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
                         Grid.SetColumn(n, 1); row.Children.Add(n);
                         var v = new TextBlock { Text = ok ? r : (_steps[i].Optional ? "Skipped" : "Set earlier"), Style = Ui.Style("T.Body"), VerticalAlignment = VerticalAlignment.Center };
                         Grid.SetColumn(v, 2); row.Children.Add(v);
@@ -253,7 +253,8 @@ namespace MonitoringTools.UI
             SkipBtn.Visibility = st.Optional ? Visibility.Visible : Visibility.Collapsed;
             NextBtn.Content = idx == _steps.Count - 1 ? "Open control centre" : "Next";
             var width = ((FrameworkElement)ProgressFill.Parent).ActualWidth;
-            ProgressFill.BeginAnimation(WidthProperty, new DoubleAnimation(width * (idx + 1) / _steps.Count, TimeSpan.FromMilliseconds(420)) { EasingFunction = Ui.Spring });
+            if (Core.Appearance.ReduceMotion || Core.Modes.ReduceMotion) { ProgressFill.BeginAnimation(WidthProperty, null); ProgressFill.Width = width * (idx + 1) / _steps.Count; }
+            else ProgressFill.BeginAnimation(WidthProperty, new DoubleAnimation(width * (idx + 1) / _steps.Count, TimeSpan.FromMilliseconds(420)) { EasingFunction = Ui.Out });
             BuildRail();
 
             if (direction != 0)
@@ -281,7 +282,7 @@ namespace MonitoringTools.UI
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 var dot = new Border
                 {
-                    Width = 24, Height = 24, CornerRadius = new CornerRadius(12),
+                    Width = 28, Height = 28, CornerRadius = new CornerRadius(14),
                     Background = done ? Ui.Res("B.Mint") : now ? Ui.Res("B.MintWash") : Ui.Res("B.Raised"),
                     BorderBrush = now ? Ui.Res("B.Mint") : Ui.Res("B.LineStrong"), BorderThickness = new Thickness(now ? 2 : 1),
                     Child = done ? (UIElement)Ui.Icon(Icons.Check, Ui.Res("B.MintInk"), 11, 3)
@@ -391,6 +392,7 @@ namespace MonitoringTools.UI
 
         private void Enter()
         {
+            if (Core.Appearance.ReduceMotion || Core.Modes.ReduceMotion) { Root.Opacity = 1; Activate(); return; }
             RootScale.ScaleX = RootScale.ScaleY = 0.95;
             RootShift.Y = 16;
             Root.Opacity = 0;

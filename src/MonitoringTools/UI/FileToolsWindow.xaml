@@ -11,7 +11,7 @@
                 <TranslateTransform x:Name="RootShift"/>
             </TransformGroup>
         </Grid.RenderTransform>
-        <Border CornerRadius="20" Background="{StaticResource B.Surface}" BorderBrush="{StaticResource B.Line}" BorderThickness="1"
+        <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
                 Effect="{StaticResource Fx.Shadow}" Padding="22" MouseLeftButtonDown="OnDrag">
             <StackPanel>
                 <Grid Margin="0,0,0,16">
@@ -23,23 +23,23 @@
                     <ContentControl x:Name="IconHost" Margin="0,0,12,0" VerticalAlignment="Center"/>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock x:Name="TitleText" Style="{StaticResource T.Title}" FontSize="17"/>
-                        <TextBlock x:Name="SubText" Style="{StaticResource T.Mono}" Foreground="{StaticResource B.TextMute}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
+                        <TextBlock x:Name="SubText" Style="{StaticResource T.Mono}" Foreground="{DynamicResource B.TextMute}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
                     </StackPanel>
                     <Button Grid.Column="2" Style="{StaticResource Btn.Icon}" Click="OnClose" AutomationProperties.Name="Close" VerticalAlignment="Top">
-                        <Path Data="M6 6l12 12M18 6L6 18" Stroke="{StaticResource B.TextSoft}" StrokeThickness="2.5"
+                        <Path Data="M6 6l12 12M18 6L6 18" Stroke="{DynamicResource B.TextSoft}" StrokeThickness="2.5"
                               StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="11" Height="11" Stretch="Uniform"/>
                     </Button>
                 </Grid>
 
                 <!-- segmented tabs with a sliding pill -->
-                <Border Background="{StaticResource B.Sunken}" BorderBrush="#FF22262E" BorderThickness="1" CornerRadius="12" Padding="4" Margin="0,0,0,16">
+                <Border Background="{DynamicResource B.Sunken}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1" CornerRadius="20" Padding="4" Margin="0,0,0,16">
                     <Grid x:Name="Tabs">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <Border x:Name="Pill" CornerRadius="9" Background="{StaticResource B.Raised}" HorizontalAlignment="Stretch">
+                        <Border x:Name="Pill" CornerRadius="16" Background="{DynamicResource B.SecondaryContainer}" HorizontalAlignment="Stretch">
                             <Border.RenderTransform><TranslateTransform x:Name="PillShift"/></Border.RenderTransform>
                         </Border>
                     </Grid>

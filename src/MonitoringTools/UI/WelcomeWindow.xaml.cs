@@ -15,10 +15,10 @@ namespace MonitoringTools.UI
             InitializeComponent();
             Card("Clipboard toasts", "Every copy slides in for 3 seconds. Hover to hold it and see actions made for what you copied.", Icons.Clipboard, "Try it", Demo.TryClipboard, primary: true);
             Card("Quick commands", "Copy a path with :mp4, :gif or :push on the end and it just happens. Try converts a sample picture.", Icons.Bolt, "Try it", Demo.TryQuickCommand);
-            Card("Internet watch", "When the line drops you see where it broke, plus one-press fixes. It stays until it is back.", Icons.Wifi, "Preview the dialog", Demo.PreviewOffline, edge: "#FF4A3A22");
+            Card("Internet watch", "When the line drops you see where it broke, plus one-press fixes. It stays until it is back.", Icons.Wifi, "Preview the dialog", Demo.PreviewOffline, tint: "B.AmberWash");
             Card("File tools", "Previews, move, copy, Base64 and password encryption for anything you copy.", Icons.Shield, "Try it", Demo.TryFileTools);
             Card("Your shortcuts", "Write a batch or PowerShell script, name it, and copy anything with :name to run it.", Icons.Code, "Open editor", () => App.Current.OpenControlCentre("shortcuts"));
-            Card("Game mode", "Roblox, Minecraft, League and friends keep the screen. Popups wait until you stop.", Icons.Game, "Pick games", () => App.Current.OpenControlCentre("game"), edge: "#FF3A2F5A");
+            Card("Game mode", "Roblox, Minecraft, League and friends keep the screen. Popups wait until you stop.", Icons.Game, "Pick games", () => App.Current.OpenControlCentre("game"), tint: "B.VioletWash");
 
             var (_, status) = App.Tray.State();
             StatusText.Text = status;
@@ -28,7 +28,7 @@ namespace MonitoringTools.UI
             KeyDown += (s, e) => { if (e.Key == Key.Escape) Close(); };
         }
 
-        private void Card(string title, string body, string icon, string button, Action act, bool primary = false, string edge = null)
+        private void Card(string title, string body, string icon, string button, Action act, bool primary = false, string tint = null)
         {
             var sp = new StackPanel();
             var chip = Ui.IconChip(icon, Ui.Res("B.Mint"), Ui.Res("B.MintWash"), 36, 18);
@@ -40,23 +40,23 @@ namespace MonitoringTools.UI
             b.HorizontalAlignment = HorizontalAlignment.Left;
             b.Margin = new Thickness(0, 12, 0, 0);
             sp.Children.Add(b);
-            var edgeBrush = edge == null ? Ui.Res("B.Line") : new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge));
             var card = new Border
             {
-                Background = Ui.Res("B.Surface"), BorderBrush = edgeBrush, BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(18), Padding = new Thickness(18), Margin = new Thickness(7), Child = sp,
+                Background = Ui.Res(tint ?? "B.Surface"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(24), Padding = new Thickness(18), Margin = new Thickness(7), Child = sp,
                 RenderTransformOrigin = new Point(0.5, 0.5)
             };
             // lift on hover
             var lift = new TranslateTransform();
             card.RenderTransform = lift;
             card.MouseEnter += (s, e) => { card.BorderBrush = Ui.Res("B.LineStrong"); lift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-4, TimeSpan.FromMilliseconds(220)) { EasingFunction = Ui.Spring }); };
-            card.MouseLeave += (s, e) => { card.BorderBrush = edgeBrush; lift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Out }); };
+            card.MouseLeave += (s, e) => { card.BorderBrush = Ui.Res("B.Line"); lift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Out }); };
             Cards.Children.Add(card);
         }
 
         private void Enter()
         {
+            if (Core.Appearance.ReduceMotion || Core.Modes.ReduceMotion) { Root.Opacity = 1; return; }
             RootScale.ScaleX = RootScale.ScaleY = 0.95;
             RootShift.Y = 18;
             Root.Opacity = 0;

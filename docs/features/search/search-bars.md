@@ -9,7 +9,7 @@
 | Command palette (`Ctrl+Shift+F`) | `palette` | One command, page or setting |
 | Tray menu | `tray` | One menu row |
 
-Each field keeps its own query, mode, case, regex options, replacement, test sample and recent patterns. Typing in one never changes another. The state lives in memory while the app runs; only patterns saved on purpose in the builder's Library are written to `settings.json`.
+Each field keeps its own query, mode, case, regex options, replacement, test sample and recent patterns. Typing in one never changes another. The state lives in memory while the app runs; only patterns saved on purpose in the builder's Library are written to `settings.json`, plus the recent patterns of each box if the opt-in **Remember across restarts** switch (default off) is turned on.
 
 ## How matching works
 

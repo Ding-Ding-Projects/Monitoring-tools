@@ -11,16 +11,16 @@
                 <TranslateTransform x:Name="RootShift"/>
             </TransformGroup>
         </Grid.RenderTransform>
-        <Border CornerRadius="22" Background="{StaticResource B.Window}" BorderBrush="{StaticResource B.Line}" BorderThickness="1"
+        <Border CornerRadius="28" Background="{DynamicResource B.Window}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
                 Effect="{StaticResource Fx.Shadow}" MouseLeftButtonDown="OnDrag">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="250"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- step rail -->
-                <Border Background="{StaticResource B.Ground}" CornerRadius="22,0,0,22" BorderBrush="#FF1E2128" BorderThickness="0,0,1,0" Padding="22,26,18,22">
+                <Border Background="{DynamicResource B.Ground}" CornerRadius="28,0,0,28" BorderBrush="{DynamicResource B.Line}" BorderThickness="0,0,1,0" Padding="22,26,18,22">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -28,13 +28,13 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,26">
-                            <Path Data="M3 12h4l3-7 4 14 3-7h4" Stroke="{StaticResource B.Mint}" StrokeThickness="2.2" StrokeLineJoin="Round"
+                            <Path Data="M3 12h4l3-7 4 14 3-7h4" Stroke="{DynamicResource B.Mint}" StrokeThickness="2.2" StrokeLineJoin="Round"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"/>
                             <TextBlock Text="Setup" Style="{StaticResource T.Title}" FontSize="16" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel x:Name="Rail" Grid.Row="1"/>
                         <StackPanel Grid.Row="2">
-                            <TextBlock x:Name="SavedNote" Style="{StaticResource T.Mono}" FontSize="11" Foreground="{StaticResource B.TextMute}" TextWrapping="Wrap"
+                            <TextBlock x:Name="SavedNote" Style="{StaticResource T.Mono}" FontSize="11" Foreground="{DynamicResource B.TextMute}" TextWrapping="Wrap"
                                        Text="Progress saves as you go. Close any time and pick up from the tray."/>
                         </StackPanel>
                     </Grid>
@@ -48,14 +48,14 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <StackPanel>
-                        <Border Height="4" CornerRadius="2" Background="{StaticResource B.Raised}" Margin="0,0,0,18">
-                            <Border x:Name="ProgressFill" HorizontalAlignment="Left" CornerRadius="2" Background="{StaticResource B.Mint}" Width="0"/>
+                        <Border Height="8" CornerRadius="4" Background="{DynamicResource B.SecondaryContainer}" Margin="0,0,0,18">
+                            <Border x:Name="ProgressFill" HorizontalAlignment="Left" CornerRadius="4" Background="{DynamicResource B.Mint}" Width="0"/>
                         </Border>
-                        <TextBlock x:Name="StepEyebrow" Style="{StaticResource T.Eyebrow}" FontSize="12" Foreground="{StaticResource B.Mint}"/>
+                        <TextBlock x:Name="StepEyebrow" Style="{StaticResource T.Eyebrow}" FontSize="12" Foreground="{DynamicResource B.Mint}"/>
                         <TextBlock x:Name="StepTitle" Style="{StaticResource T.Title}" FontSize="26" Margin="0,6,0,6"/>
-                        <TextBlock x:Name="StepIntro" Style="{StaticResource T.Body}" Foreground="{StaticResource B.TextMute}" FontSize="14" LineHeight="20"/>
+                        <TextBlock x:Name="StepIntro" Style="{StaticResource T.Body}" Foreground="{DynamicResource B.TextMute}" FontSize="14" LineHeight="20"/>
                     </StackPanel>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,18,0,0">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,18,0,0" Padding="0,6,14,6">
                         <ContentControl x:Name="StepBody" Focusable="False"/>
                     </ScrollViewer>
                     <Grid Grid.Row="2" Margin="0,16,0,0">
@@ -71,7 +71,7 @@
 
                 <Button Grid.Column="1" Style="{StaticResource Btn.Icon}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,14,14,0"
                         Click="OnClose" AutomationProperties.Name="Close setup and keep progress" ToolTip="Close (Esc). Progress is kept.">
-                    <Path Data="M6 6l12 12M18 6L6 18" Stroke="{StaticResource B.TextSoft}" StrokeThickness="2.5"
+                    <Path Data="M6 6l12 12M18 6L6 18" Stroke="{DynamicResource B.TextSoft}" StrokeThickness="2.5"
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="11" Height="11" Stretch="Uniform"/>
                 </Button>
             </Grid>

@@ -16,15 +16,42 @@ The builder opens directly under the search bar it belongs to (Builder button or
 | View | What it does |
 | --- | --- |
 | Build | Token palette (characters, Unicode properties, sets with subtraction, anchors, groups, backreferences, conditionals, quantifiers, lookaround, inline options) inserted at the caret; group tokens wrap the selection. "Escape and insert" turns literal text into a safe pattern. A token-by-token explanation, indented by group depth. |
-| Test | Sample text (defaults to the list the bar searches), every match with its position, the capture groups of the selected match including groups that did not take part, and the measured time. Selecting a match selects it in the sample. |
+| Test | Sample text (defaults to the list the bar searches), every match with its position, the capture groups of the selected match including groups that did not take part, and the measured time. Selecting a match selects it in the sample. Below the sample, **Expected outcomes**: add lines marked *should match* or *should not match*; each shows pass or FAIL live as the pattern or the line changes, with a count of passes. |
+| Debug | Replays one match attempt step by step (match, fail, backtrack, enter and leave group) with Prev, Next and Play. The current pattern token and text position are highlighted, the step count is shown, and the trace stops at 100,000 steps with a clear message. It uses a small built-in backtracking interpreter for a stated subset; it is checked against the real .NET engine on the same subject first, and withheld with an explanation if the two disagree or the pattern uses an unsupported construct (lookaround, atomic groups, conditionals, inline options, Unicode properties, class subtraction, some options). |
+| Compare | Runs the pattern over the sample in the .NET modes that exist here (default backtracking, non-backtracking, ECMAScript, compiled): whether each is supported, match count, first difference from the default engine, and time. Other languages' engines are not available in this app. |
+| Benchmark | Times a subject that should match and one that should not, then repeats each 1x, 2x, 4x, 8x and 16x with a verdict on growth. Runs in the background, stops at the 200 ms limit, and can be cancelled. |
 | Replace | Replacement text with `$0`, `$1`, `${name}`, `$$`, `` $` ``, `$'` and `$_` chips, a live preview of the sample, and Split mode. Nothing changes until you copy the result. |
 | Code | Ready-to-use C#, PowerShell and Python with the current options and a timeout. Python output converts named groups and lists options it cannot express. |
-| Library | Save the current pattern with a name, use or remove saved ones, recent patterns for this bar, and JSON export and import (imports are size-capped and validated). |
+| Files | Search and replace across files in a folder. See [Files view](#files-view). |
+| Library | Save the current pattern with a name, use or remove saved ones (the expected outcomes from the Test view are saved with the entry), recent patterns for this bar, an opt-in switch to remember them across restarts, and JSON export and import (imports are size-capped and validated; older exports without test lines still import). |
 
 ## Limits, stated plainly
 
 - The explanation comes from a lexer inside the app, not from the engine's internal parse tree; it is labelled as an explanation.
-- There is no step-by-step debugger or benchmark yet. The time shown in Test is a real measurement of one run.
+- The Debug trace comes from a separate small interpreter, not from the .NET engine, and covers a stated subset. It never shows a trace that disagrees with the engine. Benchmark and Compare timings are short real measurements and vary from run to run.
 - Only the .NET flavour is available. Code for other languages is generated, not executed.
 
 See the [parity ledger](regexbuddy-parity.md) for every missing family.
+
+## Files view
+
+Searches the text of files in a folder with the pattern above. Controls and defaults:
+
+- **Folder** (Browse), **file masks** (default `*`, e.g. `*.txt;*.md`), **exclude masks** for file or folder names (default `.git;node_modules`), **Include subfolders** (on), **Skip binary files** (on; a null byte in the first 8,000 bytes, unless a UTF-16 byte order mark explains it) and **Skip files over (MB)** (5). Links to folders are not followed.
+- Encoding: a byte order mark is honoured (UTF-8, UTF-16, UTF-32); otherwise strict UTF-8, otherwise Latin-1 so no file is unreadable. The encoding is shown per file and a replace writes the file back in the same encoding.
+- The search runs off the UI thread with a running count and **Cancel**. Matches are found on the whole file, so a pattern may span lines; each is reported with line and column. A pattern that hits the 200 ms limit on a file skips that file and lists it.
+- Results are grouped by file; each match row highlights the match and opens the file in the editor chosen on the Tools page (it opens the file, it does not jump to the line). At most 1,000 rows are shown, 2,000 matches are kept per file and 50,000 overall; **Export CSV** writes the kept matches (a leading `=`, `+`, `-` or `@` is prefixed so a spreadsheet does not run it).
+- **Replace in files...** needs a finished search made with the same pattern and options. It first shows a preview of every affected file and its replacement count and writes nothing. **Write changes...** then opens the two-key danger confirmation. Only after that, each file is copied to a timestamped folder under `regex-backups` in the app data folder, then rewritten. A file that changed since the preview, is read-only, or whose backup cannot be verified is skipped and reported, never half-written. **Restore last backup...** (also confirmed) copies the newest run's backups back; any later edits to those files are lost.
+- Closing the builder or leaving the view cancels a running search. Folder, masks and results are kept only while the app runs.
+
+## Remembered patterns
+
+Recent patterns per search box are kept in memory (up to 50). **Remember across restarts** in the Library view is off by default because patterns can be private; when on, they are stored per box in `settings.json`. Turning it off, or **Forget all remembered patterns**, erases them.
+
+## Command line
+
+```
+MonitoringTools.exe --regex "<pattern>" [--options i,m,s,x,n] [--replace "<text>"] [--json] <file>...
+```
+
+Prints each match as `file:line:col: text`, or with `--replace` the replaced text (a `==> file <==` header precedes each file when there are several). `--json` prints an array instead. Wildcards in a file name are expanded; with no file, text is read from standard input. Files are never modified. Exit code 0 when anything matched, 1 when nothing matched, 2 for an invalid pattern, replacement or usage. Each match is limited to 200 ms like the builder. Options: `i` ignore case, `m` multiline, `s` singleline, `x` ignore pattern whitespace, `n` explicit capture. The app is a windowed program, so output appears when started from a terminal that it can attach to, or when redirected; `--regex --help` prints usage.

@@ -11,24 +11,24 @@
                 <TranslateTransform x:Name="RootShift"/>
             </TransformGroup>
         </Grid.RenderTransform>
-        <Border CornerRadius="24" Background="{StaticResource B.Window}" BorderBrush="{StaticResource B.Line}" BorderThickness="1"
+        <Border CornerRadius="28" Background="{DynamicResource B.Window}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
                 Effect="{StaticResource Fx.Shadow}" Padding="40,36,40,32" MouseLeftButtonDown="OnDrag">
             <StackPanel>
                 <Grid>
                     <StackPanel x:Name="Hero">
-                        <TextBlock Text="WELCOME" Style="{StaticResource T.Eyebrow}" FontSize="13" Foreground="{StaticResource B.Mint}"/>
+                        <TextBlock Text="WELCOME" Style="{StaticResource T.Eyebrow}" FontSize="13" Foreground="{DynamicResource B.Mint}"/>
                         <TextBlock Text="It lives in your tray now." Style="{StaticResource T.Title}" FontSize="42" Margin="0,8,0,8"/>
-                        <TextBlock Style="{StaticResource T.Body}" FontSize="15" Foreground="{StaticResource B.TextMute}" MaxWidth="540" HorizontalAlignment="Left"
+                        <TextBlock Style="{StaticResource T.Body}" FontSize="15" Foreground="{DynamicResource B.TextMute}" MaxWidth="540" HorizontalAlignment="Left"
                                    Text="Everything below works on its own. Press Try it to see each one right now instead of waiting for it to happen."/>
                     </StackPanel>
-                    <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="{StaticResource B.Surface}" BorderBrush="{StaticResource B.Line}"
-                            BorderThickness="1" CornerRadius="14" Padding="14,10">
+                    <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="{DynamicResource B.SecondaryContainer}" BorderBrush="{x:Null}"
+                            BorderThickness="0" CornerRadius="20" Padding="14,10">
                         <StackPanel Orientation="Horizontal">
                             <Grid Width="12" Height="12" Margin="0,0,10,0">
-                                <Ellipse x:Name="Pulse" Fill="{StaticResource B.Mint}" Opacity="0.35" RenderTransformOrigin="0.5,0.5">
+                                <Ellipse x:Name="Pulse" Fill="{DynamicResource B.Mint}" Opacity="0.35" RenderTransformOrigin="0.5,0.5">
                                     <Ellipse.RenderTransform><ScaleTransform x:Name="PulseScale"/></Ellipse.RenderTransform>
                                 </Ellipse>
-                                <Ellipse Fill="{StaticResource B.Mint}" Width="8" Height="8"/>
+                                <Ellipse Fill="{DynamicResource B.Mint}" Width="8" Height="8"/>
                             </Grid>
                             <TextBlock x:Name="StatusText" Style="{StaticResource T.Mono}" Text="online · watching clipboard" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -38,7 +38,7 @@
                 <UniformGrid x:Name="Cards" Columns="3" Margin="-7,28,-7,0"/>
 
                 <Grid Margin="0,22,0,0">
-                    <TextBlock Style="{StaticResource T.Body}" Foreground="{StaticResource B.TextMute}" VerticalAlignment="Center"
+                    <TextBlock Style="{StaticResource T.Body}" Foreground="{DynamicResource B.TextMute}" VerticalAlignment="Center"
                                Text="Right-click the tray icon any time. This tour lives there too."/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Close" Style="{StaticResource Btn.Ghost}" Height="40" Margin="0,0,8,0" Click="OnClose" IsCancel="True"/>

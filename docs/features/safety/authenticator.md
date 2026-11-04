@@ -4,11 +4,11 @@ Live one-time codes for any account, calculated on this computer.
 
 ## Adding an account
 
-Paste an `otpauth://totp/…` link or a base32 secret and press **Add account**. A link brings its issuer, algorithm (SHA-1, SHA-256 or SHA-512), digits (6 to 8) and period (1 to 3600 seconds), and these are honoured. A bare secret uses the choices on screen, defaulting to SHA-1, 6 digits, 30 seconds. **Paste from clipboard** fills the field from copied text.
+Paste an `otpauth://totp/…` link or a base32 secret and press **Add account**. A link brings its issuer, algorithm (SHA-1, SHA-256 or SHA-512), digits (6 to 8) and period (1 to 3600 seconds), and these are honoured. A bare secret uses the choices on screen, defaulting to SHA-1, 6 digits, 30 seconds. **Paste from clipboard** fills the field from copied text. **Read a QR from the clipboard** and **Read a QR from a file…** decode a setup QR picture into the same field (see [QR pairing](qr-pairing.md)).
 
 ## The list
 
-Each account shows its code in large grouped digits, a countdown ring with the seconds as a number, an optional peek at the next code (on by default, a switch turns it off), and buttons to copy, move up or down, edit the label, and remove (after a two-key confirmation). The list is searchable.
+Each account shows its code in large grouped digits, a countdown ring with the seconds as a number, an optional peek at the next code (on by default, a switch turns it off), and buttons to copy, move up or down, edit the label, show as a QR code, and remove (after a two-key confirmation). **Show as QR** reveals the secret, so it needs the two-key confirmation; when Windows Hello is available, **Show as QR (Windows Hello)** reveals it after Windows Hello confirms it is you instead. The list is searchable.
 
 The code region changes once per period, so screen readers are told about the change and not about every second.
 
@@ -22,7 +22,7 @@ Accounts and secrets are in `safety\authenticator.dat`, protected with Windows d
 
 ## What is not done
 
-- Reading a QR image, and drawing a QR: see [QR pairing](qr-pairing.md).
+- QR reading and drawing exist but have limits (versions 1 to 10, no mirrored codes, no bulk-export codes): see [QR pairing](qr-pairing.md).
 - Camera scanning is not available.
 - Grouping and bulk actions on the list are not offered. Reordering is.
 - The clock cannot be checked offline. The page says so and tells you where to sync it. It does not detect skew.
