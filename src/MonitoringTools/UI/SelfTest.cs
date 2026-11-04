@@ -801,6 +801,15 @@ namespace MonitoringTools.UI
 
             await Wave6ChecksAsync();
             await RunWave6Async();
+            // ---- the language audit: nothing visible is left in English when Cantonese is on
+            await CheckAsync("language: every visible string on every page and window has a Cantonese entry", async () =>
+            {
+                await LanguageAudit.RunAsync(dir);
+                var left = LanguageAudit.Findings;
+                if (left.Count == 0) return null;
+                var shown = left.Take(80).Select(x => "\"" + x.Text.Replace("\n", " / ") + "\" (" + x.Where + ")");
+                return left.Count + " untranslated of " + LanguageAudit.Examined + " examined: " + string.Join(" | ", shown) + (left.Count > 80 ? " | ... see language-untranslated.txt" : "");
+            });
 
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");

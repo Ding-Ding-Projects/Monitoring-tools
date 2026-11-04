@@ -439,7 +439,7 @@ namespace MonitoringTools.UI
             void ShowFamily()
             {
                 var name = _style.FontFamily ?? eff.FontFamily ?? "Segoe UI";
-                current.Text = name + (_style.FontFamily == null ? "  (theme)" : "");
+                current.Text = name + (_style.FontFamily == null ? "  " + Core.Language.T("(theme)") : "");   Core.Language.SetLiteral(current, true);
                 try { current.FontFamily = new FontFamily(name); } catch { }
             }
             _refreshers.Add(ShowFamily); ShowFamily();
@@ -459,7 +459,7 @@ namespace MonitoringTools.UI
                 foreach (var n in shown)
                 {
                     var tb = new TextBlock { Text = n, FontSize = 15, Padding = new Thickness(10, 6, 10, 6), Tag = n, Foreground = Ui.Res("B.Text") };
-                    try { tb.FontFamily = new FontFamily(n); } catch { }
+                    try { tb.FontFamily = new FontFamily(n); } catch { }   Core.Language.SetLiteral(tb, true);
                     list.Items.Add(tb);
                     if (n == _style.FontFamily) list.SelectedItem = tb;
                 }

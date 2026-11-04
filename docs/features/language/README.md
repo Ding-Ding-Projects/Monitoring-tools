@@ -43,3 +43,7 @@ Headline keys: `offline.title`, `online.title`, `ip.changed`, `convert.done`, `c
 ## Verification
 
 Compile-checked, with self-test checks written for headline levels and facts, accessible-name round trips and the School mode language page (not yet run by the author on a hidden desktop). Runtime checks still to do: switching the mode with several windows open, restoring English exactly, bilingual line breaks in narrow chips, and speaking with real installed voices.
+
+## Reviewer sheet
+
+[cantonese-review.md](cantonese-review.md) lists every Cantonese table entry beside its English key, grouped by page, for a native speaker to review. No native review has happened yet. The self-test check language: every visible string on every page and window has a Cantonese entry writes the data it is built from.

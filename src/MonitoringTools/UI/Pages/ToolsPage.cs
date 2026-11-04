@@ -133,7 +133,12 @@ namespace MonitoringTools.UI
                     var line = new Grid { Margin = new Thickness(0, 2, 0, 2) };
                     line.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                     line.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                    var label = new TextBlock { Text = acc.Login + (acc.Active ? "  (active)" : "") + "  ·  " + acc.Host, Foreground = Ui.Res(acc.Active ? "B.Mint" : "B.Text"), FontFamily = Ui.Font("F.Body"), FontSize = 14, VerticalAlignment = VerticalAlignment.Center };
+                    var label = new TextBlock { Foreground = Ui.Res(acc.Active ? "B.Mint" : "B.Text"), FontFamily = Ui.Font("F.Body"), FontSize = 14, VerticalAlignment = VerticalAlignment.Center };
+                    var loginRun = new System.Windows.Documents.Run(acc.Login); Core.Language.SetLiteral(loginRun, true);   // account and host names are not translated
+                    var hostRun = new System.Windows.Documents.Run("  ·  " + acc.Host); Core.Language.SetLiteral(hostRun, true);
+                    label.Inlines.Add(loginRun);
+                    if (acc.Active) label.Inlines.Add(new System.Windows.Documents.Run("  (active)"));
+                    label.Inlines.Add(hostRun);
                     var btns = new WrapPanel { Orientation = Orientation.Horizontal };
                     if (!acc.Active) btns.Children.Add(Ui.Button("Set active", async () =>
                     {
@@ -176,7 +181,7 @@ namespace MonitoringTools.UI
                 if (owners.Count == 0) { ownerHost.Children.Add(ToolsNote("Owners could not be listed because no account is signed in. A new repository needs one.", "B.Amber")); return; }
                 if (_forgeOwner == null || !owners.Contains(_forgeOwner, StringComparer.OrdinalIgnoreCase)) _forgeOwner = owners[0];
                 ownerHost.Children.Add(Choice("Owner of the new repository (default: your own account)", owners.Select(o => (o, o)), _forgeOwner, v => _forgeOwner = v,
-                "The account or organisation that will own the new repository."));
+                    sub: "The account or organisation that will own the new repository.", literalOptions: true));
             }
 
             if (gh != null)

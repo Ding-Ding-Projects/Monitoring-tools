@@ -134,7 +134,7 @@ namespace MonitoringTools.Core
             foreach (var (rx, fn) in Strings.Patterns)
             {
                 var m = rx.Match(core);
-                if (m.Success) return fn(m);
+                if (m.Success) { var r = fn(m); if (r != null) return r; }
             }
             foreach (var sep in new[] { " · ", "\n" })
             {
@@ -172,11 +172,17 @@ namespace MonitoringTools.Core
         public static string Compose(string english, string yue)
         {
             if (string.IsNullOrEmpty(yue)) return english;
+            // A text of several lines whose translation has the same lines is composed line by line, so lines that do not change are not repeated.
+            if (english.Contains('\n') && yue.Contains('\n'))
+            {
+                var a = english.Split('\n'); var b = yue.Split('\n');
+                if (a.Length == b.Length) return string.Join("\n", a.Select((l, i) => string.Equals(l, b[i], StringComparison.Ordinal) ? l : Compose(l, b[i])));
+            }
             bool sentence = english.Length > 36 || english.Contains('\n') || english.Contains(" · ") || english.EndsWith(".") || english.EndsWith("?") || english.EndsWith("!");
             return sentence ? english + "\n" + yue : english + " · " + yue;
         }
 
-        private static bool HasCjk(string s)
+        internal static bool HasCjk(string s)
         {
             foreach (var c in s) if ((c >= 0x3400 && c <= 0x9FFF) || (c >= 0xF900 && c <= 0xFAFF) || (c >= 0x3000 && c <= 0x303F && c != 0x3000)) return true;
             return false;
@@ -311,12 +317,16 @@ namespace MonitoringTools.Core
         public static void SetLiteral(DependencyObject d, bool value) => d.SetValue(LiteralProperty, value);
         public static bool GetLiteral(DependencyObject d) => (bool)d.GetValue(LiteralProperty);
 
-        private static bool IsLiteral(TextBlock tb)
+        internal static string OriginalText(Run r) => (string)r.GetValue(EnProp);
+        internal static string OriginalTip(FrameworkElement fe) => (string)fe.GetValue(TipEnProp);
+        internal static string OriginalName(DependencyObject d) => (string)d.GetValue(NameEnProp);
+        internal static string OriginalHelp(DependencyObject d) => (string)d.GetValue(HelpEnProp);
+        internal static string OriginalTitle(Window w) => (string)w.GetValue(TitleEnProp);
+
+        internal static bool IsLiteral(TextBlock tb)
         {
-            var f = tb.FontFamily?.Source ?? "";
-            if (f.IndexOf("Mono", StringComparison.OrdinalIgnoreCase) >= 0 || f.IndexOf("Consolas", StringComparison.OrdinalIgnoreCase) >= 0) return true;
             for (DependencyObject d = tb; d != null; d = (d is Visual || d is System.Windows.Media.Media3D.Visual3D) ? VisualTreeHelper.GetParent(d) : null)
-                if (d is TextBox || d is PasswordBox || GetLiteral(d)) return true;
+                if (GetLiteral(d)) return true;   // a text box's own hint and label are interface text; what is typed is not drawn by a TextBlock
             return false;
         }
 
@@ -325,7 +335,7 @@ namespace MonitoringTools.Core
             if (IsLiteral(tb)) return;
             foreach (var run in Runs(tb.Inlines))
             {
-                if (run.Parent is Hyperlink) continue;
+                if (run.Parent is Hyperlink || GetLiteral(run)) continue;
                 var en = (string)run.GetValue(EnProp);
                 if (en == null && IsEnglish) continue;   // nothing was ever translated and nothing is wanted: leave it to the wording layer
                 var cur = run.Text;
@@ -376,7 +386,7 @@ namespace MonitoringTools.Core
             if (!string.Equals(cur, next, StringComparison.Ordinal)) fe.ToolTip = next;
         }
 
-        private static bool HasLiteralAncestor(DependencyObject d)
+        internal static bool HasLiteralAncestor(DependencyObject d)
         {
             for (int guard = 0; d != null && guard < 200; guard++)
             {

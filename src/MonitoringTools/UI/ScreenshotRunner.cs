@@ -268,6 +268,14 @@ namespace MonitoringTools.UI
                 await Task.Delay(700);
                 Language.Refresh();
                 await Shot(cc, "lang-" + name + "-language", "Language page in " + name + " mode", 900);
+                // the pages whose labels were the longest to translate, checked for clipping in each language mode
+                foreach (var page in new[] { "ollama", "safety", "modes", "tools", "records" })
+                {
+                    cc.Navigate(page);
+                    await Task.Delay(700);
+                    Language.Refresh();
+                    await Shot(cc, "lang-" + name + "-" + page, page + " page in " + name + " mode", 900);
+                }
             }
             s.LanguageMode = LanguageMode.English;
             Language.Refresh();

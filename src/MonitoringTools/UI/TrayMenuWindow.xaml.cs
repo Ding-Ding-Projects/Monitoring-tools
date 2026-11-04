@@ -71,7 +71,7 @@ namespace MonitoringTools.UI
             var gameNote = s.GameModeEnabled ? (App.Games.IsGaming ? App.Games.ActiveGame + " running" : "auto") : "off";
             Rows.Children.Add(Toggle("Game mode", gameNote, s.GameModeEnabled, v => { s.GameModeEnabled = v; Settings.Save(); App.Tray.Refresh(); }, "B.Violet"));
 
-            Rows.Children.Add(ChipRow(Icons.Clock, App.IsSnoozed ? $"Snoozed to {App.SnoozeUntil:HH:mm}" : "Snooze everything",
+            Rows.Children.Add(ChipRow(Icons.Clock, App.IsSnoozed ? Core.Language.Headline("snooze", App.SnoozeUntil.ToString("HH:mm")) : "Snooze everything",
                 new[] { ("15 m", 15), ("1 h", 60), ("4 h", 240), (App.IsSnoozed ? "Wake" : null, 0) }
                     .Where(c => c.Item1 != null).Select(c => (c.Item1, (Action)(() =>
                     {

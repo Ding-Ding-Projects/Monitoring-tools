@@ -341,6 +341,7 @@ namespace MonitoringTools.UI
                 startBtn.IsEnabled = st.Installed && !st.ServerUp;
                 stopBtn.IsEnabled = st.ServerUp || Process.GetProcessesByName("ollama").Length > 0;
                 await RefreshModels();
+                Core.Language.Refresh(root);   // text written after the page loaded still follows the language
             }
 
             paintModels = () => PaintModels();
