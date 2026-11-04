@@ -13,6 +13,7 @@ namespace MonitoringTools
         {
             try
             {
+                if (args.Length > 0 && args[0] == "--regex") return RegexCli.Run(args.Skip(1).ToArray());
                 if (args.Contains("--supervise")) return ServiceHost.Supervise();
                 if (args.Contains("--elevate-on")) return ServiceHost.ElevateHelper(true);
                 if (args.Contains("--elevate-off")) return ServiceHost.ElevateHelper(false);
