@@ -6,8 +6,16 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.17, up to `39440f2`.
+Commits after v1.0.18, up to `3b09869`.
 
+- Refresh screenshots for v1.0.18 ([`3b09869`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/3b098699025d3e8a1abed580408efcf4d29395db))
+
+## 1.0.18 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.18)
+
+- Redesign Ollama, Minecraft and Conversion pages with a motion system ([`df3a6dc`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/df3a6dcdcaa5aca7b8a6bf34c9d9b8448490da9e))
+- Record v1.0.17 figures and changelog ([`8ad6688`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8ad6688e070e2c58397b82ad5095c5a0bcb12bf2))
 - Refresh screenshots for v1.0.17 ([`39440f2`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/39440f2a93d684f923d7ff89d6256b8c58682aab))
 
 ## 1.0.17 (2026-11-04)
