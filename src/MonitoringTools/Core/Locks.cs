@@ -225,6 +225,20 @@ namespace MonitoringTools.Core
             return e != null && !IsOpen(e);
         }
 
+        // ------------------------------------------------------------ appearance-value locks
+
+        /// <summary>
+        /// The page id used for locks on an element's saved look. Such a lock is keyed by the element's appearance key, so it freezes the
+        /// look (font, colours, shape) without locking the element itself. It opens through the same unlock prompt as any other lock.
+        /// </summary>
+        public const string AppearancePage = "appearance";
+
+        /// <summary>True when the look saved under this appearance key is frozen and its lock is still closed.</summary>
+        public static bool IsAppearanceLocked(string styleKey) => !string.IsNullOrEmpty(styleKey) && IsLocked(AppearancePage, styleKey);
+
+        /// <summary>The appearance lock for a key, open or closed, or null.</summary>
+        public static LockEntry FindAppearance(string styleKey) => string.IsNullOrEmpty(styleKey) ? null : Find(AppearancePage, styleKey);
+
         public static void Relock(string id)
         {
             var e = ById(id);

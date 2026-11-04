@@ -34,6 +34,20 @@ namespace MonitoringTools.UI
         private string _colourRole;
         private readonly List<Action> _refreshers = new List<Action>();
 
+        // session history: snapshots of this element's look, for undo and redo
+        private readonly List<string> _undo = new List<string>();
+        private readonly List<string> _redo = new List<string>();
+        private string _last;
+        private string _state = "normal";
+        private readonly TextBlock _status = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(0, 8, 0, 0) };
+        private Button _undoBtn, _redoBtn;
+        private Border _lockBanner;
+        private Action _lockRefresh;
+        private SearchField _libSearch;
+        private StackPanel _presetList, _historyList;
+        private TextBlock _clipNote;
+        private FrameworkElement _libAnchor;
+
         /// <summary>Opens the editor for one element, beside it. Any editor already open is replaced.</summary>
         public static void Open(Window owner, FrameworkElement target, string key = null)
         {
@@ -51,6 +65,7 @@ namespace MonitoringTools.UI
             _key = key ?? ElementStyles.KeyFor(ElementStyles.PageIdFor(owner), target);
             _style = ElementStyles.Get(_key)?.Clone() ?? new ElementStyle();
             _support = ElementStyles.Support(target);
+            _last = ElementStyles.Snapshot(_style);
 
             WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
             ShowInTaskbar = false; ResizeMode = ResizeMode.NoResize; SizeToContent = SizeToContent.Height; Width = 420;
@@ -58,14 +73,22 @@ namespace MonitoringTools.UI
             if (owner != null && owner.IsLoaded) Owner = owner;
             AutomationProperties.SetName(this, "Edit appearance");
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
-            Closed += (s, e) => { if (_open == this) _open = null; };
-            PreviewKeyDown += (s, e) => { if (e.Key == Key.Escape && !(Keyboard.FocusedElement is TextBox)) { e.Handled = true; Close(); } };
+            Closed += (s, e) => { if (_open == this) _open = null; Locks.Changed -= OnLocksChanged; };
+            Locks.Changed += OnLocksChanged;
+            PreviewKeyDown += (s, e) =>
+            {
+                bool inText = Keyboard.FocusedElement is TextBox;
+                if (e.Key == Key.Escape && !inText) { e.Handled = true; Close(); }
+                else if (!inText && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.Z) { e.Handled = true; Undo(); }
+                else if (!inText && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.Y) { e.Handled = true; Redo(); }
+            };
             ContentRendered += (s, e) => Clamp();
 
             PlaceBeside();
             Content = Build();
             SwitchTab("font");
             UpdatePreview();
+            RefreshLockUi();
         }
 
         // ------------------------------------------------------------ placement
@@ -116,15 +139,32 @@ namespace MonitoringTools.UI
             var close = new Button { Style = Ui.Style("Btn.Icon"), Content = Ui.Icon(Icons.Close, Ui.Res("B.TextSoft"), 16), ToolTip = "Close (Esc)" };
             AutomationProperties.SetName(close, "Close appearance editor");
             close.Click += (s, e) => Close();
-            Grid.SetColumn(close, 1); head.Children.Add(close);
+            _undoBtn = new Button { Style = Ui.Style("Btn.Icon"), Content = new TextBlock { Text = "↶", FontSize = 18, Foreground = Ui.Res("B.TextSoft") }, ToolTip = "Undo the last change in this editor (Ctrl+Z)" };
+            _redoBtn = new Button { Style = Ui.Style("Btn.Icon"), Content = new TextBlock { Text = "↷", FontSize = 18, Foreground = Ui.Res("B.TextSoft") }, ToolTip = "Redo (Ctrl+Y)" };
+            AutomationProperties.SetName(_undoBtn, "Undo appearance change"); AutomationProperties.SetName(_redoBtn, "Redo appearance change");
+            _undoBtn.Click += (s, e) => Undo(); _redoBtn.Click += (s, e) => Redo();
+            var headButtons = new StackPanel { Orientation = Orientation.Horizontal };
+            headButtons.Children.Add(_undoBtn); headButtons.Children.Add(_redoBtn); headButtons.Children.Add(close);
+            Grid.SetColumn(headButtons, 1); head.Children.Add(headButtons);
+            UpdateUndoButtons();
             head.MouseLeftButtonDown += (s, e) => { if (e.OriginalSource is not Button) try { DragMove(); } catch { } };
             root.Children.Add(head);
 
             var middle = new StackPanel();
+            _lockBanner = new Border
+            {
+                Background = Ui.Res("B.DangerWash"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 0, 0, 8), Visibility = Visibility.Collapsed,
+                Child = new TextBlock { Text = "This look is locked. Changes are refused until you unlock it (Library tab).", Foreground = Ui.Res("B.Danger"), FontSize = 12, TextWrapping = TextWrapping.Wrap }
+            };
+            AutomationProperties.SetName(_lockBanner, "This look is locked");
+            middle.Children.Add(_lockBanner);
             _preview.Child = _previewText;
             middle.Children.Add(_preview);
-            var tabRow = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
-            foreach (var (id, label) in new[] { ("font", "Font"), ("colour", "Colour"), ("shape", "Shape") })
+            AutomationProperties.SetLiveSetting(_status, AutomationLiveSetting.Polite);
+            AutomationProperties.SetName(_status, "Appearance editor status");
+            middle.Children.Add(_status);
+            var tabRow = new WrapPanel { Margin = new Thickness(0, 6, 0, 10) };
+            foreach (var (id, label) in new[] { ("font", "Font"), ("colour", "Colour"), ("shape", "Shape"), ("library", "Library") })
             {
                 var chip = Ui.Button(label, () => SwitchTab(id), "Btn.Chip");
                 AutomationProperties.SetName(chip, label + " settings");
@@ -165,7 +205,7 @@ namespace MonitoringTools.UI
         {
             if (!_pages.TryGetValue(id, out var page))
             {
-                page = id switch { "font" => BuildFont(), "colour" => BuildColour(), _ => BuildShape() };
+                page = id switch { "font" => BuildFont(), "colour" => BuildColour(), "library" => BuildLibrary(), _ => BuildShape() };
                 _pages[id] = page;
             }
             _body.Content = page;
@@ -181,6 +221,18 @@ namespace MonitoringTools.UI
 
         // ------------------------------------------------------------ applying
 
+        private void Say(string text) => _status.Text = text;
+
+        private bool _refreshing;
+
+        /// <summary>Re-reads the style into every control. Controls ignore the change events this raises, so refreshing never edits the style.</summary>
+        private void RefreshAll()
+        {
+            _refreshing = true;
+            try { foreach (var r in _refreshers) r(); }
+            finally { _refreshing = false; }
+        }
+
         private void Live()
         {
             ElementStyles.Store(_key, _style.IsEmpty ? null : _style, save: false);
@@ -188,56 +240,134 @@ namespace MonitoringTools.UI
             UpdatePreview();
         }
 
+        /// <summary>Saves the look and, when it differs from the last saved one, adds an undo step and a history line.</summary>
         private void Persist()
         {
+            if (ElementStyles.IsLocked(_key)) return;
             ElementStyles.Store(_key, _style.IsEmpty ? null : _style, save: true);
+            var now = ElementStyles.Snapshot(_style);
+            if (now != _last)
+            {
+                _undo.Add(_last);
+                if (_undo.Count > 100) _undo.RemoveAt(0);
+                _redo.Clear();
+                ElementStyles.RecordHistory(_key, ElementStyles.FromSnapshot(_last), _style);
+                _last = now;
+            }
+            UpdateUndoButtons();
+        }
+
+        /// <summary>True, after showing why, when the look is frozen by a lock. The controls are put back to the saved look.</summary>
+        private bool Locked()
+        {
+            if (!ElementStyles.IsLocked(_key)) return false;
+            Say("This look is locked, so the change was refused. Open the Library tab and choose Unlock to change it.");
+            _style.CopyFrom(ElementStyles.Get(_key));
+            UpdatePreview();
+            RefreshAll();
+            return true;
         }
 
         private void Edit(Action change)
         {
+            if (Locked()) return;
             change();
             Live();
             Persist();
-            foreach (var r in _refreshers) r();
+            RefreshAll();
+        }
+
+        private void UpdateUndoButtons()
+        {
+            if (_undoBtn != null) _undoBtn.IsEnabled = _undo.Count > 0;
+            if (_redoBtn != null) _redoBtn.IsEnabled = _redo.Count > 0;
+        }
+
+        private void Undo()
+        {
+            if (_undo.Count == 0 || Locked()) return;
+            _redo.Add(ElementStyles.Snapshot(_style));
+            var snap = _undo[^1]; _undo.RemoveAt(_undo.Count - 1);
+            Jump(snap, "Undo");
+        }
+
+        private void Redo()
+        {
+            if (_redo.Count == 0 || Locked()) return;
+            _undo.Add(ElementStyles.Snapshot(_style));
+            var snap = _redo[^1]; _redo.RemoveAt(_redo.Count - 1);
+            Jump(snap, "Redo");
+        }
+
+        private void Jump(string snapshot, string why)
+        {
+            var before = ElementStyles.FromSnapshot(_last);
+            _style.CopyFrom(ElementStyles.FromSnapshot(snapshot));
+            _last = snapshot;
+            ElementStyles.Store(_key, _style.IsEmpty ? null : _style, save: true);
+            ElementStyles.ApplyMatching(_key);
+            ElementStyles.RecordHistory(_key, before, _style, why + ". " + ElementStyles.Describe(before, _style));
+            UpdatePreview();
+            RefreshAll();
+            UpdateUndoButtons();
+            Say(why + " done.");
         }
 
         private void UpdatePreview()
         {
             var eff = ElementStyles.Effective(_target);
             string F(string a, string b) => a ?? b;
+            var look = ElementStyles.ResolveState(_style, _state);
+            double size = _style.FontSize ?? Math.Min(eff.FontSize ?? 14, 32);
             _previewText.FontFamily = new FontFamily(F(_style.FontFamily, eff.FontFamily) ?? "Segoe UI");
-            _previewText.FontSize = _style.FontSize ?? Math.Min(eff.FontSize ?? 14, 32);
+            _previewText.FontSize = size;
             _previewText.FontWeight = FontWeight.FromOpenTypeWeight(_style.FontWeight ?? eff.FontWeight ?? 400);
             _previewText.FontStyle = (_style.Italic ?? eff.Italic ?? false) ? FontStyles.Italic : FontStyles.Normal;
-            _previewText.Foreground = ElementStyles.TryColour(F(_style.Foreground, eff.Foreground), out var fg) ? new SolidColorBrush(fg) : Ui.Res("B.Text");
-            _preview.Background = ElementStyles.TryColour(F(_style.Background, eff.Background), out var bg) ? new SolidColorBrush(bg) : Ui.Res("B.Sunken");
+            _previewText.Text = ElementStyles.Spaced("Sample text 123", _style.LetterSpacing ?? 0, size);
+            _previewText.TextDecorations = (_style.Underline ?? false) ? TextDecorations.Underline : null;
+            _previewText.Foreground = ElementStyles.TryColour(F(look.Foreground, eff.Foreground), out var fg) ? new SolidColorBrush(fg) : Ui.Res("B.Text");
+            _preview.Background = ElementStyles.TryColour(F(look.Background, eff.Background), out var bg) ? new SolidColorBrush(bg) : Ui.Res("B.Sunken");
             _preview.CornerRadius = new CornerRadius(_style.CornerRadius ?? (eff.CornerRadius ?? 12));
             _preview.BorderThickness = new Thickness(_style.BorderThickness ?? 0);
-            _preview.BorderBrush = ElementStyles.TryColour(_style.BorderColour, out var bc) ? new SolidColorBrush(bc) : Ui.Res("B.LineStrong");
+            _preview.BorderBrush = ElementStyles.TryColour(look.BorderColour, out var bc) ? new SolidColorBrush(bc) : Ui.Res("B.LineStrong");
         }
 
         private void ResetElement()
         {
+            if (Locked()) return;
             ElementStyles.Reset(_key, _target);
-            _style.FontFamily = null; _style.FontSize = null; _style.FontWeight = null; _style.Italic = null; _style.Foreground = null; _style.Background = null;
-            _style.CornerRadius = null; _style.Padding = null; _style.BorderThickness = null; _style.BorderColour = null;
+            _style.CopyFrom(null);
+            // Reset removes the saved look directly, so record it like any other change and keep undo working.
+            var now = ElementStyles.Snapshot(_style);
+            if (now != _last)
+            {
+                _undo.Add(_last); _redo.Clear();
+                ElementStyles.RecordHistory(_key, ElementStyles.FromSnapshot(_last), _style, "Reset element to the theme");
+                _last = now;
+            }
             UpdatePreview();
-            foreach (var r in _refreshers) r();
+            RefreshAll();
+            UpdateUndoButtons();
+            Say("This element is back to the theme.");
         }
 
         private void ResetAll()
         {
             var ask = new ConfirmWindow("Reset every appearance edit?",
-                $"This removes all {Math.Max(1, ElementStyles.Count)} saved element looks from every page and returns them to the theme. The theme itself and your other settings stay as they are.",
+                $"This removes all {Math.Max(1, ElementStyles.Count)} saved element looks from every page and returns them to the theme. Looks frozen by an appearance lock stay as they are. The theme itself, your presets and your other settings stay as they are.",
                 "Reset all", danger: true);
             ask.Confirmed += yes =>
             {
                 if (!yes) return;
-                ElementStyles.ResetAll();
-                _style.FontFamily = null; _style.FontSize = null; _style.FontWeight = null; _style.Italic = null; _style.Foreground = null; _style.Background = null;
-                _style.CornerRadius = null; _style.Padding = null; _style.BorderThickness = null; _style.BorderColour = null;
+                int kept = ElementStyles.ResetAll();
+                ElementStyles.RecordHistory("*", null, null, kept > 0 ? $"Reset all looks ({kept} locked kept)" : "Reset all looks");
+                _style.CopyFrom(ElementStyles.Get(_key));
+                _last = ElementStyles.Snapshot(_style);
+                _undo.Clear(); _redo.Clear();
                 UpdatePreview();
-                foreach (var r in _refreshers) r();
+                RefreshAll();
+                UpdateUndoButtons();
+                Say(kept > 0 ? $"Everything was reset except {kept} locked look{(kept == 1 ? "" : "s")}." : "Every look is back to the theme.");
             };
             ask.Show();
         }
@@ -367,10 +497,24 @@ namespace MonitoringTools.UI
             // italic
             var it = new CheckBox { Style = Ui.Style("Switch"), Tag = Ui.Res("B.Mint"), IsChecked = _style.Italic ?? eff.Italic ?? false, Content = new TextBlock { Text = "Italic", Foreground = Ui.Res("B.Text"), FontSize = 14 } };
             AutomationProperties.SetName(it, "Italic");
-            it.Checked += (s, e) => Edit(() => _style.Italic = true);
-            it.Unchecked += (s, e) => Edit(() => _style.Italic = false);
+            it.Checked += (s, e) => { if (!_refreshing) Edit(() => _style.Italic = true); };
+            it.Unchecked += (s, e) => { if (!_refreshing) Edit(() => _style.Italic = false); };
             _refreshers.Add(() => it.IsChecked = _style.Italic ?? ElementStyles.Effective(_target).Italic ?? false);
             sp.Children.Add(Section("Style", () => _style.Italic = null, it));
+
+            // letter spacing
+            sp.Children.Add(Section("Letter spacing", () => _style.LetterSpacing = null,
+                Stepper("letter spacing", () => _style.LetterSpacing ?? 0, 0, 12, 0.5, v => _style.LetterSpacing = v <= 0 ? null : v),
+                "Extra space between letters, 0 to 12 pixels, default none. It works by adding hair spaces between the letters, so it can only widen text, not tighten it. " +
+                "Only plain text is spaced; text that comes from data or has mixed styles in it is left alone."));
+
+            // underline
+            var ul = new CheckBox { Style = Ui.Style("Switch"), Tag = Ui.Res("B.Mint"), IsChecked = _style.Underline ?? false, Content = new TextBlock { Text = "Underline", Foreground = Ui.Res("B.Text"), FontSize = 14 } };
+            AutomationProperties.SetName(ul, "Underline");
+            ul.Checked += (s, e) => { if (!_refreshing) Edit(() => _style.Underline = true); };
+            ul.Unchecked += (s, e) => { if (!_refreshing) Edit(() => _style.Underline = false); };
+            _refreshers.Add(() => ul.IsChecked = _style.Underline ?? false);
+            sp.Children.Add(Section("Underline", () => _style.Underline = null, ul, "Draws a line under the element's text. Default off."));
             return sp;
         }
 
@@ -396,9 +540,44 @@ namespace MonitoringTools.UI
 
         // ------------------------------------------------------------ colour tab
 
+        private static readonly (string Id, string Label)[] States =
+        {
+            ("normal", "Normal"), ("hover", "Hover"), ("pressed", "Pressed"), ("focused", "Focused"), ("disabled", "Disabled")
+        };
+
         private FrameworkElement BuildColour()
         {
             var sp = new StackPanel();
+
+            // which interaction state is being coloured
+            var stateChips = new WrapPanel { Margin = new Thickness(0, 0, 0, 4) };
+            var sb = new List<(Button B, string Id)>();
+            var stateNote = new TextBlock { FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8) };
+            void PaintStates()
+            {
+                foreach (var (b, id) in sb) { bool on = id == _state; b.Background = on ? Ui.Res("B.SecondaryContainer") : Ui.Res("B.Raised"); b.Foreground = on ? Ui.Res("B.OnSecondaryContainer") : Ui.Res("B.TextSoft"); AutomationProperties.SetItemStatus(b, on ? "selected" : "not selected"); }
+                stateNote.Text = _state == "normal"
+                    ? "Normal is the everyday look. Pick Hover, Pressed, Focused or Disabled to colour that state instead; a state you leave empty keeps the normal look."
+                    : $"Colours for the {_state} state. They apply while the element is {_state}, using the element's own mouse, keyboard and enabled events. Empty channels keep the normal look.";
+            }
+            foreach (var (id, label) in States)
+            {
+                var sid = id;
+                var b = Ui.Button(label, () => { _state = sid; LoadPicker(); PaintStates(); UpdatePreview(); }, "Btn.Chip");
+                b.ToolTip = sid == "normal" ? "The everyday look" : "The look while the element is " + sid;
+                AutomationProperties.SetName(b, label + " state");
+                sb.Add((b, id)); stateChips.Children.Add(b);
+            }
+            var stateHead = new StackPanel { Orientation = Orientation.Horizontal };
+            stateHead.Children.Add(new TextBlock { Text = "State", Foreground = Ui.Res("B.Text"), FontSize = 14, VerticalAlignment = VerticalAlignment.Center });
+            stateHead.Children.Add(InfoIcon.Create("states",
+                "Give a button or row a different colour while the pointer is over it, while it is pressed, while it has keyboard focus, or while it is disabled. " +
+                "The editor preview shows the state you pick. Default: no state colours, so the theme's own hover and press effects are all you see.", null, null));
+            sp.Children.Add(stateHead);
+            sp.Children.Add(stateChips);
+            sp.Children.Add(stateNote);
+            PaintStates();
+
             var roles = new List<(string Id, string Label)> { ("fg", "Text colour") };
             if (_support.Background) roles.Add(("bg", "Background"));
             if (_support.Border) roles.Add(("border", "Border colour"));
@@ -417,8 +596,8 @@ namespace MonitoringTools.UI
             sp.Children.Add(chips);
 
             _picker = new ColorPicker(Color.FromRgb(0, 0, 0));
-            _picker.Changed += c => { SetRole(c); Live(); };
-            _picker.Committed += c => { SetRole(c); Live(); Persist(); };
+            _picker.Changed += c => { if (_refreshing || Locked()) return; SetRole(c); Live(); };
+            _picker.Committed += c => { if (_refreshing || Locked()) return; SetRole(c); Live(); Persist(); };
             sp.Children.Add(_picker);
 
             var reset = Ui.Button("Reset this colour", () => Edit(() => { ClearRole(); }), "Btn.Ghost", Icons.Restart);
@@ -435,6 +614,12 @@ namespace MonitoringTools.UI
         private void SetRole(Color c)
         {
             var hex = ElementStyles.Hex(c);
+            if (_state != "normal")
+            {
+                var look = _style.StateOf(_state, true);
+                if (_colourRole == "fg") look.Foreground = hex; else if (_colourRole == "bg") look.Background = hex; else look.BorderColour = hex;
+                return;
+            }
             if (_colourRole == "fg") _style.Foreground = hex; else if (_colourRole == "bg") _style.Background = hex; else _style.BorderColour = hex;
             // a visible border needs a thickness, so give it one the first time a colour is chosen
             if (_colourRole == "border" && (_style.BorderThickness ?? 0) <= 0) _style.BorderThickness = 1;
@@ -442,6 +627,14 @@ namespace MonitoringTools.UI
 
         private void ClearRole()
         {
+            if (_state != "normal")
+            {
+                var look = _style.StateOf(_state, false);
+                if (look == null) return;
+                if (_colourRole == "fg") look.Foreground = null; else if (_colourRole == "bg") look.Background = null; else look.BorderColour = null;
+                _style.Tidy();
+                return;
+            }
             if (_colourRole == "fg") _style.Foreground = null; else if (_colourRole == "bg") _style.Background = null; else _style.BorderColour = null;
         }
 
@@ -449,11 +642,245 @@ namespace MonitoringTools.UI
         {
             if (_picker == null) return;
             var eff = ElementStyles.Effective(_target);
-            string hex = _colourRole switch { "fg" => _style.Foreground ?? eff.Foreground, "bg" => _style.Background ?? eff.Background, _ => _style.BorderColour ?? eff.BorderColour };
+            var look = ElementStyles.ResolveState(_style, _state);
+            string hex = _colourRole switch { "fg" => look.Foreground ?? eff.Foreground, "bg" => look.Background ?? eff.Background, _ => look.BorderColour ?? eff.BorderColour };
             _picker.SetColor(ElementStyles.TryColour(hex, out var c) ? c : (_colourRole == "fg" ? Colors.Black : Colors.Transparent), false);
-            string other = _colourRole == "fg" ? (_style.Background ?? eff.Background) : (_style.Foreground ?? eff.Foreground);
+            string other = _colourRole == "fg" ? (look.Background ?? eff.Background) : (look.Foreground ?? eff.Foreground);
             Color? against = ElementStyles.TryColour(other, out var o) ? Color.FromRgb(o.R, o.G, o.B) : ((SolidColorBrush)Ui.Res("B.Surface")).Color;
             _picker.Against = against;
+        }
+
+        // ------------------------------------------------------------ library tab
+
+        private static string LabelOf(string key)
+        {
+            var cut = key.IndexOf('|');
+            var text = cut >= 0 ? key[(cut + 1)..] : key;
+            return text.Length == 0 ? "(unnamed element)" : (text.Length > 36 ? text[..36] + "…" : text);
+        }
+
+        private Button Mini(string label, Action act, string name, bool danger = false)
+        {
+            var b = Ui.Button(label, act, danger ? "Btn.Danger" : "Btn.Chip");
+            b.Height = 28; b.Margin = new Thickness(6, 0, 0, 0);
+            AutomationProperties.SetName(b, name);
+            return b;
+        }
+
+        private FrameworkElement BuildLibrary()
+        {
+            var sp = new StackPanel();
+            _libAnchor = sp;
+
+            // copy and paste
+            _clipNote = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) };
+            void ShowClip() => _clipNote.Text = ElementStyles.Clipboard == null ? "Nothing copied yet." : $"Copied from \"{ElementStyles.ClipboardFrom}\". Paste replaces this element's whole look.";
+            var cp = new WrapPanel();
+            cp.Children.Add(Ui.Button("Copy style", () =>
+            {
+                if (_style.IsEmpty) { Say("This element has no custom look to copy. Change something first."); return; }
+                ElementStyles.Clipboard = _style.Clone(); ElementStyles.ClipboardFrom = LabelOf(_key);
+                ShowClip(); Say("Look copied. Open another element's editor and choose Paste style.");
+            }, "Btn.Ghost", Icons.Clipboard));
+            cp.Children.Add(Ui.Button("Paste style", () =>
+            {
+                if (ElementStyles.Clipboard == null) { Say("Nothing has been copied yet."); return; }
+                var src = ElementStyles.Clipboard.Clone();
+                if (ElementStyles.IsLocked(_key)) { Locked(); return; }
+                Edit(() => _style.CopyFrom(src));
+                Say("Look pasted.");
+            }, "Btn.Ghost", Icons.Check));
+            var cpBox = new StackPanel(); cpBox.Children.Add(cp); cpBox.Children.Add(_clipNote);
+            ShowClip();
+            sp.Children.Add(Section("Copy and paste", null, cpBox, "Copy this element's whole look, open another element's editor, and paste it there. The copy lives only until the app closes. Default: nothing copied."));
+
+            // search over presets and history
+            _libSearch = new SearchField("appearance:library", "Search presets and history", compact: true) { Margin = new Thickness(0, 0, 0, 10) };
+            _libSearch.Filter += FillLibrary;
+            sp.Children.Add(_libSearch);
+
+            // presets
+            var save = new Grid();
+            save.ColumnDefinitions.Add(new ColumnDefinition()); save.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var nameBox = new TextBox { Style = Ui.Style("Input"), MaxLength = 40, ToolTip = "A name for this look, up to 40 characters" };
+            AutomationProperties.SetName(nameBox, "Preset name");
+            var saveBtn = Ui.Button("Save preset", () =>
+            {
+                var err = ElementStyles.SavePreset(nameBox.Text, _style);
+                if (err != null) { Say(err); return; }
+                Say($"Preset \"{nameBox.Text.Trim()}\" saved."); nameBox.Text = ""; FillLibrary();
+            }, "Btn.Ghost");
+            saveBtn.Margin = new Thickness(8, 0, 0, 0);
+            Grid.SetColumn(saveBtn, 1); save.Children.Add(nameBox); save.Children.Add(saveBtn);
+            _presetList = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
+            var presets = new StackPanel(); presets.Children.Add(save); presets.Children.Add(_presetList);
+            sp.Children.Add(Section("Presets", null, presets,
+                "A preset is a named copy of this element's look. Save one here, then open any other element's editor and choose Apply to give it the same look. At most 50 presets. Default: none."));
+
+            // history
+            _historyList = new StackPanel();
+            var hist = new StackPanel();
+            hist.Children.Add(_historyList);
+            var clear = Ui.Button("Clear history", () =>
+            {
+                var ask = new ConfirmWindow("Clear the appearance history?", "This removes the list of past changes. The looks themselves stay as they are.", "Clear history", danger: true);
+                ask.Confirmed += yes => { if (yes) { ElementStyles.ClearHistory(); FillLibrary(); Say("History cleared."); } };
+                ask.Show();
+            }, "Btn.Ghost", Icons.Trash);
+            hist.Children.Add(clear);
+            sp.Children.Add(Section("History", null, hist, "The last 100 changes with the time of each. Restore puts that look back on its element. Default: empty."));
+            FillLibrary();
+
+            // import and export
+            var io = new WrapPanel();
+            io.Children.Add(Ui.Button("Export all looks…", ExportLooks, "Btn.Ghost", Icons.File));
+            io.Children.Add(Ui.Button("Import looks…", ImportLooks, "Btn.Ghost", Icons.Folder));
+            sp.Children.Add(Section("Import and export", null, io,
+                "Exports every saved look and preset as one JSON file. Import checks the whole file first (size, format, ranges, colours, locks) and changes nothing if anything is wrong; a good file is merged over your current looks."));
+
+            // lock
+            var lockBox = new StackPanel();
+            var lockText = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 6) };
+            var lockButtons = new WrapPanel();
+            lockBox.Children.Add(lockText); lockBox.Children.Add(lockButtons);
+            lockBox.Children.Add(new TextBlock { Text = Locks.Disclosure, FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) });
+            _lockRefresh = () =>
+            {
+                lockButtons.Children.Clear();
+                var entry = Locks.FindAppearance(_key);
+                if (entry == null)
+                {
+                    lockText.Text = "This look is not locked. Locking freezes how it looks now; the element still works as usual.";
+                    lockButtons.Children.Add(Ui.Button("Lock this look…", () => new LockWizardWindow(_libAnchor ?? _target, Locks.AppearancePage, _key, "Look of " + LabelOf(_key), null).Show(), "Btn.Ghost", Icons.Shield));
+                }
+                else if (Locks.IsOpen(entry))
+                {
+                    lockText.Text = "This look has a lock, and it is open right now, so it can be changed.";
+                    lockButtons.Children.Add(Ui.Button("Close the lock again", () => Locks.Relock(entry.Id), "Btn.Ghost", Icons.Shield));
+                    lockButtons.Children.Add(Ui.Button("Remove the lock", () => { var err = Locks.Remove(entry.Id); if (err != null) Say(err); else Say("Lock removed."); }, "Btn.Ghost", Icons.Trash));
+                }
+                else
+                {
+                    lockText.Text = "This look is locked. Nothing about it can change until it is unlocked.";
+                    lockButtons.Children.Add(Ui.Button("Unlock…", () => ElementMenu.PromptEntry(entry, _libAnchor ?? _target), "Btn.Accent", Icons.Shield));
+                }
+            };
+            _lockRefresh();
+            sp.Children.Add(Section("Lock this look", null, lockBox,
+                "An appearance lock freezes this element's saved look: its font, colours, shape and states cannot be changed, reset, pasted over, restored or overwritten by an import until the lock is opened with its PIN, password or code. Default: unlocked."));
+            return sp;
+        }
+
+        private void OnLocksChanged() => Dispatcher.BeginInvoke(new Action(RefreshLockUi));
+
+        private void RefreshLockUi()
+        {
+            if (_lockBanner != null) _lockBanner.Visibility = ElementStyles.IsLocked(_key) ? Visibility.Visible : Visibility.Collapsed;
+            _lockRefresh?.Invoke();
+        }
+
+        private void FillLibrary()
+        {
+            if (_presetList == null || _historyList == null) return;
+            var names = ElementStyles.PresetNames.ToList();
+            var shownNames = names.Where(n => _libSearch == null || _libSearch.State.Matches(n)).ToList();
+            _presetList.Children.Clear();
+            foreach (var n in shownNames)
+            {
+                var name = n;
+                var row = new Grid { Margin = new Thickness(0, 0, 0, 4) };
+                row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                row.Children.Add(new TextBlock { Text = name, Foreground = Ui.Res("B.Text"), FontSize = 14, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
+                var btns = new StackPanel { Orientation = Orientation.Horizontal };
+                btns.Children.Add(Mini("Apply", () =>
+                {
+                    var p = ElementStyles.Preset(name);
+                    if (p == null) return;
+                    if (ElementStyles.IsLocked(_key)) { Locked(); return; }
+                    Edit(() => _style.CopyFrom(p));
+                    Say($"Preset \"{name}\" applied to this element.");
+                }, "Apply preset " + name));
+                btns.Children.Add(Mini("Delete", () =>
+                {
+                    var ask = new ConfirmWindow("Delete this preset?", $"The preset \"{name}\" is removed. Elements that already use its look keep it.", "Delete preset", danger: true);
+                    ask.Confirmed += yes => { if (yes && ElementStyles.DeletePreset(name)) { FillLibrary(); Say($"Preset \"{name}\" deleted."); } };
+                    ask.Show();
+                }, "Delete preset " + name, danger: true));
+                Grid.SetColumn(btns, 1); row.Children.Add(btns);
+                _presetList.Children.Add(row);
+            }
+            if (shownNames.Count == 0)
+                _presetList.Children.Add(new TextBlock { Text = names.Count == 0 ? "No presets yet. Save the current look above." : "No preset matches the search.", FontSize = 12, Foreground = Ui.Res("B.TextMute") });
+
+            var all = ElementStyles.History.Reverse().ToList();
+            var shown = all.Where(h => _libSearch == null || _libSearch.State.Matches(h.Summary + " " + LabelOf(h.Key))).Take(30).ToList();
+            _libSearch?.SetCount(shownNames.Count + shown.Count, names.Count + all.Count, "presets and changes");
+            _historyList.Children.Clear();
+            foreach (var h in shown)
+            {
+                var entry = h;
+                var row = new Grid { Margin = new Thickness(0, 0, 0, 6) };
+                row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                var tx = new StackPanel();
+                tx.Children.Add(new TextBlock { Text = LabelOf(entry.Key) + " · " + entry.Summary, Foreground = Ui.Res("B.Text"), FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis });
+                tx.Children.Add(new TextBlock { Text = entry.At.ToString("g", CultureInfo.CurrentCulture), Foreground = Ui.Res("B.TextMute"), FontSize = 11 });
+                row.Children.Add(tx);
+                bool can = !string.IsNullOrEmpty(entry.Key) && entry.Key != "*";
+                var rb = Mini("Restore", () => RestoreEntry(entry), "Restore the look from " + entry.At.ToString("g", CultureInfo.CurrentCulture));
+                rb.IsEnabled = can;
+                Grid.SetColumn(rb, 1); row.Children.Add(rb);
+                _historyList.Children.Add(row);
+            }
+            if (shown.Count == 0)
+                _historyList.Children.Add(new TextBlock { Text = all.Count == 0 ? "No changes recorded yet." : "No change matches the search.", FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 0, 0, 6) });
+        }
+
+        private void RestoreEntry(StyleHistoryEntry entry)
+        {
+            if (entry.Key == _key)
+            {
+                if (ElementStyles.IsLocked(_key)) { Locked(); return; }
+                var after = entry.After?.Clone();
+                Edit(() => _style.CopyFrom(after));
+                Say("Restored the look from " + entry.At.ToString("g", CultureInfo.CurrentCulture) + ".");
+            }
+            else
+            {
+                var err = ElementStyles.Restore(entry);
+                Say(err ?? "Restored the look of \"" + LabelOf(entry.Key) + "\".");
+            }
+            FillLibrary();
+        }
+
+        private void ExportLooks()
+        {
+            try
+            {
+                var dlg = new Microsoft.Win32.SaveFileDialog { Title = "Export element looks", Filter = "Element looks (*.json)|*.json", FileName = "element-looks.json", DefaultExt = ".json" };
+                if (dlg.ShowDialog(this) != true) return;
+                System.IO.File.WriteAllText(dlg.FileName, ElementStyles.ExportJson());
+                Say($"Exported {ElementStyles.Count} looks and {ElementStyles.PresetNames.Count} presets.");
+            }
+            catch (Exception ex) { Say("Export failed: " + ex.Message); }
+        }
+
+        private void ImportLooks()
+        {
+            try
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog { Title = "Import element looks", Filter = "Element looks (*.json)|*.json|All files (*.*)|*.*", CheckFileExists = true };
+                if (dlg.ShowDialog(this) != true) return;
+                var fi = new System.IO.FileInfo(dlg.FileName);
+                if (fi.Length > ElementStyles.MaxImportBytes) { Say("That file is larger than " + (ElementStyles.MaxImportBytes / 1000) + " KB, so it was not read."); return; }
+                var err = ElementStyles.ImportJson(System.IO.File.ReadAllText(dlg.FileName), out var styles, out var presets);
+                if (err != null) { Say("Nothing was imported. " + err); return; }
+                _style.CopyFrom(ElementStyles.Get(_key));
+                _last = ElementStyles.Snapshot(_style);
+                _undo.Clear(); _redo.Clear();
+                UpdatePreview(); RefreshAll(); UpdateUndoButtons(); FillLibrary();
+                Say($"Imported {styles} looks and {presets} presets.");
+            }
+            catch (Exception ex) { Say("Import failed: " + ex.Message); }
         }
 
         // ------------------------------------------------------------ shape tab

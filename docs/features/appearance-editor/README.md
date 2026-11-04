@@ -10,4 +10,4 @@ Per-element appearance editing and the helpers around it.
 | Guided forms and the new-shortcut guide | [guided-forms.md](guided-forms.md) |
 | Blank-editor presets | [blank-editors.md](blank-editors.md) |
 
-Every document states what is built and what is not. Nothing here has been run by its author beyond a compile check.
+Every document states what is built and what is not. The appearance data layer (presets, import and export, locks, colour spaces) has in-app self-test checks; the editor window is compile-checked only.

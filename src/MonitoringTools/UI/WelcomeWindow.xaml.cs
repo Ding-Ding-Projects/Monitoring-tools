@@ -49,8 +49,10 @@ namespace MonitoringTools.UI
             // lift on hover
             var lift = new TranslateTransform();
             card.RenderTransform = lift;
-            card.MouseEnter += (s, e) => { card.BorderBrush = Ui.Res("B.LineStrong"); lift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-4, TimeSpan.FromMilliseconds(220)) { EasingFunction = Ui.Spring }); };
-            card.MouseLeave += (s, e) => { card.BorderBrush = Ui.Res("B.Line"); lift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Out }); };
+            card.MouseEnter += (s, e) => { card.SetResourceReference(Border.BorderBrushProperty, "B.LineStrong"); lift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-4, TimeSpan.FromMilliseconds(220)) { EasingFunction = Ui.Spring }); };
+            card.MouseLeave += (s, e) => { card.SetResourceReference(Border.BorderBrushProperty, "B.Line"); lift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Out }); };
+            // every brush above came from the theme, so make each one follow later theme changes
+            ThemeLive.Bind(card);
             Cards.Children.Add(card);
         }
 

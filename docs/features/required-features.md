@@ -2,7 +2,7 @@
 
 The maintainer's shared app requirements, checked against this app on 2026-11-04. Status words:
 **done** (built and rendered from the real app by `--screenshots`), **partial** (works, with the gaps listed),
-**missing**, **n/a** (does not apply, with the reason). Nothing is marked done from reading source alone. `MonitoringTools.exe --selftest <folder>` drives 24 checks inside the built app in a throwaway data folder and writes a pass or fail report.
+**missing**, **n/a** (does not apply, with the reason). Nothing is marked done from reading source alone. `MonitoringTools.exe --selftest <folder>` drives 28 checks inside the built app in a throwaway data folder and writes a pass or fail report.
 
 ## Language, voice and personalization
 
@@ -24,10 +24,10 @@ The maintainer's shared app requirements, checked against this app on 2026-11-04
 
 | Feature | Status | Evidence and gaps |
 | --- | --- | --- |
-| Material 3 conformance | partial | Colour roles, Roboto (pinned and embedded), pill buttons with state layers, 24 to 28 corner containers, Material 3 switch, 56 high search bar, tab strip; toasts, the offline dialog, setup wizard, welcome tour, file tools, commit dialog, tray menu and confirmation all read theme roles live. Gap: a few code-built brushes in the setup wizard and welcome tour repaint only when reopened. |
+| Material 3 conformance | partial | Colour roles, Roboto (pinned and embedded), pill buttons with state layers, 24 to 28 corner containers, Material 3 switch, 56 high search bar, tab strip; toasts, the offline dialog, setup wizard, welcome tour, file tools, commit dialog, tray menu and confirmation all read theme roles live.  |
 | Motion with a full reduced-motion path | done | Spring and decelerate curves; Reduce motion and low-stimulation mode skip entrance motion, toast slides, the builder container transform and menus. |
-| Appearance editor (theme, seed, text size, density, contrast) | partial | Appearance page; per-element editor from any element menu; per-tab and per-group looks (Shift+right-click); density applied to rows, cards, tabs and buttons; self-test checks the light Violet surface and compact rows. Gaps: per-state styles, style import and export. |
-| Colour picker | partial | HSV square, hue and alpha, hex, RGB, HSL and OKLCH fields, theme swatches, recent colours, eyedropper and a contrast readout. Gap: no LAB or LCH fields. |
+| Appearance editor (theme, seed, text size, density, contrast) | partial | Appearance page; per-element editor from any element menu; per-tab and per-group looks (Shift+right-click); density applied to rows, cards, tabs and buttons; self-test checks the light Violet surface and compact rows. Per-state styles, letter spacing, underline, presets, copy and paste, undo and redo, history and JSON import and export are built (see appearance-editor.md); not driven or captured yet. |
+| Colour picker | partial | HSV square, hue and alpha, hex, RGB, HSL and OKLCH fields, theme swatches, recent colours, eyedropper and a contrast readout. LAB and LCH fields translate with the others. |
 | Logo customization | partial | Logo colour from the seed or a custom hex. |
 | Accessibility and sizing | partial | Text size 90 to 150 %, keyboard paths for search, menus and the confirmation gate, live regions. Gap: not checked at 200 % display scale. |
 
@@ -49,7 +49,7 @@ The maintainer's shared app requirements, checked against this app on 2026-11-04
 | Feature | Status | Evidence and gaps |
 | --- | --- | --- |
 | Two-key super confirmation | done | Every destructive dialog; captures `super-confirm-start`, `super-confirm-armed`. |
-| Toy locks on every element | partial | Persistent locks with a wizard and veil, respected by the command palette; self-test locks, refuses removal while locked, unlocks with the PIN and removes. Gap: appearance values cannot be locked. |
+| Toy locks on every element | partial | Persistent locks with a wizard and veil, respected by the command palette; self-test locks, refuses removal while locked, unlocks with the PIN and removes. Appearance values can be locked from the editor (Library tab). |
 | Unlock ladder, support tickets, authenticator | done | Four-rung ladder, Support Tickets desk, TOTP authenticator (RFC 6238 vectors pass in the self-test) with Windows-protected secrets, and Windows Hello as an extra unlock route where available. |
 | QR pairing | done | A built-in QR decoder and encoder (versions 1 to 10): read a code from the clipboard or a file, show an account as a code behind the two-key confirmation. Round-trip in the self-test; 320 of 320 rotated and noisy test images decoded. Gaps: versions above 10, mirrored codes, phone photos untested. |
 | Local history | partial | Settings history with restore and diff (Records page). |
