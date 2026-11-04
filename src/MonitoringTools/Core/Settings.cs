@@ -31,6 +31,8 @@ namespace MonitoringTools.Core
         // Game mode
         public bool GameModeEnabled { get; set; } = true;
         public bool GameModeFullscreen { get; set; } = true;
+        /// <summary>Show a short notice when a game starts or stops, so it is clear game mode is holding toasts back.</summary>
+        public bool GameDetectedNotice { get; set; } = true;
         public List<string> GameProcesses { get; set; } = new List<string>(GameDefaults);
 
         // Quick commands and media

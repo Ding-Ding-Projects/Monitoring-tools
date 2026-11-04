@@ -821,6 +821,7 @@ namespace MonitoringTools.UI
             var a = new StackPanel();
             a.Children.Add(Switch("Suppress while gaming", "Holds toasts and dialogs back while a listed game runs and shows them afterwards. " + (App.Games.IsGaming ? "Active now: " + App.Games.ActiveGame + ". " : "Standing by. ") + "On by default.", s.GameModeEnabled, v => s.GameModeEnabled = v, "B.Violet"));
             a.Children.Add(Switch("Any fullscreen app counts", "Treats any fullscreen window (exclusive fullscreen games, fullscreen video, presentations) like a game, even if it is not on the list. On by default.", s.GameModeFullscreen, v => s.GameModeFullscreen = v, "B.Violet"));
+            a.Children.Add(Switch("Say when a game starts", "Shows a short notice when a game starts (for example \"Roblox detected\") and when it closes, so you know game mode is holding toasts back. The notice never takes focus from the game. On by default.", s.GameDetectedNotice, v => s.GameDetectedNotice = v, "B.Violet"));
             root.Children.Add(Card(a, "#FF3A2F5A"));
 
             var g = new StackPanel();

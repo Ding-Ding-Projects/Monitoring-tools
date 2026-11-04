@@ -79,6 +79,7 @@ namespace MonitoringTools
             Games.GamingChanged += gaming =>
             {
                 Tray.Refresh();
+                ShowGameNotice(gaming);
                 if (!gaming && _offlineDeferred && Net.Current != null && !Net.Current.Online) ShowOffline(Net.Current);
             };
 
@@ -103,6 +104,24 @@ namespace MonitoringTools
                 // First run: the setup wizard does the real setup; the tour stays one click away in the tray.
                 if (!Settings.Current.OnboardingDone) ShowSetup(); else ShowWelcome();
             }
+        }
+
+        private string _lastGame;
+
+        /// <summary>"Roblox detected" when a game starts and "Roblox closed" when it stops, so it is clear why toasts
+        /// are being held back. Toasts never take focus, so the game keeps it.</summary>
+        internal ToastWindow ShowGameNotice(bool gaming)
+        {
+            if (gaming) _lastGame = Games.ActiveGame ?? "A game";
+            if (!Settings.Current.GameDetectedNotice || !Modes.GameModeOn || IsSnoozed) return null;
+            var actions = new System.Collections.Generic.List<ToastAction>
+            {
+                new ToastAction { Label = "Game mode settings", Icon = Icons.Game, Run = () => OpenControlCentre("game"), HandsOff = true },
+                new ToastAction { Label = "Stop these notices", Icon = Icons.Close, Run = () => { Settings.Current.GameDetectedNotice = false; Settings.Save(); }, Done = "Off" },
+            };
+            return gaming
+                ? Toasts.ShowNotice(_lastGame + " detected", "Game mode is on. Toasts and alerts wait until you stop playing; quick commands still run.", Toasts.Violet, 4, actions, Icons.Game)
+                : Toasts.ShowNotice((_lastGame ?? "The game") + " closed", "Game mode is off. Anything held back shows now.", Toasts.Mint, 3, null, Icons.Game);
         }
 
         private void ListenForSignal(string name, Action onSignal)

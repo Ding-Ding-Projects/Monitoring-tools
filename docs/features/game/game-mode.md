@@ -13,6 +13,10 @@ Clipboard toasts and the offline dialog. The tray icon turns violet so you can s
 - A process on the watched list. The defaults include Roblox, Minecraft, League of Legends, Valorant, Fortnite and CS2.
 - Any fullscreen app.
 
+## Game started and stopped notices
+
+On by default (**Game mode**, **Say when a game starts**). When a game starts, a short notice names it, for example **Roblox detected**, and says game mode is on: toasts and alerts wait until you stop playing, and quick commands still run. When it closes, **Roblox closed** says game mode is off and anything held back shows now. The same happens for every game on the list, and for a fullscreen app when **Any fullscreen app counts** is on. The notice never takes focus, so the game keeps the keyboard and mouse. **Stop these notices** on the notice turns the switch off. Nothing shows while game mode itself is off or notifications are snoozed.
+
 ## Edit the list
 
 1. Open **Game mode** in the control centre.

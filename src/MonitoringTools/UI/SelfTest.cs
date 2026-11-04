@@ -61,6 +61,7 @@ namespace MonitoringTools.UI
                 Finish(dir); return;
             }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "wording") { await WordingChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "update") { await UpdateChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexexplain") { await RegexExplainChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit
@@ -844,6 +845,7 @@ namespace MonitoringTools.UI
             await RunNumberFieldsAsync();
             await McChecksAsync();
             await Lane4ChecksAsync(dir);
+            await UpdateChecksAsync(dir);
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>

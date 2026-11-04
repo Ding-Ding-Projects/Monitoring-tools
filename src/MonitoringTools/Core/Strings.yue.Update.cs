@@ -21,6 +21,15 @@ namespace MonitoringTools.Core
             Add("Could not read the latest release.", "讀唔到最新版本。");
             Add("Monitoring Tools updated", "Monitoring Tools 已更新");
             Add("It installs by itself in the background.", "佢會自己喺背景安裝。");
+
+            // ---- game started and stopped notices
+            Add("Say when a game starts", "開遊戲時通知我");
+            Add("Shows a short notice when a game starts (for example \"Roblox detected\") and when it closes, so you know game mode is holding toasts back. The notice never takes focus from the game. On by default.",
+                "遊戲開始（例如「偵測到 Roblox」）同關咗嘅時候會出個短通知，等你知道遊戲模式擋住咗啲彈出通知。個通知唔會搶走遊戲嘅焦點。預設：開。");
+            Add("Game mode is on. Toasts and alerts wait until you stop playing; quick commands still run.", "遊戲模式開咗。彈出通知同警告會等你打完機先出；快速指令照行。");
+            Add("Game mode is off. Anything held back shows now.", "遊戲模式關咗。之前擋住嘅嘢而家出返嚟。");
+            Add("Game mode settings", "遊戲模式設定");
+            Add("Stop these notices", "唔再通知");
         }
 
         private static void AddUpdatePatterns(List<(Regex, Func<Match, string>)> p)
@@ -28,6 +37,8 @@ namespace MonitoringTools.Core
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline), fn));
 
+            Add(@"^(.+) detected$", "偵測到 $1");
+            Add(@"^(.+) closed$", "$1 已關閉");
             Add(@"^Up to date \(([\d.]+)\)\. Checked ([\d:]+)\.$", "已經係最新（$1）。$2 檢查過。");
             Add(@"^Downloading version ([\d.]+) in the background…$", "喺背景下載緊版本 $1…");
             Add(@"^Version ([\d.]+) is downloaded and checked\.$", "版本 $1 已經下載同核對好。");
