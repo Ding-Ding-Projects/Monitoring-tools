@@ -6,8 +6,17 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.15, up to `fcdb1ff`.
+Commits after v1.0.16, up to `bc714fe`.
 
+- Refresh screenshots for v1.0.16 ([`bc714fe`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/bc714fee0b576e8d116dc44e4172bab464bab3c6))
+
+## 1.0.16 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.16)
+
+- Run the Minecraft data generator in its own cache folder ([`4103da4`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/4103da40e164622c5e69d3587832abce1b11fa67))
+- Add a live check that runs the app against real services ([`e8592c9`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e8592c996a83beef581b9babf196e2b1c8e8d3e5))
+- Record v1.0.15 figures and changelog ([`27c2f35`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/27c2f3564ed36cce08131a4627a836509ae5259b))
 - Refresh screenshots for v1.0.15 ([`fcdb1ff`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/fcdb1ff97817d78722ec9b98ad03c193e7a49213))
 
 ## 1.0.15 (2026-11-04)
