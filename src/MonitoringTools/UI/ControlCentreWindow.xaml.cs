@@ -54,6 +54,7 @@ namespace MonitoringTools.UI
         public ControlCentreWindow()
         {
             InitializeComponent();
+            InitBulk();
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
             StateChanged += (s, e) => Shell.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0);
             FooterVersion.Text = "v" + (typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0") + (ServiceHost.IsElevated ? " · admin" : "")
@@ -194,7 +195,7 @@ namespace MonitoringTools.UI
             return cb;
         }
 
-        private static FrameworkElement Choice<T>(string label, IEnumerable<(string Label, T Value)> options, T current, Action<T> set)
+        private static FrameworkElement Choice<T>(string label, IEnumerable<(string Label, T Value)> options, T current, Action<T> set, string sub = null)
         {
             var sp = new StackPanel { Margin = new Thickness(0, Appearance.Gap(4), 0, Appearance.Gap(10)) };
             var opts = options.ToList();
@@ -202,6 +203,11 @@ namespace MonitoringTools.UI
             labelRow.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
             labelRow.Children.Add(InfoIcon.ForChoice(label, opts, () => current));
             sp.Children.Add(labelRow);
+            if (!string.IsNullOrWhiteSpace(sub))
+            {
+                labelRow.Margin = new Thickness(0, 0, 0, 2);
+                sp.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8) });
+            }
             var wrap = new WrapPanel();
             var buttons = new List<(Button B, T V)>();
             void Paint()
@@ -301,6 +307,19 @@ namespace MonitoringTools.UI
             return root;
         }
 
+        // -------------------------------------------------------------- bulk selection state (one reusable helper per list)
+
+        private BulkSelect<ActivityEntry> _activityBulk;
+        private BulkSelect<Shortcut> _shortcutBulk;
+        private BulkSelect<string> _gameBulk;
+
+        private void InitBulk()
+        {
+            _activityBulk = new BulkSelect<ActivityEntry>(() => Navigate("activity", animate: false), "entries");
+            _shortcutBulk = new BulkSelect<Shortcut>(() => Navigate("shortcuts", animate: false), "shortcuts");
+            _gameBulk = new BulkSelect<string>(() => Navigate("game", animate: false), "games", StringComparer.OrdinalIgnoreCase);
+        }
+
         // -------------------------------------------------------------- history
 
         private FrameworkElement HistoryPage()
@@ -314,7 +333,8 @@ namespace MonitoringTools.UI
             var list = new StackPanel();
             _historyRows.Clear();
             foreach (var it in App.History.Items) list.Children.Add(HistoryRow(it, selectable: true));
-            root.Children.Add(BulkBar());
+            // The bar lives inside the card so a page search that hides rows never hides the controls to select them.
+            list.Children.Insert(0, BulkBar());
             root.Children.Add(Card(list, pad: 10));
             return root;
         }
@@ -359,9 +379,8 @@ namespace MonitoringTools.UI
             {
                 var n = _selected.Count;
                 var ok = new ConfirmWindow($"Remove {n} {(n == 1 ? "copy" : "copies")} from history?", "They are only removed from this list. Nothing on disk or on the clipboard changes.", "Remove", danger: true);
-                ok.Confirmed += yes =>
+                ok.Confirmed += _ =>
                 {
-                    if (!yes) return;
                     foreach (var it in _selected.ToList()) App.History.Items.Remove(it);
                     _selected.Clear();
                     Navigate("history", animate: false);
@@ -437,19 +456,19 @@ namespace MonitoringTools.UI
             var s = Settings.Current;
             var root = PageRoot("Clipboard", "Toasts", "What shows up in the corner when the clipboard changes.");
             var a = new StackPanel();
-            a.Children.Add(Switch("Clipboard toasts", "Show a toast for every copy.", s.ClipboardEnabled, v => s.ClipboardEnabled = v));
-            a.Children.Add(Switch("Keep open on hover", "Hovering holds the toast and reveals the actions.", s.KeepOpenOnHover, v => s.KeepOpenOnHover = v));
-            a.Children.Add(Switch("Render Markdown", "Headings, lists, code and links render in the preview.", s.RenderMarkdown, v => s.RenderMarkdown = v));
-            a.Children.Add(Switch("Skip password managers", "Copies marked private by the source app never pop up or reach history.", s.IgnoreSensitiveSources, v => s.IgnoreSensitiveSources = v));
-            a.Children.Add(Switch("Quick commands", "Run :mp4, :push and your own shortcuts when they land on the clipboard.", s.QuickCommandsEnabled, v => s.QuickCommandsEnabled = v));
-            a.Children.Add(Choice("Toast duration", new[] { ("2 s", 2.0), ("3 s", 3.0), ("5 s", 5.0), ("8 s", 8.0) }, s.ToastSeconds, v => s.ToastSeconds = v));
-            a.Children.Add(Choice("History size", new[] { ("20", 20), ("50", 50), ("100", 100) }, s.HistorySize, v => s.HistorySize = v));
+            a.Children.Add(Switch("Clipboard toasts", "Shows a small card in the corner for every copy. On by default.", s.ClipboardEnabled, v => s.ClipboardEnabled = v));
+            a.Children.Add(Switch("Keep open on hover", "Resting the pointer on a toast holds it open and shows its action buttons. On by default.", s.KeepOpenOnHover, v => s.KeepOpenOnHover = v));
+            a.Children.Add(Switch("Render Markdown", "Shows headings, lists, code and links in the preview as formatted text instead of raw characters. On by default.", s.RenderMarkdown, v => s.RenderMarkdown = v));
+            a.Children.Add(Switch("Skip password managers", "Copies the source app marks as private (password managers do this) never pop up or reach history. On by default.", s.IgnoreSensitiveSources, v => s.IgnoreSensitiveSources = v));
+            a.Children.Add(Switch("Quick commands", "Runs :mp4, :push and your own shortcuts as soon as they land on the clipboard. On by default.", s.QuickCommandsEnabled, v => s.QuickCommandsEnabled = v));
+            a.Children.Add(Choice("Toast duration", new[] { ("2 s", 2.0), ("3 s", 3.0), ("5 s", 5.0), ("8 s", 8.0) }, s.ToastSeconds, v => s.ToastSeconds = v, "How long a toast stays on screen before it fades. Default: 3 s."));
+            a.Children.Add(Choice("History size", new[] { ("20", 20), ("50", 50), ("100", 100) }, s.HistorySize, v => s.HistorySize = v, "How many recent copies are kept in memory for the History page. Quitting the app clears them. Default: 50."));
             root.Children.Add(Card(a));
 
             var snd = new StackPanel();
             snd.Children.Add(CardTitle("Sound effects", "Short cues when an action finishes, fails, or the connection drops and returns. Quiet during Windows quiet time, presentations and games."));
-            snd.Children.Add(Switch("Sound effects", null, s.SoundsEnabled, v => { s.SoundsEnabled = v; if (v) Sounds.Play(Cue.Success); }));
-            snd.Children.Add(Choice("Volume", new[] { ("Low", 0.3), ("Medium", 0.6), ("Full", 1.0) }, s.SoundVolume, v => { s.SoundVolume = v; Sounds.Play(Cue.Success); }));
+            snd.Children.Add(Switch("Sound effects", "Plays a short cue when an action finishes or fails, or when the connection drops and returns. Quiet during Windows quiet time, presentations and games. On by default.", s.SoundsEnabled, v => { s.SoundsEnabled = v; if (v) Sounds.Play(Cue.Success); }));
+            snd.Children.Add(Choice("Volume", new[] { ("Low", 0.3), ("Medium", 0.6), ("Full", 1.0) }, s.SoundVolume, v => { s.SoundVolume = v; Sounds.Play(Cue.Success); }, "How loud the cues are. This does not change the Windows volume. Default: Medium."));
             root.Children.Add(Card(snd));
 
             var m = new StackPanel();
@@ -495,10 +514,22 @@ namespace MonitoringTools.UI
             add.HorizontalAlignment = HorizontalAlignment.Right; add.VerticalAlignment = VerticalAlignment.Top;
             head.Children.Add(add);
             list.Children.Add(head);
+            _shortcutBulk.Begin();
+            _shortcutBulk.Prune(s.Shortcuts);
+            if (s.Shortcuts.Count > 0) list.Children.Add(_shortcutBulk.Bar(ShortcutBulkActions()));
             var wrap = new WrapPanel();
             foreach (var sc in s.Shortcuts)
             {
                 var x = sc;
+                if (_shortcutBulk.Selecting)
+                {
+                    var line = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 4) };
+                    line.Children.Add(new Border { Background = Ui.Res("B.MintWash"), CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 3, 8, 4), Child = Ui.Mono(":" + sc.Name, Ui.Res("B.OnPrimaryContainer")) });
+                    line.Children.Add(new TextBlock { Text = string.IsNullOrWhiteSpace(sc.Description) ? sc.Shell.ToString() : sc.Shell + " · " + sc.Description, Style = Ui.Style("T.Body"), Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
+                    SearchScope.SetItem(line, $"{sc.Name} {sc.Shell} {sc.Description}");
+                    list.Children.Add(_shortcutBulk.Wrap(sc, line, ":" + sc.Name));
+                    continue;
+                }
                 var chip = Ui.Button(":" + sc.Name, () => { _editing = x; Navigate("shortcuts", animate: false); }, "Btn.Chip");
                 if (_editing != null && _editing.Name == sc.Name) { chip.Background = Ui.Res("B.Mint"); chip.Foreground = Ui.Res("B.MintInk"); }
                 chip.ToolTip = $"{sc.Shell} · {sc.Description}";
@@ -512,6 +543,42 @@ namespace MonitoringTools.UI
             if (_editing == null && s.Shortcuts.Count > 0) _editing = s.Shortcuts[0];
             if (_editing != null) root.Children.Add(Editor(_editing));
             return root;
+        }
+
+        private IEnumerable<BulkAction<Shortcut>> ShortcutBulkActions()
+        {
+            yield return new BulkAction<Shortcut>
+            {
+                Label = "Export as JSON…", Hint = "Save the chosen shortcuts, with their scripts, to one JSON file.",
+                Run = items => BulkSelect<Shortcut>.SaveText("shortcuts.json", "JSON|*.json", ListActions.ShortcutsJson(items, Shortcuts.ReadScript), items.Count, items.Count == 1 ? "shortcut" : "shortcuts")
+            };
+            yield return new BulkAction<Shortcut>
+            {
+                Label = "Duplicate", Hint = "Make a copy of each chosen shortcut and its script under a new name ending in -copy.",
+                Run = items =>
+                {
+                    var made = ListActions.Duplicate(items);
+                    Settings.Save();
+                    _shortcutBulk.SelectNone();
+                    App.Toasts?.ShowNotice("Duplicated", made.Count == 0 ? "No copy could be made: no free name was left." : $"{made.Count} {(made.Count == 1 ? "shortcut" : "shortcuts")} copied: " + string.Join(", ", made.Select(m => ":" + m.Name)), App.Toasts.Mint, 4, icon: Icons.Code);
+                    Navigate("shortcuts", animate: false);
+                }
+            };
+            yield return new BulkAction<Shortcut>
+            {
+                Label = "Delete…", Danger = true, Hint = "Delete the chosen shortcuts and their script files, after a two-key confirmation.",
+                Run = items =>
+                {
+                    int n = items.Count;
+                    var chosen = items.ToList();
+                    _shortcutBulk.ConfirmThen($"Delete {n} {(n == 1 ? "shortcut" : "shortcuts")}?", "The shortcuts and their script files are removed from this computer. This cannot be undone.", "Delete", () =>
+                    {
+                        if (_editing != null && chosen.Contains(_editing)) _editing = null;
+                        ListActions.DeleteShortcuts(chosen);
+                        Settings.Save();
+                    });
+                }
+            };
         }
 
         private void NewShortcut()
@@ -534,12 +601,12 @@ namespace MonitoringTools.UI
             root.Children.Add(top);
 
             var shell = sc.Shell;
-            root.Children.Add(Choice("Runs with", new[] { ("PowerShell", ScriptShell.PowerShell), ("Batch (.bat)", ScriptShell.Batch) }, shell, v => shell = v));
+            root.Children.Add(Choice("Runs with", new[] { ("PowerShell", ScriptShell.PowerShell), ("Batch (.bat)", ScriptShell.Batch) }, shell, v => shell = v, "Whether the script is a PowerShell script (.ps1) or a batch file (.bat). Default: PowerShell."));
             bool showWin = sc.ShowWindow, elev = sc.RunElevated;
             var flags = new WrapPanel();
-            var sw = Switch("Show a console window", null, showWin, v => showWin = v); ((FrameworkElement)sw).Margin = new Thickness(0, 0, 28, 8);
+            var sw = Switch("Show a console window", "Lets the console window of the script appear while it runs. Off runs it hidden. Off by default.", showWin, v => showWin = v); ((FrameworkElement)sw).Margin = new Thickness(0, 0, 28, 8);
             flags.Children.Add(sw);
-            flags.Children.Add(Switch("Run as administrator", "Prompts once per run unless the service already has admin rights.", elev, v => elev = v, "B.Amber"));
+            flags.Children.Add(Switch("Run as administrator", "Runs the script with administrator rights, which asks for consent once per run unless the service already has them. Off by default.", elev, v => elev = v, "B.Amber"));
             root.Children.Add(flags);
 
             // editor with a line-number gutter
@@ -655,9 +722,9 @@ namespace MonitoringTools.UI
             var root = PageRoot("Network", "Network and DNS", "The offline dialog stays on top until the line comes back or you dismiss it.");
             root.Children.Add(PublicIpCard());
             var a = new StackPanel();
-            a.Children.Add(Switch("Network alerts", "Show the dialog when the internet drops.", s.NetworkEnabled, v => s.NetworkEnabled = v));
-            a.Children.Add(Choice("Check every", new[] { ("2 s", 2), ("3 s", 3), ("5 s", 5), ("10 s", 10) }, s.ProbeIntervalSeconds, v => s.ProbeIntervalSeconds = v));
-            a.Children.Add(Choice("Alert after", new[] { ("1 failed check", 1), ("2 in a row", 2), ("3 in a row", 3) }, s.FailuresBeforeAlert, v => s.FailuresBeforeAlert = v));
+            a.Children.Add(Switch("Network alerts", "Shows a dialog when the internet drops and keeps it up until the line returns or you dismiss it. On by default.", s.NetworkEnabled, v => s.NetworkEnabled = v));
+            a.Children.Add(Choice("Check every", new[] { ("2 s", 2), ("3 s", 3), ("5 s", 5), ("10 s", 10) }, s.ProbeIntervalSeconds, v => s.ProbeIntervalSeconds = v, "How often the connection is tested. A shorter time notices a drop sooner and makes slightly more small requests. Default: 3 s."));
+            a.Children.Add(Choice("Alert after", new[] { ("1 failed check", 1), ("2 in a row", 2), ("3 in a row", 3) }, s.FailuresBeforeAlert, v => s.FailuresBeforeAlert = v, "How many failed checks in a row are needed before the dialog appears. A higher number avoids false alarms. Default: 2 in a row."));
             var tools = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
             tools.Children.Add(Ui.Button("Test now", () => App.Net.ProbeNow(), "Btn.Ghost", Icons.Wifi));
             tools.Children.Add(Ui.Button("Release & renew IP", async () =>
@@ -686,13 +753,7 @@ namespace MonitoringTools.UI
                 addr.VerticalAlignment = VerticalAlignment.Center;
                 Grid.SetColumn(addr, 1); g.Children.Add(addr);
                 var btns = new StackPanel { Orientation = Orientation.Horizontal };
-                var use = Ui.Button(p.Name == active ? "In use" : "Use", async () =>
-                {
-                    var rc = await DnsSwitcher.ApplyAsync(prof);
-                    if (rc == 0) App.Toasts.ShowNotice($"DNS is now {prof.Name}", prof.ToString(), App.Toasts.Mint, 4, icon: Icons.Globe);
-                    App.Net.ProbeNow();
-                    Navigate("network", animate: false);
-                }, p.Name == active ? "Btn.Ghost" : "Btn.Accent");
+                var use = Ui.Button(p.Name == active ? "In use" : "Use", () => UseDnsProfile(prof), p.Name == active ? "Btn.Ghost" : "Btn.Accent");
                 use.Margin = new Thickness(0, 0, 8, 0);
                 btns.Children.Add(use);
                 if (!p.IsAutomatic)
@@ -704,22 +765,9 @@ namespace MonitoringTools.UI
                 Grid.SetColumn(btns, 2); g.Children.Add(btns);
                 d.Children.Add(g);
             }
-            var addRow = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
-            var n = Input("", 150, "Name"); var p1 = Input("", 160, "Primary, e.g. 1.1.1.1"); var p2 = Input("", 160, "Secondary (optional)");
-            addRow.Children.Add(n); addRow.Children.Add(p1); addRow.Children.Add(p2);
-            var msg = Ui.Mono("", Ui.Res("B.Amber"), 11);
-            addRow.Children.Add(Ui.Button("Save profile", () =>
-            {
-                bool Ip(string x) => System.Net.IPAddress.TryParse(x.Trim(), out var ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork;
-                if (string.IsNullOrWhiteSpace(n.Text) || !Ip(p1.Text) || (p2.Text.Trim().Length > 0 && !Ip(p2.Text)))
-                { msg.Text = "Give it a name and valid IPv4 addresses."; return; }
-                s.DnsProfiles.RemoveAll(x => x.Name.Equals(n.Text.Trim(), StringComparison.OrdinalIgnoreCase));
-                s.DnsProfiles.Add(new DnsProfile { Name = n.Text.Trim(), Primary = p1.Text.Trim(), Secondary = p2.Text.Trim() });
-                Settings.Save();
-                Navigate("network", animate: false);
-            }, "Btn.Ghost", Icons.Plus));
-            d.Children.Add(addRow);
-            d.Children.Add(msg);
+            if (_dnsOffer != null) d.Children.Add(DnsSavedOffer());
+            if (_dnsGuiding) d.Children.Add(DnsGuide());
+            else d.Children.Add(Ui.Button("Add a profile…", () => { _dnsGuiding = true; Navigate("network", animate: false); }, "Btn.Accent", Icons.Plus));
             root.Children.Add(Card(d));
             return root;
         }
@@ -732,16 +780,42 @@ namespace MonitoringTools.UI
             var root = PageRoot("Game mode", "Suppress popups while gaming",
                 "On by default. Toasts are held back while a listed game runs. An outage still going when you stop playing shows then. Quick commands still run.");
             var a = new StackPanel();
-            a.Children.Add(Switch("Suppress while gaming", App.Games.IsGaming ? "Active now: " + App.Games.ActiveGame : "Standing by", s.GameModeEnabled, v => s.GameModeEnabled = v, "B.Violet"));
-            a.Children.Add(Switch("Any fullscreen app counts", "Exclusive fullscreen games, fullscreen video and presentations.", s.GameModeFullscreen, v => s.GameModeFullscreen = v, "B.Violet"));
+            a.Children.Add(Switch("Suppress while gaming", "Holds toasts and dialogs back while a listed game runs and shows them afterwards. " + (App.Games.IsGaming ? "Active now: " + App.Games.ActiveGame + ". " : "Standing by. ") + "On by default.", s.GameModeEnabled, v => s.GameModeEnabled = v, "B.Violet"));
+            a.Children.Add(Switch("Any fullscreen app counts", "Treats any fullscreen window (exclusive fullscreen games, fullscreen video, presentations) like a game, even if it is not on the list. On by default.", s.GameModeFullscreen, v => s.GameModeFullscreen = v, "B.Violet"));
             root.Children.Add(Card(a, "#FF3A2F5A"));
 
             var g = new StackPanel();
             g.Children.Add(CardTitle("Watched games", "Process names without .exe. Use process:Title to also match the window title (Minecraft Java runs as javaw)."));
+            _gameBulk.Begin();
+            _gameBulk.Prune(s.GameProcesses);
+            if (s.GameProcesses.Count > 0)
+                g.Children.Add(_gameBulk.Bar(new[]
+                {
+                    new BulkAction<string>
+                    {
+                        Label = "Remove selected", Hint = "Stop watching the chosen games. Restore defaults brings the built-in list back.",
+                        Run = items =>
+                        {
+                            var chosen = items.ToList();
+                            s.GameProcesses.RemoveAll(x => chosen.Contains(x, StringComparer.OrdinalIgnoreCase));
+                            Settings.Save();
+                            _gameBulk.SelectNone();
+                            App.Toasts?.ShowNotice("Games removed", $"{chosen.Count} {(chosen.Count == 1 ? "game" : "games")} no longer watched.", App.Toasts.Mint, 3.5, icon: Icons.Game);
+                            Navigate("game", animate: false);
+                        }
+                    },
+                }));
             var wrap = new WrapPanel();
             foreach (var p in s.GameProcesses.ToList())
             {
                 var proc = p;
+                if (_gameBulk.Selecting)
+                {
+                    var line = new TextBlock { Text = proc, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 5, 0, 5) };
+                    SearchScope.SetItem(line, "watched game process");
+                    g.Children.Add(_gameBulk.Wrap(proc, line, proc));
+                    continue;
+                }
                 var chip = new Border { Height = 32, CornerRadius = new CornerRadius(16), Background = Ui.Res("B.VioletWash"), BorderBrush = new SolidColorBrush(Color.FromRgb(0x3A, 0x2F, 0x5A)), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(12, 0, 4, 0) };
                 var sp = new StackPanel { Orientation = Orientation.Horizontal };
                 sp.Children.Add(new TextBlock { Text = proc, Foreground = new SolidColorBrush(Color.FromRgb(0xD8, 0xCC, 0xFF)), FontSize = 12, FontFamily = Ui.Font("F.Mono"), VerticalAlignment = VerticalAlignment.Center });
@@ -823,7 +897,7 @@ namespace MonitoringTools.UI
             var s = Settings.Current;
             var root = PageRoot("Service", "Background service", "Runs at sign-in under a small supervisor that restarts it if it ever crashes.");
             var a = new StackPanel();
-            a.Children.Add(Switch("Start with Windows", "Launch at sign-in.", s.StartWithWindows, v => { s.StartWithWindows = v; Settings.Save(); ServiceHost.ApplyAutostart(); }));
+            a.Children.Add(Switch("Start with Windows", "Starts the background service at sign-in so the watchers run without opening the app. On by default.", s.StartWithWindows, v => { s.StartWithWindows = v; Settings.Save(); ServiceHost.ApplyAutostart(); }));
             var adm = new CheckBox { Style = Ui.Style("Switch"), IsChecked = s.RunElevated, Tag = Ui.Res("B.Amber"), Margin = new Thickness(0, 4, 0, 10) };
             var admText = new StackPanel();
             admText.Children.Add(new TextBlock { Text = "Administrator rights", Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
@@ -1092,12 +1166,25 @@ namespace MonitoringTools.UI
             return t.ToString("MMM d");
         }
 
-        private static FrameworkElement ActivityCard(int n, ActivityKind? kind, string title)
+        private static FrameworkElement ActivityCard(int n, ActivityKind? kind, string title, BulkSelect<ActivityEntry> bulk = null)
         {
             var sp = new StackPanel();
             var list = Activity.Recent(n, kind);
             sp.Children.Add(CardTitle(title, list.Count == 0 ? "Conversions, pushes, shortcuts, file jobs and outages show up here." : null));
-            foreach (var e in list) sp.Children.Add(ActivityRow(e));
+            if (bulk != null && list.Count > 0)
+            {
+                bulk.Begin();
+                bulk.Prune(list);
+                // Inside the card, so a page search that hides rows never hides the controls to select them.
+                sp.Children.Add(bulk.Bar(new[]
+                {
+                    new BulkAction<ActivityEntry> { Label = "Copy", Hint = "Copy the chosen entries to the clipboard as plain text, one per line.",
+                        Run = items => BulkSelect<ActivityEntry>.CopyText(string.Join(Environment.NewLine, items.Select(ListActions.ActivityLine)), items.Count, items.Count == 1 ? "entry" : "entries") },
+                    new BulkAction<ActivityEntry> { Label = "Export as text…", Hint = "Save the chosen entries to a text file.",
+                        Run = items => BulkSelect<ActivityEntry>.SaveText("activity.txt", "Text|*.txt", string.Join(Environment.NewLine, items.Select(ListActions.ActivityLine)), items.Count, items.Count == 1 ? "entry" : "entries") },
+                }));
+            }
+            foreach (var e in list) sp.Children.Add(bulk != null ? bulk.Wrap(e, ActivityRow(e), e.Title) : ActivityRow(e));
             return Card(sp);
         }
 
@@ -1124,7 +1211,7 @@ namespace MonitoringTools.UI
             Chip("Network", ActivityKind.Network);
             Chip("Docker", ActivityKind.Docker);
             root.Children.Add(chips);
-            root.Children.Add(ActivityCard(100, _activityFilter, _activityFilter == null ? "Everything" : _activityFilter.ToString()));
+            root.Children.Add(ActivityCard(100, _activityFilter, _activityFilter == null ? "Everything" : _activityFilter.ToString(), _activityBulk));
             root.Children.Add(Ui.Button("Open log folder", () => ActionProvider.Shell(Log.Folder), "Btn.Ghost", Icons.Lines));
             return root;
         }
@@ -1179,8 +1266,8 @@ namespace MonitoringTools.UI
                 sp.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(14, 12, 14, 4), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), Child = g, Margin = new Thickness(0, 0, 0, 14) });
             }
 
-            sp.Children.Add(Switch("Watch the public IP", "Checks every few minutes and right after the network changes.", s.PublicIpEnabled, v => s.PublicIpEnabled = v, "B.Violet"));
-            sp.Children.Add(Choice("Check every", new[] { ("1 min", 1), ("5 min", 5), ("15 min", 15), ("60 min", 60) }, s.PublicIpIntervalMinutes, v => s.PublicIpIntervalMinutes = v));
+            sp.Children.Add(Switch("Watch the public IP", "Looks up your public IP address every few minutes and right after the network changes, and records every change. On by default.", s.PublicIpEnabled, v => s.PublicIpEnabled = v, "B.Violet"));
+            sp.Children.Add(Choice("Check every", new[] { ("1 min", 1), ("5 min", 5), ("15 min", 15), ("60 min", 60) }, s.PublicIpIntervalMinutes, v => s.PublicIpIntervalMinutes = v, "How often the public IP address is looked up. Default: 5 min."));
 
             sp.Children.Add(Ui.Mono("HISTORY REPOSITORY", Ui.Res("B.TextMute"), 11));
             var repo = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };

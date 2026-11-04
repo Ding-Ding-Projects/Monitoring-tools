@@ -6,11 +6,12 @@ Create and run Java edition servers on this computer, in Docker, or on another m
 
 ## Create a server
 
-1. Open **Minecraft servers** in the control centre.
-2. Pick a version. The list comes straight from Mojang's official catalogue; choose the type and search the version picker.
-3. Pick a flavour: Vanilla, Paper or Fabric.
-4. Pick where it runs (see below), a port and the memory it may use.
-5. Accept the EULA and press **Create server**. Nothing is downloaded until then.
+Open **Minecraft servers** in the control centre. The **New server** card is a four-step guide with Back, Next and Cancel; the step you are on is kept if the page redraws, and Cancel discards the draft.
+
+1. **Name and version.** Name the server and pick a version. The list comes straight from Mojang's official catalogue; choose the type and search the version picker. A version without a dedicated server is reported here.
+2. **Where it runs.** Pick the target (see below). The Docker targets also offer the flavour: Vanilla, Paper or Fabric. SSH targets ask for the host and optionally a folder, with **Check host key**.
+3. **Memory and port.** Choose the memory and a port from 1024 to 65535. A port already used by another server on the same target is refused.
+4. **Review and accept the EULA.** Read the summary, accept the EULA and press **Create server**. Nothing is downloaded until then; progress and any failure are shown under the step.
 
 ## Where it can run
 

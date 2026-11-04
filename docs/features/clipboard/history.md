@@ -13,6 +13,10 @@ The control centre keeps your last copies so you can find something you copied a
 
 `Ctrl+F` jumps straight to the page's search.
 
+## Choose several
+
+**Select** (above the list) turns on select mode: a checkbox on every row, a live count, **Select all shown** (only the rows the search currently shows), **Select none**, and **Copy**, **Save as text…** and **Remove from history**. Removing asks for a two-key confirmation. The same select mode is available on the other lists; see [Bulk actions](../app/bulk-actions.md).
+
 ## How much is kept
 
 The size is a setting. When the limit is reached, the oldest copies drop off.

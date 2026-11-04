@@ -900,10 +900,15 @@ namespace MonitoringTools.UI.Search
 
         // ---------------------------------------------------------------- Library
 
+        private BulkSelect<SavedPattern> _libBulk;
+
         private FrameworkElement LibraryView()
         {
             var sp = new StackPanel();
             var lib = Settings.Current.SavedPatterns;
+            _libBulk ??= new BulkSelect<SavedPattern>(() => Show("Library"), "saved patterns");
+            _libBulk.Begin();
+            _libBulk.Prune(lib);
             sp.Children.Add(Eyebrow("Save the current pattern"));
             var name = new TextBox { Style = Ui.Style("Input"), Margin = new Thickness(0, 4, 0, 6) };
             AutomationProperties.SetName(name, "Name for the saved pattern");
@@ -926,6 +931,21 @@ namespace MonitoringTools.UI.Search
 
             sp.Children.Add(Eyebrow($"Saved · {lib.Count}"));
             if (lib.Count == 0) sp.Children.Add(Ui.Mono("Nothing saved yet.", Ui.Res("B.TextMute"), 12));
+            else sp.Children.Add(_libBulk.Bar(new[]
+            {
+                new BulkAction<SavedPattern> { Label = "Export selected…", Hint = "Save only the chosen patterns, with their expected outcomes, to a JSON file the Import button can read back.",
+                    Run = items => Export(items) },
+                new BulkAction<SavedPattern> { Label = "Delete selected…", Danger = true, Hint = "Delete the chosen patterns from the library, after a two-key confirmation.",
+                    Run = items =>
+                    {
+                        var chosen = items.ToList();
+                        _libBulk.ConfirmThen($"Delete {chosen.Count} saved {(chosen.Count == 1 ? "pattern" : "patterns")}?", "They are removed from the library with their saved expected outcomes. This cannot be undone.", "Delete", () =>
+                        {
+                            foreach (var c in chosen) { lib.Remove(c); Settings.Current.RegexPatternTests?.Remove(c.Name); }
+                            Settings.Save();
+                        });
+                    } },
+            }));
             foreach (var p in lib.ToList())
             {
                 var item = p;
@@ -942,7 +962,7 @@ namespace MonitoringTools.UI.Search
                 if (Settings.Current.RegexPatternTests != null && Settings.Current.RegexPatternTests.TryGetValue(item.Name ?? "", out var tl) && tl.Count > 0)
                     text.Children.Add(Ui.Mono($"{tl.Count} expected outcome(s) saved with it", Ui.Res("B.TextMute"), 11));
                 line.Children.Add(text);
-                sp.Children.Add(line);
+                sp.Children.Add(_libBulk.Wrap(item, line, item.Name));
             }
 
             sp.Children.Add(Eyebrow("Recent in this search box"));
@@ -971,7 +991,7 @@ namespace MonitoringTools.UI.Search
             sp.Children.Add(recent);
 
             var io = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
-            io.Children.Add(Ui.Button("Export JSON", Export, "Btn.Ghost"));
+            io.Children.Add(Ui.Button("Export JSON", () => Export(Settings.Current.SavedPatterns.ToList()), "Btn.Ghost"));
             var imp = Ui.Button("Import JSON", Import, "Btn.Ghost");
             imp.Margin = new Thickness(8, 0, 0, 0);
             io.Children.Add(imp);
@@ -979,11 +999,11 @@ namespace MonitoringTools.UI.Search
             return sp;
         }
 
-        private void Export()
+        private void Export(IEnumerable<SavedPattern> patterns)
         {
             var d = new Microsoft.Win32.SaveFileDialog { FileName = "regex-library.json", Filter = "JSON|*.json" };
             if (d.ShowDialog() != true) return;
-            File.WriteAllText(d.FileName, JsonSerializer.Serialize(Settings.Current.SavedPatterns.Select(p => new
+            File.WriteAllText(d.FileName, JsonSerializer.Serialize(patterns.Select(p => new
             {
                 p.Name, p.Pattern, p.Options, p.Replacement,
                 Tests = Settings.Current.RegexPatternTests != null && Settings.Current.RegexPatternTests.TryGetValue(p.Name ?? "", out var tl) ? tl : new List<RegexTestCase>()

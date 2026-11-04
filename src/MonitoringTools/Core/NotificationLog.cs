@@ -47,6 +47,16 @@ namespace MonitoringTools.Core
             lock (Gate) return Entries.ToList();
         }
 
+        /// <summary>Removes just these entries (by reference) and returns how many were removed.</summary>
+        public static int Remove(IEnumerable<NotificationEntry> items)
+        {
+            int n;
+            var set = new HashSet<NotificationEntry>(items);
+            lock (Gate) n = Entries.RemoveAll(set.Contains);
+            if (n > 0) Changed?.Invoke();
+            return n;
+        }
+
         public static void Clear()
         {
             lock (Gate) Entries.Clear();

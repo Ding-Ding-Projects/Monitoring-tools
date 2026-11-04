@@ -224,7 +224,11 @@ namespace MonitoringTools.UI
             AutomationProperties.SetName(label, "Rule name");
             var start = Input("09:00", 80, "Start time, 24-hour HH:mm"); AutomationProperties.SetName(start, "Start time");
             var end = Input("17:00", 80, "End time, 24-hour HH:mm"); AutomationProperties.SetName(end, "End time");
+            var fromDate = Input("", 110, "Optional first date, yyyy-MM-dd. Empty means no start limit."); AutomationProperties.SetName(fromDate, "Start date (optional)");
+            var toDate = Input("", 110, "Optional last date, yyyy-MM-dd, included. Empty means no end limit."); AutomationProperties.SetName(toDate, "End date (optional)");
             var valueHost = new ContentControl();
+            var settingHost = new ContentControl();
+            ScheduleRule editing = null;
             var msg = ModesNote("");
 
             IEnumerable<(string, string)> ValuesFor(string key)
@@ -244,7 +248,9 @@ namespace MonitoringTools.UI
             value = "off"; BuildValue();
 
             var settingKeys = Modes.SettingKeys.Select(k => (ModesSettingLabel(k), k)).ToList();
-            sp.Children.Add(Choice("Setting to change", settingKeys, setting, v => { setting = v; value = (v == "language" || v == "theme") ? DefaultFor(v) : "off"; BuildValue(); }));
+            void BuildSetting() => settingHost.Content = Choice("Setting to change", settingKeys, setting, v => { setting = v; value = (v == "language" || v == "theme") ? DefaultFor(v) : "off"; BuildValue(); });
+            BuildSetting();
+            sp.Children.Add(settingHost);
             sp.Children.Add(valueHost);
 
             // Weekdays
@@ -284,7 +290,18 @@ namespace MonitoringTools.UI
             timeRow.Children.Add(label);
             sp.Children.Add(timeRow);
 
+            var dateRow = new StackPanel { Orientation = Orientation.Horizontal };
+            dateRow.Children.Add(new TextBlock { Text = "Only between dates (optional)", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 8), Foreground = Ui.Res("B.TextSoft") });
+            dateRow.Children.Add(fromDate);
+            dateRow.Children.Add(new TextBlock { Text = "and", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 8), Foreground = Ui.Res("B.TextSoft") });
+            dateRow.Children.Add(toDate);
+            sp.Children.Add(dateRow);
+            sp.Children.Add(ModesNote("Dates are written yyyy-MM-dd and both ends are included. Leave both empty for a rule with no date limit, or fill only one for an open-ended range. The window still follows the times and days above.", "B.TextMute"));
+
             // Existing rules
+            var addBtn = Ui.Button("Add rule", null, "Btn.Accent", Icons.Plus);
+            var cancelEdit = Ui.Button("Cancel edit", null, "Btn.Ghost");
+            cancelEdit.Visibility = Visibility.Collapsed;
             var filter = new SearchField("modes:rules", "Search schedule rules", compact: true) { MaxWidth = 520, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 10, 0, 8) };
             var list = new StackPanel();
             void Refill()
@@ -311,6 +328,7 @@ namespace MonitoringTools.UI
                     row.Children.Add(Ui.Mono(state, Ui.Res(Modes.IsWinning(rule) && rule.Enabled ? "B.Mint" : "B.TextMute"), 11));
                     var btns = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
                     void Changed() { Settings.Save(); Modes.Evaluate(); Refill(); }
+                    btns.Children.Add(Ui.Button("Edit", () => { LoadRule(rule); }, "Btn.Ghost"));
                     btns.Children.Add(Ui.Button(rule.Enabled ? "Disable" : "Enable", () => { rule.Enabled = !rule.Enabled; Changed(); }));
                     btns.Children.Add(Ui.Button("Move earlier", () => { var i = rules.IndexOf(rule); if (i > 0) { rules.RemoveAt(i); rules.Insert(i - 1, rule); Changed(); } }));
                     btns.Children.Add(Ui.Button("Move later", () => { var i = rules.IndexOf(rule); if (i >= 0 && i < rules.Count - 1) { rules.RemoveAt(i); rules.Insert(i + 1, rule); Changed(); } }));
@@ -324,22 +342,48 @@ namespace MonitoringTools.UI
             filter.Filter += Refill;
             refreshHooks.Add(Refill);
 
-            sp.Children.Add(Ui.Button("Add rule", () =>
+            void SetEditing(ScheduleRule r)
+            {
+                editing = r;
+                addBtn.Content = r == null ? "Add rule" : "Save changes";
+                cancelEdit.Visibility = r == null ? Visibility.Collapsed : Visibility.Visible;
+            }
+            void LoadRule(ScheduleRule r)
+            {
+                setting = r.Setting; value = r.Value;
+                days.Clear(); foreach (var d in r.Days ?? new List<int>()) days.Add(d);
+                start.Text = r.Start; end.Text = r.End; label.Text = r.Label ?? "";
+                fromDate.Text = r.FromDate ?? ""; toDate.Text = r.ToDate ?? "";
+                BuildSetting(); BuildValue(); PaintDays();
+                SetEditing(r);
+                msg.Text = "Editing this rule in place. Change the fields above, then choose Save changes."; msg.Foreground = Ui.Res("B.TextMute");
+                start.Focus();
+            }
+            cancelEdit.Click += (x, y) => { SetEditing(null); msg.Text = "Edit cancelled. The rule is unchanged."; msg.Foreground = Ui.Res("B.TextMute"); };
+            var addRow = new WrapPanel();
+            addRow.Children.Add(addBtn); addRow.Children.Add(cancelEdit);
+            addBtn.Click += (x0, y0) =>
             {
                 if (!Modes.TryParseTime(start.Text, out _) || !Modes.TryParseTime(end.Text, out _))
                 { msg.Text = "Enter both times as 24-hour HH:mm, for example 08:30."; msg.Foreground = Ui.Res("B.Amber"); return; }
-                if (Settings.Current.ScheduleRules.Count >= 64) { msg.Text = "The limit is 64 rules."; msg.Foreground = Ui.Res("B.Amber"); return; }
+                if (editing == null && Settings.Current.ScheduleRules.Count >= 64) { msg.Text = "The limit is 64 rules."; msg.Foreground = Ui.Res("B.Amber"); return; }
                 if (!Modes.ValidValue(setting, value)) { msg.Text = "Pick a value first."; msg.Foreground = Ui.Res("B.Amber"); return; }
-                var rule = new ScheduleRule
-                {
-                    Label = label.Text.Trim(), Setting = setting, Value = value, Start = start.Text.Trim(), End = end.Text.Trim(),
-                    Days = days.OrderBy(d => (d + 6) % 7).ToList()
-                };
-                Settings.Current.ScheduleRules.Add(rule);
-                Settings.Save(); Modes.Evaluate(); Refill();
-                msg.Text = "Rule added."; msg.Foreground = Ui.Res("B.TextMute");
+                if (!Modes.TryParseDate(fromDate.Text, out _) || !Modes.TryParseDate(toDate.Text, out _))
+                { msg.Text = "Enter dates as yyyy-MM-dd, for example 2026-12-24, or leave them empty."; msg.Foreground = Ui.Res("B.Amber"); return; }
+                if (!Modes.ValidDateRange(fromDate.Text, toDate.Text))
+                { msg.Text = "The end date is before the start date."; msg.Foreground = Ui.Res("B.Amber"); return; }
+                var target = editing ?? new ScheduleRule();
+                target.Label = label.Text.Trim(); target.Setting = setting; target.Value = value;
+                target.Start = start.Text.Trim(); target.End = end.Text.Trim();
+                target.Days = days.OrderBy(d => (d + 6) % 7).ToList();
+                target.FromDate = fromDate.Text.Trim(); target.ToDate = toDate.Text.Trim();
+                bool wasEditing = editing != null;
+                if (!wasEditing) Settings.Current.ScheduleRules.Add(target);
+                Settings.Save(); Modes.Evaluate(); SetEditing(null); Refill();
+                msg.Text = wasEditing ? "Rule updated." : "Rule added."; msg.Foreground = Ui.Res("B.TextMute");
                 label.Text = "";
-            }, "Btn.Accent", Icons.Plus));
+            };
+            sp.Children.Add(addRow);
             sp.Children.Add(msg);
             sp.Children.Add(ModesNote("Language and theme rules are stored and offered to the rest of the app as the scheduled choice. Sounds, toasts and game mode rules apply immediately. A rule never changes your saved choice.", "B.TextMute"));
             sp.Children.Add(filter);

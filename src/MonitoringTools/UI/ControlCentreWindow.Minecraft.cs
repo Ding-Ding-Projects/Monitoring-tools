@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
@@ -170,140 +171,230 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- create
 
+        private int _mcStep;
+
+        /// <summary>
+        /// The new-server guide. The same choices as before, one step at a time: name and version, where it runs, memory and port,
+        /// then a review with the EULA. The draft lives in <c>_draft</c> and the step in <c>_mcStep</c>, so a page rebuild resumes where you were.
+        /// </summary>
         private FrameworkElement CreateCard()
         {
             _draft ??= new ServerDef { Name = "Weekend server", Port = NextPort() };
             var d = _draft;
-            var sp = new StackPanel();
-            sp.Children.Add(CardTitle("New server", "Pick a version, a place to run it, and accept the EULA. Nothing is downloaded until you press Create."));
+            bool IsSsh() => d.Target == Target.SshProcess || d.Target == Target.SshDocker;
+            bool IsDocker() => d.Target == Target.LocalDocker || d.Target == Target.SshDocker;
 
-            var name = Input(d.Name, 280, "Server name, also used as the message of the day");
-            name.TextChanged += (o, e) => d.Name = name.Text;
-            sp.Children.Add(new StackPanel { Children = { Ui.Mono("NAME", Ui.Res("B.TextMute"), 11), name } });
-
-            // version: the whole official catalogue, searchable and filtered by type
-            sp.Children.Add(Ui.Mono("VERSION", Ui.Res("B.TextMute"), 11));
-            var typeRow = new WrapPanel { Margin = new Thickness(0, 4, 0, 4) };
-            foreach (var (label, type) in new[] { ("Releases", "release"), ("Snapshots", "snapshot"), ("Beta", "old_beta"), ("Alpha", "old_alpha") })
+            // ---- step 1: name and version (the whole official catalogue, searchable and filtered by type)
+            FrameworkElement BuildVersionStep()
             {
-                var t = type;
-                var b = Ui.Button(label, () => { _versionType = t; Navigate("minecraft", animate: false); }, "Btn.Chip");
-                bool on = _versionType == t;
-                b.Background = Ui.Res(on ? "B.Mint" : "B.Raised"); b.Foreground = Ui.Res(on ? "B.MintInk" : "B.TextSoft");
-                typeRow.Children.Add(b);
-            }
-            sp.Children.Add(typeRow);
-            var filter = new SearchField("minecraft:versions", "Search versions, for example 1.21", compact: true) { MaxWidth = 520, HorizontalAlignment = HorizontalAlignment.Left };
-            var list = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
-            var verNote = Ui.Mono(d.Version == null ? "No version chosen yet." : "Chosen: " + d.Version, Ui.Res(d.Version == null ? "B.TextMute" : "B.Mint"), 11);
-            sp.Children.Add(filter);
-            sp.Children.Add(new ScrollViewer { Content = list, MaxHeight = 140, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
-            verNote.Margin = new Thickness(0, 8, 0, 4);
-            sp.Children.Add(verNote);
-            async void Versions()
-            {
-                try
+                var sp = new StackPanel();
+                var name = Input(d.Name, 280, "Server name, also used as the message of the day");
+                name.TextChanged += (o, e) => d.Name = name.Text;
+                AutomationProperties.SetName(name, "Server name");
+                sp.Children.Add(new StackPanel { Children = { Ui.Mono("NAME", Ui.Res("B.TextMute"), 11), name } });
+                sp.Children.Add(Ui.Mono("VERSION", Ui.Res("B.TextMute"), 11));
+                var typeRow = new WrapPanel { Margin = new Thickness(0, 4, 0, 4) };
+                var typeButtons = new List<(Button B, string T)>();
+                void PaintTypes()
                 {
-                    var all = await ServerManager.VersionsAsync();
-                    var ofType = all.Where(v => v.Type == _versionType).ToList();
-                    filter.SampleSource = () => ofType.Select(v => v.Id);
-                    filter.State.TimedOut = false;
-                    var matching = ofType.Where(v => filter.State.Matches(v.Id)).ToList();
-                    filter.SetCount(matching.Count, ofType.Count, "versions");
-                    var shown = matching.Take(120).ToList();
-                    list.Children.Clear();
-                    foreach (var v in shown)
+                    foreach (var (b, t) in typeButtons)
                     {
-                        var vv = v;
-                        var b = Ui.Button(v.Id, async () =>
-                        {
-                            d.Version = vv.Id;
-                            verNote.Text = $"Chosen: {vv.Id} · checking for a dedicated server…"; verNote.Foreground = Ui.Res("B.TextMute");
-                            try
-                            {
-                                var dist = await ServerManager.ResolveAsync(vv.Id);
-                                verNote.Text = dist.Missing ?? $"Chosen: {vv.Id} · server {dist.Size / 1048576.0:0.0} MB · needs Java {dist.JavaMajor}";
-                                verNote.Foreground = Ui.Res(dist.Missing == null ? "B.Mint" : "B.Amber");
-                            }
-                            catch (Exception ex) { verNote.Text = "Could not read the version metadata: " + ex.Message; verNote.Foreground = Ui.Res("B.Amber"); }
-                        }, "Btn.Chip");
-                        b.Height = 26; b.Margin = new Thickness(0, 0, 4, 4);
-                        if (vv.Id == d.Version) { b.Background = Ui.Res("B.Mint"); b.Foreground = Ui.Res("B.MintInk"); }
-                        list.Children.Add(b);
+                        bool on = _versionType == t;
+                        b.Background = Ui.Res(on ? "B.Mint" : "B.Raised"); b.Foreground = Ui.Res(on ? "B.MintInk" : "B.TextSoft");
                     }
-                    if (shown.Count == 0) list.Children.Add(Ui.Mono("No versions match.", Ui.Res("B.TextMute"), 11));
                 }
-                catch (Exception ex) { list.Children.Clear(); list.Children.Add(Ui.Mono("Could not load the official catalogue: " + ex.Message, Ui.Res("B.Amber"), 11)); }
-            }
-            filter.Filter += Versions;
-            Versions();
-
-            sp.Children.Add(Choice("Where it runs", new[] { ("This computer", Target.LocalProcess), ("Docker here", Target.LocalDocker), ("SSH host", Target.SshProcess), ("Docker over SSH", Target.SshDocker) }, d.Target,
-                v => { d.Target = v; if (v == Target.LocalProcess || v == Target.SshProcess) d.Flavour = Flavour.Vanilla; Navigate("minecraft", animate: false); }));
-            if (d.Target == Target.LocalDocker || d.Target == Target.SshDocker)
-                sp.Children.Add(Choice("Flavour", new[] { ("Vanilla", Flavour.Vanilla), ("Paper", Flavour.Paper), ("Fabric", Flavour.Fabric) }, d.Flavour, v => d.Flavour = v));
-            else
-                sp.Children.Add(Ui.Mono("Flavour: Vanilla. Paper and Fabric run on the Docker targets.", Ui.Res("B.TextMute"), 11));
-            sp.Children.Add(Choice("Memory", new[] { ("1 GB", 1024), ("2 GB", 2048), ("4 GB", 4096), ("8 GB", 8192) }, d.MemoryMb, v => d.MemoryMb = v));
-            var port = Input(d.Port.ToString(), 120, "1024 to 65535");
-            port.LostFocus += (o, e) => { if (int.TryParse(port.Text, out var p) && p >= 1024 && p <= 65535) d.Port = p; else port.Text = d.Port.ToString(); };
-            sp.Children.Add(new StackPanel { Children = { Ui.Mono("PORT", Ui.Res("B.TextMute"), 11), port } });
-
-            var hostNote = Ui.Mono("", Ui.Res("B.TextMute"), 11);
-            if (d.Target == Target.SshProcess || d.Target == Target.SshDocker)
-            {
-                var host = Input(d.SshHost, 280, "user@host or user@host:port, signed in with an SSH key");
-                host.TextChanged += (o, e) => d.SshHost = host.Text.Trim();
-                var dir = Input(d.RemoteDir, 280, "Folder on the host (optional)");
-                dir.TextChanged += (o, e) => d.RemoteDir = dir.Text.Trim();
-                var row = new WrapPanel();
-                row.Children.Add(new StackPanel { Children = { Ui.Mono("SSH HOST", Ui.Res("B.TextMute"), 11), host } });
-                row.Children.Add(new StackPanel { Children = { Ui.Mono("FOLDER ON HOST", Ui.Res("B.TextMute"), 11), dir } });
-                sp.Children.Add(row);
-                sp.Children.Add(Ui.Button("Check host key", async () =>
+                var filter = new SearchField("minecraft:versions", "Search versions, for example 1.21", compact: true) { MaxWidth = 520, HorizontalAlignment = HorizontalAlignment.Left };
+                var list = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
+                var verNote = Ui.Mono(d.Version == null ? "No version chosen yet." : "Chosen: " + d.Version, Ui.Res(d.Version == null ? "B.TextMute" : "B.Mint"), 11);
+                async void Versions()
                 {
-                    if (string.IsNullOrWhiteSpace(d.SshHost)) { hostNote.Text = "Enter the host first."; return; }
-                    hostNote.Text = "Reading the host key…";
-                    var (known, fp) = await System.Threading.Tasks.Task.Run(() => ServerManager.HostKey(d.SshHost));
-                    if (known) { hostNote.Text = "✓ This host's key is already approved."; hostNote.Foreground = Ui.Res("B.Mint"); return; }
-                    hostNote.Text = "Approve only if these match the host:\n" + fp; hostNote.Foreground = Ui.Res("B.Amber");
-                    var ok = new ConfirmWindow("Approve this host key?", "Compare these with the host's own fingerprints before approving.\n\n" + fp, "Approve", danger: false);
-                    ok.Confirmed += _ => { ServerManager.ApproveHostKey(fp); hostNote.Text = "✓ Host key approved for Minecraft servers."; hostNote.Foreground = Ui.Res("B.Mint"); };
-                    ok.Show();
-                }, "Btn.Ghost", Icons.Shield));
-                sp.Children.Add(hostNote);
+                    try
+                    {
+                        var all = await ServerManager.VersionsAsync();
+                        var ofType = all.Where(v => v.Type == _versionType).ToList();
+                        filter.SampleSource = () => ofType.Select(v => v.Id);
+                        filter.State.TimedOut = false;
+                        var matching = ofType.Where(v => filter.State.Matches(v.Id)).ToList();
+                        filter.SetCount(matching.Count, ofType.Count, "versions");
+                        var shown = matching.Take(120).ToList();
+                        list.Children.Clear();
+                        foreach (var v in shown)
+                        {
+                            var vv = v;
+                            var b = Ui.Button(v.Id, async () =>
+                            {
+                                d.Version = vv.Id;
+                                verNote.Text = $"Chosen: {vv.Id} · checking for a dedicated server…"; verNote.Foreground = Ui.Res("B.TextMute");
+                                try
+                                {
+                                    var dist = await ServerManager.ResolveAsync(vv.Id);
+                                    verNote.Text = dist.Missing ?? $"Chosen: {vv.Id} · server {dist.Size / 1048576.0:0.0} MB · needs Java {dist.JavaMajor}";
+                                    verNote.Foreground = Ui.Res(dist.Missing == null ? "B.Mint" : "B.Amber");
+                                }
+                                catch (Exception ex) { verNote.Text = "Could not read the version metadata: " + ex.Message; verNote.Foreground = Ui.Res("B.Amber"); }
+                                foreach (var c in list.Children.OfType<Button>())
+                                {
+                                    bool on = c.Content as string == vv.Id;
+                                    c.Background = Ui.Res(on ? "B.Mint" : "B.Raised"); c.Foreground = Ui.Res(on ? "B.MintInk" : "B.TextSoft");
+                                }
+                            }, "Btn.Chip");
+                            b.Height = 26; b.Margin = new Thickness(0, 0, 4, 4);
+                            if (vv.Id == d.Version) { b.Background = Ui.Res("B.Mint"); b.Foreground = Ui.Res("B.MintInk"); }
+                            list.Children.Add(b);
+                        }
+                        if (shown.Count == 0) list.Children.Add(Ui.Mono("No versions match.", Ui.Res("B.TextMute"), 11));
+                    }
+                    catch (Exception ex) { list.Children.Clear(); list.Children.Add(Ui.Mono("Could not load the official catalogue: " + ex.Message, Ui.Res("B.Amber"), 11)); }
+                }
+                foreach (var (label, type) in new[] { ("Releases", "release"), ("Snapshots", "snapshot"), ("Beta", "old_beta"), ("Alpha", "old_alpha") })
+                {
+                    var t = type;
+                    var b = Ui.Button(label, () => { _versionType = t; PaintTypes(); Versions(); }, "Btn.Chip");
+                    typeButtons.Add((b, t));
+                    typeRow.Children.Add(b);
+                }
+                PaintTypes();
+                sp.Children.Add(typeRow);
+                sp.Children.Add(filter);
+                sp.Children.Add(new ScrollViewer { Content = list, MaxHeight = 140, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+                verNote.Margin = new Thickness(0, 8, 0, 4);
+                sp.Children.Add(verNote);
+                filter.Filter += Versions;
+                Versions();
+                return sp;
             }
 
-            var eula = new CheckBox { Style = Ui.Style("Switch"), IsChecked = d.EulaAccepted, Margin = new Thickness(0, 12, 0, 6) };
-            var eulaText = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") };
-            eulaText.Inlines.Add(new System.Windows.Documents.Run("I accept the "));
-            eulaText.Inlines.Add(Markdown.MakeLink("Minecraft EULA", "https://aka.ms/MinecraftEULA"));
-            eulaText.Inlines.Add(new System.Windows.Documents.Run(" for this server"));
-            eula.Content = eulaText;
-            eula.Checked += (o, e) => d.EulaAccepted = true;
-            eula.Unchecked += (o, e) => d.EulaAccepted = false;
-            sp.Children.Add(eula);
-
-            var status = Ui.Mono("", Ui.Res("B.TextMute"), 11);
-            var create = Ui.Button("Create server", null, "Btn.Accent", Icons.Plus);
-            create.Click += async (o, e) =>
+            // ---- step 2: where it runs, flavour and SSH host
+            FrameworkElement BuildWhereStep()
             {
-                if (d.Version == null) { status.Text = "Choose a version first."; status.Foreground = Ui.Res("B.Amber"); return; }
-                if (!d.EulaAccepted) { status.Text = "Accept the EULA first; the server will not run without it."; status.Foreground = Ui.Res("B.Amber"); return; }
-                if ((d.Target == Target.SshProcess || d.Target == Target.SshDocker) && string.IsNullOrWhiteSpace(d.SshHost)) { status.Text = "Enter the SSH host."; status.Foreground = Ui.Res("B.Amber"); return; }
-                create.IsEnabled = false;
+                var host = new ContentControl { IsTabStop = false };
+                void Build()
+                {
+                    var sp = new StackPanel();
+                    sp.Children.Add(Choice("Where it runs", new[] { ("This computer", Target.LocalProcess), ("Docker here", Target.LocalDocker), ("SSH host", Target.SshProcess), ("Docker over SSH", Target.SshDocker) }, d.Target,
+                        v => { d.Target = v; if (v == Target.LocalProcess || v == Target.SshProcess) d.Flavour = Flavour.Vanilla; Build(); },
+                        "This computer runs it as a normal process. The Docker choices run it in a container. The SSH choices do the same on another machine you can sign in to with an SSH key. Default: this computer."));
+                    if (IsDocker())
+                        sp.Children.Add(Choice("Flavour", new[] { ("Vanilla", Flavour.Vanilla), ("Paper", Flavour.Paper), ("Fabric", Flavour.Fabric) }, d.Flavour, v => d.Flavour = v,
+                            "Vanilla is the official server. Paper is a faster, plugin-friendly build. Fabric supports mods. Default: Vanilla."));
+                    else
+                        sp.Children.Add(Ui.Mono("Flavour: Vanilla. Paper and Fabric run on the Docker targets.", Ui.Res("B.TextMute"), 11));
+                    if (IsSsh())
+                    {
+                        var hostNote = Ui.Mono("", Ui.Res("B.TextMute"), 11);
+                        var sshHost = Input(d.SshHost, 280, "user@host or user@host:port, signed in with an SSH key");
+                        sshHost.TextChanged += (o, e) => d.SshHost = sshHost.Text.Trim();
+                        AutomationProperties.SetName(sshHost, "SSH host");
+                        var dir = Input(d.RemoteDir, 280, "Folder on the host (optional)");
+                        dir.TextChanged += (o, e) => d.RemoteDir = dir.Text.Trim();
+                        AutomationProperties.SetName(dir, "Folder on the host");
+                        var row = new WrapPanel();
+                        row.Children.Add(new StackPanel { Children = { Ui.Mono("SSH HOST", Ui.Res("B.TextMute"), 11), sshHost } });
+                        row.Children.Add(new StackPanel { Children = { Ui.Mono("FOLDER ON HOST", Ui.Res("B.TextMute"), 11), dir } });
+                        sp.Children.Add(row);
+                        sp.Children.Add(Ui.Button("Check host key", async () =>
+                        {
+                            if (string.IsNullOrWhiteSpace(d.SshHost)) { hostNote.Text = "Enter the host first."; return; }
+                            hostNote.Text = "Reading the host key…";
+                            var (known, fp) = await System.Threading.Tasks.Task.Run(() => ServerManager.HostKey(d.SshHost));
+                            if (known) { hostNote.Text = "✓ This host's key is already approved."; hostNote.Foreground = Ui.Res("B.Mint"); return; }
+                            hostNote.Text = "Approve only if these match the host:\n" + fp; hostNote.Foreground = Ui.Res("B.Amber");
+                            var ok = new ConfirmWindow("Approve this host key?", "Compare these with the host's own fingerprints before approving.\n\n" + fp, "Approve", danger: false);
+                            ok.Confirmed += _ => { ServerManager.ApproveHostKey(fp); hostNote.Text = "✓ Host key approved for Minecraft servers."; hostNote.Foreground = Ui.Res("B.Mint"); };
+                            ok.Show();
+                        }, "Btn.Ghost", Icons.Shield));
+                        sp.Children.Add(hostNote);
+                    }
+                    host.Content = sp;
+                }
+                Build();
+                return host;
+            }
+
+            // ---- step 3: memory and port
+            var port = Input(d.Port.ToString(), 120, "1024 to 65535");
+            AutomationProperties.SetName(port, "Port");
+            FrameworkElement BuildResourceStep()
+            {
+                var sp = new StackPanel();
+                sp.Children.Add(Choice("Memory", new[] { ("1 GB", 1024), ("2 GB", 2048), ("4 GB", 4096), ("8 GB", 8192) }, d.MemoryMb, v => d.MemoryMb = v,
+                    "How much memory the server may use. More suits more players and bigger worlds. Default: 2 GB."));
+                sp.Children.Add(new StackPanel { Children = { Ui.Mono("PORT", Ui.Res("B.TextMute"), 11), port } });
+                sp.Children.Add(Ui.Mono("Players connect on this port. 25565 is the usual one; a free port is suggested for you.", Ui.Res("B.TextMute"), 11));
+                return sp;
+            }
+
+            // ---- step 4: review and EULA
+            var summary = new TextBlock { Style = Ui.Style("T.Body"), TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text") };
+            FrameworkElement BuildReviewStep()
+            {
+                var sp = new StackPanel();
+                sp.Children.Add(summary);
+                var eula = new CheckBox { Style = Ui.Style("Switch"), IsChecked = d.EulaAccepted, Margin = new Thickness(0, 12, 0, 6) };
+                var eulaText = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") };
+                eulaText.Inlines.Add(new System.Windows.Documents.Run("I accept the "));
+                eulaText.Inlines.Add(Markdown.MakeLink("Minecraft EULA", "https://aka.ms/MinecraftEULA"));
+                eulaText.Inlines.Add(new System.Windows.Documents.Run(" for this server"));
+                eula.Content = eulaText;
+                eula.Checked += (o, e) => d.EulaAccepted = true;
+                eula.Unchecked += (o, e) => d.EulaAccepted = false;
+                sp.Children.Add(eula);
+                return sp;
+            }
+
+            string CheckPort()
+            {
+                if (!int.TryParse(port.Text.Trim(), out var p) || p < 1024 || p > 65535) return "The port must be a number from 1024 to 65535.";
+                if (!IsSsh() && ServerManager.Servers.Any(x => x.Port == p && x.Target == d.Target)) return $"Another server here already uses port {p}. Pick a different one.";
+                d.Port = p;
+                return null;
+            }
+
+            var steps = new List<GuidedStep>
+            {
+                new GuidedStep
+                {
+                    Title = "Name and version", Help = "Pick a name and a version from the official catalogue. Nothing is downloaded until the last step.",
+                    Build = BuildVersionStep,
+                    Validate = () => string.IsNullOrWhiteSpace(d.Name) ? "Give the server a name." : d.Version == null ? "Choose a version first." : null
+                },
+                new GuidedStep
+                {
+                    Title = "Where it runs", Help = "Choose the place the server runs. SSH targets sign in with your SSH key; nothing is stored beyond the host name.",
+                    Build = BuildWhereStep,
+                    Validate = () => IsSsh() && string.IsNullOrWhiteSpace(d.SshHost) ? "Enter the SSH host." : null
+                },
+                new GuidedStep
+                {
+                    Title = "Memory and port", Help = "How much memory the server may use, and the port players connect on.",
+                    Build = BuildResourceStep,
+                    Validate = CheckPort
+                },
+                new GuidedStep
+                {
+                    Title = "Review and accept the EULA", Help = "The server will not run without accepting the EULA.",
+                    Build = BuildReviewStep,
+                    Entered = () => summary.Text = $"Name: {d.Name}\nVersion: {d.Version}\nRuns: {TargetLabel(d.Target)}{(IsSsh() ? " (" + d.SshHost + ")" : "")} · {d.Flavour}\nMemory: {d.MemoryMb / 1024} GB · Port: {d.Port}",
+                    Validate = () => d.EulaAccepted ? null : "Accept the EULA first; the server will not run without it."
+                },
+            };
+
+            GuidedForm form = null;
+            form = new GuidedForm("New server", steps, "Create server", null, () => { _draft = null; _mcStep = 0; Navigate("minecraft", animate: false); }, _mcStep);
+            form.StepChanged += i => _mcStep = i;
+            form.FinishAsync = async () =>
+            {
                 try
                 {
-                    await ServerManager.CreateAsync(d, t => Dispatcher.BeginInvoke(new Action(() => { status.Text = t; status.Foreground = Ui.Res("B.TextMute"); })));
-                    _draft = null;
+                    await ServerManager.CreateAsync(d, t => Dispatcher.BeginInvoke(new Action(() => form.Report(t))));
+                    _draft = null; _mcStep = 0;
                     Sounds.Play(Cue.Complete);
-                    Navigate("minecraft", animate: false);
+                    return null;
                 }
-                catch (Exception ex) { status.Text = ex.Message; status.Foreground = Ui.Res("B.Amber"); Sounds.Play(Cue.Warning); create.IsEnabled = true; }
+                catch (Exception ex) { Sounds.Play(Cue.Warning); return ex.Message; }
             };
-            sp.Children.Add(create);
-            sp.Children.Add(status);
-            return Card(sp, "#FF2B4A3F");
+            form.Finished += () => Navigate("minecraft", animate: false);
+            return form;
         }
 
         private static int NextPort()

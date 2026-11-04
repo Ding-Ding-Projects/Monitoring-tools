@@ -100,7 +100,8 @@ namespace MonitoringTools.Core
         {
             if (r == null || !r.Enabled || !SettingKeys.Contains(r.Setting) || !ValidValue(r.Setting, r.Value)) return false;
             if (!TryParseTime(r.Start, out var s) || !TryParseTime(r.End, out var e)) return false;
-            bool Day(DateTime d) => r.Days == null || r.Days.Count == 0 || r.Days.Contains((int)d.DayOfWeek);
+            if (!ValidDateRange(r.FromDate, r.ToDate)) return false;
+            bool Day(DateTime d) => (r.Days == null || r.Days.Count == 0 || r.Days.Contains((int)d.DayOfWeek)) && InDateRange(r, d);
             int m = now.Hour * 60 + now.Minute;
             if (s == e) return Day(now);
             if (s < e) return m >= s && m < e && Day(now);
@@ -108,12 +109,39 @@ namespace MonitoringTools.Core
             return m < e && Day(now.AddDays(-1));
         }
 
+        /// <summary>Parses an optional yyyy-MM-dd date. Empty text is valid and gives null.</summary>
+        public static bool TryParseDate(string text, out DateTime? date)
+        {
+            date = null;
+            if (string.IsNullOrWhiteSpace(text)) return true;
+            if (!DateTime.TryParseExact(text.Trim(), "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d)) return false;
+            date = d.Date;
+            return true;
+        }
+
+        /// <summary>True when both optional dates parse and the end is not before the start.</summary>
+        public static bool ValidDateRange(string from, string to)
+        {
+            if (!TryParseDate(from, out var f) || !TryParseDate(to, out var t)) return false;
+            return f == null || t == null || f <= t;
+        }
+
+        /// <summary>The calendar day (not the clock) must fall in the inclusive range; a missing limit is open-ended.</summary>
+        public static bool InDateRange(ScheduleRule r, DateTime day)
+        {
+            TryParseDate(r.FromDate, out var f); TryParseDate(r.ToDate, out var t);
+            var d = day.Date;
+            return (f == null || d >= f) && (t == null || d <= t);
+        }
+
         public static string DescribeRule(ScheduleRule r)
         {
             string days = r.Days == null || r.Days.Count == 0 ? "every day"
                 : string.Join(", ", r.Days.OrderBy(d => (d + 6) % 7).Select(d => ((DayOfWeek)d).ToString().Substring(0, 3)));
             string when = r.Start == r.End ? "all day" : $"{r.Start} to {r.End}";
-            return $"{when}, {days}: {r.Setting} = {r.Value}";
+            string range = !string.IsNullOrWhiteSpace(r.FromDate) && !string.IsNullOrWhiteSpace(r.ToDate) ? $", {r.FromDate} to {r.ToDate}"
+                : !string.IsNullOrWhiteSpace(r.FromDate) ? $", from {r.FromDate}" : !string.IsNullOrWhiteSpace(r.ToDate) ? $", until {r.ToDate}" : "";
+            return $"{when}, {days}{range}: {r.Setting} = {r.Value}";
         }
 
         /// <summary>True when this rule is the one currently deciding its setting.</summary>

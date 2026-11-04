@@ -96,9 +96,31 @@ namespace MonitoringTools.UI
             var list = new StackPanel();
             const int MaxRows = 200;
 
+            // Select mode: the same reusable helper as the other lists. The list rebuilds itself, so it supplies its own refresh.
+            var barHost = new ContentControl { IsTabStop = false };
+            BulkSelect<NotificationEntry> bulk = null;
+            Action rebuildAll = null;
+            bulk = new BulkSelect<NotificationEntry>(() => rebuildAll(), "notifications");
+            string Noun(int n) => n == 1 ? "notification" : "notifications";
+            void RebuildBar() => barHost.Content = bulk.Bar(new[]
+            {
+                new BulkAction<NotificationEntry> { Label = "Copy", Hint = "Copy the chosen notifications to the clipboard as plain text.",
+                    Run = items => BulkSelect<NotificationEntry>.CopyText(string.Join(Environment.NewLine, items.Select(ListActions.NotificationLine)), items.Count, Noun(items.Count)) },
+                new BulkAction<NotificationEntry> { Label = "Export as text…", Hint = "Save the chosen notifications to a text file.",
+                    Run = items => BulkSelect<NotificationEntry>.SaveText("notifications.txt", "Text|*.txt", string.Join(Environment.NewLine, items.Select(ListActions.NotificationLine)), items.Count, Noun(items.Count)) },
+                new BulkAction<NotificationEntry> { Label = "Remove", Danger = true, Hint = "Remove only the chosen notifications from the centre, after you confirm. Others stay.",
+                    Run = items =>
+                    {
+                        var chosen = items.ToList();
+                        bulk.ConfirmThen($"Remove {chosen.Count} {Noun(chosen.Count)}?", "They leave the notification centre for good, because they are only kept in memory. Other notifications are not touched.", "Remove", () => NotificationLog.Remove(chosen));
+                    } },
+            });
+
             void Rebuild()
             {
                 var all = NotificationLog.All();
+                bulk.Prune(all);
+                bulk.Begin();
                 var byKind = all.Where(n => kind == null || n.Kind == kind).ToList();
                 var hits = byKind.Where(n => search.State.Matches(n.Kind + " " + n.Title + " " + n.Detail)).ToList();
                 list.Children.Clear();
@@ -120,7 +142,7 @@ namespace MonitoringTools.UI
                         text.Children.Add(new TextBlock { Text = n.Detail, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap });
                     g.Children.Add(text);
                     SearchScope.SetItem(g, "notification " + n.Kind);
-                    list.Children.Add(g);
+                    list.Children.Add(bulk.Wrap(n, g, n.Title));
                 }
                 if (hits.Count > MaxRows)
                     list.Children.Add(new TextBlock { Text = $"Showing the newest {MaxRows} of {hits.Count}. Narrow the search or an export to see the rest.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
@@ -139,6 +161,7 @@ namespace MonitoringTools.UI
             box.Children.Add(chips);
             PaintChips();
 
+            box.Children.Add(barHost);
             box.Children.Add(list);
 
             var clear = Ui.Button("Clear all", () =>
@@ -151,6 +174,8 @@ namespace MonitoringTools.UI
             clear.Margin = new Thickness(0, 10, 8, 0);
             box.Children.Add(clear);
 
+            rebuildAll = () => { Rebuild(); RebuildBar(); };
+            RebuildBar();
             search.Filter += Rebuild;
             Action changed = () => RunOnUi(Rebuild);
             box.Loaded += (s, e) => { NotificationLog.Changed -= changed; NotificationLog.Changed += changed; Rebuild(); };
