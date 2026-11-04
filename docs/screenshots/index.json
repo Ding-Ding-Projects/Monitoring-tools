@@ -486,6 +486,24 @@
     "height": 1080
   },
   {
+    "file": "convert-dialog.png",
+    "caption": "Convert to: every format a video can become, grouped, with what each is for",
+    "width": 1280,
+    "height": 1344
+  },
+  {
+    "file": "convert-dialog-picked.png",
+    "caption": "Convert to: a format picked, with where the file will be saved",
+    "width": 1280,
+    "height": 1344
+  },
+  {
+    "file": "convert-dialog-batch.png",
+    "caption": "Convert to for a folder: each format says how many of the files it can take",
+    "width": 1280,
+    "height": 1344
+  },
+  {
     "file": "school-hello.png",
     "caption": "School mode: the optional Windows Hello way to turn it off, with its honest state",
     "width": 2088,
