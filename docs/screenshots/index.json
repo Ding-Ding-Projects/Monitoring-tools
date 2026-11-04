@@ -51,7 +51,7 @@
     "file": "toast-bitmap.png",
     "caption": "Screenshot on the clipboard",
     "width": 872,
-    "height": 754
+    "height": 850
   },
   {
     "file": "toast-color.png",
@@ -170,6 +170,24 @@
   {
     "file": "control-minecraft.png",
     "caption": "Control centre: minecraft",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-ollama.png",
+    "caption": "Control centre: ollama",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-tools.png",
+    "caption": "Control centre: tools",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-safety.png",
+    "caption": "Control centre: safety",
     "width": 2088,
     "height": 1576
   },
