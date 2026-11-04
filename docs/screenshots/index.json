@@ -3,79 +3,79 @@
     "file": "toast-markdown.png",
     "caption": "Markdown copied, hovered",
     "width": 872,
-    "height": 820
+    "height": 902
   },
   {
     "file": "toast-link.png",
     "caption": "Link with tracking parameters",
     "width": 872,
-    "height": 536
+    "height": 656
   },
   {
     "file": "toast-image-file.png",
     "caption": "Image file with a rich preview",
     "width": 872,
-    "height": 1130
+    "height": 1170
   },
   {
     "file": "toast-csv.png",
     "caption": "CSV file preview",
     "width": 872,
-    "height": 816
+    "height": 944
   },
   {
     "file": "toast-quoted-path.png",
     "caption": "Path copied with quotes",
     "width": 872,
-    "height": 1068
+    "height": 1196
   },
   {
     "file": "toast-compose.png",
     "caption": "Docker Compose file",
     "width": 872,
-    "height": 950
+    "height": 982
   },
   {
     "file": "toast-folder.png",
     "caption": "Folder with batch conversion chips",
     "width": 872,
-    "height": 896
+    "height": 936
   },
   {
     "file": "toast-multi.png",
     "caption": "Several files at once",
     "width": 872,
-    "height": 766
+    "height": 798
   },
   {
     "file": "toast-bitmap.png",
     "caption": "Screenshot on the clipboard",
     "width": 872,
-    "height": 722
+    "height": 754
   },
   {
     "file": "toast-color.png",
     "caption": "Color value",
     "width": 872,
-    "height": 534
+    "height": 550
   },
   {
     "file": "toast-base64.png",
     "caption": "Base64 text",
     "width": 872,
-    "height": 522
+    "height": 546
   },
   {
     "file": "toast-converting.png",
     "caption": "Converting with :mp4",
     "width": 872,
-    "height": 464
+    "height": 476
   },
   {
     "file": "offline-dialog.png",
     "caption": "Internet connection lost",
     "width": 1048,
-    "height": 1194
+    "height": 1230
   },
   {
     "file": "tray-menu.png",
@@ -111,7 +111,7 @@
     "file": "toast-public-ip.png",
     "caption": "Public IP changed",
     "width": 872,
-    "height": 590
+    "height": 614
   },
   {
     "file": "welcome.png",
@@ -180,6 +180,36 @@
     "height": 1576
   },
   {
+    "file": "control-appearance.png",
+    "caption": "Control centre: appearance",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-language.png",
+    "caption": "Control centre: language",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-modes.png",
+    "caption": "Control centre: modes",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-records.png",
+    "caption": "Control centre: records",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "control-help.png",
+    "caption": "Control centre: help",
+    "width": 2088,
+    "height": 1576
+  },
+  {
     "file": "control-about.png",
     "caption": "Control centre: about",
     "width": 2088,
@@ -213,7 +243,7 @@
     "file": "search-builder-code.png",
     "caption": "Regex builder: generated code",
     "width": 2088,
-    "height": 1576
+    "height": 1636
   },
   {
     "file": "search-builder-library.png",
@@ -240,10 +270,58 @@
     "height": 1576
   },
   {
+    "file": "lang-cantonese-overview.png",
+    "caption": "Overview in cantonese mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-cantonese-language.png",
+    "caption": "Language page in cantonese mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-bilingual-overview.png",
+    "caption": "Overview in bilingual mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "lang-bilingual-language.png",
+    "caption": "Language page in bilingual mode",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "theme-light-violet.png",
+    "caption": "Appearance in the light theme on the Violet seed",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "theme-light-violet-history.png",
+    "caption": "Clipboard history in the light theme",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "super-confirm-start.png",
+    "caption": "Destructive actions need two keys and a full slide",
+    "width": 960,
+    "height": 914
+  },
+  {
+    "file": "super-confirm-armed.png",
+    "caption": "Both keys on, slider part way",
+    "width": 960,
+    "height": 914
+  },
+  {
     "file": "search-tray-filter.png",
     "caption": "Tray menu filtered with its own search",
     "width": 744,
-    "height": 500
+    "height": 512
   },
   {
     "file": "search-palette-regex.png",
@@ -267,18 +345,18 @@
     "file": "filetools-encrypt.png",
     "caption": "File tools: encrypt",
     "width": 1040,
-    "height": 1044
+    "height": 1060
   },
   {
     "file": "commit-template.png",
     "caption": "First :push asks for a commit message",
     "width": 1040,
-    "height": 850
+    "height": 894
   },
   {
     "file": "uninstall-confirm.png",
     "caption": "Uninstall confirmation",
     "width": 960,
-    "height": 622
+    "height": 1010
   }
 ]
