@@ -1,0 +1,263 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace MonitoringTools.Core
+{
+    public sealed class OllamaModel
+    {
+        public string Name, Family, ParameterSize, Quantization;
+        public long Size;
+        public DateTime Modified;
+    }
+
+    public sealed class OllamaRunning
+    {
+        public string Name;
+        public long Size, SizeVram;
+        public DateTime Expires;
+    }
+
+    public sealed class OllamaChatTurn
+    {
+        public string Role { get; set; }
+        public string Content { get; set; }
+    }
+
+    /// <summary>
+    /// A small client for the documented local Ollama HTTP API. It talks only to 127.0.0.1 on the
+    /// configured port, and it never contacts the Ollama website: model downloads are done by the
+    /// local Ollama server itself through its own pull endpoint.
+    /// </summary>
+    public static class Ollama
+    {
+        private static readonly HttpClient Http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+        private static Process _started;
+
+        public static int Port => Settings.Current.OllamaPort is >= 1024 and <= 65535 ? Settings.Current.OllamaPort : 11434;
+        public static string BaseUrl => $"http://127.0.0.1:{Port}";
+
+        // -------------------------------------------------------------- detection
+
+        /// <summary>The path of ollama.exe if it is installed in the usual places or on PATH; otherwise null.</summary>
+        public static string FindExe()
+        {
+            var candidates = new List<string>
+            {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Ollama", "ollama.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Ollama", "ollama.exe"),
+            };
+            foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator))
+            {
+                try { if (!string.IsNullOrWhiteSpace(dir)) candidates.Add(Path.Combine(dir.Trim().Trim('"'), "ollama.exe")); } catch { }
+            }
+            return candidates.FirstOrDefault(File.Exists);
+        }
+
+        public static bool WingetAvailable()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo("winget", "--version") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+                using var p = Process.Start(psi);
+                return p != null && p.WaitForExit(8000) && p.ExitCode == 0;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>The server's version, or null when nothing answers on the configured port.</summary>
+        public static async Task<string> VersionAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                cts.CancelAfter(2500);
+                var json = await Http.GetStringAsync(BaseUrl + "/api/version", cts.Token);
+                using var doc = JsonDocument.Parse(json);
+                return doc.RootElement.TryGetProperty("version", out var v) ? v.GetString() : "unknown";
+            }
+            catch { return null; }
+        }
+
+        // -------------------------------------------------------------- install and lifecycle
+
+        /// <summary>Installs Ollama with the Windows Package Manager (id Ollama.Ollama). Output lines are reported as they arrive.</summary>
+        public static async Task<int> InstallWithWingetAsync(Action<string> line, CancellationToken ct)
+        {
+            var psi = new ProcessStartInfo("winget", "install -e --id Ollama.Ollama --accept-package-agreements --accept-source-agreements")
+            { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, StandardOutputEncoding = Encoding.UTF8 };
+            using var p = new Process { StartInfo = psi };
+            p.OutputDataReceived += (o, e) => { if (!string.IsNullOrWhiteSpace(e.Data)) line?.Invoke(e.Data.Trim()); };
+            p.ErrorDataReceived += (o, e) => { if (!string.IsNullOrWhiteSpace(e.Data)) line?.Invoke(e.Data.Trim()); };
+            p.Start(); p.BeginOutputReadLine(); p.BeginErrorReadLine();
+            using (ct.Register(() => { try { p.Kill(true); } catch { } }))
+                await p.WaitForExitAsync(CancellationToken.None);
+            return p.ExitCode;
+        }
+
+        /// <summary>Starts "ollama serve" bound to loopback only, hidden, and waits briefly for it to answer.</summary>
+        public static async Task StartAsync()
+        {
+            var exe = FindExe() ?? throw new InvalidOperationException("Ollama is not installed.");
+            if (await VersionAsync() != null) return;
+            var psi = new ProcessStartInfo(exe, "serve") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            psi.Environment["OLLAMA_HOST"] = "127.0.0.1:" + Port;
+            _started = Process.Start(psi);
+            _started?.BeginOutputReadLine();
+            _started?.BeginErrorReadLine();
+            for (int i = 0; i < 40; i++)
+            {
+                await Task.Delay(250);
+                if (await VersionAsync() != null) return;
+                if (_started != null && _started.HasExited) throw new InvalidOperationException("The Ollama server exited straight away (exit code " + _started.ExitCode + ").");
+            }
+            throw new TimeoutException("The Ollama server did not answer within 10 seconds.");
+        }
+
+        /// <summary>Stops every Ollama server and tray process owned by this user. Models stay on disk.</summary>
+        public static int StopAll()
+        {
+            int n = 0;
+            foreach (var name in new[] { "ollama app", "ollama", "ollama_llama_server" })
+                foreach (var p in Process.GetProcessesByName(name))
+                {
+                    try { p.Kill(true); n++; } catch { }
+                    finally { p.Dispose(); }
+                }
+            _started = null;
+            return n;
+        }
+
+        // -------------------------------------------------------------- models
+
+        public static async Task<List<OllamaModel>> ModelsAsync(CancellationToken ct = default)
+        {
+            var json = await Http.GetStringAsync(BaseUrl + "/api/tags", ct);
+            using var doc = JsonDocument.Parse(json);
+            var list = new List<OllamaModel>();
+            if (!doc.RootElement.TryGetProperty("models", out var arr)) return list;
+            foreach (var m in arr.EnumerateArray())
+            {
+                var d = m.TryGetProperty("details", out var det) ? det : default;
+                string S(JsonElement e, string k) => e.ValueKind == JsonValueKind.Object && e.TryGetProperty(k, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : "";
+                list.Add(new OllamaModel
+                {
+                    Name = S(m, "name"),
+                    Size = m.TryGetProperty("size", out var sz) ? sz.GetInt64() : 0,
+                    Family = S(d, "family"), ParameterSize = S(d, "parameter_size"), Quantization = S(d, "quantization_level"),
+                    Modified = m.TryGetProperty("modified_at", out var mt) && mt.TryGetDateTime(out var dt) ? dt.ToLocalTime() : DateTime.MinValue
+                });
+            }
+            return list.OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        public static async Task<List<OllamaRunning>> RunningAsync(CancellationToken ct = default)
+        {
+            var json = await Http.GetStringAsync(BaseUrl + "/api/ps", ct);
+            using var doc = JsonDocument.Parse(json);
+            var list = new List<OllamaRunning>();
+            if (!doc.RootElement.TryGetProperty("models", out var arr)) return list;
+            foreach (var m in arr.EnumerateArray())
+                list.Add(new OllamaRunning
+                {
+                    Name = m.TryGetProperty("name", out var n) ? n.GetString() : "",
+                    Size = m.TryGetProperty("size", out var s) ? s.GetInt64() : 0,
+                    SizeVram = m.TryGetProperty("size_vram", out var v) ? v.GetInt64() : 0,
+                    Expires = m.TryGetProperty("expires_at", out var e) && e.TryGetDateTime(out var dt) ? dt.ToLocalTime() : DateTime.MinValue
+                });
+            return list;
+        }
+
+        public static async Task DeleteAsync(string model, CancellationToken ct = default)
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Delete, BaseUrl + "/api/delete")
+            { Content = new StringContent(JsonSerializer.Serialize(new { model }), Encoding.UTF8, "application/json") };
+            using var r = await Http.SendAsync(req, ct);
+            if (!r.IsSuccessStatusCode) throw new InvalidOperationException(await ErrorText(r));
+        }
+
+        /// <summary>Asks the server to unload a model from memory right away.</summary>
+        public static async Task UnloadAsync(string model, CancellationToken ct = default)
+        {
+            using var r = await Http.PostAsync(BaseUrl + "/api/generate",
+                new StringContent(JsonSerializer.Serialize(new { model, keep_alive = 0 }), Encoding.UTF8, "application/json"), ct);
+            if (!r.IsSuccessStatusCode) throw new InvalidOperationException(await ErrorText(r));
+        }
+
+        /// <summary>
+        /// Pulls a model through the local server. The callback receives the server's status text and, when the
+        /// server reports sizes for the current layer, a 0..1 fraction (otherwise -1).
+        /// </summary>
+        public static async Task PullAsync(string model, Action<string, double> progress, CancellationToken ct)
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Post, BaseUrl + "/api/pull")
+            { Content = new StringContent(JsonSerializer.Serialize(new { model, stream = true }), Encoding.UTF8, "application/json") };
+            using var r = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+            if (!r.IsSuccessStatusCode) throw new InvalidOperationException(await ErrorText(r));
+            await using var s = await r.Content.ReadAsStreamAsync(ct);
+            using var rd = new StreamReader(s);
+            string line;
+            while ((line = await rd.ReadLineAsync(ct)) != null)
+            {
+                if (line.Length == 0) continue;
+                using var doc = JsonDocument.Parse(line);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("error", out var err)) throw new InvalidOperationException(err.GetString());
+                var status = root.TryGetProperty("status", out var st) ? st.GetString() : "";
+                double frac = -1;
+                if (root.TryGetProperty("total", out var t) && root.TryGetProperty("completed", out var c) && t.GetInt64() > 0)
+                    frac = Math.Clamp((double)c.GetInt64() / t.GetInt64(), 0, 1);
+                progress?.Invoke(status, frac);
+            }
+        }
+
+        /// <summary>Streams a chat reply. Returns a short statistics line (tokens per second) when the server reports one.</summary>
+        public static async Task<string> ChatAsync(string model, IReadOnlyList<OllamaChatTurn> turns, Action<string> chunk, CancellationToken ct)
+        {
+            object keep = Settings.Current.OllamaKeepAlive == "0" ? 0 : (string.IsNullOrWhiteSpace(Settings.Current.OllamaKeepAlive) ? "5m" : Settings.Current.OllamaKeepAlive);
+            var body = new
+            {
+                model,
+                messages = turns.Select(t => new { role = t.Role, content = t.Content }).ToArray(),
+                stream = true,
+                keep_alive = keep
+            };
+            using var req = new HttpRequestMessage(HttpMethod.Post, BaseUrl + "/api/chat")
+            { Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json") };
+            using var r = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+            if (!r.IsSuccessStatusCode) throw new InvalidOperationException(await ErrorText(r));
+            await using var s = await r.Content.ReadAsStreamAsync(ct);
+            using var rd = new StreamReader(s);
+            string line, stats = "";
+            while ((line = await rd.ReadLineAsync(ct)) != null)
+            {
+                if (line.Length == 0) continue;
+                using var doc = JsonDocument.Parse(line);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("error", out var err)) throw new InvalidOperationException(err.GetString());
+                if (root.TryGetProperty("message", out var msg) && msg.TryGetProperty("content", out var c)) chunk?.Invoke(c.GetString());
+                if (root.TryGetProperty("done", out var d) && d.ValueKind == JsonValueKind.True
+                    && root.TryGetProperty("eval_count", out var ec) && root.TryGetProperty("eval_duration", out var ed) && ed.GetInt64() > 0)
+                    stats = $"{ec.GetInt64()} tokens · {ec.GetInt64() * 1e9 / ed.GetInt64():0.0} tokens/s";
+            }
+            return stats;
+        }
+
+        private static async Task<string> ErrorText(HttpResponseMessage r)
+        {
+            var text = await r.Content.ReadAsStringAsync();
+            try { using var d = JsonDocument.Parse(text); if (d.RootElement.TryGetProperty("error", out var e)) return e.GetString(); } catch { }
+            return $"HTTP {(int)r.StatusCode}: {text}";
+        }
+
+        public static string Bytes(long b) =>
+            b >= 1L << 30 ? $"{b / 1073741824.0:0.0} GB" : b >= 1L << 20 ? $"{b / 1048576.0:0} MB" : $"{b / 1024.0:0} KB";
+    }
+}
