@@ -1,14 +1,376 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Controls;
+using System.Windows.Media;
+using MonitoringTools.Core;
+using MonitoringTools.UI.Search;
 
 namespace MonitoringTools.UI
 {
     public partial class ControlCentreWindow
     {
-        // The modes page. Its content is built in this file only.
+        // The modes page: School mode, ADHD modes, the dim sum surprise, scheduled settings and an external settings file.
         private FrameworkElement ModesPage()
         {
-            var root = PageRoot("Settings", "Modes", "School mode, ADHD modes, the dim sum surprise and scheduled settings.");
+            var root = PageRoot("Settings", "Modes", "School mode, ADHD modes, the dim sum surprise and scheduled settings. Each control says what it does and what it starts as.");
+
+            var externalStatus = new TextBlock { Style = Ui.Style("T.Body"), FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 8) };
+            void PaintExternal()
+            {
+                externalStatus.Text = Modes.ExternalStatus;
+                externalStatus.Foreground = Ui.Res(Modes.ExternalOk ? "B.TextMute" : "B.Amber");
+            }
+            PaintExternal();
+
+            root.Children.Add(ModesSchoolCard());
+            root.Children.Add(ModesAdhdCard());
+            if (!Modes.Blocks(ModeFeature.DimSum)) root.Children.Add(ModesDimSumCard());
+            var refreshRules = new List<Action>();
+            root.Children.Add(ModesScheduleCard(refreshRules));
+            root.Children.Add(ModesExternalCard(externalStatus, PaintExternal));
+
+            // Follow changes made elsewhere (another app, the schedule, the file) while this page is open.
+            string Snapshot() => $"{Modes.SchoolActive}|{Modes.SchoolName}|{Modes.SchoolRecordError}";
+            var shape = Snapshot();
+            Action changed = () =>
+            {
+                if (!root.IsLoaded) return;
+                if (Snapshot() != shape) { Navigate("modes", animate: false); return; }
+                PaintExternal();
+                foreach (var r in refreshRules) r();
+            };
+            root.Loaded += (s, e) => Modes.Changed += changed;
+            root.Unloaded += (s, e) => Modes.Changed -= changed;
             return root;
+        }
+
+        private static TextBlock ModesNote(string text, string brush = "B.TextMute", double size = 12)
+            => new TextBlock { Text = text, Style = Ui.Style("T.Body"), FontSize = size, Foreground = Ui.Res(brush), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 8) };
+
+        private static PasswordBox ModesPin(string name)
+        {
+            var p = new PasswordBox
+            {
+                Width = 180, MaxLength = 12, Padding = new Thickness(10, 7, 10, 7), Margin = new Thickness(0, 0, 8, 8), HorizontalAlignment = HorizontalAlignment.Left,
+                Background = Ui.Res("B.Raised"), Foreground = Ui.Res("B.Text"), BorderBrush = Ui.Res("B.LineStrong"), CaretBrush = Ui.Res("B.Text"), FontSize = 14
+            };
+            AutomationProperties.SetName(p, name);
+            return p;
+        }
+
+        // -------------------------------------------------------------- School mode
+
+        private FrameworkElement ModesSchoolCard()
+        {
+            string n = Modes.SchoolName;
+            var sp = new StackPanel();
+            sp.Children.Add(CardTitle(n, "A shared switch. While it is on: game mode stays on and cannot be switched off, sounds are muted, quick commands that push to git are paused, and the app shows English only, with Cantonese, bilingual, humour levels, personal wording and the dim sum surprise left out entirely. Starts off."));
+
+            if (Modes.SchoolRecordError != null)
+            {
+                sp.Children.Add(ModesNote(Modes.SchoolRecordError, "B.Amber"));
+                sp.Children.Add(Ui.Button("Reset the shared record", () => { Modes.ResetSchoolRecord(); Navigate("modes", animate: false); }, "Btn.Alert"));
+                sp.Children.Add(ModesNote("Resetting deletes the record, which turns the mode off and forgets the name and PIN."));
+            }
+            if (Modes.SchoolWatchError != null) sp.Children.Add(ModesNote(Modes.SchoolWatchError, "B.Amber"));
+
+            var result = ModesNote("");
+            bool on = Modes.SchoolActive;
+            sp.Children.Add(new TextBlock { Text = on ? "Status: on" : "Status: off", Foreground = Ui.Res(on ? "B.Mint" : "B.TextSoft"), FontFamily = Ui.Font("F.Body"), FontSize = 14, Margin = new Thickness(0, 0, 0, 8) });
+
+            // Rename
+            var nameBox = Input(n, 260, "The name every surface will show. Defaults to \"" + Modes.DefaultSchoolName + "\".");
+            AutomationProperties.SetName(nameBox, "Mode name");
+            var nameRow = new StackPanel { Orientation = Orientation.Horizontal };
+            nameRow.Children.Add(nameBox);
+            nameRow.Children.Add(Ui.Button("Rename", () =>
+            {
+                if (Modes.RenameSchool(nameBox.Text, out var err)) Navigate("modes", animate: false);
+                else { result.Text = err; result.Foreground = Ui.Res("B.Amber"); }
+            }));
+            sp.Children.Add(nameRow);
+            sp.Children.Add(ModesNote("Rename it to anything up to 60 characters. After a rename only the new name appears in this app."));
+
+            if (Modes.SchoolRecordError == null)
+            {
+                if (!on)
+                {
+                    PasswordBox pin = null, again = null;
+                    if (!Modes.PinIsSet)
+                    {
+                        sp.Children.Add(ModesNote("Set a PIN of 4 to 12 digits. You will need it to turn the mode off. It is stored only as a salted PBKDF2-SHA256 hash (200,000 rounds)."));
+                        var row = new StackPanel { Orientation = Orientation.Horizontal };
+                        pin = ModesPin("New PIN"); again = ModesPin("Repeat PIN");
+                        row.Children.Add(pin); row.Children.Add(again);
+                        sp.Children.Add(row);
+                    }
+                    sp.Children.Add(Ui.Button("Turn on", () =>
+                    {
+                        if (Modes.EnableSchool(pin?.Password, again?.Password, out var err)) Navigate("modes", animate: false);
+                        else { result.Text = err; result.Foreground = Ui.Res("B.Amber"); }
+                    }, "Btn.Accent", Icons.Shield));
+                }
+                else
+                {
+                    var pin = ModesPin("PIN to turn off");
+                    var row = new StackPanel { Orientation = Orientation.Horizontal };
+                    row.Children.Add(pin);
+                    var off = Ui.Button("Turn off", () =>
+                    {
+                        if (Modes.DisableSchool(pin.Password, out var err)) Navigate("modes", animate: false);
+                        else { pin.Clear(); result.Text = err; result.Foreground = Ui.Res("B.Amber"); }
+                    }, "Btn.Alert");
+                    row.Children.Add(off);
+                    sp.Children.Add(row);
+                    sp.Children.Add(ModesNote("Five wrong tries start a wait that doubles with each further wrong try, up to 15 minutes. It is a pause, never a permanent lock."));
+                    if (Modes.LockSeconds > 0) { result.Text = $"Locked for another {Modes.LockSeconds} seconds."; result.Foreground = Ui.Res("B.Amber"); }
+                }
+            }
+            sp.Children.Add(result);
+
+            sp.Children.Add(ModesNote("This is a user-experience lock, not a security boundary. There is no way to recover a forgotten PIN: close the app and delete the shared record below, which turns the mode off and forgets its name and PIN. Anyone with this computer can do the same.", "B.TextMute"));
+            sp.Children.Add(Ui.Mono(Modes.SchoolRecordPath, Ui.Res("B.TextMute"), 11));
+            var open = Ui.Button("Open the record's folder", () => ActionProvider.Shell(System.IO.Path.GetDirectoryName(Modes.SchoolRecordPath)));
+            open.Margin = new Thickness(0, 8, 8, 0);
+            sp.Children.Add(open);
+            return SearchScope.SetItem(Card(sp, on ? "#FF3DD6A6" : null), n + " lock pin shared english parental");
+        }
+
+        // -------------------------------------------------------------- ADHD modes
+
+        private FrameworkElement ModesAdhdCard()
+        {
+            var s = Settings.Current;
+            var sp = new StackPanel();
+            sp.Children.Add(CardTitle("ADHD modes", "Five independent modes, each off by default. Turn on any mix. They are aids for focus, not medical advice, and they never hide anything you cannot get back with one click."));
+            sp.Children.Add(Switch("Focus", "Off by default. Messages that are not urgent (a copied item, an address change) go quietly to History instead of popping up. Failures and lost connections still show.",
+                s.AdhdFocus, v => { s.AdhdFocus = v; Modes.NotifyChanged(); }, "B.Violet"));
+            sp.Children.Add(Switch("Low stimulation", "Off by default. No fade or slide motion, and only warnings and failures make a sound. It adds to Windows' own animation setting and never overrides it. Windows animation is currently " + (SystemParameters.ClientAreaAnimation ? "on." : "off, so this app already moves less."),
+                s.AdhdLowStimulation, v => { s.AdhdLowStimulation = v; Modes.NotifyChanged(); }, "B.Violet"));
+            sp.Children.Add(Switch("Time awareness", "Off by default. Running jobs show how long they have taken, and a plain reminder appears at the interval below.",
+                s.AdhdTimeAwareness, v => { s.AdhdTimeAwareness = v; Modes.NotifyChanged(); }, "B.Violet"));
+            sp.Children.Add(Choice("Reminder interval (default 30 minutes, used only with Time awareness)",
+                new[] { ("15 min", 15), ("30 min", 30), ("45 min", 45), ("60 min", 60), ("90 min", 90) }, s.TimeReminderMinutes, v => { s.TimeReminderMinutes = v; Modes.NotifyChanged(); }));
+            sp.Children.Add(Switch("One thing at a time", "Off by default. Only one popup is on screen at once. The rest wait their turn and also appear in History.",
+                s.AdhdOneThing, v => { s.AdhdOneThing = v; Modes.NotifyChanged(); }, "B.Violet"));
+            sp.Children.Add(Switch("Momentum", "Off by default. This window reopens on the page you were last using, so you can pick up where you stopped.",
+                s.AdhdMomentum, v => { s.AdhdMomentum = v; Modes.NotifyChanged(); }, "B.Violet"));
+            sp.Children.Add(ModesNote($"While {Modes.SchoolName} is on, these modes stay as you set them. {Modes.SchoolName} only adds its own limits on top."));
+            return Card(sp);
+        }
+
+        // -------------------------------------------------------------- Dim sum surprise
+
+        private FrameworkElement ModesDimSumCard()
+        {
+            var sp = new StackPanel();
+            sp.Children.Add(CardTitle("Dim sum surprise", "Each time the app starts there is a 10% chance it shows one dim sum dish for a few seconds, with its English and Cantonese names and a picture. It never takes focus, never delays startup, and skips first-run setup and quiet moments such as game mode. There is no switch for it by design."));
+            sp.Children.Add(ModesNote("This launch: " + Modes.DimSumLaunchStatus));
+            sp.Children.Add(ModesNote("Pictures and names come from the public catalogue " + Modes.DimSumSource + " on GitHub, fetched over HTTPS only when a dish is shown, then cached in this app's data folder. Nothing is bundled with the app. If the catalogue or a picture cannot be reached, nothing is shown."));
+            var cache = ModesNote(Modes.DimSumCacheInfo);
+            sp.Children.Add(cache);
+            var status = ModesNote("");
+            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            row.Children.Add(Ui.Button("Show one now (preview)", async () =>
+            {
+                status.Text = "Fetching a dish..."; status.Foreground = Ui.Res("B.TextMute");
+                bool ok = await Modes.ShowDimSumAsync();
+                status.Text = ok ? "Shown. A preview does not count as the launch draw." : "Unavailable: " + Modes.DimSumError + ".";
+                status.Foreground = Ui.Res(ok ? "B.TextMute" : "B.Amber");
+                cache.Text = Modes.DimSumCacheInfo;
+            }, "Btn.Ghost", Icons.Play));
+            row.Children.Add(Ui.Button("Clear cached pictures", () => { Modes.ClearDimSumCache(); cache.Text = Modes.DimSumCacheInfo; status.Text = "Cache cleared."; }));
+            sp.Children.Add(row);
+            sp.Children.Add(status);
+            return SearchScope.SetItem(Card(sp), "dim sum dish surprise random photo catalogue");
+        }
+
+        // -------------------------------------------------------------- Scheduled settings
+
+        private static string ModesSettingLabel(string key) => key switch
+        {
+            "language" => "Language mode", "theme" => "Theme", "sounds" => "Sound effects", "toasts" => "Clipboard toasts", "gamemode" => "Game mode", _ => key
+        };
+
+        private static string ModesValueLabel(string key, string v) => key switch
+        {
+            "language" => v == "en" ? "English" : v == "yue" ? "Cantonese" : "Bilingual",
+            "theme" => char.ToUpperInvariant(v[0]) + v.Substring(1),
+            _ => v == "on" ? "On" : "Off"
+        };
+
+        private FrameworkElement ModesScheduleCard(List<Action> refreshHooks)
+        {
+            var sp = new StackPanel();
+            sp.Children.Add(CardTitle("Scheduled settings", "A rule says: between two times on chosen days, set one value. Rules are checked every minute. When a rule ends, your saved choice comes back; a rule never rewrites it. None by default."));
+            sp.Children.Add(ModesNote($"Times use this computer's clock in {TimeZoneInfo.Local.DisplayName}. A window that crosses midnight belongs to the day it starts on. Equal start and end mean all day. Daylight-saving changes follow the wall clock, so a window inside a skipped hour does not happen that day. If rules overlap on one setting, the one lower in the list wins."));
+
+            string setting = "sounds", value = "off";
+            var days = new HashSet<int>();
+            var label = Input("", 220, "Optional name for the rule");
+            AutomationProperties.SetName(label, "Rule name");
+            var start = Input("09:00", 80, "Start time, 24-hour HH:mm"); AutomationProperties.SetName(start, "Start time");
+            var end = Input("17:00", 80, "End time, 24-hour HH:mm"); AutomationProperties.SetName(end, "End time");
+            var valueHost = new ContentControl();
+            var msg = ModesNote("");
+
+            IEnumerable<(string, string)> ValuesFor(string key)
+            {
+                switch (key)
+                {
+                    case "language":
+                        foreach (var v in Modes.LanguageValues)
+                            if (v == "en" || !(Modes.Blocks(ModeFeature.Cantonese))) yield return (ModesValueLabel(key, v), v);
+                        break;
+                    case "theme": foreach (var v in Modes.ThemeValues) yield return (ModesValueLabel(key, v), v); break;
+                    default: yield return ("On", "on"); yield return ("Off", "off"); break;
+                }
+            }
+            string DefaultFor(string key) => ValuesFor(key).First().Item2;
+            void BuildValue() => valueHost.Content = Choice("Value", ValuesFor(setting), value, v => value = v);
+            value = "off"; BuildValue();
+
+            var settingKeys = Modes.SettingKeys.Select(k => (ModesSettingLabel(k), k)).ToList();
+            sp.Children.Add(Choice("Setting to change", settingKeys, setting, v => { setting = v; value = (v == "language" || v == "theme") ? DefaultFor(v) : "off"; BuildValue(); }));
+            sp.Children.Add(valueHost);
+
+            // Weekdays
+            var dayBar = new WrapPanel();
+            var dayButtons = new List<(Button B, int D)>();
+            void PaintDays()
+            {
+                foreach (var (b, d) in dayButtons)
+                {
+                    bool on = days.Contains(d);
+                    b.Background = on ? Ui.Res("B.Mint") : Ui.Res("B.Raised");
+                    b.Foreground = on ? Ui.Res("B.MintInk") : Ui.Res("B.TextSoft");
+                    b.BorderBrush = on ? Ui.Res("B.Mint") : Ui.Res("B.LineStrong");
+                }
+            }
+            foreach (var d in new[] { 1, 2, 3, 4, 5, 6, 0 })
+            {
+                int dd = d;
+                var b = Ui.Button(((DayOfWeek)d).ToString().Substring(0, 3), null, "Btn.Chip");
+                b.Click += (x, y) => { if (!days.Remove(dd)) days.Add(dd); PaintDays(); };
+                AutomationProperties.SetName(b, ((DayOfWeek)d).ToString());
+                dayButtons.Add((b, d)); dayBar.Children.Add(b);
+            }
+            var every = Ui.Button("Every day", () => { days.Clear(); PaintDays(); }, "Btn.Ghost");
+            dayBar.Children.Add(every);
+            PaintDays();
+            var dayBox = new StackPanel { Margin = new Thickness(0, 4, 0, 6) };
+            dayBox.Children.Add(new TextBlock { Text = "Days (none selected means every day)", Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 8) });
+            dayBox.Children.Add(dayBar);
+            sp.Children.Add(dayBox);
+
+            var timeRow = new StackPanel { Orientation = Orientation.Horizontal };
+            timeRow.Children.Add(new TextBlock { Text = "From", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 8), Foreground = Ui.Res("B.TextSoft") });
+            timeRow.Children.Add(start);
+            timeRow.Children.Add(new TextBlock { Text = "to", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 8), Foreground = Ui.Res("B.TextSoft") });
+            timeRow.Children.Add(end);
+            timeRow.Children.Add(label);
+            sp.Children.Add(timeRow);
+
+            // Existing rules
+            var filter = new SearchField("modes:rules", "Search schedule rules", compact: true) { MaxWidth = 520, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 10, 0, 8) };
+            var list = new StackPanel();
+            void Refill()
+            {
+                var rules = Settings.Current.ScheduleRules;
+                filter.SampleSource = () => rules.Select(r => r.Label + " " + Modes.DescribeRule(r));
+                filter.State.TimedOut = false;
+                list.Children.Clear();
+                int shown = 0;
+                foreach (var r in rules.ToList())
+                {
+                    var rule = r;
+                    var text = (string.IsNullOrWhiteSpace(rule.Label) ? "" : rule.Label + " ") + Modes.DescribeRule(rule);
+                    if (!filter.State.Matches(text)) continue;
+                    shown++;
+                    var row = new StackPanel();
+                    row.Children.Add(new TextBlock
+                    {
+                        Text = string.IsNullOrWhiteSpace(rule.Label) ? ModesSettingLabel(rule.Setting) + ": " + ModesValueLabel(rule.Setting, rule.Value) : rule.Label,
+                        Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body")
+                    });
+                    row.Children.Add(Ui.Mono(Modes.DescribeRule(rule), Ui.Res("B.TextMute"), 11));
+                    string state = !rule.Enabled ? "Disabled" : Modes.IsWinning(rule) ? "In effect now" : "Waiting for its time";
+                    row.Children.Add(Ui.Mono(state, Ui.Res(Modes.IsWinning(rule) && rule.Enabled ? "B.Mint" : "B.TextMute"), 11));
+                    var btns = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+                    void Changed() { Settings.Save(); Modes.Evaluate(); Refill(); }
+                    btns.Children.Add(Ui.Button(rule.Enabled ? "Disable" : "Enable", () => { rule.Enabled = !rule.Enabled; Changed(); }));
+                    btns.Children.Add(Ui.Button("Move earlier", () => { var i = rules.IndexOf(rule); if (i > 0) { rules.RemoveAt(i); rules.Insert(i - 1, rule); Changed(); } }));
+                    btns.Children.Add(Ui.Button("Move later", () => { var i = rules.IndexOf(rule); if (i >= 0 && i < rules.Count - 1) { rules.RemoveAt(i); rules.Insert(i + 1, rule); Changed(); } }));
+                    btns.Children.Add(Ui.Button("Delete", () => { rules.Remove(rule); Changed(); }, "Btn.Danger"));
+                    row.Children.Add(btns);
+                    list.Children.Add(SearchScope.SetItem(Card(row, null, 12), text));
+                }
+                if (rules.Count == 0) list.Children.Add(ModesNote("No rules yet."));
+                filter.SetCount(shown, rules.Count, "rules");
+            }
+            filter.Filter += Refill;
+            refreshHooks.Add(Refill);
+
+            sp.Children.Add(Ui.Button("Add rule", () =>
+            {
+                if (!Modes.TryParseTime(start.Text, out _) || !Modes.TryParseTime(end.Text, out _))
+                { msg.Text = "Enter both times as 24-hour HH:mm, for example 08:30."; msg.Foreground = Ui.Res("B.Amber"); return; }
+                if (Settings.Current.ScheduleRules.Count >= 64) { msg.Text = "The limit is 64 rules."; msg.Foreground = Ui.Res("B.Amber"); return; }
+                if (!Modes.ValidValue(setting, value)) { msg.Text = "Pick a value first."; msg.Foreground = Ui.Res("B.Amber"); return; }
+                var rule = new ScheduleRule
+                {
+                    Label = label.Text.Trim(), Setting = setting, Value = value, Start = start.Text.Trim(), End = end.Text.Trim(),
+                    Days = days.OrderBy(d => (d + 6) % 7).ToList()
+                };
+                Settings.Current.ScheduleRules.Add(rule);
+                Settings.Save(); Modes.Evaluate(); Refill();
+                msg.Text = "Rule added."; msg.Foreground = Ui.Res("B.TextMute");
+                label.Text = "";
+            }, "Btn.Accent", Icons.Plus));
+            sp.Children.Add(msg);
+            sp.Children.Add(ModesNote("Language and theme rules are stored and offered to the rest of the app as the scheduled choice. Sounds, toasts and game mode rules apply immediately. A rule never changes your saved choice.", "B.TextMute"));
+            sp.Children.Add(filter);
+            sp.Children.Add(list);
+            Refill();
+            return Card(sp);
+        }
+
+        // -------------------------------------------------------------- External settings source
+
+        private FrameworkElement ModesExternalCard(TextBlock status, Action paint)
+        {
+            var s = Settings.Current;
+            var sp = new StackPanel();
+            sp.Children.Add(CardTitle("Settings file", "Follow a JSON file you choose. It is read again whenever it changes and applied on top of your saved settings, below any scheduled rule. Off by default."));
+            var path = Input(s.ExternalSettingsPath, 460, "Full path to a .json file");
+            AutomationProperties.SetName(path, "Settings file path");
+            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            row.Children.Add(path);
+            row.Children.Add(Ui.Button("Browse", () =>
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "JSON files (*.json)|*.json", CheckFileExists = true };
+                if (dlg.ShowDialog() == true) path.Text = dlg.FileName;
+            }));
+            sp.Children.Add(row);
+
+            var follow = new StackPanel { Orientation = Orientation.Horizontal };
+            follow.Children.Add(Ui.Button("Follow this file", () =>
+            {
+                var p = path.Text.Trim().Trim('"');
+                if (p.Length == 0 || !p.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) { status.Text = "Choose a file that ends in .json."; status.Foreground = Ui.Res("B.Amber"); return; }
+                Modes.StartFollowing(p); paint();
+            }, "Btn.Accent"));
+            follow.Children.Add(Ui.Button("Apply now", () => { if (string.IsNullOrWhiteSpace(Settings.Current.ExternalSettingsPath)) Settings.Current.ExternalSettingsPath = path.Text.Trim().Trim('"'); Modes.ApplyExternalNow(); paint(); }));
+            follow.Children.Add(Ui.Button("Stop following", () => { Modes.StopFollowing(); paint(); }, "Btn.Alert"));
+            sp.Children.Add(follow);
+            sp.Children.Add(new TextBlock { Text = s.ExternalFollowing ? "Following: yes" : "Following: no", Foreground = Ui.Res(s.ExternalFollowing ? "B.Mint" : "B.TextSoft"), FontSize = 13, Margin = new Thickness(0, 0, 0, 4) });
+            sp.Children.Add(status);
+            sp.Children.Add(ModesNote("The file must be under 64 KB. Expected shape (keys you leave out change nothing; unknown keys are ignored; a wrong type rejects the whole file and keeps the last good values):"));
+            sp.Children.Add(Ui.Mono("{ \"version\": 1, \"settings\": { \"language\": \"en|yue|bilingual\", \"theme\": \"system|light|dark\", \"sounds\": true, \"toasts\": true, \"gameMode\": false } }", Ui.Res("B.TextSoft"), 11));
+            return SearchScope.SetItem(Card(sp), "external settings json file follow watch");
         }
     }
 }
