@@ -49,6 +49,8 @@ namespace MonitoringTools.UI.Search
         private string _language = "C#";
         private int _selected;
 
+        // Build view: syntax tree, selection and guided editing live in RegexBuilderPopup.Tree.cs
+
         // Debug, Compare and Benchmark state
         private TextBox _dbgSubject;
         private TextBlock _dbgPattern, _dbgText, _dbgInfo, _dbgStatus;
@@ -91,6 +93,8 @@ namespace MonitoringTools.UI.Search
             _pattern = new TextBox { Style = Ui.Style("Input"), FontFamily = Ui.Font("F.Mono"), FontSize = 14, Margin = new Thickness(0), AcceptsReturn = false, Text = _s.Query };
             AutomationProperties.SetName(_pattern, "Pattern for " + field.Label + ", kept in step with the search box");
             _pattern.TextChanged += (o, e) => { if (_syncing) return; _s.SetQuery(_pattern.Text, this); };
+            _pattern.IsInactiveSelectionHighlightEnabled = true; // a node picked in the tree stays visibly selected here
+            _pattern.SelectionChanged += (o, e) => OnPatternSelection();
 
             _status = new TextBlock { FontSize = 12, Margin = new Thickness(2, 8, 0, 0), TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body") };
             AutomationProperties.SetLiveSetting(_status, AutomationLiveSetting.Polite);
@@ -244,10 +248,19 @@ namespace MonitoringTools.UI.Search
             ("Characters", new[] { (@"\d", "a digit"), (@"\w", "a word character"), (@"\s", "whitespace"), (".", "any character"), (@"\p{L}", "a letter in any script"), (@"\p{Lu}", "an uppercase letter"), (@"\u00E9", "a code point"), (@"\t", "a tab"), (@"\.", "a literal dot") }),
             ("Sets", new[] { ("[abc]", "one of"), ("[^abc]", "none of"), ("[a-z]", "a range"), ("[a-z-[aeiou]]", "a set with subtraction") }),
             ("Anchors", new[] { ("^", "start"), ("$", "end"), (@"\b", "word boundary"), (@"\A", "start of text"), (@"\z", "end of text"), (@"\G", "where the last match ended") }),
-            ("Groups", new[] { ("()", "numbered group"), ("(?<name>)", "named group"), ("(?:)", "group that does not capture"), ("(?>)", "atomic group"), (@"\1", "backreference to group 1"), (@"\k<name>", "backreference by name"), ("(?(1)yes|no)", "conditional"), ("|", "or") }),
+            ("Groups", new[] { ("()", "numbered group"), ("(?<name>)", "named group"), ("(?<open-close>)", "balancing group: matches only while \"close\" has a capture, removes it, and records the text between as a capture of \"open\""), ("(?<-close>)", "balancing group without a capture of its own: removes the latest \"close\" capture and fails when there is none"), ("(?:)", "group that does not capture"), ("(?>)", "atomic group"), (@"\1", "backreference to group 1"), (@"\k<name>", "backreference by name"), ("(?(1)yes|no)", "conditional"), ("|", "or") }),
             ("Repeat", new[] { ("*", "zero or more"), ("+", "one or more"), ("?", "optional"), ("{2}", "exactly 2"), ("{2,5}", "2 to 5"), ("{2,}", "2 or more"), ("*?", "lazy"), ("+?", "lazy one or more") }),
             ("Look around", new[] { ("(?=)", "followed by"), ("(?!)", "not followed by"), ("(?<=)", "preceded by"), ("(?<!)", "not preceded by") }),
             ("Inline options", new[] { ("(?i)", "ignore case from here"), ("(?m)", "multiline from here"), ("(?s)", "singleline from here"), ("(?x)", "ignore pattern whitespace"), ("(?#note)", "comment") }),
+        };
+
+        /// <summary>Constructs other flavours have and .NET does not. They are shown, marked, so a missing feature is visible rather than hidden.</summary>
+        private static readonly (string Token, string Why)[] NotInDotNet =
+        {
+            ("(?R) recursion", "Recursion, which lets a pattern call itself to match nested structures, is not part of the .NET flavour. Balancing groups, such as (?<open-close>), cover many nested-pair cases in .NET."),
+            ("(?1) subroutine", "Subroutine calls, which re-use a group's pattern elsewhere, are not part of the .NET flavour. Repeat the sub-pattern, or build the pattern in code from a shared string."),
+            ("[[:alpha:]] POSIX class", "POSIX bracket classes are not part of the .NET flavour. Use a Unicode property such as \\p{L}, or a range such as [a-zA-Z]."),
+            ("\\U \\L \\E case conversion", "Case-changing replacement escapes are not part of .NET replacement strings. To change case, use a match evaluator in code, or a second pass."),
         };
 
         private FrameworkElement BuildView()
@@ -270,6 +283,21 @@ namespace MonitoringTools.UI.Search
                 }
                 left.Children.Add(wrap);
             }
+            left.Children.Add(Eyebrow("Not available in .NET"));
+            var gap = Ui.Mono("Listed so you can see they are missing. Choose one to see why.", Ui.Res("B.TextMute"), 11);
+            gap.TextWrapping = TextWrapping.Wrap;
+            left.Children.Add(gap);
+            var gaps = new WrapPanel { Margin = new Thickness(0, 4, 0, 8) };
+            foreach (var (token, why) in NotInDotNet)
+            {
+                var w = why;
+                var b = Chip(token, "Not available in .NET. " + why, () => { _status.Text = "Not available in .NET. " + w; _status.Foreground = Ui.Res("B.Amber"); });
+                b.FontFamily = Ui.Font("F.Mono");
+                b.Foreground = Ui.Res("B.TextMute");
+                AutomationProperties.SetName(b, "Not available in .NET: " + token);
+                gaps.Children.Add(b);
+            }
+            left.Children.Add(gaps);
             var literal = new TextBox { Style = Ui.Style("Input"), Margin = new Thickness(0, 4, 0, 6) };
             AutomationProperties.SetName(literal, "Literal text to escape and insert");
             left.Children.Add(Eyebrow("Insert literal text"));
@@ -280,34 +308,9 @@ namespace MonitoringTools.UI.Search
             left.Children.Add(lit);
             grid.Children.Add(left);
 
-            var right = new StackPanel();
-            right.Children.Add(Eyebrow("Explanation, token by token"));
-            _explain = new StackPanel();
-            right.Children.Add(new Border
-            {
-                Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
-                Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(0, 4, 0, 0),
-                Child = new ScrollViewer { Content = _explain, MaxHeight = 300, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }
-            });
+            var right = BuildTreeColumn();
             Grid.SetColumn(right, 2); grid.Children.Add(right);
             return grid;
-        }
-
-        private void RenderExplain()
-        {
-            if (_explain == null) return;
-            _explain.Children.Clear();
-            var tokens = RegexKit.Explain(_s.Query);
-            if (tokens.Count == 0) { _explain.Children.Add(Ui.Mono("Nothing to explain yet.", Ui.Res("B.TextMute"), 12)); return; }
-            foreach (var t in tokens)
-            {
-                var row = new DockPanel { Margin = new Thickness(t.Depth * 14, 2, 0, 2) };
-                var code = Ui.Mono(t.Text, Ui.Res("B.Mint"), 12);
-                code.MinWidth = 72; code.Margin = new Thickness(0, 0, 10, 0);
-                DockPanel.SetDock(code, Dock.Left); row.Children.Add(code);
-                row.Children.Add(new TextBlock { Text = t.Meaning, Foreground = Ui.Res("B.TextSoft"), FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body") });
-                _explain.Children.Add(row);
-            }
         }
 
         /// <summary>Inserts a token at the caret; group tokens wrap the current selection.</summary>
@@ -830,7 +833,11 @@ namespace MonitoringTools.UI.Search
                     tokens.Children.Add(b);
                 }
                 sp.Children.Add(tokens);
+                sp.Children.Add(Eyebrow("Replacement explained"));
+                _replExplain = new StackPanel { Margin = new Thickness(0, 2, 0, 6) };
+                sp.Children.Add(_replExplain);
             }
+            else _replExplain = null;
             sp.Children.Add(Eyebrow(_split ? "Pieces, one per line. Nothing is changed until you copy them." : "Preview of the test sample. Nothing is changed until you copy it."));
             _replacePreview = new TextBox
             {
@@ -849,6 +856,7 @@ namespace MonitoringTools.UI.Search
         {
             if (_replacePreview == null) return;
             var rx = _s.Regex;
+            RenderReplacementExplanation(rx);
             var sample = _s.Sample ?? DefaultSample();
             if (rx == null) { _replacePreview.Text = _s.Error != null ? "Fix the pattern first: " + _s.Error : "Type a pattern first."; return; }
             if (_split)

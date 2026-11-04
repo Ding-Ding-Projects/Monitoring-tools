@@ -242,6 +242,70 @@ namespace MonitoringTools.UI
                 return compact < normal ? null : $"rows {normal} / {compact}";
             });
 
+            // ---- regex syntax tree
+            Check("regex tree: ten patterns give the expected node counts and spans", () =>
+            {
+                var cases = new (string Pattern, int Nodes, string[] Spans)[]
+                {
+                    ("abc", 1, new[] { "Literal[0,3)" }),
+                    (@"\d+", 2, new[] { "Quantifier[0,3)", "Shorthand[0,2)" }),
+                    ("a|b", 5, new[] { "Alternation[0,3)", "Branch[2,3)" }),
+                    ("(a)(?:b)", 4, new[] { "Group[0,3)", "Group[3,8)", "Literal[6,7)" }),
+                    ("[a-z-[aeiou]]+", 3, new[] { "Quantifier[0,14)", "CharClass[0,13)", "Subtraction[5,12)" }),
+                    (@"(?<year>\d{4})-(?<m>\d\d)", 7, new[] { "Group[0,14)", "Quantifier[8,13)", "Group[15,25)" }),
+                    (@"(?<=\$)\d+(?!\d)", 6, new[] { "Group[0,7)", "Group[10,16)", "Escape[4,6)" }),
+                    (@"^(?:(?<open>\()|(?<-open>\))|[^()])*(?(open)(?!))$", 17, new[] { "Group[4,15)", "Group[16,28)", "Conditional[36,49)", "Condition[38,44)", "Anchor[49,50)" }),
+                    ("(?x) a+ # note\n b", 5, new[] { "InlineOptions[0,4)", "Comment[8,15)", "Literal[16,17)" }),
+                    (@"(?<x>\p{Lu}+?)\k<x>{2}\G", 6, new[] { "Property[5,11)", "Backreference[14,19)", "Anchor[22,24)" }),
+                };
+                foreach (var (pattern, nodes, spans) in cases)
+                {
+                    var r = RegexTree.Parse(pattern);
+                    if (!r.Valid) return $"{pattern}: not valid: {r.Message}";
+                    if (r.Note != null) return $"{pattern}: disagreement with the engine: {r.Note}";
+                    if (r.NodeCount != nodes) return $"{pattern}: {r.NodeCount} nodes, expected {nodes}";
+                    var have = RegexTree.Walk(r.Root).Skip(1).Select(n => $"{n.Kind}[{n.Start},{n.End})").ToHashSet();
+                    var missing = spans.FirstOrDefault(x => !have.Contains(x));
+                    if (missing != null) return $"{pattern}: no node {missing}";
+                    foreach (var n in RegexTree.Walk(r.Root).Skip(1))
+                        if (n.Parent == null || n.Start < n.Parent.Start || n.End > n.Parent.End) return $"{pattern}: node {n.Kind}[{n.Start},{n.End}) is outside its parent";
+                }
+                return null;
+            });
+            Check("regex tree: a balancing group is recognised and counted as the engine counts it", () =>
+            {
+                var r = RegexTree.Parse(@"(?<open>\()(?<a-open>\))(?<-open>x)");
+                var groups = RegexTree.Walk(r.Root).Where(n => n.Kind == RegexTree.NodeKind.Group).ToList();
+                if (groups.Count != 3 || groups[1].Group != RegexTree.GroupKind.Balancing || groups[1].Name != "a" || groups[1].Other != "open") return "balancing group not parsed";
+                if (groups[2].Group != RegexTree.GroupKind.Balancing || groups[2].Name != "" || groups[2].Captures) return "a -open group must not capture";
+                return r.Valid && r.Note == null && r.Captures == 2 ? null : $"captures {r.Captures}, valid {r.Valid}, note {r.Note}";
+            });
+            Check("regex tree: a pattern .NET rejects reports the engine's message and position", () =>
+            {
+                var r = RegexTree.Parse("(a");
+                return !r.Valid && r.EngineError != null && r.EngineOffset >= 0 ? null : "no engine error reported";
+            });
+            Check("regex tree: guided editing rewrites a quantifier, a set and a group opening", () =>
+            {
+                var q = RegexTree.Parse(@"a\d+b");
+                var qn = RegexTree.Walk(q.Root).First(n => n.Kind == RegexTree.NodeKind.Quantifier);
+                if (RegexTree.ApplyQuantifier(q.Pattern, qn, 2, 5, true) != @"a\d{2,5}?b") return "quantifier rewrite";
+                if (RegexTree.ApplyQuantifier(q.Pattern, qn, 3, 1, false) != null) return "a reversed range was accepted";
+                var c = RegexTree.Parse("x[a-z-[aeiou]]y");
+                var cn = RegexTree.Walk(c.Root).First(n => n.Kind == RegexTree.NodeKind.CharClass);
+                if (RegexTree.ApplyClass(c.Pattern, cn, "0-9", true) != "x[^0-9-[aeiou]]y") return "set rewrite";
+                var g = RegexTree.Parse("(ab)+");
+                var gn = RegexTree.Walk(g.Root).First(n => n.Kind == RegexTree.NodeKind.Group);
+                return RegexTree.ApplyGroupKind(g.Pattern, gn, RegexTree.GroupKind.Named, "pair") == "(?<pair>ab)+" && RegexTree.ApplyGroupKind(g.Pattern, gn, RegexTree.GroupKind.Atomic, null) == "(?>ab)+" ? null : "group rewrite";
+            });
+            Check("regex replace: invalid references are flagged and valid ones explained", () =>
+            {
+                var rx = new Regex("(?<w>a)(b)");
+                var t = RegexKit.ExplainReplacement("$1-${w}-$3-${zz}-$$", rx);
+                var bad = t.Where(x => x.Problem).Select(x => x.Text).ToList();
+                return bad.SequenceEqual(new[] { "$3", "${zz}" }) && t.Any(x => x.Text == "$$" && !x.Problem) ? null : "flagged: " + string.Join(" ", bad);
+            });
+
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>
