@@ -116,6 +116,109 @@ namespace MonitoringTools.Minecraft
             doc.Save(path);
         }
 
+        // ---- the other targets
+
+        public const string DockerImage = "itzg/minecraft-bedrock-server:latest";
+        /// <summary>The port the Bedrock server listens on inside the itzg image; the server's own port is published onto it.</summary>
+        public const int ContainerPort = 19132;
+        private static Release _latestLinux;
+
+        /// <summary>The current Linux release Mojang links to, for a process on an SSH host. The link is held to the same rule as the Windows one.</summary>
+        public static async Task<Release> LatestLinuxAsync()
+        {
+            if (_latestLinux != null) return _latestLinux;
+            using var doc = JsonDocument.Parse(await Http.GetStringAsync(LinksApi));
+            var link = doc.RootElement.GetProperty("result").GetProperty("links").EnumerateArray()
+                .FirstOrDefault(l => l.GetProperty("downloadType").GetString() == "serverBedrockLinux");
+            if (link.ValueKind != JsonValueKind.Object) throw new InvalidOperationException("Mojang's download links list no Bedrock server for Linux right now.");
+            var url = link.GetProperty("downloadUrl").GetString();
+            var problem = CheckUrl(url);
+            if (problem != null) throw new InvalidDataException(problem);
+            var m = FileVersion.Match(url);
+            _latestLinux = new Release { Url = url, Version = m.Success ? m.Groups["v"].Value : "unknown" };
+            return _latestLinux;
+        }
+
+        internal static void SetLatestLinuxForTest(Release r) => _latestLinux = r;
+
+        /// <summary>The shell script that unpacks the Linux server on an SSH host. Existing settings, allow list, permissions and worlds are never overwritten (unzip -n).</summary>
+        internal static string LinuxInstallScript(string dir, string url) =>
+            $"set -e; mkdir -p {ServerManager.Sh(dir)}; cd {ServerManager.Sh(dir)}; " +
+            "command -v unzip >/dev/null || { echo 'unzip is not installed on this host'; exit 3; }; " +
+            $"curl -fsSL -o bedrock-server.zip.part {ServerManager.Sh(url)} || wget -q -O bedrock-server.zip.part {ServerManager.Sh(url)}; " +
+            "unzip -q -n bedrock-server.zip.part && rm -f bedrock-server.zip.part && chmod +x bedrock_server && test -f bedrock_server";
+
+        /// <summary>
+        /// Installs the server on the other targets. A process on an SSH host downloads Mojang's Linux zip (HTTPS on minecraft.net
+        /// only; Mojang publishes no checksum or signature for it, so it is unpacked but its contents cannot be verified). A Docker
+        /// target runs the community image itzg/minecraft-bedrock-server, which downloads the server itself on its first start.
+        /// </summary>
+        internal static async Task InstallOtherAsync(ServerDef s, Action<string> report, IDictionary<string, string> initial)
+        {
+            var props = new Dictionary<string, string> { ["server-name"] = ServerManager.Escape(s.Name) };
+            if (s.Target == Target.SshProcess) { props["server-port"] = s.Port.ToString(); props["server-portv6"] = (s.Port + 1).ToString(); }
+            if (initial != null)
+                foreach (var (k, v) in initial)
+                    if (k == "max-players" || (k == "level-seed" && !string.IsNullOrEmpty(v)) || k == "gamemode" || k == "difficulty") props[k] = ServerManager.Escape(v);
+            switch (s.Target)
+            {
+                case Target.SshProcess:
+                {
+                    var rel = await LatestLinuxAsync();
+                    report?.Invoke($"Downloading the Linux Bedrock server {rel.Version} on the SSH host…");
+                    var r = ServerManager.Ssh(s, LinuxInstallScript(s.RemoteFolder, rel.Url), 900000);
+                    if (r.Code != 0) throw new InvalidOperationException("Installing the Bedrock server on the host failed: " + ServerManager.ActionLine(r.Out));
+                    s.Version = rel.Version; s.Build = "";
+                    var doc = McProperties.Parse(ServerManager.ReadPropertiesText(s) ?? "");
+                    foreach (var (k, v) in props) doc.Set(k, v);
+                    ServerManager.WritePropertiesText(s, doc.ToString());
+                    ServerManager.Ssh(s, $"cd {ServerManager.Sh(s.RemoteFolder)} && echo {ServerManager.Sh(rel.Version)} > {VersionFile}", 30000);
+                    break;
+                }
+                case Target.LocalDocker:
+                {
+                    var info = ServerManager.Run("docker", "info --format \"{{.ServerVersion}}\"", 20000);
+                    if (info.Code != 0) throw new InvalidOperationException("Docker is not running on this computer: " + ServerManager.ActionLine(info.Out));
+                    Directory.CreateDirectory(s.Folder);
+                    WriteDockerProperties(Path.Combine(s.Folder, "server.properties"), props);
+                    report?.Invoke("Pulling the Bedrock server image…");
+                    var pull = ServerManager.Run("docker", "pull " + DockerImage, 900000);
+                    if (pull.Code != 0) throw new InvalidOperationException("Pull failed: " + ServerManager.ActionLine(pull.Out));
+                    var mk = ServerManager.Run("docker", DockerCreateArgs(s, $"\"{s.Folder}\""), 60000);
+                    if (mk.Code != 0) throw new InvalidOperationException("Container create failed: " + ServerManager.ActionLine(mk.Out));
+                    break;
+                }
+                case Target.SshDocker:
+                {
+                    var info = ServerManager.Ssh(s, "docker info --format '{{.ServerVersion}}'", 30000);
+                    if (info.Code != 0) throw new InvalidOperationException("Docker is not available on the SSH host: " + ServerManager.ActionLine(info.Out));
+                    report?.Invoke("Pulling the Bedrock server image on the SSH host…");
+                    var dir = s.RemoteFolder;
+                    var lines = string.Concat(props.Select(kv => $"{kv.Key}={kv.Value}\\n"));
+                    var r = ServerManager.Ssh(s, $"mkdir -p {ServerManager.Sh(dir)} && cd {ServerManager.Sh(dir)} && (test -f server.properties || printf {ServerManager.Sh(lines)} > server.properties) && docker pull {DockerImage} >/dev/null && docker {DockerCreateArgs(s, $"\"$(pwd)\"")}", 900000);
+                    if (r.Code != 0) throw new InvalidOperationException("Container create failed: " + ServerManager.ActionLine(r.Out));
+                    break;
+                }
+                default: throw new NotSupportedException("The Windows Bedrock server is installed by InstallAsync.");
+            }
+        }
+
+        private static void WriteDockerProperties(string path, IDictionary<string, string> props)
+        {
+            var doc = File.Exists(path) ? McProperties.Load(path) : McProperties.Parse("");
+            foreach (var (k, v) in props) doc.Set(k, v);
+            doc.Save(path);
+        }
+
+        /// <summary>
+        /// The arguments that create the container. The image keeps the server's port at 19132 inside the container, so the
+        /// server's own port is published onto it over UDP; settings come from server.properties in the data folder, which
+        /// the image only changes for settings named in its environment. The container keeps standard input open
+        /// (-i -t) because the image's send-command helper writes console commands to the server's input.
+        /// </summary>
+        internal static string DockerCreateArgs(ServerDef s, string volume) =>
+            $"create --name {s.ContainerName} --label monitoring-tools.server={s.Id} -p {s.Port}:{ContainerPort}/udp -v {volume}:/data -e EULA=TRUE -e VERSION=LATEST -i -t {DockerImage}";
+
         // ---- Authenticode
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
