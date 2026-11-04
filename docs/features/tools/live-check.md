@@ -57,12 +57,12 @@ token with `gitea admin user create` and `gitea admin user generate-access-token
 | Forge | passed (Gitea 1.22.6 in a local container; repository created, commit pushed, README read back) |
 | Minecraft | passed (1.21.4 jar: game rules, blocks, biomes, noise and dimension edits) |
 | Minecraft server | passed (1.21.4 Vanilla: created, started, `list` answered 0 of 7, stopped; 46 s) |
-| Minecraft catalogues | passed (Modrinth 6 hits, Hangar 10 hits; ViaVersion 5.12.2 from Hangar, SHA-256 matched; Chunky 1.4.36 from Modrinth, SHA-512 matched; badges Update to 1.4.40 and Compatible; Update all updated 1; 3.8 s) |
-| Minecraft Bedrock | passed (1.26.61.1 installed in 21 s with its signature checked; "Server started." after 15 s; `list` 0 of 7; a running backup held `worlds`; 41.9 s) |
-| Minecraft discovery, process | passed (process found with jar, version 1.21.4 and port read from it; adopted; `list` over RCON; stopped over RCON, exit code 0; 34.7 s) |
-| Minecraft discovery, container | passed (found, adopted, Running, `server.properties` read through `docker exec`, removal refused; 15.1 s) |
-| Minecraft Docker target | passed (created in 3 s, Done after 85 s, `list` 0 of 7, stopped, removed by label; 99.8 s) |
-| Minecraft SSH target | passed (host key approved, created in 3 s, Done after 25 s, `list` 0 of 7, stopped; 60.3 s) |
-| Minecraft SSH Docker target | passed (Docker-in-Docker host ready in 5 s, created in 26 s, Done after 37 s, `list` 0 of 7, stopped; 79.4 s) |
+| Minecraft catalogues | passed (Modrinth 6 hits, Hangar 10 hits; ViaVersion 5.12.2 from Hangar, SHA-256 matched; Chunky 1.4.36 from Modrinth, SHA-512 matched; badges Update to 1.4.40 and Compatible; Update all updated 1; 3.9 s) |
+| Minecraft Bedrock | passed (1.26.61.1 installed in 23 s with its signature checked; "Server started." after 15.1 s; `list` 0 of 7; a running backup held `worlds`; 44.6 s) |
+| Minecraft discovery, process | passed (process found with jar, version 1.21.4 and port read from it; adopted; `list` over RCON; stopped over RCON, exit code 0; 38.8 s) |
+| Minecraft discovery, container | passed (found, adopted, Running, `server.properties` read through `docker exec`, removal refused; 18.4 s) |
+| Minecraft Docker target | passed (created in 3 s, Done after 129 s, `list` 0 of 7, stopped, removed by label; 142.5 s) |
+| Minecraft SSH target | passed (throwaway account, host key approved, created in 3 s, Done after 22 s, `list` 0 of 7, stopped; 56.5 s) |
+| Minecraft SSH Docker target | passed (Docker-in-Docker host with a throwaway account ready in 5 s, created in 24 s, Done after 33 s, `list` 0 of 7, stopped; 72.5 s) |
 
 GitLab was not run: no GitLab server was available.

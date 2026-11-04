@@ -141,8 +141,8 @@ namespace MonitoringTools.UI
                 if (l.Message != "Server started." || l.Time != "10:00:03" || !McLive.IsReady(l.Message)) return "the Bedrock line was parsed as: " + l.Message;
                 if (!McLogLine.TryPlayers("There are 0/10 players online:", out var n, out var max, out _) || n != 0 || max != 10) return "the Bedrock list answer was not read";
                 var bs = new ServerDef { Flavour = Flavour.Bedrock };
-                var cat = McPropertyCatalog.For(bs);
-                if (cat.All(d => d.Key != "server-name") || cat.Any(d => d.Key == "motd" || d.Key == McPropertyCatalog.MemoryKey)) return "the Bedrock settings use the Java keys";
+                var bedrockKeys = McPropertyCatalog.For(bs);
+                if (bedrockKeys.All(d => d.Key != "server-name") || bedrockKeys.Any(d => d.Key == "motd" || d.Key == McPropertyCatalog.MemoryKey)) return "the Bedrock settings use the Java keys";
                 if (McBedrock.CheckUrl("https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.61.1.zip") != null || McBedrock.CheckUrl("http://www.minecraft.net/x.zip") == null || McBedrock.CheckUrl("https://example.com/bedrock-server.zip") == null) return "the download link check is wrong";
                 McBedrock.SetLatestForTest(new McBedrock.Release { Version = "1.26.61.1", Url = "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-1.26.61.1.zip" });
                 try

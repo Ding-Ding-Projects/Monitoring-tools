@@ -593,7 +593,7 @@ namespace MonitoringTools.Minecraft
         {
             if (InContainerOnly(s))
             {
-                var dr = Run("docker", $"exec {s.ContainerName} cat /data/server.properties", 20000);
+                var dr = Run("docker", $"exec {s.ContainerName} tail -n +1 /data/server.properties", 20000);
                 return dr.Code == 0 ? dr.Out.Replace("\r\n", "\n") + (dr.Out.Length > 0 ? "\n" : "") : null;
             }
             var f = PropertiesPath(s);

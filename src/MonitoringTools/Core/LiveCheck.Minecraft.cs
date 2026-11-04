@@ -37,6 +37,12 @@ namespace MonitoringTools.Core
             await Check(results, "minecraft: a real server in Docker on an SSH host is created, started, answers list and stops", SshDockerTarget);
         }
 
+        /// <summary>A generated account name for a throwaway SSH host, so no real account is ever named.</summary>
+        private static string ThrowawayUser() => "live" + Guid.NewGuid().ToString("N")[..6];
+
+        /// <summary>The host spec the app takes, for the loopback address only.</summary>
+        private static string SshHostSpec(string user, int port) => string.Join("@", user, "127.0.0.1") + ":" + port;
+
         /// <summary>A throwaway SSH key pair in <paramref name="dir"/>; the private key is readable by this account only.</summary>
         private static (string Key, string Pub) KeyPair(string dir)
         {
@@ -79,11 +85,14 @@ namespace MonitoringTools.Core
                 var run = Docker($"run -d --privileged --name {name} -p 127.0.0.1:{sshPort}:2222 docker:dind", 600000);
                 if (run.Code != 0) return "docker run failed: " + ServerManager.ActionLine(run.Out);
                 var pw = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
-                var setup = Docker($"exec {name} sh -c \"apk add --no-cache openssh >/dev/null && ssh-keygen -A >/dev/null && echo root:{pw} | chpasswd && mkdir -p /root/.ssh && echo '{pub}' > /root/.ssh/authorized_keys && chmod 700 /root/.ssh && chmod 600 /root/.ssh/authorized_keys && /usr/sbin/sshd -p 2222\"", 600000);
-                if (setup.Code != 0) return "setting up SSH in the Docker host failed: " + ServerManager.ActionLine(setup.Out);
                 for (int i = 0; i < 60 && Docker($"exec {name} docker info --format \"{{{{.ServerVersion}}}}\"", 15000).Code != 0; i++) await Task.Delay(1000);
+                // A generated throwaway account that may use the inner Docker engine: it joins the group that owns the engine's
+                // socket, read once the engine is up.
+                var user = ThrowawayUser();
+                var setup = Docker($"exec {name} sh -c \"apk add --no-cache openssh >/dev/null && ssh-keygen -A >/dev/null && adduser -D {user} && echo {user}:{pw} | chpasswd && addgroup {user} $(stat -c %G /var/run/docker.sock) && mkdir -p /home/{user}/.ssh && echo '{pub}' > /home/{user}/.ssh/authorized_keys && chown -R {user} /home/{user}/.ssh && chmod 700 /home/{user}/.ssh && chmod 600 /home/{user}/.ssh/authorized_keys && /usr/sbin/sshd -p 2222\"", 600000);
+                if (setup.Code != 0) return "setting up SSH in the Docker host failed: " + ServerManager.ActionLine(setup.Out);
                 Say($"SSH Docker host {name} on 127.0.0.1:{sshPort} ready in {sw.Elapsed.TotalSeconds:0} s");
-                var host = $"root@127.0.0.1:{sshPort}";
+                var host = SshHostSpec(user, sshPort);
                 var approve = await ApproveHost(host);
                 if (approve != null) return approve;
                 s = new ServerDef { Name = "Live SSH Docker", Version = Version, Flavour = Flavour.Vanilla, Target = Target.SshDocker, SshHost = host, SshKey = key, Port = 25565, MemoryMb = 1024, EulaAccepted = true, RemoteDir = "live-check" };
@@ -129,7 +138,7 @@ namespace MonitoringTools.Core
 
         private static async Task<string> Catalogues()
         {
-            var s = new ServerDef { Id = "live-cat-" + Stamp(), Name = "Live catalogue", Version = Version, Flavour = Flavour.Paper, Target = Target.LocalProcess };
+            var s = new ServerDef { Id = "live-catalogue-" + Stamp(), Name = "Live catalogue", Version = Version, Flavour = Flavour.Paper, Target = Target.LocalProcess };
             Directory.CreateDirectory(McContent.FolderOf(s));
             try
             {
@@ -372,18 +381,19 @@ namespace MonitoringTools.Core
             var (key, pub) = KeyPair(dir);
             int sshPort = 22220; while (!ServerManager.PortFree(sshPort)) sshPort++;
             var name = "mt-live-ssh-" + Stamp();
+            var user = ThrowawayUser();
             ServerDef s = null;
             try
             {
                 var sw = Stopwatch.StartNew();
-                var run = Docker($"run -d --name {name} -e PUID=1000 -e PGID=1000 -e USER_NAME=mc -e \"PUBLIC_KEY={pub}\" -p 127.0.0.1:{sshPort}:2222 lscr.io/linuxserver/openssh-server:latest", 600000);
+                var run = Docker($"run -d --name {name} -e PUID=1000 -e PGID=1000 -e USER_NAME={user} -e \"PUBLIC_KEY={pub}\" -p 127.0.0.1:{sshPort}:2222 lscr.io/linuxserver/openssh-server:latest", 600000);
                 if (run.Code != 0) return "docker run failed: " + ServerManager.ActionLine(run.Out);
                 // The throwaway host needs Java 21 and curl for the app's SSH route; the image has neither.
                 var apk = Docker($"exec {name} apk add --no-cache openjdk21-jre-headless curl", 900000);
                 if (apk.Code != 0) return "installing Java in the SSH host failed: " + ServerManager.ActionLine(apk.Out);
                 Say($"SSH host {name} on 127.0.0.1:{sshPort} with Java 21 ready in {sw.Elapsed.TotalSeconds:0} s");
 
-                var host = $"mc@127.0.0.1:{sshPort}";
+                var host = SshHostSpec(user, sshPort);
                 var approve = await ApproveHost(host);
                 if (approve != null) return approve;
                 Say("host key read and approved into the app's own known_hosts");
