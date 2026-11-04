@@ -85,7 +85,7 @@ namespace MonitoringTools.UI.Minecraft
                 }
                 catch (Exception ex) { Say(ex.Message, "B.Amber"); }
             }, "Btn.Ghost", Icons.File));
-            if (s.IsLocal)
+            if (s.ContentFolder != null)
             {
                 check = Ui.Button("Check for updates", () => _ = Check(), "Btn.Ghost", Icons.Search);
                 ib.Children.Add(check);
@@ -102,11 +102,25 @@ namespace MonitoringTools.UI.Minecraft
                 ib.Children.Add(Ui.Button("Undo the last change", () =>
                 {
                     var folder = McContent.FolderOf(s);
-                    var last = McContent.LatestBackup(folder);
+                    var hostFiles = s.IsSsh ? McFiles.For(s) : null;
+                    string last;
+                    try { last = hostFiles != null ? McContent.LatestBackup(hostFiles, s.ContentFolder) : McContent.LatestBackup(folder); }
+                    catch (Exception ex) { Say(ex.Message, "B.Amber"); return; }
                     if (last == null) { Say("There is no backup of the folder yet, so there is nothing to undo.", "B.TextMute"); return; }
                     var dlg = new ConfirmWindow("Put the folder back as it was?", $"The {noun} folder is put back as the backup from {Path.GetFileName(last)} holds it. The folder as it is now is backed up first, so this can be undone too.", "Put back", danger: true);
-                    dlg.Confirmed += _ =>
+                    dlg.Confirmed += okk =>
                     {
+                        if (hostFiles != null)
+                        {
+                            Say("Working on the SSH host…", "B.TextMute");
+                            _ = Task.Run(() => McContent.RestoreFrom(hostFiles, s.ContentFolder, last, keepCurrent: true)).ContinueWith(t => Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                McCatalogue.Last.Remove(s.Id);
+                                Say(t.IsFaulted ? t.Exception.InnerException.Message : "The folder was put back as the backup holds it, on the host. Restart the server to apply it.", t.IsFaulted ? "B.Amber" : "B.Mint");
+                                Refill();
+                            })));
+                            return;
+                        }
                         try { McContent.RestoreFrom(folder, last, keepCurrent: true); McCatalogue.Last.Remove(s.Id); Say("The folder was put back as the backup holds it. Restart the server to apply it.", "B.Mint"); }
                         catch (Exception ex) { Say(ex.Message, "B.Amber"); }
                         Fill();
@@ -121,7 +135,6 @@ namespace MonitoringTools.UI.Minecraft
                 List<McAddon> items;
                 if (!s.IsLocal)
                 {
-                    checkLine.Text = "Names come from the file names, and catalogue checks and updates are for servers on this computer.";
                     if (remoteError != null) { list.Children.Add(McUi.Body(remoteError, "B.Amber", 13)); Core.Language.Refresh(installed); return; }
                     if (remoteItems == null) { list.Children.Add(McUi.Body($"Reading the {noun} folder on the SSH host…", "B.TextMute", 13)); Core.Language.Refresh(installed); return; }
                     items = remoteItems;
@@ -136,7 +149,7 @@ namespace MonitoringTools.UI.Minecraft
                     list.Children.Add(AddonRow(s, a, info, Say, Refill));
                 }
                 int due = checks?.Values.Count(c => c.Kind == McCompat.Update) ?? 0;
-                if (s.IsLocal) checkLine.Text = checks == null ? "Not checked against the catalogues yet." : due == 0 ? "Checked against Modrinth and Hangar: nothing newer for this version." : due == 1 ? "1 update for this version." : $"{due} updates for this version.";
+                checkLine.Text = checks == null ? "Not checked against the catalogues yet." : due == 0 ? "Checked against Modrinth and Hangar: nothing newer for this version." : due == 1 ? "1 update for this version." : $"{due} updates for this version.";
                 if (updateAll != null) updateAll.IsEnabled = due > 0;
                 Core.Language.Refresh(installed);
             }
@@ -218,12 +231,11 @@ namespace MonitoringTools.UI.Minecraft
                     Button inst = null;
                     inst = Ui.Button("Install", async () =>
                     {
-                        if (!s.IsLocal) { Say("Catalogue installs copy into a folder on this computer; this server's folder is on the SSH host.", "B.Amber"); return; }
                         if (McDemo.IsSample(s)) { Say("Sample server: nothing was downloaded.", "B.TextMute"); return; }
                         inst.IsEnabled = false;
                         Say("Downloading " + hh.Title + "…", "B.TextMute");
                         void Report(string t2) => Dispatcher.BeginInvoke(new Action(() => Say(t2, "B.TextMute")));
-                        try { Say(hh.Source == "Hangar" ? await McHangar.InstallAsync(hh, s, Report) : await McModrinth.InstallAsync(hh, s, Report), "B.Mint"); McCatalogue.Last.Remove(s.Id); Fill(); }
+                        try { Say(hh.Source == "Hangar" ? await McHangar.InstallAsync(hh, s, Report) : await McModrinth.InstallAsync(hh, s, Report), "B.Mint"); McCatalogue.Last.Remove(s.Id); Refill(); }
                         catch (Exception ex) { Say(ex.Message, "B.Amber"); }
                         inst.IsEnabled = true;
                     }, "Btn.Ghost", Icons.Plus);

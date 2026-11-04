@@ -193,8 +193,8 @@ namespace MonitoringTools.Minecraft
             }
             try
             {
-                report?.Invoke("Copying the world from the SSH host…");
-                return await Task.Run(() => McRemote.PullBackup(s, files, level, reason, note, s.KeepBackups));
+                report?.Invoke(s.BackupOnHost ? "Archiving the world on the SSH host…" : "Copying the world from the SSH host…");
+                return await Task.Run(() => s.BackupOnHost ? McRemote.HostBackup(s, files, level, reason, note, s.KeepBackups) : McRemote.PullBackup(s, files, level, reason, note, s.KeepBackups));
             }
             finally
             {

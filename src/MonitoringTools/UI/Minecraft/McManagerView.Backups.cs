@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -39,11 +40,23 @@ namespace MonitoringTools.UI.Minecraft
             card.Children.Add(list);
             var c1 = McUi.Card(card);
 
+            // Backups kept on an SSH host are listed by reading the host's own folder.
+            List<McBackup> hostList = null; string hostError = null;
+            async void LoadHost()
+            {
+                try { var files = McFiles.For(s); hostList = await Task.Run(() => McRemote.HostList(files)); hostError = null; }
+                catch (Exception ex) { hostError = ex.Message; }
+                Fill();
+            }
+            void Refill() { if (s.IsSsh && s.BackupOnHost) LoadHost(); else Fill(); }
             void Fill()
             {
                 list.Children.Clear();
-                var all = McBackups.List(s.BackupFolder);
-                if (all.Count == 0) list.Children.Add(McUi.Body("No backups yet.", "B.TextMute", 13));
+                bool onHost = s.IsSsh && s.BackupOnHost;
+                var all = onHost ? (hostList ?? new List<McBackup>()) : McBackups.List(s.BackupFolder);
+                if (onHost && hostError != null) list.Children.Add(McUi.Body(hostError, "B.Amber", 13));
+                else if (onHost && hostList == null) list.Children.Add(McUi.Body("Reading the backups on the SSH host…", "B.TextMute", 13));
+                else if (all.Count == 0) list.Children.Add(McUi.Body("No backups yet.", "B.TextMute", 13));
                 foreach (var b in all)
                 {
                     var g = new Grid { Margin = new Thickness(0, 6, 0, 0) };
@@ -59,7 +72,7 @@ namespace MonitoringTools.UI.Minecraft
                     if (b.Contents.Count > 0) t.Children.Add(McUi.Literal(string.Join(", ", b.Contents) + (b.Note.Length > 0 ? " · " + b.Note : ""), "B.TextMute", 12));
                     Grid.SetColumn(t, 1); g.Children.Add(t);
                     var bb = b;
-                    var restore = Ui.Button("Restore…", () => Restore(s, bb, Say, Fill), "Btn.Ghost", Icons.Restart);
+                    var restore = Ui.Button("Restore…", () => Restore(s, bb, Say, Refill), "Btn.Ghost", Icons.Restart);
                     AutomationProperties.SetName(restore, "Restore the backup from " + b.When.ToString("yyyy-MM-dd HH:mm"));
                     restore.Margin = new Thickness(8, 0, 0, 0);
                     Grid.SetColumn(restore, 2); g.Children.Add(restore);
@@ -79,9 +92,9 @@ namespace MonitoringTools.UI.Minecraft
                 }
                 catch (Exception ex) { Say(ex.Message, "B.Amber"); }
                 now.IsEnabled = true;
-                Fill();
+                Refill();
             };
-            Fill();
+            Fill(); if (s.IsSsh && s.BackupOnHost) LoadHost();
 
             var keep = new StackPanel();
             keep.Children.Add(McUi.Title("Keep", 16));
@@ -101,7 +114,7 @@ namespace MonitoringTools.UI.Minecraft
             fg.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var ft = new StackPanel();
             ft.Children.Add(new TextBlock { Text = "Folder", FontSize = 14, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
-            var path = McUi.Literal(PathDisplay.Shown(s.BackupFolder), "B.TextMute", 12);
+            var path = McUi.Literal(s.IsSsh && s.BackupOnHost ? ".mt-backups on the SSH host" : PathDisplay.Shown(s.BackupFolder), "B.TextMute", 12);
             ft.Children.Add(path);
             fg.Children.Add(ft);
             var choose = Ui.Button("Choose…", () =>
@@ -113,7 +126,19 @@ namespace MonitoringTools.UI.Minecraft
                 BuildWorkspace();
             }, "Btn.Ghost", Icons.Folder);
             Grid.SetColumn(choose, 1); fg.Children.Add(choose);
+            choose.IsEnabled = !(s.IsSsh && s.BackupOnHost);
             keep.Children.Add(fg);
+            if (s.IsSsh)
+            {
+                var onHost = McUi.Switch("Keep backups on the SSH host", "Archives the world into .mt-backups on the host (tar.gz) and lists them from there; nothing is copied to this computer. Off: backups are copied here.", s.BackupOnHost, v =>
+                {
+                    s.BackupOnHost = v;
+                    try { ServerManager.Save(); } catch { }
+                    BuildWorkspace();
+                });
+                onHost.Margin = new Thickness(0, 8, 0, 0);
+                keep.Children.Add(onHost);
+            }
             var how = McUi.Body("A backup of a running server runs save-off and save-all, copies the world, then save-on, so the copy is consistent while players stay online. Restore stops the server, keeps the current world as one more backup, then swaps."
                 + (s.IsSsh ? " This server's world is on the SSH host: a backup copies it here with scp, and a restore copies the backup back up, moving the host's current folders aside until every folder has arrived." : ""), "B.TextMute", 12.5);
             how.Margin = new Thickness(0, 12, 0, 0);
@@ -138,7 +163,7 @@ namespace MonitoringTools.UI.Minecraft
                     if (s.IsSsh)
                     {
                         var files = McFiles.For(s);
-                        safety = await Task.Run(() => McRemote.Restore(s, files, McRemote.LevelName(files, s.IsBedrock), b));
+                        safety = await Task.Run(() => s.BackupOnHost ? McRemote.HostRestore(s, files, McRemote.LevelName(files, s.IsBedrock), b) : McRemote.Restore(s, files, McRemote.LevelName(files, s.IsBedrock), b));
                     }
                     else
                     {

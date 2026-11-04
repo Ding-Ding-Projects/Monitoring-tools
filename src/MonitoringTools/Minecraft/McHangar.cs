@@ -94,7 +94,7 @@ namespace MonitoringTools.Minecraft
                 await ServerManager.Download(pick.Url, tmp, report);
                 var actual = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(tmp)));
                 if (!string.Equals(actual, pick.Sha256, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("The download did not match Hangar's SHA-256, so it was not installed.");
-                McCatalogue.Replace(folder, tmp, pick.File, replaces);
+                await Task.Run(() => McCatalogue.ReplaceFor(s, folder, tmp, pick.File, replaces));
             }
             finally { try { File.Delete(tmp); } catch { } }
             McCatalogue.Record(s, new McCatalogue.Entry { File = pick.File, Source = "Hangar", ProjectId = hit.ProjectId, Title = hit.Title, VersionId = pick.Name, VersionName = pick.Name, GameVersions = pick.GameVersions });

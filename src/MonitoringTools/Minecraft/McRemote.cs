@@ -78,6 +78,88 @@ namespace MonitoringTools.Minecraft
             return safety;
         }
 
+        // ---- backups kept on the host itself
+
+        /// <summary>Where on-host backups live, inside the server folder; it is never part of a backup itself.</summary>
+        public const string HostBackupDir = ".mt-backups";
+
+        private static string Slug(string s) => new string((s ?? "backup").ToLowerInvariant().Select(c => char.IsLetterOrDigit(c) ? c : '-').ToArray()).Trim('-');
+
+        /// <summary>Archives the world folders on the host into <c>.mt-backups/&lt;time&gt;-&lt;reason&gt;.tar.gz</c> (nothing is copied here) with a small description beside it.</summary>
+        public static McBackup HostBackup(ServerDef s, IMcFiles files, string level, string reason, string note, int keep)
+        {
+            var parts = Parts(files, level);
+            if (parts.Count == 0) throw new InvalidOperationException("There is no world on the host to back up yet. A world is made the first time the server starts.");
+            var when = DateTime.Now;
+            var name = when.ToString("yyyyMMdd-HHmmss") + "-" + Slug(reason);
+            var rel = HostBackupDir + "/" + name + ".tar.gz";
+            for (int n = 2; files.Exists(rel); n++) rel = HostBackupDir + "/" + name + "-" + n + ".tar.gz";
+            files.Archive(parts, rel);
+            files.WriteText(rel + ".backup.json", System.Text.Json.JsonSerializer.Serialize(new { reason, note = note ?? "", when, contents = parts }));
+            HostPrune(files, keep);
+            return HostList(files).First(b => b.Path == rel);
+        }
+
+        /// <summary>The backups on the host, newest first, read back from the host's own folder.</summary>
+        public static List<McBackup> HostList(IMcFiles files)
+        {
+            var entries = files.List(HostBackupDir).Where(e => !e.IsDir && e.Name.EndsWith(".tar.gz", StringComparison.Ordinal)).ToList();
+            var metas = files.ReadMany(entries.Select(e => HostBackupDir + "/" + e.Name + ".backup.json"));
+            var list = new List<McBackup>();
+            foreach (var e in entries)
+            {
+                var rel = HostBackupDir + "/" + e.Name;
+                var b = new McBackup { Path = rel, Size = e.Size };
+                if (metas.TryGetValue(rel + ".backup.json", out var m))
+                {
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(m);
+                        var r = doc.RootElement;
+                        if (r.TryGetProperty("reason", out var rs)) b.Reason = rs.GetString();
+                        if (r.TryGetProperty("note", out var nt)) b.Note = nt.GetString() ?? "";
+                        if (r.TryGetProperty("when", out var w) && w.TryGetDateTime(out var dt)) b.When = dt;
+                        if (r.TryGetProperty("contents", out var c)) b.Contents = c.EnumerateArray().Select(x => x.GetString()).ToList();
+                    }
+                    catch { }
+                }
+                list.Add(b);
+            }
+            return list.OrderByDescending(b => b.When).ToList();
+        }
+
+        public static int HostPrune(IMcFiles files, int keep)
+        {
+            if (keep < 1) keep = 1;
+            int removed = 0;
+            foreach (var b in HostList(files).Skip(keep)) { files.Delete(b.Path); if (files.Exists(b.Path + ".backup.json")) files.Delete(b.Path + ".backup.json"); removed++; }
+            return removed;
+        }
+
+        /// <summary>Puts an on-host backup back: a safety backup first, the current folders moved aside, the archive unpacked, the old folders removed only when it worked. The server must be stopped.</summary>
+        public static McBackup HostRestore(ServerDef s, IMcFiles files, string level, McBackup backup)
+        {
+            if (!files.Exists(backup.Path)) throw new FileNotFoundException("That backup is not on the host any more.", backup.Path);
+            McBackup safety = null;
+            if (Parts(files, level).Count > 0) safety = HostBackup(s, files, level, "Before a restore", "Taken automatically before restoring " + System.IO.Path.GetFileName(backup.Path), s.KeepBackups + 1);
+            var tag = ".restore-" + Guid.NewGuid().ToString("N")[..6];
+            var moved = new List<string>();
+            try
+            {
+                foreach (var t in backup.Contents) if (files.Exists(t)) { files.Move(t, t + tag); moved.Add(t); }
+                files.Extract(backup.Path);
+                foreach (var t in backup.Contents) if (!files.Exists(t)) throw new InvalidDataException($"The backup did not unpack {t}.");
+                foreach (var t in moved) files.Delete(t + tag);
+            }
+            catch
+            {
+                foreach (var t in backup.Contents) { try { if (files.Exists(t)) files.Delete(t); } catch { } }
+                foreach (var t in moved) { try { files.Move(t + tag, t); } catch { } }
+                throw;
+            }
+            return safety;
+        }
+
         /// <summary>The Java world folders on the host with their sizes. Folder is the path inside the server folder.</summary>
         public static List<McDimension> Dimensions(IMcFiles files, string level)
         {

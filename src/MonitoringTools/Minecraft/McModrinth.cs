@@ -106,7 +106,7 @@ namespace MonitoringTools.Minecraft
                 await ServerManager.Download(dl, tmp, report);
                 var actual = Convert.ToHexString(SHA512.HashData(File.ReadAllBytes(tmp)));
                 if (!string.Equals(actual, sha512, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("The download did not match the catalogue's SHA-512, so it was not installed.");
-                McCatalogue.Replace(folder, tmp, name, replaces);
+                await Task.Run(() => McCatalogue.ReplaceFor(s, folder, tmp, name, replaces));
             }
             finally { try { File.Delete(tmp); } catch { } }
             var vn = ver.TryGetProperty("version_number", out var vnum) ? vnum.GetString() : "";

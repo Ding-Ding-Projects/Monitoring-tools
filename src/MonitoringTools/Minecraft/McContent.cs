@@ -65,15 +65,41 @@ namespace MonitoringTools.Minecraft
         }
 
         /// <summary>Copies a jar from this computer into a folder of an SSH host, after the folder has been copied to a dated backup beside it on the host.</summary>
-        public static string Install(IMcFiles files, string folder, string jar)
+        public static string Install(IMcFiles files, string folder, string jar, string fileName = null)
         {
-            if (!jar.EndsWith(".jar", StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("Choose a .jar plugin or mod.");
+            if (!jar.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) && fileName?.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) != true) throw new ArgumentException("Choose a .jar plugin or mod.");
             using (var z = ZipFile.OpenRead(jar)) { if (z.Entries.Count == 0) throw new InvalidDataException("That jar is empty."); }
             files.MakeDir(folder);
             files.BackUpFolder(folder);
-            var to = folder + "/" + Path.GetFileName(jar);
+            var to = folder + "/" + Path.GetFileName(fileName ?? jar);
             files.Upload(jar, to);
             return to;
+        }
+
+        /// <summary>The newest dated backup of a folder on an SSH host (or any file store), as a path inside the server folder, or null.</summary>
+        public static string LatestBackup(IMcFiles files, string folder) =>
+            files.List(folder + "-backups").Where(e => e.IsDir).Select(e => e.Name).OrderByDescending(n => n, StringComparer.Ordinal).Select(n => folder + "-backups/" + n).FirstOrDefault();
+
+        /// <summary>
+        /// Puts a folder on an SSH host back as a backup holds it: jars added since are removed and every backed-up entry is copied
+        /// back over what is there. The folder as it is now is backed up first when <paramref name="keepCurrent"/> is set, so a rollback can be undone.
+        /// </summary>
+        public static void RestoreFrom(IMcFiles files, string folder, string backup, bool keepCurrent = false)
+        {
+            if (!files.Exists(backup)) throw new DirectoryNotFoundException("That backup is not there any more.");
+            if (keepCurrent) files.BackUpFolder(folder);
+            var inBackup = files.List(backup);
+            foreach (var e in files.List(folder))
+            {
+                bool jar = !e.IsDir && (e.Name.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) || e.Name.EndsWith(".jar" + DisabledSuffix, StringComparison.OrdinalIgnoreCase));
+                if (jar && !inBackup.Any(b => b.Name == e.Name)) files.Delete(folder + "/" + e.Name);
+            }
+            foreach (var e in inBackup)
+            {
+                var to = folder + "/" + e.Name;
+                if (files.Exists(to)) files.Delete(to);
+                files.Copy(backup + "/" + e.Name, to);
+            }
         }
 
         /// <summary>Reads the name and version a jar declares for itself (plugin.yml, paper-plugin.yml, fabric.mod.json, mods.toml), falling back to the file name.</summary>

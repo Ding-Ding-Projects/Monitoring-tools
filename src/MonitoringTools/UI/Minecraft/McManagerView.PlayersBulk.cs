@@ -133,6 +133,12 @@ namespace MonitoringTools.UI.Minecraft
             bar.Children.Add(mode); buttons.Add(mode);
             buttons.Add(Add(BulkVerb.Teleport, "Teleport", Icons.Link));
             buttons.Add(Add(BulkVerb.Give, "Give", Icons.Box));
+            if (!s.IsBedrock)
+            {
+                var builder = Ui.Button("Give in the command builder…", () => GiveInBuilder(s, b), "Btn.Ghost", Icons.Wand);
+                AutomationProperties.SetName(builder, "Give in the command builder…");
+                bar.Children.Add(builder); buttons.Add(builder);
+            }
             var all = Ui.Button("Select all shown", () => { b.List.SelectAll(); b.List.Focus(); }, "Btn.Ghost", Icons.Check);
             var clear = Ui.Button("Clear selection", () => b.List.UnselectAll(), "Btn.Ghost", Icons.Close);
             AutomationProperties.SetName(all, "Select all shown"); AutomationProperties.SetName(clear, "Clear selection");
@@ -177,6 +183,24 @@ namespace MonitoringTools.UI.Minecraft
             };
             UpdateSelection();
             return b;
+        }
+
+        /// <summary>
+        /// Opens the command builder's give form with the item and count already typed and the first selected player as the target.
+        /// The builder's Who control takes one name or one selector, so with several players selected it opens on the first and
+        /// the status line says so; the plain Give button above sends to every selected player.
+        /// </summary>
+        private void GiveInBuilder(ServerDef s, PlayerBox b)
+        {
+            var names = b.Chosen.Select(p => p.Name).ToList();
+            if (names.Count == 0) { b.Say("Select players first.", "B.Amber"); return; }
+            var v = ValuesFor(s, "give");
+            v["targets"] = names[0];
+            if (!string.IsNullOrWhiteSpace(b.Item.Text)) v["item"] = b.Item.Text.Trim();
+            if (int.TryParse(b.Count.Text.Trim(), out var c) && c > 0) v["count"] = c.ToString();
+            OpenCommandTask("give");
+            SetStatus(names.Count == 1 ? $"The give form is open for {names[0]}."
+                : $"The give form is open for {names[0]}. It takes one target at a time; use Give in the player list to give to all {names.Count} selected players.", "B.TextSoft");
         }
 
         private void RunBulk(ServerDef s, PlayerBox b, BulkVerb v)

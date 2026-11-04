@@ -34,6 +34,8 @@ namespace MonitoringTools.Minecraft
         public string BackupDir { get; set; } = "";
         /// <summary>How many of the newest backups are kept; older ones are removed after each new backup.</summary>
         public int KeepBackups { get; set; } = 14;
+        /// <summary>SSH servers only: keep backups on the host (in .mt-backups inside the server folder) instead of copying them to this computer.</summary>
+        public bool BackupOnHost { get; set; }
         public List<McSchedule> Schedules { get; set; } = new List<McSchedule>();
         /// <summary>The last commands sent from the command builder, newest first.</summary>
         public List<string> RecentCommands { get; set; } = new List<string>();

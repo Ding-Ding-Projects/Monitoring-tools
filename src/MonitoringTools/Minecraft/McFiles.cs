@@ -46,6 +46,12 @@ namespace MonitoringTools.Minecraft
         void DownloadDir(string rel, string localParent);
         /// <summary>Bytes in a file or folder (on a host, from du, so rounded to kilobytes).</summary>
         long Size(string rel);
+        /// <summary>Writes the listed files and folders into one .tar.gz inside the server folder (a file that changes while it is read is tolerated, as a running world does).</summary>
+        void Archive(IEnumerable<string> rels, string archiveRel);
+        /// <summary>Unpacks a .tar.gz made by <see cref="Archive"/> into the server folder, replacing what is there.</summary>
+        void Extract(string archiveRel);
+        /// <summary>Lowercase SHA-512 of each file that exists (a missing file is absent from the result), for matching jars against a catalogue.</summary>
+        Dictionary<string, string> Sha512(IEnumerable<string> rels);
         /// <summary>Copies a folder next to itself as "&lt;rel&gt;-backups/&lt;stamp&gt;" and returns that relative path, or null when there is nothing to copy.</summary>
         string BackUpFolder(string rel);
     }
@@ -160,6 +166,39 @@ namespace MonitoringTools.Minecraft
             long n = 0;
             if (Directory.Exists(p)) foreach (var f in Directory.EnumerateFiles(p, "*", SearchOption.AllDirectories)) { try { n += new FileInfo(f).Length; } catch { } }
             return n;
+        }
+        public void Archive(IEnumerable<string> rels, string archiveRel)
+        {
+            var target = P(archiveRel);
+            Directory.CreateDirectory(Path.GetDirectoryName(target));
+            var tmp = target + ".part";
+            using (var fs = File.Create(tmp))
+            using (var gz = new System.IO.Compression.GZipStream(fs, System.IO.Compression.CompressionLevel.Fastest))
+            using (var tar = new System.Formats.Tar.TarWriter(gz, System.Formats.Tar.TarEntryFormat.Pax))
+                foreach (var rel in rels)
+                {
+                    var root = P(rel);
+                    if (File.Exists(root)) { tar.WriteEntry(root, McFiles.Clean(rel)); continue; }
+                    foreach (var f in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+                    {
+                        using var src = new FileStream(f, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                        var entry = new System.Formats.Tar.PaxTarEntry(System.Formats.Tar.TarEntryType.RegularFile, McFiles.Clean(rel) + "/" + Path.GetRelativePath(root, f).Replace('\\', '/')) { DataStream = src };
+                        tar.WriteEntry(entry);
+                    }
+                }
+            File.Move(tmp, target, true);
+        }
+        public void Extract(string archiveRel)
+        {
+            using var fs = File.OpenRead(P(archiveRel));
+            using var gz = new System.IO.Compression.GZipStream(fs, System.IO.Compression.CompressionMode.Decompress);
+            System.Formats.Tar.TarFile.ExtractToDirectory(gz, _root, true);
+        }
+        public Dictionary<string, string> Sha512(IEnumerable<string> rels)
+        {
+            var d = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var r in rels) { var p = P(r); if (File.Exists(p)) d[r] = Convert.ToHexString(System.Security.Cryptography.SHA512.HashData(File.ReadAllBytes(p))).ToLowerInvariant(); }
+            return d;
         }
         public string BackUpFolder(string rel)
         {
@@ -338,6 +377,30 @@ namespace MonitoringTools.Minecraft
         {
             var o = Ok($"du -sk {Q(rel)} 2>/dev/null | cut -f1", "measure a path").Trim();
             return long.TryParse(o.Split('\n').Last().Trim(), out var kb) ? kb * 1024 : 0;
+        }
+
+        public void Archive(IEnumerable<string> rels, string archiveRel)
+        {
+            var parts = string.Join(" ", rels.Select(r => ServerManager.Sh(McFiles.Clean(r))));
+            // tar exits 1 when a file changed while it was read, which a running world does; that is a warning, not a failure.
+            Ok($"mkdir -p \"$(dirname {Q(archiveRel)})\" && tar czf {Q(archiveRel)}.part -C {Q("")} {parts}; rc=$?; if [ $rc -le 1 ]; then mv {Q(archiveRel)}.part {Q(archiveRel)}; else rm -f {Q(archiveRel)}.part; exit $rc; fi", "archive the folders", 3600000);
+        }
+
+        public void Extract(string archiveRel) => Ok($"tar xzf {Q(archiveRel)} -C {Q("")}", "unpack an archive", 3600000);
+
+        public Dictionary<string, string> Sha512(IEnumerable<string> rels)
+        {
+            var list = rels.ToList();
+            var d = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (list.Count == 0) return d;
+            var script = new StringBuilder();
+            for (int i = 0; i < list.Count; i++) script.Append($"if [ -f {Q(list[i])} ]; then echo \"@@ {i} $(sha512sum < {Q(list[i])} | cut -d' ' -f1)\"; fi; ");
+            foreach (var raw in Ok(script.ToString(), "hash files", 300000).Replace("\r", "").Split('\n'))
+            {
+                var p = raw.Trim().Split(' ');
+                if (p.Length == 3 && p[0] == "@@" && int.TryParse(p[1], out var i) && p[2].Length == 128) d[list[i]] = p[2].ToLowerInvariant();
+            }
+            return d;
         }
 
         public string BackUpFolder(string rel)

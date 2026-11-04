@@ -89,17 +89,34 @@ namespace MonitoringTools.Minecraft
             if (off && File.Exists(to)) File.Move(to, to + McContent.DisabledSuffix, true);
         }
 
+        /// <summary>
+        /// Like <see cref="Replace"/>, but for a server on an SSH host the verified jar is copied to the host's folder with scp, after
+        /// the host's folder was copied to a dated backup beside it (which is what Undo puts back). The old file is removed there.
+        /// </summary>
+        internal static void ReplaceFor(ServerDef s, string folder, string verifiedJar, string fileName, string replaces)
+        {
+            if (!s.IsSsh) { Replace(folder, verifiedJar, fileName, replaces); return; }
+            var files = McFiles.For(s);
+            bool off = replaces != null && replaces.EndsWith(McContent.DisabledSuffix, StringComparison.OrdinalIgnoreCase);
+            var to = McContent.Install(files, s.ContentFolder, verifiedJar, fileName);
+            if (replaces != null && !string.Equals(replaces, to, StringComparison.Ordinal) && files.Exists(replaces)) files.Delete(replaces);
+            if (off && files.Exists(to) && !files.Exists(to + McContent.DisabledSuffix)) files.Move(to, to + McContent.DisabledSuffix);
+        }
+
         // ------------------------------------------------------------------ checking
 
         public static async Task<Dictionary<string, McCompatInfo>> CheckAsync(ServerDef s)
         {
             var folder = McContent.FolderOf(s);
-            var addons = McContent.List(folder);
+            var remote = s.IsSsh ? McFiles.For(s) : null;
+            var addons = remote != null ? await Task.Run(() => McContent.List(remote, s.ContentFolder)) : McContent.List(folder);
             var result = new Dictionary<string, McCompatInfo>(StringComparer.OrdinalIgnoreCase);
             if (addons.Count == 0) { Last[s.Id] = result; return result; }
 
-            // ---- Modrinth: every jar by its SHA-512
-            var hashes = addons.ToDictionary(a => a.File, a => Convert.ToHexString(SHA512.HashData(File.ReadAllBytes(a.File))).ToLowerInvariant());
+            // ---- Modrinth: every jar by its SHA-512 (computed on the host for a server over SSH, so no jar is downloaded)
+            var remoteHashes = remote != null ? await Task.Run(() => remote.Sha512(addons.Select(a => a.File))) : null;
+            var hashes = addons.Where(a => remote == null || remoteHashes.ContainsKey(a.File)).ToDictionary(a => a.File, a => remote != null ? remoteHashes[a.File] : Convert.ToHexString(SHA512.HashData(File.ReadAllBytes(a.File))).ToLowerInvariant());
+            addons = addons.Where(a => hashes.ContainsKey(a.File)).ToList();
             var loaders = McModrinth.Loaders(s.Flavour);
             JsonElement current = default, newest = default;
             try
@@ -170,7 +187,11 @@ namespace MonitoringTools.Minecraft
             var due = checks.Where(c => c.Value.Kind == McCompat.Update && c.Value.Apply != null).ToList();
             if (due.Count == 0) return "Every plugin is already on its newest compatible file.";
             var folder = McContent.FolderOf(s);
-            var backup = McContent.BackUpFolder(folder);
+            var remote = s.IsSsh ? McFiles.For(s) : null;
+            string hostBackup = null;
+            string backup = null;
+            if (remote != null) { hostBackup = await Task.Run(() => remote.BackUpFolder(s.ContentFolder)); }
+            else backup = McContent.BackUpFolder(folder);
             int done = 0;
             try
             {
@@ -184,6 +205,7 @@ namespace MonitoringTools.Minecraft
             catch (Exception ex)
             {
                 if (backup != null) McContent.RestoreFrom(folder, backup);
+                if (hostBackup != null) await Task.Run(() => McContent.RestoreFrom(remote, s.ContentFolder, hostBackup));
                 throw new InvalidOperationException($"An update failed, so the folder was put back as it was before: {ex.Message}");
             }
             return done == 1 ? "Updated 1 plugin. The folder was backed up first. Restart the server to load it." : $"Updated {done} plugins. The folder was backed up first. Restart the server to load them.";
