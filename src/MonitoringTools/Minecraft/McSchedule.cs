@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace MonitoringTools.Minecraft
 {
-    public enum McScheduleKind { Restart, Backup, Message, UpdateCheck }
+    public enum McScheduleKind { Restart, Backup, Message, UpdateCheck, Command }
     public enum McRepeat { Daily, Weekly, Every }
 
     /// <summary>
@@ -25,6 +25,8 @@ namespace MonitoringTools.Minecraft
         public int EveryMinutes { get; set; } = 240;
         /// <summary>The chat line for a message schedule.</summary>
         public string Message { get; set; } = "";
+        /// <summary>The command line for a "run a command" schedule, as the command builder made it.</summary>
+        public string Command { get; set; } = "";
         /// <summary>For a restart: how many minutes before it players are warned in chat. 0 restarts without a warning.</summary>
         public int WarnMinutes { get; set; } = 5;
         public DateTime Created { get; set; } = DateTime.Now;
@@ -96,6 +98,7 @@ namespace MonitoringTools.Minecraft
             {
                 McScheduleKind.Restart => when + (WarnMinutes > 0 ? $" · players get a {WarnMinutes}-minute warning in chat" : " · no warning"),
                 McScheduleKind.Message => when + ": " + Message,
+                McScheduleKind.Command => when + ": " + Command,
                 McScheduleKind.UpdateCheck => when + " · notify only, never installs by itself",
                 _ => when,
             };
@@ -103,7 +106,7 @@ namespace MonitoringTools.Minecraft
 
         public static string KindLabel(McScheduleKind k) => k switch
         {
-            McScheduleKind.Restart => "Restart", McScheduleKind.Backup => "Backup", McScheduleKind.Message => "Message", _ => "Check for updates",
+            McScheduleKind.Restart => "Restart", McScheduleKind.Backup => "Backup", McScheduleKind.Message => "Message", McScheduleKind.Command => "Run a command", _ => "Check for updates",
         };
     }
 }

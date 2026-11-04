@@ -50,6 +50,10 @@ namespace MonitoringTools.Minecraft
         /// <summary>The jar a Java process server starts. Adopted servers keep the jar they were found running.</summary>
         public string JarName { get; set; } = "server.jar";
 
+        // ---- added with the command builder
+        /// <summary>Command lines saved from the command builder as favourites, in the order they were saved.</summary>
+        public List<string> FavouriteCommands { get; set; } = new List<string>();
+
         public string Folder => string.IsNullOrWhiteSpace(FolderPath) ? Path.Combine(ServerManager.Root, Id) : FolderPath;
         public string ContainerName => string.IsNullOrWhiteSpace(Container) ? "monitoring-tools-mc-" + Id : Container;
         public bool IsBedrock => Flavour == Flavour.Bedrock;

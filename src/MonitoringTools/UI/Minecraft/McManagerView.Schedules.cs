@@ -37,7 +37,7 @@ namespace MonitoringTools.UI.Minecraft
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                var icon = job.Kind switch { McScheduleKind.Restart => Icons.Restart, McScheduleKind.Backup => Icons.Archive, McScheduleKind.Message => Icons.Mail, _ => Icons.Globe };
+                var icon = job.Kind switch { McScheduleKind.Restart => Icons.Restart, McScheduleKind.Backup => Icons.Archive, McScheduleKind.Message => Icons.Mail, McScheduleKind.Command => Icons.Code, _ => Icons.Globe };
                 g.Children.Add(new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.SecondaryContainer"), Child = Ui.Icon(icon, Ui.Res("B.OnSecondaryContainer"), 18), Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Top });
                 var j = job;
                 var next = j.Enabled ? (j.Due(DateTime.Now) ? "Due now: it runs within a minute while this app is running." : j.Next(DateTime.Now) is DateTime n ? "Next: " + n.ToString("ddd HH:mm", CultureInfo.InvariantCulture) : "No next time.") : "Off";
@@ -71,8 +71,8 @@ namespace MonitoringTools.UI.Minecraft
                 new GuidedStep
                 {
                     Title = "What should run?", Help = "Pick the job. Restart and message need the server to be running at the time; they are skipped and recorded when it is not.",
-                    Build = () => McUi.Choice("Job", "A restart warns players first; a backup copies the world; a message is said in chat; an update check only tells you about a newer build.",
-                        new[] { ("Restart", McScheduleKind.Restart), ("Backup", McScheduleKind.Backup), ("Message", McScheduleKind.Message), ("Check for updates", McScheduleKind.UpdateCheck) }, d.Kind, v => d.Kind = v),
+                    Build = () => McUi.Choice("Job", "A restart warns players first; a backup copies the world; a message is said in chat; a command runs a line from the command builder; an update check only tells you about a newer build.",
+                        new[] { ("Restart", McScheduleKind.Restart), ("Backup", McScheduleKind.Backup), ("Message", McScheduleKind.Message), ("Run a command", McScheduleKind.Command), ("Check for updates", McScheduleKind.UpdateCheck) }, d.Kind, v => d.Kind = v),
                 },
                 new GuidedStep
                 {
@@ -140,10 +140,22 @@ namespace MonitoringTools.UI.Minecraft
                             box.TextChanged += (o, e) => d.Message = box.Text.Replace("\n", " ");
                             sp.Children.Add(box);
                         }
+                        else if (d.Kind == McScheduleKind.Command)
+                        {
+                            var box = McUi.Field(d.Command, "Command", 420, "The command line to run, as the command builder makes it");
+                            box.FontFamily = Ui.Font("F.Mono");
+                            Core.Language.SetLiteral(box, true);
+                            box.TextChanged += (o, e) => d.Command = box.Text.Replace("\r", " ").Replace("\n", " ");
+                            sp.Children.Add(box);
+                            var open = Ui.Button("Build it in the command builder", () => { ScheduleDraft = null; _scheduleStep = 0; ShowSection("commands"); }, "Btn.Ghost", Icons.Bolt);
+                            open.HorizontalAlignment = HorizontalAlignment.Left;
+                            sp.Children.Add(McUi.Body("It runs through the server's console and is skipped, and recorded as skipped, when the server is not running.", "B.TextMute", 12));
+                            sp.Children.Add(open);
+                        }
                         else sp.Children.Add(McUi.Body(d.Kind == McScheduleKind.Backup ? $"Backups go to the server's backup folder and the newest {s.KeepBackups} are kept." : "Only the Paper, Purpur, Fabric, Forge and NeoForge build lists can be checked. Nothing is installed by itself.", "B.TextSoft", 13));
                         return sp;
                     },
-                    Validate = () => d.Kind == McScheduleKind.Message && string.IsNullOrWhiteSpace(d.Message) ? "Type the message." : null,
+                    Validate = () => d.Kind == McScheduleKind.Message && string.IsNullOrWhiteSpace(d.Message) ? "Type the message." : d.Kind == McScheduleKind.Command && string.IsNullOrWhiteSpace(d.Command) ? "Type the command, or build it in the command builder." : null,
                 },
                 new GuidedStep
                 {
