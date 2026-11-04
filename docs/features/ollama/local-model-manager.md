@@ -19,7 +19,7 @@ Code: `Core/Ollama.cs` (client), `Core/OllamaCatalogue.cs` (catalogue, hardware 
 - **Pull cart.** Add several catalogue models, see the combined size against free disk, then Pull all pulls them one after another through the local server with progress, cancel and per-model results. A finished model leaves the cart, a failed one stays. The cart persists between sessions.
 - **Model details.** A Details button on each installed model calls `POST /api/show` and shows family, parameters, quantisation, context length, capabilities (when the server version reports them), default parameters, the prompt template and a licence summary. The licence summary names a recognised licence (Apache, MIT, Llama community, Gemma terms, Creative Commons) or says it is custom, and quotes the opening lines; it is an automatic summary, not legal advice.
 - **Troubleshooter.** Offline checks from local facts only: installed or not, server answering, an Ollama process that is not answering, whether the port is taken and by which program (netstat plus the process list), `OLLAMA_HOST` (loopback or exposed), the models folder and free space, and the log. Actions: Run checks, Start server, Show log (tail of `%LOCALAPPDATA%\Ollama\server.log`), Open logs folder, Open models folder, Find a free port. The firewall entry is a hint only; loopback traffic is not filtered, and the tool does not read firewall rules.
-- **Chat test.** `POST /api/chat`, streamed token by token, multi-turn within the page, with Stop and Clear and a tokens-per-second figure when the server reports it.
+- **Chat.** `POST /api/chat`, streamed token by token, multi-turn within the page, with Stop and New chat and a tokens-per-second figure when the server reports it. Attachments, saved chats, profiles, per-chat parameters and the capability badge are in [chat.md](chat.md).
 
 ## Settings (all in Settings.Ollama.cs, saved with the app settings)
 
@@ -35,7 +35,7 @@ Code: `Core/Ollama.cs` (client), `Core/OllamaCatalogue.cs` (catalogue, hardware 
 - The catalogue is a hand-written snapshot, not the whole library, and the online search depends on an undocumented page layout.
 - Hardware verdicts are a rule of thumb, not a measurement; multi-GPU splitting and unified-memory machines are not modelled, and integrated graphics report whatever the driver exposes.
 - The troubleshooter does not read Windows Firewall rules or any Ollama log other than `server.log`.
-- Chat attachments and capability gating.
+- Tool calling and launching other local tools; chat attachments, saved chats, profiles and the capability badge are described in [chat.md](chat.md).
 - Launching other local tools through allow-listed profiles, snapshots and rollback.
 - A bundled or cached installer; install relies on winget.
 - Automatic periodic refresh. The page reads state when opened and on Refresh.

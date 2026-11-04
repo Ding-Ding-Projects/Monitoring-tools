@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using MonitoringTools.Core;
+using MonitoringTools.Minecraft;
 using MonitoringTools.UI.Search;
 
 namespace MonitoringTools.UI
@@ -240,6 +241,136 @@ namespace MonitoringTools.UI
                 var compact = Appearance.Row(40);
                 s.CompactDensity = false; Appearance.Apply();
                 return compact < normal ? null : $"rows {normal} / {compact}";
+            });
+
+            // ---- ollama chat kit (no network)
+            Check("ollama: an image attachment is sent as base64 in the message's images array", () =>
+            {
+                var png = new byte[64]; png[0] = 0x89; png[1] = 0x50; png[2] = 0x4E; png[3] = 0x47; png[10] = 7;
+                var att = OllamaAttachments.FromImageBytes("a.png", png);
+                if (att.Kind != "image" || Convert.FromBase64String(att.Base64).Length != 64) return "image did not encode";
+                var json = OllamaChatOptions.BuildChatBody("m", new[] { new OllamaChatTurn { Role = "user", Content = "hi", Images = new List<string> { att.Base64 } } }, new OllamaChatOptions(), "5m");
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var msg = doc.RootElement.GetProperty("messages")[0];
+                if (msg.GetProperty("images")[0].GetString() != att.Base64) return "images array missing or different";
+                return null;
+            });
+            Check("ollama: attachments refuse non-images, binary files and oversized images", () =>
+            {
+                try { OllamaAttachments.FromImageBytes("x.png", new byte[40]); return "a non-image was accepted"; } catch (InvalidOperationException) { }
+                try { OllamaAttachments.FromTextBytes("x.bin", new byte[] { 65, 0, 66 }); return "a binary file was accepted"; } catch (InvalidOperationException) { }
+                try { var big = new byte[OllamaAttachments.MaxImageBytes + 1]; big[0] = 0x89; big[1] = 0x50; big[2] = 0x4E; big[3] = 0x47; OllamaAttachments.FromImageBytes("big.png", big); return "an oversized image was accepted"; } catch (InvalidOperationException) { }
+                return null;
+            });
+            Check("ollama: text attachments are inlined in a fence, capped, and survive backticks", () =>
+            {
+                var t = OllamaAttachments.FromTextBytes("n.txt", System.Text.Encoding.UTF8.GetBytes(new string('x', OllamaAttachments.MaxInlineChars + 50)));
+                if (!t.Truncated || t.Text.Length != OllamaAttachments.MaxInlineChars) return "the text was not capped";
+                var tick = OllamaAttachments.FromTextBytes("c.md", System.Text.Encoding.UTF8.GetBytes("a ``` b"));
+                var content = OllamaAttachments.BuildContent("question", new[] { tick });
+                if (!content.StartsWith("question") || !content.Contains("````")) return "fence not widened: " + content;
+                return null;
+            });
+            Check("ollama: chat body carries the system prompt, only the options that are set, and keep_alive 0 as a number", () =>
+            {
+                var o = new OllamaChatOptions { SystemPrompt = "be brief", Temperature = 0.5, NumCtx = 4096, KeepAlive = "0" };
+                using var doc = System.Text.Json.JsonDocument.Parse(OllamaChatOptions.BuildChatBody("m", new[] { new OllamaChatTurn { Role = "user", Content = "q" } }, o, "5m"));
+                var r = doc.RootElement;
+                if (r.GetProperty("messages")[0].GetProperty("role").GetString() != "system") return "no system message first";
+                var opt = r.GetProperty("options");
+                if (opt.TryGetProperty("top_p", out _) || opt.GetProperty("num_ctx").GetInt32() != 4096) return "options wrong";
+                if (r.GetProperty("keep_alive").ValueKind != System.Text.Json.JsonValueKind.Number) return "keep_alive 0 should be a number";
+                return null;
+            });
+            Check("ollama: parameter validation names the problem", () =>
+            {
+                var bad = new OllamaChatOptions { Temperature = 3, TopP = 0, NumCtx = 10, KeepAlive = "soon" }.Validate();
+                var over = new OllamaChatOptions { NumCtx = 8192 }.Validate(4096);
+                var ok = new OllamaChatOptions { Temperature = 0.7, TopP = 0.9, NumCtx = 2048, KeepAlive = "10m" }.Validate();
+                return bad.Count == 4 && over.Count == 1 && ok.Count == 0 ? null : $"bad={bad.Count} over={over.Count} ok={ok.Count}";
+            });
+            Check("ollama: capabilities come only from the server's list", () =>
+            {
+                var none = OllamaCapabilityInfo.From(new string[0]);
+                var text = OllamaCapabilityInfo.From(new[] { "completion", "tools" });
+                var vis = OllamaCapabilityInfo.From(new[] { "completion", "vision" });
+                var emb = OllamaCapabilityInfo.From(new[] { "embedding" });
+                if (none.Reported || none.ImageBlockReason() != null) return "unreported capabilities must not block";
+                if (text.ImageBlockReason() == null || vis.ImageBlockReason() != null) return "vision gating wrong";
+                if (emb.ChatBlockReason() == null || text.ChatBlockReason() != null) return "embedding gating wrong";
+                return null;
+            });
+            Check("ollama: a saved chat round-trips, exports as Markdown and deletes", () =>
+            {
+                var s = new OllamaSession { Model = "llama3", SystemPrompt = "be brief", Temperature = 0.4 };
+                s.Messages.Add(new OllamaSessionMessage { Role = "user", Content = "Hello there", Attachments = new List<string> { "pic.png" } });
+                s.Messages.Add(new OllamaSessionMessage { Role = "assistant", Content = "Hi" });
+                OllamaSessionStore.Save(s);
+                var back = OllamaSessionStore.List().FirstOrDefault(x => x.Id == s.Id);
+                if (back == null || back.Messages.Count != 2 || back.Temperature != 0.4) return "chat did not round-trip";
+                var md = OllamaSessionStore.ToMarkdown(back);
+                if (!md.Contains("# Hello there") || !md.Contains("## You") || !md.Contains("pic.png") || !md.Contains("> be brief")) return "markdown incomplete:\n" + md;
+                if (!OllamaSessionStore.Delete(s.Id) || OllamaSessionStore.List().Any(x => x.Id == s.Id)) return "chat was not deleted";
+                return null;
+            });
+            Check("ollama: profiles upsert by name and refuse bad values", () =>
+            {
+                var list = OllamaProfiles.Starters();
+                var n = list.Count;
+                if (OllamaProfiles.Upsert(list, new OllamaProfile { Name = "concise", SystemPrompt = "x", Temperature = 0.1 }) != null || list.Count != n) return "same name should replace";
+                if (OllamaProfiles.Upsert(list, new OllamaProfile { Name = "New", SystemPrompt = "y" }) != null || list.Count != n + 1) return "new name should add";
+                if (OllamaProfiles.Upsert(list, new OllamaProfile { Name = "", SystemPrompt = "y" }) == null) return "empty name accepted";
+                if (OllamaProfiles.Upsert(list, new OllamaProfile { Name = "Hot", Temperature = 9 }) == null) return "bad temperature accepted";
+                return null;
+            });
+
+            // ---- world generator editors (no jar, no network)
+            const string sampleNoise = "{\"sea_level\":63,\"aquifers_enabled\":true,\"default_block\":{\"Name\":\"minecraft:stone\"},\"noise\":{\"min_y\":-64,\"height\":384,\"size_horizontal\":1,\"size_vertical\":2},\"spawn_target\":[{\"temperature\":[-1,1]}],\"surface_rule\":{\"type\":\"minecraft:sequence\",\"sequence\":[]}}";
+            Check("worldgen: changing one noise value writes a data pack with only that change", () =>
+            {
+                var src = WorldgenSource.FromFiles(new Dictionary<string, string> { ["data/minecraft/worldgen/noise_settings/overworld.json"] = sampleNoise }, "test");
+                var edits = new List<WorldgenEdit> { new WorldgenEdit { Kind = WorldgenKind.NoiseSettings, Id = "minecraft:overworld", Path = "sea_level", Value = "70" } };
+                var files = WorldgenEditor.BuildFiles(src, edits, new HashSet<string> { "minecraft:stone" });
+                if (files.Count != 1) return "expected one file";
+                var packDir = Path.Combine(dir, "worldgen-pack-test");
+                var written = WorldgenEditor.WritePack(packDir, 48, files);
+                var path = Path.Combine(packDir, WorldgenEditor.PackFolder, "data", "minecraft", "worldgen", "noise_settings", "overworld.json");
+                if (written.Count != 1 || !File.Exists(path) || !File.Exists(Path.Combine(packDir, WorldgenEditor.PackFolder, "pack.mcmeta"))) return "pack files missing";
+                var a = System.Text.Json.Nodes.JsonNode.Parse(sampleNoise); var b = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(path));
+                if ((int)b["sea_level"] != 70) return "sea_level not changed";
+                a["sea_level"] = 70;
+                return a.ToJsonString() == b.ToJsonString() ? null : "something besides sea_level changed:\n" + b.ToJsonString();
+            });
+            Check("worldgen: invalid values are refused with a reason", () =>
+            {
+                var src = WorldgenSource.FromFiles(new Dictionary<string, string> { ["data/minecraft/worldgen/noise_settings/overworld.json"] = sampleNoise }, "test");
+                string Try(string path, string value, ISet<string> blocks = null)
+                {
+                    try { WorldgenEditor.BuildFiles(src, new[] { new WorldgenEdit { Kind = WorldgenKind.NoiseSettings, Id = "minecraft:overworld", Path = path, Value = value } }, blocks); return null; }
+                    catch (InvalidOperationException ex) { return ex.Message; }
+                }
+                if (Try("sea_level", "high") == null) return "a word was accepted for a whole number";
+                if (Try("aquifers_enabled", "maybe") == null) return "maybe accepted for a boolean";
+                if (Try("noise.height", "385") == null) return "a height that is not a multiple of 16 was accepted";
+                if (Try("noise.min_y", "2000") == null) return "min_y plus height above 2032 was accepted";
+                if (Try("surface_rule.type", "x") == null) return "an excluded subtree was editable";
+                if (Try("default_block.Name", "minecraft:nonsense", new HashSet<string> { "minecraft:stone" }) == null) return "an unknown block was accepted";
+                if (Try("noise.height", "320") != null) return "a valid height was refused";
+                return null;
+            });
+            Check("worldgen: the editor lists values from the default file and skips the big subtrees", () =>
+            {
+                var paths = WorldgenEditor.Leaves(sampleNoise).Select(l => l.Path).ToList();
+                var types = WorldgenEditor.Leaves(sampleNoise).ToDictionary(l => l.Path, l => l.Type);
+                if (paths.Any(p => p.StartsWith("surface_rule") || p.StartsWith("spawn_target"))) return "excluded subtree listed";
+                return types["sea_level"] == "integer" && types["aquifers_enabled"] == "boolean" && types["default_block.Name"] == "string" && paths.Contains("noise.size_vertical") ? null : "types wrong: " + string.Join(",", paths);
+            });
+            Check("worldgen: a drawn square becomes a centre and radius, capped at the limit", () =>
+            {
+                var s = ChunkAreaPicker.SquareFromCorners((-10, -10), (9, 9));
+                var big = ChunkAreaPicker.SquareFromCorners((0, 0), (999, 5));
+                var one = ChunkAreaPicker.SquareFromCorners((4, 4), (4, 4));
+                return s == (0, 0, 10) && big.Radius == ChunkAreaPicker.MaxRadius && one.Radius == 1 ? null : $"{s} {big} {one}";
             });
 
             // ---- docs and pages
