@@ -180,7 +180,7 @@ namespace MonitoringTools.UI
                 if (!Drive.TextOf(cc).Contains("The end date is before the start date")) return "no message for a reversed date range";
 
                 // edit in place
-                var edit = Drive.All<ButtonBase>(cc).First(b => b.IsVisible && Drive.LabelOf(b) == "Edit");
+                var edit = Drive.All<ButtonBase>(cc).Last(b => b.IsVisible && (Drive.LabelOf(b) == "Edit" || Drive.OriginalLabelOf(b) == "Edit"));   // the new rule is the last one listed
                 Drive.Click(edit); await Settle(cc, 350);
                 if (Drive.Need<TextBox>(cc, "Start date (optional)").Text != "2026-12-24") return "Edit did not load the rule's start date";
                 if (Drive.Find<ButtonBase>(cc, "Save changes") == null) return "the form did not switch to Save changes";

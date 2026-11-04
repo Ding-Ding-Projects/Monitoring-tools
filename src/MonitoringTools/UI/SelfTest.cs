@@ -151,7 +151,9 @@ namespace MonitoringTools.UI
                 Core.Language.Refresh();
                 var back = await Settle(t => t.Contains("Outages"));
                 cc.Close();
-                return text.Contains("斷線次數") && !text.Contains("Outages") && back.Contains("Outages") ? null : "window text did not switch and restore";
+                if (text.Contains("斷線次數") && !text.Contains("Outages") && back.Contains("Outages")) return null;
+                int at = text.IndexOf("Outages", StringComparison.Ordinal);
+                return $"window text did not switch and restore (Cantonese label {text.Contains("斷線次數")}, English left {at >= 0}: '{(at < 0 ? "" : text.Substring(Math.Max(0, at - 60), Math.Min(120, text.Length - Math.Max(0, at - 60))))}', restored {back.Contains("Outages")})";
             });
 
             // ---- appearance

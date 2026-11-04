@@ -83,6 +83,14 @@ namespace MonitoringTools.UI
             return path;
         }
 
+        private static void DropSelftestLock()
+        {
+            var old = Locks.Find("selftest-page", "selftest-key");
+            if (old == null) return;
+            new Locks.Session(old).Submit("73915");
+            Locks.Remove(old.Id);
+        }
+
         private static async Task Wave6ChecksAsync()
         {
             // ---------------------------------------------------------------- School mode with Windows Hello
@@ -421,6 +429,7 @@ namespace MonitoringTools.UI
                     s.Shortcuts.Add(new Shortcut { Name = "selftest-export", Shell = ScriptShell.PowerShell, Description = "=formula-looking description" });
                     s.SavedPatterns.Add(new SavedPattern { Name = "Selftest pattern", Pattern = @"\d+" });
                     s.ScheduleRules.Add(new ScheduleRule { Label = "Selftest rule", Setting = "sounds", Value = "off" });
+                    DropSelftestLock();   // a lock left by an earlier run in the same data folder
                     var lockErr = Locks.Create("selftest-page", "selftest-key", "Selftest lock", LockPolicy.Pin, 5, "73915", null, null);
                     if (lockErr != null) return "could not make a lock: " + lockErr;
                     var tables = ExportAll.SnapshotAll(false);
@@ -459,6 +468,7 @@ namespace MonitoringTools.UI
                     if (s.Shortcuts.Count > sc) s.Shortcuts.RemoveRange(sc, s.Shortcuts.Count - sc);
                     if (s.SavedPatterns.Count > pc) s.SavedPatterns.RemoveRange(pc, s.SavedPatterns.Count - pc);
                     if (s.ScheduleRules.Count > rc) s.ScheduleRules.RemoveRange(rc, s.ScheduleRules.Count - rc);
+                    DropSelftestLock();
                     cc.Close();
                 }
             });

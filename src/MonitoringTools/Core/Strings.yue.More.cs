@@ -14,6 +14,11 @@ namespace MonitoringTools.Core
             void Add(string en, string yue) => t.TryAdd(en, yue);
 
             // ---- file converter formats and the convert dialog
+            Add("Disabled", "已停用");
+            Add("Enable", "啟用");
+            Add("Disable", "停用");
+            Add("Waiting for its time", "等緊時間到");
+            Add("Turn the chosen rules on.", "啟用揀咗嘅規則。");
             Add("VID", "影片");
             Add("AUD", "音訊");
             Add("IMG", "圖片");

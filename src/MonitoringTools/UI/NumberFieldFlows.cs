@@ -26,7 +26,11 @@ namespace MonitoringTools.UI
         {
             var src = PresentationSource.FromVisual(box);
             if (src == null) throw new InvalidOperationException("the box is not in a shown window");
-            box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, src, Environment.TickCount, key) { RoutedEvent = Keyboard.KeyDownEvent });
+            // Real input tunnels (PreviewKeyDown) before it bubbles (KeyDown), and a text box swallows arrow keys in its own
+            // KeyDown handling, so the press is raised the same two ways a keyboard raises it.
+            var preview = new KeyEventArgs(Keyboard.PrimaryDevice, src, Environment.TickCount, key) { RoutedEvent = Keyboard.PreviewKeyDownEvent };
+            box.RaiseEvent(preview);
+            if (!preview.Handled) box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, src, Environment.TickCount, key) { RoutedEvent = Keyboard.KeyDownEvent });
         }
 
         private static async Task Reveal(Window w, FrameworkElement e) { e?.BringIntoView(); await Settle(w, 300); }
