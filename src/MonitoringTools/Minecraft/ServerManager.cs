@@ -173,11 +173,14 @@ namespace MonitoringTools.Minecraft
         public static bool PortFree(int port) =>
             !IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners().Any(e => e.Port == port);
 
-        public static (int Code, string Out) Run(string exe, string args, int timeoutMs = 120000, string stdin = null)
+        /// <summary>Runs a tool and collects its output. <paramref name="workingDir"/> matters for a Minecraft jar: its bundler
+        /// unpacks libraries/, versions/ and logs/ into the working folder, so a jar must never run in the app's own.</summary>
+        public static (int Code, string Out) Run(string exe, string args, int timeoutMs = 120000, string stdin = null, string workingDir = null)
         {
             try
             {
                 var psi = new ProcessStartInfo(exe, args) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = stdin != null };
+                if (!string.IsNullOrEmpty(workingDir)) { Directory.CreateDirectory(workingDir); psi.WorkingDirectory = workingDir; }
                 using var p = Process.Start(psi);
                 if (stdin != null) { p.StandardInput.Write(stdin); p.StandardInput.Close(); }
                 var o = p.StandardOutput.ReadToEndAsync(); var e = p.StandardError.ReadToEndAsync();

@@ -167,7 +167,7 @@ namespace MonitoringTools.Minecraft
                 var args = WorldGenerator.IsBundler(jar)
                     ? $"-DbundlerMainClass=net.minecraft.data.Main -jar \"{jar}\" --server --output \"{gen}\""
                     : $"-cp \"{jar}\" net.minecraft.data.Main --server --output \"{gen}\"";
-                var r = await Task.Run(() => ServerManager.Run(java, args, 300000));
+                var r = await Task.Run(() => ServerManager.Run(java, args, 300000, workingDir: Path.Combine(WorldGenerator.CacheRoot, version, "run")));
                 fromGen = await Task.Run(() => ReadFromDirectory(gen));
                 if (fromGen.Files.Count == 0)
                     throw new InvalidOperationException("Neither this version's jar nor its data generator produced noise settings or dimension type files" + (r.Code != 0 ? " (the generator exited with code " + r.Code + ")" : "") + ", so they cannot be edited here.");

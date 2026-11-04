@@ -244,7 +244,7 @@ namespace MonitoringTools.Minecraft
                 var args = IsBundler(jar)
                     ? $"-DbundlerMainClass=net.minecraft.data.Main -jar \"{jar}\" --reports --output \"{gen}\""
                     : $"-cp \"{jar}\" net.minecraft.data.Main --reports --output \"{gen}\"";
-                var r = await Task.Run(() => ServerManager.Run(java, args, 240000));
+                var r = await Task.Run(() => ServerManager.Run(java, args, 240000, workingDir: Path.Combine(CacheRoot, version, "run")));
                 if (r.Code != 0 || !File.Exists(commands))
                     return new JarFacts { Reason = "This jar's data generator could not list its commands, so jar-driven options are unavailable for this version." };
             }
