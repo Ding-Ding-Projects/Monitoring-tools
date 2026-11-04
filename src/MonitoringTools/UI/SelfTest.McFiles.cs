@@ -429,6 +429,81 @@ namespace MonitoringTools.UI
                 }
             });
 
+            await CheckAsync("minecraft: Give in the command builder opens the give form with the item, the count and the first selected player filled in", async () =>
+            {
+                mc.Select("sample-friends");
+                mc.ShowSection("players");
+                await Wave6Flows.Settle(cc, 700);
+                var s = ServerManager.Servers.First(x => x.Id == "sample-friends");
+                var vals = McManagerView.ValuesFor(s, "give");
+                var before = new Dictionary<string, string>(vals);
+                try
+                {
+                    var list = Descend<ListBox>(mc).First(l => AutomationProperties.GetName(l) == "Players");
+                    if (FindButton(mc, "Give in the command builder…") == null) return "no Give in the command builder button";
+                    list.UnselectAll(); await Task.Delay(150);
+                    if (FindButton(mc, "Give in the command builder…")?.IsEnabled == true) return "the hand-off is enabled with nothing selected";
+                    list.SelectAll(); await Task.Delay(200);
+                    Descend<TextBox>(mc).First(t => AutomationProperties.GetName(t) == "Item to give").Text = "minecraft:emerald";
+                    Descend<TextBox>(mc).First(t => AutomationProperties.GetName(t) == "Count").Text = "5";
+                    if (!Press(mc, "Give in the command builder…")) return "the button did not press";
+                    await Wave6Flows.Settle(cc, 700);
+                    if (McManagerView.Section != "commands" || McManagerView.CommandTaskId != "give") return $"the builder opened on {McManagerView.Section}/{McManagerView.CommandTaskId}";
+                    if (vals.GetValueOrDefault("targets") != "Ava" || vals.GetValueOrDefault("item") != "minecraft:emerald" || vals.GetValueOrDefault("count") != "5") return "values: " + string.Join(", ", vals.Select(kv => kv.Key + "=" + kv.Value));
+                    var line = mc.PreviewLine ?? "";
+                    return line.Contains("give Ava minecraft:emerald 5") ? null : "the preview says: " + line;
+                }
+                finally
+                {
+                    vals.Clear(); foreach (var kv in before) vals[kv.Key] = kv.Value;
+                    mc.ShowSection("players");
+                }
+            });
+
+            await CheckAsync("minecraft: an SSH server's plugins are replaced and rolled back on the host, jars are hashed there, and backups can live on the host and be read back", async () =>
+            {
+                var dir = McTemp("ssh-catalogue");
+                var f = new McLocalFiles(dir);
+                var s = new ServerDef { Id = "probe-ssh-catalogue", Flavour = Flavour.Paper, Target = Target.SshProcess, SshHost = "mc@198.51.100.7", BackupDir = McTemp("ssh-catalogue-backups"), KeepBackups = 3 };
+                McFiles.Override = x => x.Id == s.Id ? f : null;
+                try
+                {
+                    var oldJar = Path.Combine(McTemp("ssh-catalogue-src"), "Old-1.jar"); Zip(oldJar, ("plugin.yml", "name: Old\nversion: 1"));
+                    var newJar = Path.Combine(Path.GetDirectoryName(oldJar), "New-2.jar"); Zip(newJar, ("plugin.yml", "name: Old\nversion: 2"));
+                    McContent.Install(f, "plugins", oldJar);
+                    var hashes = f.Sha512(new[] { "plugins/Old-1.jar", "plugins/missing.jar" });
+                    var want = Convert.ToHexString(System.Security.Cryptography.SHA512.HashData(File.ReadAllBytes(oldJar))).ToLowerInvariant();
+                    if (hashes.Count != 1 || hashes["plugins/Old-1.jar"] != want) return "hashes on the host";
+                    // a catalogue update: the verified download replaces the old jar on the host after a dated copy
+                    McCatalogue.ReplaceFor(s, null, newJar, "New-2.jar", "plugins/Old-1.jar");
+                    if (!f.Exists("plugins/New-2.jar") || f.Exists("plugins/Old-1.jar")) return "the update did not replace the jar on the host";
+                    var last = McContent.LatestBackup(f, "plugins");
+                    if (last == null || !f.Exists(last + "/Old-1.jar")) return "no dated copy holding the old jar";
+                    McContent.RestoreFrom(f, "plugins", last, keepCurrent: true);
+                    if (!f.Exists("plugins/Old-1.jar") || f.Exists("plugins/New-2.jar")) return "Undo did not put the old jar back and remove the new one";
+                    // a disabled jar stays disabled when it is updated
+                    McContent.SetEnabled(McContent.List(f, "plugins")[0], false);
+                    McCatalogue.ReplaceFor(s, null, newJar, "New-2.jar", "plugins/Old-1.jar.disabled");
+                    if (!f.Exists("plugins/New-2.jar.disabled") || f.Exists("plugins/New-2.jar")) return "a disabled jar became enabled by its update";
+                    // on-host backups
+                    f.WriteText("server.properties", "level-name=w\n");
+                    f.WriteText("w/level.dat", "lvl"); f.WriteText("w/region/r.mca", "A"); f.WriteText("w_nether/level.dat", "n");
+                    s.BackupOnHost = true;
+                    var b = await McBackups.BackUpAsync(s, false, "By hand", "on host");
+                    if (!b.Path.StartsWith(".mt-backups/") || !b.Contents.SequenceEqual(new[] { "w", "w_nether", "plugins" }) || b.Note != "on host" || b.Size <= 0) return "on-host backup: " + b.Path + " " + string.Join(",", b.Contents);
+                    if (Directory.EnumerateFiles(s.BackupFolder).Any()) return "a backup was also copied to this computer";
+                    var listed = McRemote.HostList(f);
+                    if (listed.Count != 1 || listed[0].Reason != "By hand" || !listed[0].Contents.Contains("w")) return "the list read back from the host";
+                    f.WriteText("w/region/r.mca", "B"); f.WriteText("w/extra.txt", "x");
+                    var safety = McRemote.HostRestore(s, f, "w", listed[0]);
+                    if (f.ReadText("w/region/r.mca") != "A" || f.Exists("w/extra.txt")) return "the on-host restore did not bring back the old world";
+                    if (safety == null || McRemote.HostList(f).Count != 2) return "no safety backup on the host";
+                    for (int i = 0; i < 4; i++) await McBackups.BackUpAsync(s, false, "Scheduled", "");
+                    return McRemote.HostList(f).Count == 3 ? null : "keep 3 left " + McRemote.HostList(f).Count;
+                }
+                finally { McFiles.Override = null; }
+            });
+
             await CheckAsync("minecraft: bulk actions on a stopped server edit the files, on this computer, over SSH and for Bedrock, and say what needs a running server", async () =>
             {
                 var dir = McTemp("bulk-files");

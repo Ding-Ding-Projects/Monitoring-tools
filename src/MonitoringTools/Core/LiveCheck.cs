@@ -52,6 +52,7 @@ namespace MonitoringTools.Core
                 var onlyFiles = Environment.GetEnvironmentVariable("MT_LIVE_ONLY");
                 if (onlyFiles is "minecraft-ssh-files" or "minecraft-bedrock-files" or "minecraft-bedrock-docker") { await McFilesLive(results, onlyFiles); return; }
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "forge") { await Check(results, "forge: publishing creates the repository and pushes the commit", () => Forge(dir)); return; }   // only the forge publish, against a server named by MT_LIVE_FORGE_*
+                if (onlyFiles is "minecraft-bedrock-ssh" or "minecraft-ssh-catalogue" or "minecraft-bulk-bot") { await McFilesLive2(results, onlyFiles); return; }
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-commands") { await McCommands(results); return; }   // the command builder on a real server
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-lane") { await McLane(results); return; }   // items, NBT, plugin commands, a bot player, Docker and SSH replies, pre-generation
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-server")   // run only the server manager end to end

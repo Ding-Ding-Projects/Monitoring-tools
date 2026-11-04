@@ -69,8 +69,9 @@ published onto 19132 over UDP, the container keeps standard input open and conso
 `send-command`; the image downloads the server on its first start (the live check took 286 s). Over **SSH** it is Mojang's
 Linux zip, downloaded on the host over HTTPS from minecraft.net and unpacked with `unzip -n` (existing files are never
 overwritten); Mojang publishes no checksum or signature for it, so only the address is checked. It is started through the
-same console pipe as the Java process. The Linux server was unpacked on a real host by the live check but never started,
-because the only host available had no glibc.
+same console pipe as the Java process. The live check started it for real on a Debian host
+(installed in 8 s, "Server started." after 3 s, `list` answered, a backup taken while it ran, stopped); it needs a glibc
+host. The install forces HTTP/1.1 because Debian's curl got an HTTP/2 error from the download address.
 
 ## The sections
 

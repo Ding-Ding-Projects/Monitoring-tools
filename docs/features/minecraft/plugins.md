@@ -13,7 +13,10 @@ takes neither, and the section says so. A Bedrock server takes add-ons (behavior
 A server on an SSH host lists its `plugins` or `mods` folder over SSH. Names come from the file names (jars are not
 downloaded to read their metadata). The switch (rename to `.jar.disabled`), **Remove** and **Install from a file** (scp)
 work on the host, each after the folder is copied to a dated `plugins-backups` or `mods-backups` folder beside it on the
-host. Catalogue search, installs, update checks and **Undo** are for servers on this computer.
+host. Catalogue search and installs, the compatibility badges (the SHA-512 of each jar is computed on the host, so no jar is
+downloaded to check it), **Update**, **Update all** and **Undo the last change** work here too: a catalogue file is
+downloaded on this computer, checked against the catalogue's hash, then copied to the host with scp after the dated copy,
+and Undo puts the newest dated copy back on the host.
 
 ## Bedrock add-ons
 

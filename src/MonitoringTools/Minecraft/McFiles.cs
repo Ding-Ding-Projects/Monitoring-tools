@@ -250,6 +250,8 @@ namespace MonitoringTools.Minecraft
         private string Ok(string remote, string what, int timeoutMs = 60000, string stdin = null)
         {
             var r = Run(remote, timeoutMs, stdin);
+            // Every command here can be run twice with the same result, so one call that hangs is tried once more before it is reported.
+            if (r.Code == -1 && r.Out == "timed out") r = Run(remote, timeoutMs, stdin);
             if (r.Code == 255 || r.Code == -1) throw new InvalidOperationException("The SSH host could not be reached: " + ServerManager.ActionLine(r.Out));
             if (r.Code != 0) throw new InvalidOperationException($"Could not {what} on the host: {ServerManager.ActionLine(r.Out)}");
             return r.Out;

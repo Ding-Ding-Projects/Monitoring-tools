@@ -33,8 +33,11 @@ namespace MonitoringTools.UI
             await Task.Delay(400);
             list.SelectAll();
             SelfTest.Descend<TextBox>(mc).First(t => System.Windows.Automation.AutomationProperties.GetName(t) == "Reason for kick or ban").Text = "Event over, thanks for coming";
+            SelfTest.Descend<TextBox>(mc).First(t => System.Windows.Automation.AutomationProperties.GetName(t) == "Teleport to").Text = "10 64 -20";
+            SelfTest.Descend<TextBox>(mc).First(t => System.Windows.Automation.AutomationProperties.GetName(t) == "Item to give").Text = "minecraft:diamond";
+            SelfTest.Descend<TextBox>(mc).First(t => System.Windows.Automation.AutomationProperties.GetName(t) == "Count").Text = "2";
             await Task.Delay(300);
-            ScrollTo(mc.SectionBody);
+            ScrollTo(field);   // from the search field down, so the whole bulk area, including the reason, teleport and give fields, is in the frame
             await Shot(cc, "mc-players-bulk", "Minecraft servers: the player list as a multi-select list, filtered by a regex, with three players chosen and the bulk actions (sample data)", 700);
             cc.Scroller.ScrollToTop();
             field.State.SetQuery(""); field.State.SetRegex(false);

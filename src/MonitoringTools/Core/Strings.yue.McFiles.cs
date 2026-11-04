@@ -59,6 +59,15 @@ namespace MonitoringTools.Core
             // ---- plugins on an SSH host
             Add("Names come from the file names, and catalogue checks and updates are for servers on this computer.", "名稱取自檔案名，目錄檢查同更新只適用於呢部電腦上嘅伺服器。");
 
+            Add("Give in the command builder…", "喺指令砌法度俾物品…");
+            Add("Keep backups on the SSH host", "備份留喺 SSH 主機");
+            Add("Archives the world into .mt-backups on the host (tar.gz) and lists them from there; nothing is copied to this computer. Off: backups are copied here.", "會將世界壓縮成 tar.gz 放入主機上嘅 .mt-backups，並由嗰度列出；唔會複製到呢部電腦。關閉：備份會複製到呢度。");
+            Add(".mt-backups on the SSH host", "SSH 主機上嘅 .mt-backups");
+            Add("Reading the backups on the SSH host…", "讀緊 SSH 主機上嘅備份…");
+            Add("Archiving the world on the SSH host…", "喺 SSH 主機壓縮世界緊…");
+            Add("That backup is not on the host any more.", "呢個備份已經唔喺主機上。");
+            Add("There is no world on the host to back up yet. A world is made the first time the server starts.", "主機上暫時未有世界可以備份。世界會喺伺服器第一次啟動時建立。");
+
             // ---- backups on an SSH host
             Add("A backup of a running server runs save-off and save-all, copies the world, then save-on, so the copy is consistent while players stay online. Restore stops the server, keeps the current world as one more backup, then swaps. This server's world is on the SSH host: a backup copies it here with scp, and a restore copies the backup back up, moving the host's current folders aside until every folder has arrived.", "運行緊嘅伺服器備份會先 save-off 同 save-all，再複製世界，最後 save-on，所以玩家留喺線上備份都係一致嘅。還原會停咗伺服器，將而家個世界另存做多一個備份，然後對調。呢個伺服器嘅世界喺 SSH 主機上：備份會用 scp 複製落嚟，還原就將備份複製返上去，主機現有嘅資料夾會先擺開一邊，直到所有資料夾都到齊。");
             Add("Copying the world from the SSH host…", "喺 SSH 主機複製世界緊…");
@@ -128,6 +137,8 @@ namespace MonitoringTools.Core
             Add(@"^Game mode: (survival|creative|adventure|spectator)$", "遊戲模式：$1");
             Add(@"^(Kick|Ban|Pardon|Make operator|Remove operator|Add to the allow list|Remove from the allow list|Set game mode|Teleport|Give) needs the server to be running; it is stopped\.$", "伺服器已停止，要運行緊先可以做呢個操作。");
             Add(@"^and (\d+) more$", "仲有 $1 位");
+            Add(@"^The give form is open for (.+)\.$", "俾物品表格已經為 $1 打開。");
+            Add(@"^The give form is open for (.+)\. It takes one target at a time; use Give in the player list to give to all (\d+) selected players\.$", "俾物品表格已經為 $1 打開。佢一次只可以處理一個對象；想俾曬所有 $2 位所揀玩家，請用玩家清單入面嘅「俾物品」。");
             Add(@"^(\d+) of (\d+) players$", "$1 / $2 位玩家");
             Add(@"^(\d+) players$", "$1 位玩家");
             AddFn(@"^(.+), (online|offline)(, banned)?(, operator)?$", m => m.Groups[1].Value + "，" + (m.Groups[2].Value == "online" ? "在線" : "離線") + (m.Groups[3].Success ? "，被封鎖" : "") + (m.Groups[4].Success ? "，操作員" : ""));

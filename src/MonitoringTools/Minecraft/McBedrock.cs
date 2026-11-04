@@ -145,7 +145,7 @@ namespace MonitoringTools.Minecraft
         internal static string LinuxInstallScript(string dir, string url) =>
             $"set -e; mkdir -p {ServerManager.Sh(dir)}; cd {ServerManager.Sh(dir)}; " +
             "command -v unzip >/dev/null || { echo 'unzip is not installed on this host'; exit 3; }; " +
-            $"curl -fsSL -o bedrock-server.zip.part {ServerManager.Sh(url)} || wget -q -O bedrock-server.zip.part {ServerManager.Sh(url)}; " +
+            $"curl -fsSL --http1.1 --retry 3 -A MonitoringTools/1.0 -o bedrock-server.zip.part {ServerManager.Sh(url)} || wget -q -O bedrock-server.zip.part {ServerManager.Sh(url)}; " +
             "unzip -q -n bedrock-server.zip.part && rm -f bedrock-server.zip.part && chmod +x bedrock_server && test -f bedrock_server";
 
         /// <summary>

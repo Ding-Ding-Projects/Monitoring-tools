@@ -20,8 +20,10 @@ backed up to this computer: saves are paused while it runs, the world folders (t
 mods, config, a Bedrock `worlds` folder) are copied here with `scp -r`, and the same code writes the ZIP, so the backup
 sits in the same list. **Restore** for an SSH server copies the backup's folders back to the host: the host's current
 folders are first saved as a safety backup here, then moved aside on the host, the backup's folders are copied up, and
-only when every folder has arrived are the old ones removed (a failure moves them back). The server must be stopped, and
-the paths must work with `scp` (letters, digits, spaces and `. _ - /`).
+only when every folder has arrived are the old ones removed (a failure moves them back). **Keep backups on the SSH host**
+(a switch under Keep) archives the world on the host instead, into `.mt-backups` as `.tar.gz` with a description beside
+it; the list is read back from the host, restore works there with a safety backup, and nothing is copied to this
+computer. The server must be stopped, and the paths must work with `scp` (letters, digits, spaces and `. _ - /`).
 
 ## Verification
 

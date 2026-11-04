@@ -33,7 +33,9 @@ the players are shown. A line below the list says how many are selected and name
 
 The actions below act on the whole selection: **Kick**, **Ban**, **Pardon**, **Make operators**, **Remove operators**,
 add or remove from the whitelist (the allow list on Bedrock), **Game mode**, **Teleport** (a player's name or three
-coordinates, `~` for relative) and **Give** (an item id and a count). One reason field serves kick and ban. Kick, ban
+coordinates, `~` for relative) and **Give** (an item id and a count). **Give in the command builder** opens the builder's give form with the item and count you typed and the first selected
+player as the target (the builder takes one target at a time; the status line says so when several are selected).
+One reason field serves kick and ban. Kick, ban
 and make operators ask for the two-key confirmation, which shows the exact count and the names.
 
 - While the server runs, one console line is sent per player and each reply is kept; the result line says how many
