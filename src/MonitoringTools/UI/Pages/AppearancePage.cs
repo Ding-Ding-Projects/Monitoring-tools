@@ -56,10 +56,10 @@ namespace MonitoringTools.UI
             // ---- Size, density and motion
             var feel = new StackPanel();
             feel.Children.Add(CardTitle("Size, density and motion", "How big things are, how tightly they sit and how much moves."));
-            feel.Children.Add(Described(
-                Choice("Text size", new[] { 90, 100, 110, 120, 130, 140, 150 }.Select(p => (p + " %", p)).ToArray(), Appearance.ClampPercent(s.TextScalePercent),
-                    v => { s.TextScalePercent = v; Appearance.Apply(); }),
-                "Scales text and spacing together in open windows, 90 to 150 percent.", "100 %", "text size font scale zoom bigger smaller"));
+            feel.Children.Add(SearchScope.SetItem(
+                Number("Text size", "Scales text and spacing together in open windows, 90 to 150 percent. Default: 100 %.", Appearance.ClampPercent(s.TextScalePercent), 90, 150, 10,
+                    v => { s.TextScalePercent = (int)v; Appearance.Apply(); }, "%", 0, true),
+                "setting choice number field text size font scale zoom bigger smaller"));
             feel.Children.Add(Described(
                 Choice("Density", new[] { ("Comfortable", false), ("Compact", true) }, Appearance.Compact,
                     v => { s.CompactDensity = v; Appearance.Apply(); }),

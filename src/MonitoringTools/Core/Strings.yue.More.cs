@@ -1484,6 +1484,18 @@ namespace MonitoringTools.Core
             Add("Plain pixel map for scripts", "腳本用嘅純像素圖"); Add("Archives and medical imaging", "檔案庫同醫學影像");
             Add("256 square app icon with transparency", "256 正方 app 圖示，支援透明");
             Add("An existing file is never overwritten: the new one gets a (1), (2) suffix.", "現有檔案永遠唔會被覆蓋：新檔案會加 (1)、(2) 後綴。");
+            // ---- typed number fields
+            Add("s", "秒"); Add("min", "分鐘"); Add("checks", "次"); Add("type a number", "輸入數字");
+            Add("Width", "闊度"); Add("Stroke width", "筆劃闊度");
+            Add("Not changed: enter a number.", "冇改到：請輸入數字。");
+            Add("Not changed: that is not a number.", "冇改到：嗰個唔係數字。");
+            Add("How loud the cues are. This does not change the Windows volume. Default: 60 %.", "提示音有幾大聲。唔會改 Windows 嘅音量。預設：60 %。");
+            Add("How long a model stays loaded in memory after a reply when the chat does not set its own time. A shorter time frees memory sooner but the next reply starts slower. 0 unloads it at once. Default: 5 minutes.", "對話冇自己設定時間嗰陣，模型喺回覆之後保持載入記憶體幾耐。時間越短越快釋放記憶體，不過下一次回覆會開始得慢啲。填 0 就即刻卸載。預設：5 分鐘。");
+            Add("Default unlock time for the next lock you make. 0 keeps a lock open until the app closes.", "你下一個建立嘅鎖預設解鎖幾耐。填 0 就一直開住，直到程式關閉。");
+            Add("How long this lock stays open after you unlock it. 0 keeps it open until the app closes. Default: 5 min.", "解鎖之後呢個鎖保持開住幾耐。填 0 就一直開住，直到程式關閉。預設：5 分鐘。");
+            Add("How many digits each code has. Default: 6.", "每個驗證碼有幾多位。預設：6。");
+            Add("How many seconds each code lasts. Default: 30 s.", "每個驗證碼有效幾多秒。預設：30 秒。");
+            Add("Scales text and spacing together, 90 to 150 percent. Default: 100 %.", "同時縮放文字同間距，90 至 150%。預設：100 %。");
         }
     }
 }

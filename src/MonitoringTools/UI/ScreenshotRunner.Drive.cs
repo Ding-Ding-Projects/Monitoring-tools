@@ -68,6 +68,8 @@ namespace MonitoringTools.UI
             await Run("appearance", Wave6Flows.Appearance);
             await Run("picker", Wave6Flows.Picker);
             await Run("history", Wave6Flows.History);
+            await Run("number-clipboard", NumberFieldFlows.HistorySize);
+            await Run("number-pages", async sn => { await NumberFieldFlows.Capture(sn); return null; });
             if (errors.Length > 0) File.WriteAllText(Path.Combine(_dir, "wave6-errors.txt"), errors.ToString());
         }
     }

@@ -33,6 +33,13 @@ namespace MonitoringTools.Core
             AddFn(@"^Show (all|video|audio|image) formats$", m => "顯示" + (m.Groups[1].Value switch { "all" => "所有", "video" => "影片", "audio" => "音訊", _ => "圖片" }) + "格式");
             AddFn(@"^Choose files to convert to (.+)\. Each one is saved next to its original\.$", m => "揀要轉換成「" + Inner(m.Groups[1].Value) + "」嘅檔案。每個都會存喺原檔隔籬。");
             AddFn(@"^Convert files to (.+)$", m => "將檔案轉換成「" + Inner(m.Groups[1].Value) + "」");
+            // ---- typed number fields: messages, tooltip and stepper names
+            Add(@"^Not changed: enter a whole number from (.+) to (.+)\.$", "冇改到：請輸入 $1 至 $2 之間嘅整數。");
+            Add(@"^Not changed: enter a number from (.+) to (.+)\.$", "冇改到：請輸入 $1 至 $2 之間嘅數字。");
+            Add(@"^Rounded to (.+)\.$", "已四捨五入到 $1。");
+            Add(@"^Type a number from (.+) to (.+)\. Up and Down keys step it\.$", "輸入 $1 至 $2 之間嘅數字。用上下鍵一格一格調整。");
+            AddFn(@"^Decrease (.+)$", m => "減少「" + Inner(m.Groups[1].Value) + "」");
+            AddFn(@"^Increase (.+)$", m => "增加「" + Inner(m.Groups[1].Value) + "」");
 
             // ---- counts and labels
             AddFn(@"^About (.+)$", m => "關於「" + Inner(m.Groups[1].Value) + "」");

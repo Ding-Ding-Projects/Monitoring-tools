@@ -249,6 +249,10 @@ namespace MonitoringTools.UI
             return sp;
         }
 
+        /// <summary>A typed number setting: stores the value through <paramref name="set"/> and saves the settings when a valid number is committed.</summary>
+        private static NumberField Number(string label, string sub, double value, double min, double max, double step, Action<double> set, string unit = null, int decimals = 0, bool snap = false)
+            => new NumberField(label, sub, value, min, max, step, v => { set(v); Settings.Save(); }, unit, decimals, snap);
+
         private static FrameworkElement Tile(string label, string value, string sub, Brush accent, string edge = null)
         {
             var sp = new StackPanel();
@@ -480,14 +484,14 @@ namespace MonitoringTools.UI
             a.Children.Add(Switch("Render Markdown", "Shows headings, lists, code and links in the preview as formatted text instead of raw characters. On by default.", s.RenderMarkdown, v => s.RenderMarkdown = v));
             a.Children.Add(Switch("Skip password managers", "Copies the source app marks as private (password managers do this) never pop up or reach history. On by default.", s.IgnoreSensitiveSources, v => s.IgnoreSensitiveSources = v));
             a.Children.Add(Switch("Quick commands", "Runs :mp4, :push and your own shortcuts as soon as they land on the clipboard. On by default.", s.QuickCommandsEnabled, v => s.QuickCommandsEnabled = v));
-            a.Children.Add(Choice("Toast duration", new[] { ("2 s", 2.0), ("3 s", 3.0), ("5 s", 5.0), ("8 s", 8.0) }, s.ToastSeconds, v => s.ToastSeconds = v, "How long a toast stays on screen before it fades. Default: 3 s."));
-            a.Children.Add(Choice("History size", new[] { ("20", 20), ("50", 50), ("100", 100) }, s.HistorySize, v => s.HistorySize = v, "How many recent copies are kept in memory for the History page. Quitting the app clears them. Default: 50."));
+            a.Children.Add(Number("Toast duration", "How long a toast stays on screen before it fades. Default: 3 s.", s.ToastSeconds, 1, 600, 0.5, v => s.ToastSeconds = v, "s", 1));
+            a.Children.Add(Number("History size", "How many recent copies are kept in memory for the History page. Quitting the app clears them. Default: 50.", s.HistorySize, 5, 1000, 5, v => { s.HistorySize = (int)v; App.History.Trim(); }, "items"));
             root.Children.Add(Card(a));
 
             var snd = new StackPanel();
             snd.Children.Add(CardTitle("Sound effects", "Short cues when an action finishes, fails, or the connection drops and returns. Quiet during Windows quiet time, presentations and games."));
             snd.Children.Add(Switch("Sound effects", "Plays a short cue when an action finishes or fails, or when the connection drops and returns. Quiet during Windows quiet time, presentations and games. On by default.", s.SoundsEnabled, v => { s.SoundsEnabled = v; if (v) Sounds.Play(Cue.Success); }));
-            snd.Children.Add(Choice("Volume", new[] { ("Low", 0.3), ("Medium", 0.6), ("Full", 1.0) }, s.SoundVolume, v => { s.SoundVolume = v; Sounds.Play(Cue.Success); }, "How loud the cues are. This does not change the Windows volume. Default: Medium."));
+            snd.Children.Add(Number("Volume", "How loud the cues are. This does not change the Windows volume. Default: 60 %.", Math.Round(s.SoundVolume * 100), 0, 100, 5, v => { s.SoundVolume = v / 100.0; Sounds.Play(Cue.Success); }, "%"));
             root.Children.Add(Card(snd));
 
             var m = new StackPanel();
@@ -751,8 +755,8 @@ namespace MonitoringTools.UI
             root.Children.Add(PublicIpCard());
             var a = new StackPanel();
             a.Children.Add(Switch("Network alerts", "Shows a dialog when the internet drops and keeps it up until the line returns or you dismiss it. On by default.", s.NetworkEnabled, v => s.NetworkEnabled = v));
-            a.Children.Add(Choice("Check every", new[] { ("2 s", 2), ("3 s", 3), ("5 s", 5), ("10 s", 10) }, s.ProbeIntervalSeconds, v => s.ProbeIntervalSeconds = v, "How often the connection is tested. A shorter time notices a drop sooner and makes slightly more small requests. Default: 3 s."));
-            a.Children.Add(Choice("Alert after", new[] { ("1 failed check", 1), ("2 in a row", 2), ("3 in a row", 3) }, s.FailuresBeforeAlert, v => s.FailuresBeforeAlert = v, "How many failed checks in a row are needed before the dialog appears. A higher number avoids false alarms. Default: 2 in a row."));
+            a.Children.Add(Number("Check every", "How often the connection is tested. A shorter time notices a drop sooner and makes slightly more small requests. Default: 3 s.", s.ProbeIntervalSeconds, 1, 3600, 1, v => s.ProbeIntervalSeconds = (int)v, "s"));
+            a.Children.Add(Number("Alert after", "How many failed checks in a row are needed before the dialog appears. A higher number avoids false alarms. Default: 2 in a row.", s.FailuresBeforeAlert, 1, 20, 1, v => s.FailuresBeforeAlert = (int)v, "checks"));
             var tools = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
             tools.Children.Add(Ui.Button("Test now", () => App.Net.ProbeNow(), "Btn.Ghost", Icons.Wifi));
             tools.Children.Add(Ui.Button("Release & renew IP", async () =>
@@ -1292,7 +1296,7 @@ namespace MonitoringTools.UI
             }
 
             sp.Children.Add(Switch("Watch the public IP", "Looks up your public IP address every few minutes and right after the network changes, and records every change. On by default.", s.PublicIpEnabled, v => s.PublicIpEnabled = v, "B.Violet"));
-            sp.Children.Add(Choice("Check every", new[] { ("1 min", 1), ("5 min", 5), ("15 min", 15), ("60 min", 60) }, s.PublicIpIntervalMinutes, v => s.PublicIpIntervalMinutes = v, "How often the public IP address is looked up. Default: 5 min."));
+            sp.Children.Add(Number("Check every", "How often the public IP address is looked up. Default: 5 min.", s.PublicIpIntervalMinutes, 1, 1440, 1, v => s.PublicIpIntervalMinutes = (int)v, "min"));
 
             sp.Children.Add(Ui.Mono("HISTORY REPOSITORY", Ui.Res("B.TextMute"), 11));
             var repo = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
