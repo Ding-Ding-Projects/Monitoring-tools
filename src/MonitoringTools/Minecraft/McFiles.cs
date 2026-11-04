@@ -70,7 +70,9 @@ namespace MonitoringTools.Minecraft
         /// <summary>Returns the path with "/" separators, or throws when it is empty, absolute, or climbs out of the folder.</summary>
         public static string Clean(string rel)
         {
-            rel = (rel ?? "").Replace('\\', '/').Trim('/');
+            rel = (rel ?? "").Replace('\\', '/');
+            if (rel.StartsWith("/", StringComparison.Ordinal)) throw new ArgumentException($"\"{rel}\" is not a path inside the server's folder.");
+            rel = rel.TrimEnd('/');
             if (rel.Length == 0) return "";
             foreach (var seg in rel.Split('/'))
             {
@@ -80,7 +82,9 @@ namespace MonitoringTools.Minecraft
             return rel;
         }
 
-        public static string Stamp() => DateTime.Now.ToString("yyyyMMdd-HHmmss-fff");
+        private static int _stampCounter;
+        /// <summary>A sortable timestamp that is never repeated within one run, even for two changes in the same millisecond.</summary>
+        public static string Stamp() => DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + "-" + (System.Threading.Interlocked.Increment(ref _stampCounter) % 1000).ToString("000");
     }
 
     /// <summary>The server folder on this computer.</summary>
@@ -221,7 +225,7 @@ namespace MonitoringTools.Minecraft
             var list = rels.ToList();
             if (list.Count == 0) return new Dictionary<string, string>(StringComparer.Ordinal);
             var script = new StringBuilder();
-            foreach (var r in list) script.Append($"if [ -f {Q(r)} ]; then echo '@@' {ServerManager.Sh(r)}; base64 < {Q(r)}; echo; fi; ");
+            for (int i = 0; i < list.Count; i++) script.Append($"if [ -f {Q(list[i])} ]; then echo '@@' {i}; base64 < {Q(list[i])}; echo; fi; ");
             var o = Ok(script.ToString(), "read files");
             var d = new Dictionary<string, string>(StringComparer.Ordinal);
             string cur = null; var b64 = new StringBuilder();
@@ -229,7 +233,7 @@ namespace MonitoringTools.Minecraft
             foreach (var raw in o.Replace("\r", "").Split('\n'))
             {
                 var line = raw.Trim();
-                if (line.StartsWith("@@ ", StringComparison.Ordinal)) { Flush(); cur = line[3..].Trim().Trim('\''); }
+                if (line.StartsWith("@@ ", StringComparison.Ordinal)) { Flush(); cur = list[int.Parse(line[3..].Trim())]; }
                 else if (cur != null) b64.Append(line);
             }
             Flush();

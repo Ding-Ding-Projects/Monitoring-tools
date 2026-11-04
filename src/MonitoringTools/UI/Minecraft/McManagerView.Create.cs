@@ -192,7 +192,7 @@ namespace MonitoringTools.UI.Minecraft
             var note = McUi.Body(d.BedrockVersion != null ? "Version " + d.BedrockVersion + " from minecraft.net." : "Reading Mojang's download link…", d.BedrockVersion != null ? "B.Mint" : "B.TextMute", 13);
             AutomationProperties.SetLiveSetting(note, AutomationLiveSetting.Polite);
             card.Children.Add(note);
-            card.Children.Add(McUi.Body("Mojang offers only the newest release of the Bedrock server, so that is the one installed. It runs as a process on this computer and players connect over UDP. Mojang publishes no checksum for it; the server program must carry Microsoft's signature before it is installed.", "B.TextSoft", 12.5));
+            card.Children.Add(McUi.Body("Mojang offers only the newest release of the Bedrock server, so that is the one installed. Players connect over UDP. On this computer it runs as a Windows process; Mojang publishes no checksum for it, so the server program must carry Microsoft's signature before it is installed. Over SSH it is Mojang's Linux build, unpacked on the host (Mojang publishes no checksum or signature for it, so the download is held to HTTPS on minecraft.net and nothing more). In Docker it is the community image itzg/minecraft-bedrock-server, which downloads the server itself.", "B.TextSoft", 12.5));
             sp.Children.Add(new Border { Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(16), Padding = new Thickness(16, 12, 16, 12), Child = card, MaxWidth = 720, HorizontalAlignment = HorizontalAlignment.Left });
             if (d.BedrockVersion == null)
                 _ = McBedrock.LatestAsync().ContinueWith(t => Dispatcher.BeginInvoke(new Action(() =>
@@ -375,10 +375,9 @@ namespace MonitoringTools.UI.Minecraft
 
         private string TargetProblem(McCreateDraft d)
         {
-            if (d.Bedrock && d.Target != Target.LocalProcess) return "The Bedrock server runs as a process on this computer. Choose This computer.";
             if ((d.Target == Target.SshProcess || d.Target == Target.SshDocker) && string.IsNullOrWhiteSpace(d.SshHost)) return "Enter the SSH host.";
-            if (d.Target == Target.LocalProcess && !McSoftware.RunsAsLocalProcess(d.Flavour)) return $"{d.Flavour} runs in Docker. Choose a Docker target, or go back and choose Vanilla, Paper or Purpur.";
-            if (d.Target == Target.SshProcess && d.Flavour != Flavour.Vanilla) return "A process over SSH runs Vanilla. Choose Docker over SSH for other software.";
+            if (d.Target == Target.LocalProcess && !d.Bedrock && !McSoftware.RunsAsLocalProcess(d.Flavour)) return $"{d.Flavour} runs in Docker. Choose a Docker target, or go back and choose Vanilla, Paper or Purpur.";
+            if (d.Target == Target.SshProcess && d.Flavour != Flavour.Vanilla && !d.Bedrock) return "A process over SSH runs Vanilla. Choose Docker over SSH for other software.";
             if (d.Target == Target.LocalDocker && Ready.TryGetValue(Target.LocalDocker, out var ok) && !ok) return Readiness[Target.LocalDocker];
             return null;
         }
@@ -568,7 +567,7 @@ namespace MonitoringTools.UI.Minecraft
         private string WorldProblem(McCreateDraft d)
         {
             if (d.WorldMode == "new") return d.Seed.Trim().Contains(' ') ? "A seed has no spaces." : null;
-            if (d.Bedrock) return "A Bedrock server starts with a new world here. Copy an existing world into its worlds folder after it is made.";
+            if (d.Bedrock) return "A Bedrock server starts with a new world here. Import an existing world from its Worlds section after it is made.";
             if (d.Target == Target.SshProcess || d.Target == Target.SshDocker) return "An existing world can be copied to an SSH host after the server is made. Choose a new world here.";
             if (string.IsNullOrEmpty(d.WorldSource)) return d.WorldMode == "backup" ? "Choose a backup." : "Choose a world folder or ZIP.";
             return McWorlds.Validate(d.WorldSource).Problem;

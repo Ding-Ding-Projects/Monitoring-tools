@@ -193,7 +193,7 @@ namespace MonitoringTools.Minecraft
         {
             try
             {
-                var psi = new ProcessStartInfo(exe, args) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = stdin != null };
+                var psi = new ProcessStartInfo(exe, args) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = stdin != null, StandardOutputEncoding = Encoding.UTF8, StandardErrorEncoding = Encoding.UTF8 };
                 if (!string.IsNullOrEmpty(workingDir)) { Directory.CreateDirectory(workingDir); psi.WorkingDirectory = workingDir; }
                 using var p = Process.Start(psi);
                 if (stdin != null) { p.StandardInput.Write(stdin); p.StandardInput.Close(); }

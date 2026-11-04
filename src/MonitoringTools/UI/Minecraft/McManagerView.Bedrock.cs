@@ -34,8 +34,7 @@ namespace MonitoringTools.UI.Minecraft
             addRow.Children.Add(Labelled("Xbox user id (optional)", xuidBox));
             var result = McUi.Body("", "B.TextMute", 12.5);
             AutomationProperties.SetLiveSetting(result, AutomationLiveSetting.Polite);
-            var list = new StackPanel();
-
+            PlayerBox box = null;
             List<McPlayer> loaded = null; string error = null; bool allowOn = true;
             void Say(string text, string fg) { result.Text = text; result.Foreground = Ui.Res(fg); Core.Language.Refresh(result); }
 
@@ -69,11 +68,12 @@ namespace MonitoringTools.UI.Minecraft
                 await Load(false);
             }
 
-            addRow.Children.Add(Ui.Button("Allow list", () => _ = Apply(BedrockChange.AllowAdd, nameBox.Text.Trim(), xuidBox.Text.Trim()), "Btn.Ghost", Icons.Plus));
+            box = MakePlayerBox(s, "minecraft:bedrock-players", p => BedrockPlayerRow(s, p, Apply, () => { try { McBedrockPlayers.RemovePermission(McFiles.For(s), p.Xuid); } catch (Exception ex) { Say(ex.Message, "B.Amber"); } _ = Load(false); }), () => _ = Load(false));
+            addRow.Children.Add(Ui.Button("Allow list",() => _ = Apply(BedrockChange.AllowAdd, nameBox.Text.Trim(), xuidBox.Text.Trim()), "Btn.Ghost", Icons.Plus));
             addRow.Children.Add(Ui.Button("Make operator…", () => ConfirmOp(s, nameBox.Text.Trim(), true, ok => { if (ok) _ = Apply(BedrockChange.Operator, nameBox.Text.Trim(), xuidBox.Text.Trim()); }), "Btn.Ghost", Icons.Shield));
             card.Children.Add(addRow);
             card.Children.Add(result);
-            card.Children.Add(list);
+            card.Children.Add(box.Root);
             root.Children.Add(McUi.Card(card));
 
             void Fill()
@@ -84,14 +84,12 @@ namespace MonitoringTools.UI.Minecraft
                     : s.IsSsh ? "The server is stopped, so changes are written to allowlist.json and permissions.json on the SSH host. Operator changes ask for the two-key confirmation."
                     : "The server is stopped, so changes are written to allowlist.json and permissions.json. Operator changes ask for the two-key confirmation.")
                     + (allowOn ? "" : " The allow list is switched off in server.properties (allow-list=false), so these names are not enforced until it is turned on in Settings.");
-                list.Children.Clear();
-                if (error != null) { list.Children.Add(McUi.Body(error, "B.Amber", 13)); Core.Language.Refresh(card); return; }
-                if (loaded == null) { list.Children.Add(McUi.Body("Reading the player files…", "B.TextMute", 13)); Core.Language.Refresh(card); return; }
+                if (error != null) { box.Show(new List<McPlayer>(), error); Core.Language.Refresh(card); return; }
+                if (loaded == null) { box.Show(new List<McPlayer>(), "Reading the player files…"); Core.Language.Refresh(card); return; }
                 var online = up ? McLive.For(s).PlayerNames : Array.Empty<string>();
                 var players = loaded.Select(p => new McPlayer { Name = p.Name, Xuid = p.Xuid, Permission = p.Permission, Operator = p.Operator, Whitelisted = p.Whitelisted, Anonymous = p.Anonymous, Online = online.Contains(p.Name, StringComparer.OrdinalIgnoreCase) }).ToList();
                 foreach (var n in online) if (!players.Any(p => p.Name.Equals(n, StringComparison.OrdinalIgnoreCase))) players.Add(new McPlayer { Name = n, Online = true });
-                if (players.Count == 0) list.Children.Add(McUi.Body("No players yet. Add one by name, or they appear once they join.", "B.TextMute", 13));
-                foreach (var p in players.OrderByDescending(p => p.Online).ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)) list.Children.Add(BedrockPlayerRow(s, p, Apply, () => { try { McBedrockPlayers.RemovePermission(McFiles.For(s), p.Xuid); } catch (Exception ex) { Say(ex.Message, "B.Amber"); } _ = Load(false); }));
+                box.Show(players.OrderByDescending(p => p.Online).ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase).ToList(), players.Count == 0 ? "No players yet. Add one by name, or they appear once they join." : null);
                 Core.Language.Refresh(card);
             }
 

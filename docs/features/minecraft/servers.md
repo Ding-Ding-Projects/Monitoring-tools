@@ -61,7 +61,16 @@ reads Bedrock's `[date time:ms LEVEL]` lines, the state turns Running at "Server
 player tiles, and Stop sends `stop`. Its [settings](settings.md) come from its own `server.properties` keys (server name,
 allow list, tick distance and the rest), not Java's. Backups hold the `worlds` folder and use `save hold` and `save
 resume` while it runs. The console takes a typed command line, since Bedrock has no command list to build from; the
-Players section points to the console (`allowlist`, `op`), and add-ons are not managed yet.
+Players section edits allowlist.json and permissions.json, and add-ons and worlds are managed (see [players](players.md),
+[plugins](plugins.md#bedrock-add-ons) and [worlds](worlds.md)).
+
+On **Docker** it runs the community image `itzg/minecraft-bedrock-server` (not Mojang's own): the server's port is
+published onto 19132 over UDP, the container keeps standard input open and console commands go through the image's
+`send-command`; the image downloads the server on its first start (the live check took 286 s). Over **SSH** it is Mojang's
+Linux zip, downloaded on the host over HTTPS from minecraft.net and unpacked with `unzip -n` (existing files are never
+overwritten); Mojang publishes no checksum or signature for it, so only the address is checked. It is started through the
+same console pipe as the Java process. The Linux server was unpacked on a real host by the live check but never started,
+because the only host available had no glibc.
 
 ## The sections
 

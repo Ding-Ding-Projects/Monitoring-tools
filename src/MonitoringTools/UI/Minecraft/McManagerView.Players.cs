@@ -39,8 +39,8 @@ namespace MonitoringTools.UI.Minecraft
             var nameCol = new StackPanel(); nameCol.Children.Add(new TextBlock { Text = "Add a player by name", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); nameCol.Children.Add(nameBox); addRow.Children.Add(nameCol);
             var result = McUi.Body("", "B.TextMute", 12.5);
             AutomationProperties.SetLiveSetting(result, AutomationLiveSetting.Polite);
-            var list = new StackPanel();
 
+            PlayerBox box = null;
             async Task Apply(McPlayers.Change c, string name, string reason = null)
             {
                 result.Text = "Working…"; result.Foreground = Ui.Res("B.TextMute");
@@ -66,11 +66,12 @@ namespace MonitoringTools.UI.Minecraft
             }
             _playerApply = Apply;
 
+            box = MakePlayerBox(s, "minecraft:players", p => PlayerTableRow(s, p, Apply), () => { if (s.IsLocal) Fill(); else _ = LoadRemote(); });
             addRow.Children.Add(Ui.Button("Whitelist", () => _ = Apply(McPlayers.Change.WhitelistAdd, nameBox.Text.Trim()), "Btn.Ghost", Icons.Plus));
             addRow.Children.Add(Ui.Button("Make operator…", () => ConfirmOp(s, nameBox.Text.Trim(), true, ok => { if (ok) _ = Apply(McPlayers.Change.Op, nameBox.Text.Trim()); }), "Btn.Ghost", Icons.Shield));
             card.Children.Add(addRow);
             card.Children.Add(result);
-            card.Children.Add(list);
+            card.Children.Add(box.Root);
             root.Children.Add(McUi.Card(card));
 
             void Fill()
@@ -89,12 +90,12 @@ namespace MonitoringTools.UI.Minecraft
                     var fid = id;
                     filters.Children.Add(McUi.Chip($"{label} {count}", PlayerFilter == id, () => { PlayerFilter = fid; Fill(); }, $"{label}: {count}"));
                 }
-                list.Children.Clear();
                 var shown = players.Where(p => PlayerFilter switch { "online" => p.Online, "ops" => p.Operator, "banned" => p.Banned, _ => true }).ToList();
-                if (!s.IsLocal && remoteError != null) list.Children.Add(McUi.Body(remoteError, "B.Amber", 13));
-                else if (!s.IsLocal && remoteTexts == null) list.Children.Add(McUi.Body("Reading the player files on the SSH host…", "B.TextMute", 13));
-                else if (shown.Count == 0) list.Children.Add(McUi.Body(players.Count == 0 ? "No players yet. Add one by name, or they appear once they join." : "No players match this filter.", "B.TextMute", 13));
-                foreach (var p in shown) list.Children.Add(PlayerTableRow(s, p, Apply));
+                string note = null;
+                if (!s.IsLocal && remoteError != null) note = remoteError;
+                else if (!s.IsLocal && remoteTexts == null) note = "Reading the player files on the SSH host…";
+                else if (shown.Count == 0) note = players.Count == 0 ? "No players yet. Add one by name, or they appear once they join." : "No players match this filter.";
+                box.Show(shown, note);
                 Core.Language.Refresh(card);
             }
             // Rebuilt only when the players or the files changed, so a switch keeps keyboard focus between polls.

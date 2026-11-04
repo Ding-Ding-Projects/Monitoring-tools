@@ -3,8 +3,38 @@
 ![Plugins with their badges](../../screenshots/mc-plugins-badges.png)
 
 Paper and Purpur servers take plugins (the `plugins` folder); Fabric, Forge and NeoForge take mods (`mods`); Vanilla
-takes neither, and the section says so. A Bedrock server takes add-ons (behavior and resource packs) instead, which this
-app does not manage yet; the section says that too. The section is named **Plugins** or **Mods** to match.
+takes neither, and the section says so. A Bedrock server takes add-ons (behavior and resource packs) instead; its section is described under
+[Bedrock add-ons](#bedrock-add-ons). The section is named **Plugins** or **Mods** to match.
+
+## SSH servers
+
+![Mods on an SSH host](../../screenshots/mc-ssh-mods.png)
+
+A server on an SSH host lists its `plugins` or `mods` folder over SSH. Names come from the file names (jars are not
+downloaded to read their metadata). The switch (rename to `.jar.disabled`), **Remove** and **Install from a file** (scp)
+work on the host, each after the folder is copied to a dated `plugins-backups` or `mods-backups` folder beside it on the
+host. Catalogue search, installs, update checks and **Undo** are for servers on this computer.
+
+## Bedrock add-ons
+
+![Bedrock add-ons](../../screenshots/mc-bedrock-addons.png)
+
+An add-on is a pack folder with a `manifest.json` inside `behavior_packs` or `resource_packs`. A world uses it only when
+the world's `world_behavior_packs.json` or `world_resource_packs.json` names its id and version, so the section edits
+those files. Packs the server ships (vanilla, chemistry, editor, experimental) are counted but not listed.
+
+- **Install an add-on** takes a `.mcpack`, a `.mcaddon` or a ZIP of either. Entries pointing outside the folder are
+  refused, a `.mcpack` inside a `.mcaddon` is unpacked, and skin packs and world templates are skipped with the reason.
+  Manifests may carry comments and trailing commas, as the game allows. A pack with the id of an installed one replaces it.
+- The switch **Switch on for the world after installing** names each new pack (and the packs it depends on) in the
+  world's pack list. Before the first start there is no world; the add-on is installed and switched on after the server
+  has made its world.
+- Each pack has a switch (on and off edit the world's list, switching on also switches on installed dependencies) and a
+  remove button with the two-key confirmation.
+- Before each install, switch or removal, what it touches is copied to `addons-backups/<time>` with a plan, and **Undo the
+  last change** puts it back and removes what that change added; an undo can itself be undone.
+
+The same code serves this computer, a Docker bind mount and an SSH host.
 
 ## Installed
 

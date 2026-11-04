@@ -19,7 +19,7 @@ namespace MonitoringTools.Minecraft
     public static class McBedrockPlayers
     {
         public const string AllowFile = "allowlist.json", PermissionFile = "permissions.json";
-        private static readonly Regex NameRx = new Regex(@"^[A-Za-z0-9_.#-]([A-Za-z0-9 _.#-]{0,30}[A-Za-z0-9_.#-])?$", RegexOptions.Compiled);
+        private static readonly Regex NameRx = new Regex(@"^(?=.{1,32}$)[A-Za-z0-9_.#-]+( [A-Za-z0-9_.#-]+)*$", RegexOptions.Compiled);
         private static readonly Regex XuidRx = new Regex(@"^\d{6,20}$", RegexOptions.Compiled);
 
         public static bool ValidName(string name) => name != null && NameRx.IsMatch(name);
