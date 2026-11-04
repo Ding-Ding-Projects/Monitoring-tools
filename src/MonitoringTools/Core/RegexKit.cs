@@ -198,6 +198,88 @@ namespace MonitoringTools.Core
             return null;
         }
 
+        // ---------------------------------------------------------------- replacement explanation
+
+        /// <summary>One piece of a replacement string: the text, what it does, and whether it is a mistake the engine will not report.</summary>
+        public sealed record ReplacementToken(string Text, string Meaning, bool Problem);
+
+        /// <summary>
+        /// Explains a .NET replacement string piece by piece. The .NET engine never rejects a bad
+        /// reference: a dollar sign that does not form a valid token stays in the output as plain
+        /// text, so those pieces are flagged here. Group references are checked against the pattern.
+        /// </summary>
+        public static List<ReplacementToken> ExplainReplacement(string replacement, Regex rx, int max = 200)
+        {
+            var list = new List<ReplacementToken>();
+            replacement ??= "";
+            if (replacement.Length == 0) return list;
+            var numbers = rx?.GetGroupNumbers() ?? new[] { 0 };
+            var literal = new StringBuilder();
+            void flush()
+            {
+                if (literal.Length == 0) return;
+                list.Add(new ReplacementToken(literal.ToString(), "literal text, copied to the result as it is", false));
+                literal.Clear();
+            }
+            string groupLabel(int n)
+            {
+                if (n == 0) return "the whole match";
+                var name = rx?.GroupNameFromNumber(n);
+                return name != null && name != n.ToString() ? $"the text captured by group {n} (\"{name}\")" : $"the text captured by group {n}";
+            }
+            var i = 0;
+            while (i < replacement.Length)
+            {
+                if (list.Count >= max) { flush(); list.Add(new ReplacementToken("…", $"{replacement.Length - i} more characters not explained", false)); return list; }
+                var c = replacement[i];
+                if (c != '$' || i + 1 >= replacement.Length) { literal.Append(c); i++; continue; }
+                var d = replacement[i + 1];
+                if (d == '$') { flush(); list.Add(new ReplacementToken("$$", "a single dollar sign", false)); i += 2; continue; }
+                if (d == '&') { flush(); list.Add(new ReplacementToken("$&", "the whole match (same as $0)", false)); i += 2; continue; }
+                if (d == '`') { flush(); list.Add(new ReplacementToken("$`", "the text before the match", false)); i += 2; continue; }
+                if (d == '\'') { flush(); list.Add(new ReplacementToken("$'", "the text after the match", false)); i += 2; continue; }
+                if (d == '+') { flush(); list.Add(new ReplacementToken("$+", "the text of the highest-numbered group that captured", false)); i += 2; continue; }
+                if (d == '_') { flush(); list.Add(new ReplacementToken("$_", "the whole input text", false)); i += 2; continue; }
+                if (d == '{')
+                {
+                    var close = replacement.IndexOf('}', i + 2);
+                    if (close < 0)
+                    {
+                        flush(); list.Add(new ReplacementToken(replacement[i..], "an unclosed ${ reference: .NET leaves it as plain text", true));
+                        i = replacement.Length; continue;
+                    }
+                    var name = replacement.Substring(i + 2, close - i - 2);
+                    var text = replacement.Substring(i, close + 1 - i);
+                    flush();
+                    int num;
+                    if (name.Length > 0 && name.All(char.IsAsciiDigit)) num = int.TryParse(name, out var parsed) && Array.IndexOf(numbers, parsed) >= 0 ? parsed : -1;
+                    else num = rx != null && name.Length > 0 ? rx.GroupNumberFromName(name) : -1;
+                    list.Add(num >= 0
+                        ? new ReplacementToken(text, groupLabel(num), false)
+                        : new ReplacementToken(text, $"no group \"{name}\" in this pattern: .NET leaves this as plain text", true));
+                    i = close + 1; continue;
+                }
+                if (char.IsAsciiDigit(d))
+                {
+                    var j = i + 1;
+                    while (j < replacement.Length && char.IsAsciiDigit(replacement[j])) j++;
+                    var digits = replacement.Substring(i + 1, j - i - 1);
+                    var text = "$" + digits;
+                    flush();
+                    var ok = int.TryParse(digits, out var n) && Array.IndexOf(numbers, n) >= 0;
+                    list.Add(ok ? new ReplacementToken(text, groupLabel(n), false)
+                        : new ReplacementToken(text, $"this pattern has no group {digits}: .NET leaves this as plain text", true));
+                    i = j; continue;
+                }
+                // a dollar sign that starts nothing
+                flush();
+                list.Add(new ReplacementToken("$" + d, "a dollar sign followed by a character that makes no token: kept as plain text", true));
+                i += 2;
+            }
+            flush();
+            return list;
+        }
+
         public static string[] SplitPreview(Regex rx, string sample, out string error)
         {
             error = null;
