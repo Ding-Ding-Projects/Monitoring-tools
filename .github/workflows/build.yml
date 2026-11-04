@@ -27,6 +27,12 @@ jobs:
     outputs:
       version: ${{ steps.ver.outputs.version }}
     steps:
+      # First step of the job: the fallback start time for the release-notes timing section.
+      - name: Record workflow start
+        shell: pwsh
+        run: |
+          "WORKFLOW_STARTED=$((Get-Date).ToUniversalTime().ToString('o'))" >> $env:GITHUB_ENV
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -44,7 +50,9 @@ jobs:
                   ForEach-Object { [version]($_.TrimStart('v')) } | Sort-Object -Descending
           if ($tags) { $l = $tags[0]; $next = "{0}.{1}.{2}" -f $l.Major, $l.Minor, ($l.Build + 1) } else { $next = "1.0.0" }
           "version=$next" >> $env:GITHUB_OUTPUT
-          Write-Host "Next version: $next"
+          # Release order (number of earlier release tags): picks the dim sum code name.
+          "ordinal=$(@($tags).Count)" >> $env:GITHUB_OUTPUT
+          Write-Host "Next version: $next (release order $(@($tags).Count))"
 
       - name: Cache fetched dependencies
         uses: actions/cache@v4
@@ -67,6 +75,7 @@ jobs:
           Get-ChildItem .deps/ffmpeg | Format-Table Name, Length
 
       - name: Render screenshots
+        id: shots
         continue-on-error: true
         shell: pwsh
         run: |
@@ -156,12 +165,80 @@ jobs:
           if (Test-Path dist/MonitoringTools-screenshots.zip) { $assets += 'dist/MonitoringTools-screenshots.zip' }
           $size = "{0:N0} MB" -f ((Get-Item dist/MonitoringTools-Setup.exe).Length / 1MB)
           $notes = "Setup and portable exe are $size each: FFmpeg, FFprobe and portable Git are bundled inside, so conversion and pushing work offline with nothing else to install. MonitoringTools-BuildTool.exe is a portable desktop front end for build.bat and build-installer.bat; MonitoringTools-Site.exe is the project site and documentation as a portable offline app."
-          gh release create $tag @assets --target "${{ github.sha }}" --title "Monitoring Tools $tag" --generate-notes --notes "$notes"
+
+          # ---- notes inputs: changes since the previous release, line counts, timing ----
+          $prev = git tag --list 'v*' --sort=-v:refname | Where-Object { $_ -match '^v\d+\.\d+\.\d+$' -and $_ -ne $tag } | Select-Object -First 1
+          $range = if ($prev) { "$prev..${{ github.sha }}" } else { "${{ github.sha }}" }
+          $changes = (git log --no-merges --format='- %s (%h)' $range) -join "`n"
+          $intro = "$notes`n`n## Changes since $(if ($prev) { $prev } else { 'the start' })`n`n$changes"
+          $tmp = $env:RUNNER_TEMP
+          Set-Content -Encoding utf8NoBOM "$tmp/intro.md" $intro
+
+          node scripts/line-counts.mjs --ref ${{ github.sha }} --json-out "$tmp/counts.json" > "$tmp/counts.md"
+          if ($LASTEXITCODE -ne 0) { Write-Host "::warning::Line counter reported an inconsistency; the notes say so" }
+
+          # Start of the build job from the API, falling back to the first step's own clock.
+          $started = $env:WORKFLOW_STARTED
+          try {
+            $api = gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" --jq '.jobs[] | select(.name == "windows") | .started_at'
+            if ($LASTEXITCODE -eq 0 -and $api) { $started = $api.Trim() }
+          } catch { }
+
+          $shots = '${{ steps.shots.outcome }}'
+          $checks = "By project policy this workflow runs no tests, lint or other gating checks, so this release is not described as tested. What it did do: ran build-installer.bat (the build), rendered the app's screenshots (outcome: $shots), built the desktop tools, and verified below that this is a normal release with every asset attached."
+
+          function New-Notes($ended) {
+            node scripts/release-notes.mjs --version ${{ steps.ver.outputs.version }} --ordinal ${{ steps.ver.outputs.ordinal }} `
+              --started $started --ended $ended --counts "$tmp/counts.json" --counts-md "$tmp/counts.md" `
+              --intro "$tmp/intro.md" --checks $checks --out "$tmp/notes.md"
+            if ($LASTEXITCODE -ne 0) { throw "release-notes.mjs failed" }
+          }
+
+          New-Notes ((Get-Date).ToUniversalTime().ToString('o'))
+          gh release create $tag @assets --target "${{ github.sha }}" --title "Monitoring Tools $tag" --notes-file "$tmp/notes.md"
           # Read the release back: it must be a normal release with every asset attached.
           $r = gh release view $tag --json isDraft,isPrerelease,tagName,assets | ConvertFrom-Json
           if ($r.isDraft -or $r.isPrerelease) { throw "Release $tag is a draft or prerelease" }
           foreach ($a in $assets) { if (-not ($r.assets.name -contains (Split-Path $a -Leaf))) { throw "Release $tag is missing $a" } }
           Write-Host "Release $tag verified: normal release with $($r.assets.Count) assets"
+
+          # Final timing now that publication and verification are done.
+          New-Notes ((Get-Date).ToUniversalTime().ToString('o'))
+          gh release edit $tag --notes-file "$tmp/notes.md"
+          "RELEASE_TMP=$tmp" >> $env:GITHUB_ENV
+
+      - name: Record release figures and changelog in the repository
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        run: |
+          # Commits made with GITHUB_TOKEN do not start another run, so this cannot loop.
+          git config user.name "Claude Fable 5.1"
+          git config user.email "noreply@anthropic.com"
+          git fetch --tags --force -q
+          git pull --rebase -q origin main
+          # Refresh the README figures block in place, from the counts this run produced.
+          $t = $env:RELEASE_TMP
+          $now = (Get-Date).ToUniversalTime().ToString('o')
+          node scripts/release-notes.mjs --version ${{ steps.ver.outputs.version }} --ordinal ${{ steps.ver.outputs.ordinal }} `
+            --started $now --ended $now --counts "$t/counts.json" --counts-md "$t/counts.md" `
+            --intro "$t/intro.md" --out "$t/unused-notes.md" --readme README.md
+          if ($LASTEXITCODE -ne 0) { throw "README figures update failed" }
+          node scripts/changelog.mjs
+          git add README.md CHANGELOG.md
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) { Write-Host "Figures and changelog unchanged"; exit 0 }
+          $lines = @(
+            "Record v${{ steps.ver.outputs.version }} figures and changelog",
+            "",
+            "The release workflow counted lines at the released commit and refreshed the README",
+            "figures block and the generated changelog from that run.",
+            "",
+            "Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+          )
+          $lines -join "`n" | Set-Content -Encoding utf8NoBOM commit-message.txt
+          git commit -q -F commit-message.txt
+          Remove-Item commit-message.txt
+          git push origin HEAD:main
 
   pages:
     needs: windows
@@ -179,13 +256,26 @@ jobs:
         continue-on-error: true
         with:
           name: screenshots
-          path: site/screenshots
+          path: site-screenshots
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Renders docs/features/**/*.md into pages, vendored fonts and the real screenshots into site/dist.
+      # The fresh screenshots from this run are used when present; otherwise the committed docs/screenshots.
+      - name: Build the site
+        run: |
+          node scripts/vendor-site-fonts.mjs --check
+          node scripts/build-site.mjs
+        env:
+          SITE_SCREENSHOTS: ${{ github.workspace }}/site-screenshots
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: site/dist
 
       - id: deploy
         uses: actions/deploy-pages@v4

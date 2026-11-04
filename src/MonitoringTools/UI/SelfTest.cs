@@ -1,4 +1,5 @@
 using System;
+using MonitoringTools.Minecraft;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -240,6 +241,295 @@ namespace MonitoringTools.UI
                 var compact = Appearance.Row(40);
                 s.CompactDensity = false; Appearance.Apply();
                 return compact < normal ? null : $"rows {normal} / {compact}";
+            });
+
+            // ---- regex syntax tree
+            Check("regex tree: ten patterns give the expected node counts and spans", () =>
+            {
+                var cases = new (string Pattern, int Nodes, string[] Spans)[]
+                {
+                    ("abc", 1, new[] { "Literal[0,3)" }),
+                    (@"\d+", 2, new[] { "Quantifier[0,3)", "Shorthand[0,2)" }),
+                    ("a|b", 5, new[] { "Alternation[0,3)", "Branch[2,3)" }),
+                    ("(a)(?:b)", 4, new[] { "Group[0,3)", "Group[3,8)", "Literal[6,7)" }),
+                    ("[a-z-[aeiou]]+", 3, new[] { "Quantifier[0,14)", "CharClass[0,13)", "Subtraction[5,12)" }),
+                    (@"(?<year>\d{4})-(?<m>\d\d)", 7, new[] { "Group[0,14)", "Quantifier[8,13)", "Group[15,25)" }),
+                    (@"(?<=\$)\d+(?!\d)", 6, new[] { "Group[0,7)", "Group[10,16)", "Escape[4,6)" }),
+                    (@"^(?:(?<open>\()|(?<-open>\))|[^()])*(?(open)(?!))$", 17, new[] { "Group[4,15)", "Group[16,28)", "Conditional[36,49)", "Condition[38,44)", "Anchor[49,50)" }),
+                    ("(?x) a+ # note\n b", 5, new[] { "InlineOptions[0,4)", "Comment[8,15)", "Literal[16,17)" }),
+                    (@"(?<x>\p{Lu}+?)\k<x>{2}\G", 6, new[] { "Property[5,11)", "Backreference[14,19)", "Anchor[22,24)" }),
+                };
+                foreach (var (pattern, nodes, spans) in cases)
+                {
+                    var r = RegexTree.Parse(pattern);
+                    if (!r.Valid) return $"{pattern}: not valid: {r.Message}";
+                    if (r.Note != null) return $"{pattern}: disagreement with the engine: {r.Note}";
+                    if (r.NodeCount != nodes) return $"{pattern}: {r.NodeCount} nodes, expected {nodes}";
+                    var have = RegexTree.Walk(r.Root).Skip(1).Select(n => $"{n.Kind}[{n.Start},{n.End})").ToHashSet();
+                    var missing = spans.FirstOrDefault(x => !have.Contains(x));
+                    if (missing != null) return $"{pattern}: no node {missing}";
+                    foreach (var n in RegexTree.Walk(r.Root).Skip(1))
+                        if (n.Parent == null || n.Start < n.Parent.Start || n.End > n.Parent.End) return $"{pattern}: node {n.Kind}[{n.Start},{n.End}) is outside its parent";
+                }
+                return null;
+            });
+            Check("regex tree: a balancing group is recognised and counted as the engine counts it", () =>
+            {
+                var r = RegexTree.Parse(@"(?<open>\()(?<a-open>\))(?<-open>x)");
+                var groups = RegexTree.Walk(r.Root).Where(n => n.Kind == RegexTree.NodeKind.Group).ToList();
+                if (groups.Count != 3 || groups[1].Group != RegexTree.GroupKind.Balancing || groups[1].Name != "a" || groups[1].Other != "open") return "balancing group not parsed";
+                if (groups[2].Group != RegexTree.GroupKind.Balancing || groups[2].Name != "" || groups[2].Captures) return "a -open group must not capture";
+                return r.Valid && r.Note == null && r.Captures == 2 ? null : $"captures {r.Captures}, valid {r.Valid}, note {r.Note}";
+            });
+            Check("regex tree: a pattern .NET rejects reports the engine's message and position", () =>
+            {
+                var r = RegexTree.Parse("(a");
+                return !r.Valid && r.EngineError != null && r.EngineOffset >= 0 ? null : "no engine error reported";
+            });
+            Check("regex tree: guided editing rewrites a quantifier, a set and a group opening", () =>
+            {
+                var q = RegexTree.Parse(@"a\d+b");
+                var qn = RegexTree.Walk(q.Root).First(n => n.Kind == RegexTree.NodeKind.Quantifier);
+                if (RegexTree.ApplyQuantifier(q.Pattern, qn, 2, 5, true) != @"a\d{2,5}?b") return "quantifier rewrite";
+                if (RegexTree.ApplyQuantifier(q.Pattern, qn, 3, 1, false) != null) return "a reversed range was accepted";
+                var c = RegexTree.Parse("x[a-z-[aeiou]]y");
+                var cn = RegexTree.Walk(c.Root).First(n => n.Kind == RegexTree.NodeKind.CharClass);
+                if (RegexTree.ApplyClass(c.Pattern, cn, "0-9", true) != "x[^0-9-[aeiou]]y") return "set rewrite";
+                var g = RegexTree.Parse("(ab)+");
+                var gn = RegexTree.Walk(g.Root).First(n => n.Kind == RegexTree.NodeKind.Group);
+                return RegexTree.ApplyGroupKind(g.Pattern, gn, RegexTree.GroupKind.Named, "pair") == "(?<pair>ab)+" && RegexTree.ApplyGroupKind(g.Pattern, gn, RegexTree.GroupKind.Atomic, null) == "(?>ab)+" ? null : "group rewrite";
+            });
+            Check("regex replace: invalid references are flagged and valid ones explained", () =>
+            {
+                var rx = new Regex("(?<w>a)(b)");
+                var t = RegexKit.ExplainReplacement("$1-${w}-$3-${zz}-$$", rx);
+                var bad = t.Where(x => x.Problem).Select(x => x.Text).ToList();
+                return bad.SequenceEqual(new[] { "$3", "${zz}" }) && t.Any(x => x.Text == "$$" && !x.Problem) ? null : "flagged: " + string.Join(" ", bad);
+            });
+
+            // ---- appearance: presets, import and export, colour spaces, locks
+            Check("appearance: a preset applies its look to another element, letter spacing and underline included", () =>
+            {
+                var src = new ElementStyle { Background = "#FFAA0000", CornerRadius = 10, LetterSpacing = 4, Underline = true, Hover = new StateLook { Background = "#FF00AA00" } };
+                var err = ElementStyles.SavePreset("Selftest red", src);
+                if (err != null) return "preset not saved: " + err;
+                try
+                {
+                    var p = ElementStyles.Preset("Selftest red");
+                    if (p == null || !ElementStyles.Same(p, src)) return "preset did not round-trip";
+                    var target = new Border { Child = new TextBlock { Text = "Save now" } };
+                    ElementStyles.Apply(target, p);
+                    var tb = (TextBlock)target.Child;
+                    if (!(target.Background is SolidColorBrush bg) || bg.Color != Color.FromRgb(0xAA, 0, 0)) return "background not applied";
+                    if (target.CornerRadius.TopLeft != 10) return "corner radius not applied";
+                    if (!tb.Text.Contains(ElementStyles.Hair) || tb.Text.Replace(ElementStyles.Hair.ToString(), "") != "Save now") return "letter spacing not applied: " + tb.Text.Length;
+                    if (tb.TextDecorations == null || tb.TextDecorations.Count == 0) return "underline not applied";
+                    var hover = ElementStyles.ResolveState(p, "hover");
+                    if (hover.Background != "#FF00AA00" || ElementStyles.ResolveState(p, "pressed").Background != "#FFAA0000") return "state looks do not resolve";
+                    ElementStyles.Apply(target, new ElementStyle());
+                    if (tb.Text != "Save now" || tb.TextDecorations.Count != 0) return "text not restored";
+                    return ElementStyles.DeletePreset("Selftest red") ? null : "preset not deleted";
+                }
+                finally { ElementStyles.DeletePreset("Selftest red"); }
+            });
+            Check("appearance: export then import round-trips, and a bad file changes nothing", () =>
+            {
+                const string key = "selftest|Round trip";
+                var original = new ElementStyle { Foreground = "#FF112233", FontSize = 17, Italic = true, Pressed = new StateLook { Foreground = "#FF445566" } };
+                ElementStyles.Store(key, original.Clone(), false);
+                try
+                {
+                    var json = ElementStyles.ExportJson();
+                    ElementStyles.Store(key, null, false);
+                    if (ElementStyles.Get(key) != null) return "style not removed before import";
+                    var err = ElementStyles.ImportJson(json, out var n, out _);
+                    if (err != null) return "import refused: " + err;
+                    if (n < 1 || !ElementStyles.Same(ElementStyles.Get(key), original)) return "imported look differs";
+
+                    var bad = json.Replace("#FF112233", "not-a-colour");
+                    ElementStyles.Store(key, null, false);
+                    var badErr = ElementStyles.ImportJson(bad, out _, out _);
+                    if (badErr == null || ElementStyles.Get(key) != null) return "a file with a bad colour was applied";
+                    if (ElementStyles.ImportJson(new string(' ', ElementStyles.MaxImportBytes + 1), out _, out _) == null) return "an oversized file was accepted";
+                    if (ElementStyles.ImportJson("{\"format\":\"other\"}", out _, out _) == null) return "a wrong format was accepted";
+                    return null;
+                }
+                finally { ElementStyles.Store(key, null, false); }
+            });
+            Check("colour picker: CIELAB and LCH convert both ways and match known values", () =>
+            {
+                var (L, a, b) = ColorMath.ToLab(1, 0, 0);
+                if (Math.Abs(L - 53.24) > 0.1 || Math.Abs(a - 80.09) > 0.15 || Math.Abs(b - 67.20) > 0.15) return $"red is lab({L:0.00} {a:0.00} {b:0.00})";
+                var (wl, wa, wb) = ColorMath.ToLab(1, 1, 1);
+                if (Math.Abs(wl - 100) > 0.05 || Math.Abs(wa) > 0.05 || Math.Abs(wb) > 0.05) return $"white is lab({wl:0.00} {wa:0.00} {wb:0.00})";
+                foreach (var (r, g, bl) in new[] { (0.2, 0.5, 0.8), (0.9, 0.1, 0.4), (0.0, 0.0, 0.0), (0.33, 0.33, 0.33), (0.1, 0.9, 0.3) })
+                {
+                    var (l2, a2, b2) = ColorMath.ToLab(r, g, bl);
+                    var (r2, g2, b3) = ColorMath.FromLab(l2, a2, b2, out var clip);
+                    if (clip || Math.Abs(r2 - r) > 0.002 || Math.Abs(g2 - g) > 0.002 || Math.Abs(b3 - bl) > 0.002) return $"lab round trip off for {r},{g},{bl}";
+                    var (lc, c, h) = ColorMath.ToLch(r, g, bl);
+                    var (r4, g4, b4) = ColorMath.FromLch(lc, c, h, out _);
+                    if (Math.Abs(r4 - r) > 0.002 || Math.Abs(g4 - g) > 0.002 || Math.Abs(b4 - bl) > 0.002) return $"lch round trip off for {r},{g},{bl}";
+                }
+                ColorMath.FromLab(60, 120, 100, out var outside);
+                return outside ? null : "an out-of-gamut value was not reported as clipped";
+            });
+            Check("locks: an appearance lock freezes a look until it is opened with its PIN", () =>
+            {
+                const string key = "selftest|Frozen look";
+                var look = new ElementStyle { Background = "#FF0000FF" };
+                ElementStyles.Store(key, look, false);
+                var err = Locks.Create(Locks.AppearancePage, key, "Frozen look", LockPolicy.Pin, 5, "4826", null, null);
+                if (err != null) return "lock not created: " + err;
+                try
+                {
+                    var e = Locks.FindAppearance(key);
+                    if (e == null || !ElementStyles.IsLocked(key)) return "look not reported as locked";
+                    if (ElementStyles.Store(key, new ElementStyle { Background = "#FFFF0000" }, false)) return "a locked look was overwritten";
+                    if (ElementStyles.Reset(key, null)) return "a locked look was reset";
+                    if (ElementStyles.ImportJson(ElementStyles.ExportJson(), out _, out _) == null) return "an import over a locked look was accepted";
+                    if (ElementStyles.Get(key)?.Background != "#FF0000FF") return "the locked look changed";
+                    new Locks.Session(e).Submit("4826");
+                    if (ElementStyles.IsLocked(key)) return "the PIN did not open the lock";
+                    if (!ElementStyles.Store(key, new ElementStyle { Background = "#FFFF0000" }, false)) return "an open lock still refused a change";
+                    return Locks.Remove(e.Id) == null ? null : "lock not removed";
+                }
+                finally
+                {
+                    var e = Locks.FindAppearance(key);
+                    if (e != null) { new Locks.Session(e).Submit("4826"); Locks.Remove(e.Id); }
+                    ElementStyles.Store(key, null, false);
+                }
+            });
+
+            // ---- ollama chat kit (no network)
+            Check("ollama: an image attachment is sent as base64 in the message's images array", () =>
+            {
+                var png = new byte[64]; png[0] = 0x89; png[1] = 0x50; png[2] = 0x4E; png[3] = 0x47; png[10] = 7;
+                var att = OllamaAttachments.FromImageBytes("a.png", png);
+                if (att.Kind != "image" || Convert.FromBase64String(att.Base64).Length != 64) return "image did not encode";
+                var json = OllamaChatOptions.BuildChatBody("m", new[] { new OllamaChatTurn { Role = "user", Content = "hi", Images = new List<string> { att.Base64 } } }, new OllamaChatOptions(), "5m");
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var msg = doc.RootElement.GetProperty("messages")[0];
+                if (msg.GetProperty("images")[0].GetString() != att.Base64) return "images array missing or different";
+                return null;
+            });
+            Check("ollama: attachments refuse non-images, binary files and oversized images", () =>
+            {
+                try { OllamaAttachments.FromImageBytes("x.png", new byte[40]); return "a non-image was accepted"; } catch (InvalidOperationException) { }
+                try { OllamaAttachments.FromTextBytes("x.bin", new byte[] { 65, 0, 66 }); return "a binary file was accepted"; } catch (InvalidOperationException) { }
+                try { var big = new byte[OllamaAttachments.MaxImageBytes + 1]; big[0] = 0x89; big[1] = 0x50; big[2] = 0x4E; big[3] = 0x47; OllamaAttachments.FromImageBytes("big.png", big); return "an oversized image was accepted"; } catch (InvalidOperationException) { }
+                return null;
+            });
+            Check("ollama: text attachments are inlined in a fence, capped, and survive backticks", () =>
+            {
+                var t = OllamaAttachments.FromTextBytes("n.txt", System.Text.Encoding.UTF8.GetBytes(new string('x', OllamaAttachments.MaxInlineChars + 50)));
+                if (!t.Truncated || t.Text.Length != OllamaAttachments.MaxInlineChars) return "the text was not capped";
+                var tick = OllamaAttachments.FromTextBytes("c.md", System.Text.Encoding.UTF8.GetBytes("a ``` b"));
+                var content = OllamaAttachments.BuildContent("question", new[] { tick });
+                if (!content.StartsWith("question") || !content.Contains("````")) return "fence not widened: " + content;
+                return null;
+            });
+            Check("ollama: chat body carries the system prompt, only the options that are set, and keep_alive 0 as a number", () =>
+            {
+                var o = new OllamaChatOptions { SystemPrompt = "be brief", Temperature = 0.5, NumCtx = 4096, KeepAlive = "0" };
+                using var doc = System.Text.Json.JsonDocument.Parse(OllamaChatOptions.BuildChatBody("m", new[] { new OllamaChatTurn { Role = "user", Content = "q" } }, o, "5m"));
+                var r = doc.RootElement;
+                if (r.GetProperty("messages")[0].GetProperty("role").GetString() != "system") return "no system message first";
+                var opt = r.GetProperty("options");
+                if (opt.TryGetProperty("top_p", out _) || opt.GetProperty("num_ctx").GetInt32() != 4096) return "options wrong";
+                if (r.GetProperty("keep_alive").ValueKind != System.Text.Json.JsonValueKind.Number) return "keep_alive 0 should be a number";
+                return null;
+            });
+            Check("ollama: parameter validation names the problem", () =>
+            {
+                var bad = new OllamaChatOptions { Temperature = 3, TopP = 0, NumCtx = 10, KeepAlive = "soon" }.Validate();
+                var over = new OllamaChatOptions { NumCtx = 8192 }.Validate(4096);
+                var ok = new OllamaChatOptions { Temperature = 0.7, TopP = 0.9, NumCtx = 2048, KeepAlive = "10m" }.Validate();
+                return bad.Count == 4 && over.Count == 1 && ok.Count == 0 ? null : $"bad={bad.Count} over={over.Count} ok={ok.Count}";
+            });
+            Check("ollama: capabilities come only from the server's list", () =>
+            {
+                var none = OllamaCapabilityInfo.From(new string[0]);
+                var text = OllamaCapabilityInfo.From(new[] { "completion", "tools" });
+                var vis = OllamaCapabilityInfo.From(new[] { "completion", "vision" });
+                var emb = OllamaCapabilityInfo.From(new[] { "embedding" });
+                if (none.Reported || none.ImageBlockReason() != null) return "unreported capabilities must not block";
+                if (text.ImageBlockReason() == null || vis.ImageBlockReason() != null) return "vision gating wrong";
+                if (emb.ChatBlockReason() == null || text.ChatBlockReason() != null) return "embedding gating wrong";
+                return null;
+            });
+            Check("ollama: a saved chat round-trips, exports as Markdown and deletes", () =>
+            {
+                var s = new OllamaSession { Model = "llama3", SystemPrompt = "be brief", Temperature = 0.4 };
+                s.Messages.Add(new OllamaSessionMessage { Role = "user", Content = "Hello there", Attachments = new List<string> { "pic.png" } });
+                s.Messages.Add(new OllamaSessionMessage { Role = "assistant", Content = "Hi" });
+                OllamaSessionStore.Save(s);
+                var back = OllamaSessionStore.List().FirstOrDefault(x => x.Id == s.Id);
+                if (back == null || back.Messages.Count != 2 || back.Temperature != 0.4) return "chat did not round-trip";
+                var md = OllamaSessionStore.ToMarkdown(back);
+                if (!md.Contains("# Hello there") || !md.Contains("## You") || !md.Contains("pic.png") || !md.Contains("> be brief")) return "markdown incomplete:\n" + md;
+                if (!OllamaSessionStore.Delete(s.Id) || OllamaSessionStore.List().Any(x => x.Id == s.Id)) return "chat was not deleted";
+                return null;
+            });
+            Check("ollama: profiles upsert by name and refuse bad values", () =>
+            {
+                var list = OllamaProfiles.Starters();
+                var n = list.Count;
+                if (OllamaProfiles.Upsert(list, new OllamaProfile { Name = "concise", SystemPrompt = "x", Temperature = 0.1 }) != null || list.Count != n) return "same name should replace";
+                if (OllamaProfiles.Upsert(list, new OllamaProfile { Name = "New", SystemPrompt = "y" }) != null || list.Count != n + 1) return "new name should add";
+                if (OllamaProfiles.Upsert(list, new OllamaProfile { Name = "", SystemPrompt = "y" }) == null) return "empty name accepted";
+                if (OllamaProfiles.Upsert(list, new OllamaProfile { Name = "Hot", Temperature = 9 }) == null) return "bad temperature accepted";
+                return null;
+            });
+
+            // ---- world generator editors (no jar, no network)
+            const string sampleNoise = "{\"sea_level\":63,\"aquifers_enabled\":true,\"default_block\":{\"Name\":\"minecraft:stone\"},\"noise\":{\"min_y\":-64,\"height\":384,\"size_horizontal\":1,\"size_vertical\":2},\"spawn_target\":[{\"temperature\":[-1,1]}],\"surface_rule\":{\"type\":\"minecraft:sequence\",\"sequence\":[]}}";
+            Check("worldgen: changing one noise value writes a data pack with only that change", () =>
+            {
+                var src = WorldgenSource.FromFiles(new Dictionary<string, string> { ["data/minecraft/worldgen/noise_settings/overworld.json"] = sampleNoise }, "test");
+                var edits = new List<WorldgenEdit> { new WorldgenEdit { Kind = WorldgenKind.NoiseSettings, Id = "minecraft:overworld", Path = "sea_level", Value = "70" } };
+                var files = WorldgenEditor.BuildFiles(src, edits, new HashSet<string> { "minecraft:stone" });
+                if (files.Count != 1) return "expected one file";
+                var packDir = Path.Combine(dir, "worldgen-pack-test");
+                var written = WorldgenEditor.WritePack(packDir, 48, files);
+                var path = Path.Combine(packDir, WorldgenEditor.PackFolder, "data", "minecraft", "worldgen", "noise_settings", "overworld.json");
+                if (written.Count != 1 || !File.Exists(path) || !File.Exists(Path.Combine(packDir, WorldgenEditor.PackFolder, "pack.mcmeta"))) return "pack files missing";
+                var a = System.Text.Json.Nodes.JsonNode.Parse(sampleNoise); var b = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(path));
+                if ((int)b["sea_level"] != 70) return "sea_level not changed";
+                a["sea_level"] = 70;
+                return a.ToJsonString() == b.ToJsonString() ? null : "something besides sea_level changed:\n" + b.ToJsonString();
+            });
+            Check("worldgen: invalid values are refused with a reason", () =>
+            {
+                var src = WorldgenSource.FromFiles(new Dictionary<string, string> { ["data/minecraft/worldgen/noise_settings/overworld.json"] = sampleNoise }, "test");
+                string Try(string path, string value, ISet<string> blocks = null)
+                {
+                    try { WorldgenEditor.BuildFiles(src, new[] { new WorldgenEdit { Kind = WorldgenKind.NoiseSettings, Id = "minecraft:overworld", Path = path, Value = value } }, blocks); return null; }
+                    catch (InvalidOperationException ex) { return ex.Message; }
+                }
+                if (Try("sea_level", "high") == null) return "a word was accepted for a whole number";
+                if (Try("aquifers_enabled", "maybe") == null) return "maybe accepted for a boolean";
+                if (Try("noise.height", "385") == null) return "a height that is not a multiple of 16 was accepted";
+                if (Try("noise.min_y", "2000") == null) return "min_y plus height above 2032 was accepted";
+                if (Try("surface_rule.type", "x") == null) return "an excluded subtree was editable";
+                if (Try("default_block.Name", "minecraft:nonsense", new HashSet<string> { "minecraft:stone" }) == null) return "an unknown block was accepted";
+                if (Try("noise.height", "320") != null) return "a valid height was refused";
+                return null;
+            });
+            Check("worldgen: the editor lists values from the default file and skips the big subtrees", () =>
+            {
+                var paths = WorldgenEditor.Leaves(sampleNoise).Select(l => l.Path).ToList();
+                var types = WorldgenEditor.Leaves(sampleNoise).ToDictionary(l => l.Path, l => l.Type);
+                if (paths.Any(p => p.StartsWith("surface_rule") || p.StartsWith("spawn_target"))) return "excluded subtree listed";
+                return types["sea_level"] == "integer" && types["aquifers_enabled"] == "boolean" && types["default_block.Name"] == "string" && paths.Contains("noise.size_vertical") ? null : "types wrong: " + string.Join(",", paths);
+            });
+            Check("worldgen: a drawn square becomes a centre and radius, capped at the limit", () =>
+            {
+                var s = ChunkAreaPicker.SquareFromCorners((-10, -10), (9, 9));
+                var big = ChunkAreaPicker.SquareFromCorners((0, 0), (999, 5));
+                var one = ChunkAreaPicker.SquareFromCorners((4, 4), (4, 4));
+                return s == (0, 0, 10) && big.Radius == ChunkAreaPicker.MaxRadius && one.Radius == 1 ? null : $"{s} {big} {one}";
             });
 
             // ---- docs and pages

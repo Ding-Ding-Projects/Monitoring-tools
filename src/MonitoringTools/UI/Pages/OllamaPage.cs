@@ -37,6 +37,7 @@ namespace MonitoringTools.UI
             var chatModelChips = new WrapPanel();
             Button installBtn = null, startBtn = null, stopBtn = null;
             OllamaSuite suite = null;
+            OllamaChatUi chatUi = null;
 
             void Say(string text, string brush = "B.TextMute") { notice.Text = text; notice.Foreground = Ui.Res(brush); }
 
@@ -178,73 +179,16 @@ namespace MonitoringTools.UI
             runBox.Children.Add(runningHost);
             root.Children.Add(Card(runBox));
 
-            // ---- chat test card
-            var chatBox = new StackPanel();
-            chatBox.Children.Add(CardTitle("Quick chat test", "A short local conversation to check that a model answers. Replies stream in as they are produced; nothing is stored."));
-            chatBox.Children.Add(Ui.Mono("MODEL", Ui.Res("B.TextMute"), 11));
-            chatBox.Children.Add(chatModelChips);
-            chatBox.Children.Add(Choice("Keep the model loaded after replying (default 5 minutes)",
-                new[] { ("5 minutes", "5m"), ("30 minutes", "30m"), ("1 hour", "1h"), ("Unload at once", "0") }, Settings.Current.OllamaKeepAlive ?? "5m",
-                v => Settings.Current.OllamaKeepAlive = v));
-            var chatOut = new TextBlock { Style = Ui.Style("T.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap };
-            var chatScroll = new ScrollViewer { Content = chatOut, MaxHeight = 280, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-            var chatFrame = new Border { Background = Ui.Res("B.Ground"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12), Margin = new Thickness(0, 8, 0, 8), Child = chatScroll };
-            var prompt = Input("", double.NaN, "Type a message and press Enter or Send");
-            prompt.HorizontalAlignment = HorizontalAlignment.Stretch;
-            AutomationProperties.SetName(prompt, "Chat message");
-            var chatStats = Ui.Mono("", Ui.Res("B.TextMute"), 11);
-            CancellationTokenSource chatCts = null;
-            var turns = new List<OllamaChatTurn>();
-            var sendBtn = Ui.Button("Send", null, "Btn.Accent", Icons.Bolt);
-            var stopChat = Ui.Button("Stop", () => chatCts?.Cancel(), "Btn.Ghost", Icons.Pause);
-            stopChat.IsEnabled = false;
-            var clearChat = Ui.Button("Clear", () => { turns.Clear(); chatOut.Text = ""; chatStats.Text = ""; }, "Btn.Ghost", Icons.Trash);
-            async Task Send()
-            {
-                var text = prompt.Text.Trim();
-                if (text.Length == 0) return;
-                var model = Settings.Current.OllamaLastModel;
-                if (string.IsNullOrWhiteSpace(model)) { chatStats.Text = "Choose an installed model above first."; chatStats.Foreground = Ui.Res("B.Amber"); return; }
-                if (await Ollama.VersionAsync() == null) { chatStats.Text = "The Ollama server is not running."; chatStats.Foreground = Ui.Res("B.Amber"); return; }
-                prompt.Text = "";
-                turns.Add(new OllamaChatTurn { Role = "user", Content = text });
-                chatOut.Text += (chatOut.Text.Length > 0 ? "\n\n" : "") + "You: " + text + "\n" + model + ": ";
-                sendBtn.IsEnabled = false; stopChat.IsEnabled = true;
-                chatStats.Text = "Waiting for the model…"; chatStats.Foreground = Ui.Res("B.TextMute");
-                chatCts = new CancellationTokenSource();
-                var reply = new StringBuilder();
-                try
-                {
-                    var stats = await Ollama.ChatAsync(model, turns, c => { reply.Append(c); chatOut.Text += c; chatScroll.ScrollToEnd(); }, chatCts.Token);
-                    turns.Add(new OllamaChatTurn { Role = "assistant", Content = reply.ToString() });
-                    chatStats.Text = stats.Length > 0 ? stats : "Done."; chatStats.Foreground = Ui.Res("B.Mint");
-                }
-                catch (OperationCanceledException)
-                {
-                    if (reply.Length > 0) turns.Add(new OllamaChatTurn { Role = "assistant", Content = reply.ToString() });
-                    chatStats.Text = "Stopped."; chatStats.Foreground = Ui.Res("B.TextMute");
-                }
-                catch (Exception ex) { turns.RemoveAt(turns.Count - 1); chatStats.Text = ex.Message; chatStats.Foreground = Ui.Res("B.Amber"); }
-                sendBtn.IsEnabled = true; stopChat.IsEnabled = false;
-                await RefreshRunning();
-            }
-            sendBtn.Click += async (o, e) => await Send();
-            prompt.KeyDown += async (o, e) => { if (e.Key == Key.Enter && sendBtn.IsEnabled) { e.Handled = true; await Send(); } };
-            sendBtn.ToolTip = "Sends the message to the chosen local model.";
-            stopChat.ToolTip = "Stops the reply that is streaming.";
-            clearChat.ToolTip = "Clears this test conversation.";
-            chatBox.Children.Add(chatFrame);
-            chatBox.Children.Add(prompt);
-            var chatRow = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };
-            chatRow.Children.Add(sendBtn); chatRow.Children.Add(stopChat); chatRow.Children.Add(clearChat);
-            chatBox.Children.Add(chatRow);
-            chatBox.Children.Add(chatStats);
-            root.Children.Add(Card(chatBox));
+            // ---- chat card (attachments, saved chats, profiles, parameters, capability badge)
+            chatUi = BuildOllamaChat(chatModelChips, () => st.ServerUp, () => models.Select(m => m.Name),
+                name => { Settings.Current.OllamaLastModel = name; Settings.Save(); PaintModels(); },
+                () => RefreshRunning());
+            root.Children.Add(chatUi.Card);
 
             // ---- what is not here
             var scope = new StackPanel();
             scope.Children.Add(CardTitle("Not included yet", "Stated plainly so nothing here is mistaken for more than it is."));
-            scope.Children.Add(Ui.Text("The built-in catalogue is a dated snapshot, not the full library, and its sizes are typical figures. Ollama publishes no documented catalogue API, so the online search reads the public search page and can break if that page changes. Hardware verdicts are a rule of thumb. There are no file attachments in chat and no launching of other local tools from here. See docs/features/ollama for the full list."));
+            scope.Children.Add(Ui.Text("The built-in catalogue is a dated snapshot, not the full library, and its sizes are typical figures. Ollama publishes no documented catalogue API, so the online search reads the public search page and can break if that page changes. Hardware verdicts are a rule of thumb. Chat attachments are limited to images and text files, saved chats keep no image bytes, and profiles hold a system prompt and parameters only (no tool-calling definitions). There is no launching of other local tools from here. See docs/features/ollama for the full list."));
             root.Children.Add(Card(scope));
             root.Children.Add(suite.Troubleshooter);
 
@@ -306,6 +250,7 @@ namespace MonitoringTools.UI
                     b.Background = Ui.Res(on ? "B.Mint" : "B.Raised"); b.Foreground = Ui.Res(on ? "B.MintInk" : "B.TextSoft");
                     chatModelChips.Children.Add(b);
                 }
+                chatUi?.ModelChanged?.Invoke();
             }
 
             async Task RefreshModels()

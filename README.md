@@ -1,15 +1,33 @@
 # Monitoring Tools
 
-**[Project site and screenshots](https://ding-ding-projects.github.io/Monitoring-tools/)** · **[Download](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/latest/download/MonitoringTools-Setup.exe)**
+**[Project site and screenshots](https://ding-ding-projects.github.io/Monitoring-tools/)** · **[Download](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/latest/download/MonitoringTools-Setup.exe)** · [Latest release notes](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/latest)
 
 A small Windows background service with a tray icon and a modern, animated UI. It watches your clipboard and your internet connection, and turns copied paths into one-step commands.
 
 ![Clipboard toast](docs/screenshots/toast-link.png)
 ![Control centre](docs/screenshots/control-overview.png)
 
+**Install in one line:** download `MonitoringTools-Setup.exe` from the latest release and run it. FFmpeg, FFprobe and portable Git are bundled, so nothing else is needed. Details are under Install below.
+
+**Contents** (each section below opens and closes, so you choose what to read):
+
+- Features: clipboard toasts, quick commands, shortcuts, search and regex builder, Material 3 design, language, modes, records, tabs and safety, internet watch, game mode, service and tray
+- Install, Control centre, Self-test, Screenshots, Build, Public IP history
+- Release figures and how long a human would have taken
+- Project records: [ROADMAP](ROADMAP.md), [HANDOFF](HANDOFF.md), [CHANGELOG](CHANGELOG.md), [CLOSEOUT_PROMPT](CLOSEOUT_PROMPT.md), [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md)
+- Licenses of bundled tools
+
+## Install
+
+Every push to `main` builds on Windows and publishes the next release automatically. Download `MonitoringTools-Setup.exe` from the latest release and run it. FFmpeg, FFprobe and portable Git are bundled inside, so nothing else needs installing and conversion works offline. It copies itself to `%LOCALAPPDATA%\Programs\MonitoringTools`, registers start-up and appears in the tray. Settings, logs and scripts live in `%LOCALAPPDATA%\MonitoringTools`.
+
+To remove it, right-click the tray icon and choose **Uninstall service**.
+
 ## Features
 
-**Clipboard toasts**
+<details>
+<summary><b>Clipboard toasts</b></summary>
+
 - A toast slides into the bottom-right corner for every copy, stays for 3 seconds and holds while you hover. It shows four actions up front and keeps the rest behind **More**.
 - Hovering reveals actions tailored to what you copied:
   - **Text and Markdown**: rendered Markdown preview, copy as plain text, case changes, tidy spaces, join lines, search, translate, save as a file.
@@ -24,7 +42,10 @@ A small Windows background service with a tray icon and a modern, animated UI. I
 - Copies that password managers mark as private are skipped.
 - History of the last copies, kept in memory only.
 
-**Quick commands**
+</details>
+
+<details>
+<summary><b>Quick commands</b></summary>
 
 Copy a path with a command on the end and it runs as soon as it lands on the clipboard:
 
@@ -39,79 +60,123 @@ Formats: `mp4 mov mkv webm avi gif mp3 wav flac m4a ogg opus png jpg webp bmp ti
 
 The first `:push` asks for a default commit message, with snippets such as `{date}`, `{time}`, `{branch}`, `{repo}` and `{files}`.
 
-**Custom shortcuts**
+</details>
+
+<details>
+<summary><b>Custom shortcuts</b></summary>
 
 Create your own `:name` commands in the control centre. Each one is a batch or PowerShell script, edited in the built-in script editor, and receives whatever came before the colon as its first argument (also in `MT_INPUT`).
 
-**Search and regex builder**
+</details>
+
+<details>
+<summary><b>Search and regex builder</b></summary>
+
 - Every page, list, the command palette, the tray menu and the Minecraft version picker has its own search bar. Plain text by default; `.*` switches to regular expressions and `Aa` matches case. `Ctrl+F` jumps to the page's search.
 - **Builder** opens a regex builder attached to that bar: a token palette, all .NET options, a token-by-token explanation, a backtracking warning, a Test view with matches and capture groups, Replace and Split previews, generated C#, PowerShell and Python, and a saved library. It runs the real .NET engine with a 200 ms limit, locally. Details and the list of what is not built yet: [docs/features/search](docs/features/search/README.md).
 
 ![Regex builder](docs/screenshots/search-builder-build.png)
 
-**Material 3 design**
+</details>
+
+<details>
+<summary><b>Material 3 design</b></summary>
+
 - The whole app uses Material 3 colour roles, Roboto, pill buttons with state layers, filled 24-corner cards, a pill navigation indicator and spring motion. Choose Light, Dark or System and one of five seed colours (Mint, Violet, Amber, Ocean, Rose); text size runs from 90 to 150 %, and Reduce motion turns the movement off.
 
 ![Light theme, Violet seed](docs/screenshots/theme-light-violet.png)
 
-**Language and voice**
+</details>
+
+<details>
+<summary><b>Language and voice</b></summary>
+
 - English, Hong Kong Cantonese or both side by side, with separate English and Cantonese humour levels from 1 to 5, an emoji switch for dialogs and an optional narrator that reads toasts aloud with Windows voices.
 
 ![Cantonese mode](docs/screenshots/lang-cantonese-overview.png)
 
-**Modes**
+</details>
+
+<details>
+<summary><b>Modes</b></summary>
+
 - School mode (renamable, PIN-protected), five ADHD helpers, an occasional dim sum surprise, and scheduled settings that change language, theme, sounds, toasts or game mode by weekday and time, or follow a settings file.
 
-**Records, exports and help**
+</details>
+
+<details>
+<summary><b>Records, exports and help</b></summary>
+
 - A notification centre, settings history with restore, exports in JSON, CSV, Markdown, HTML and text, a changelog viewer and an offline Help and docs page led by real tasks.
 - Clipboard history has a Select mode for copying, saving or removing several copies at once.
 - Every element has a right-click menu (also Shift+F10) with its own filter, and destructive actions need two keys and a full slide.
 
 ![Two-key confirmation](docs/screenshots/super-confirm-armed.png)
 
-**Tabs, tools and safety**
+</details>
+
+<details>
+<summary><b>Tabs, tools and safety</b></summary>
+
 - The control centre is a tab strip docked on the left (or any edge), with New tab, pinning, groups, overflow and searches across tabs.
 - Local AI models: manage Ollama on this computer. Tools: draw on pictures, publish a folder to GitHub, open files in your editor. The Minecraft page has a world generator.
 - Safety and locks: playful element locks with an unlock ladder, a Support Tickets desk and a built-in authenticator for one-time codes.
 
 What is finished and what is not: [docs/features/required-features.md](docs/features/required-features.md).
 
-**Internet watch**
+</details>
+
+<details>
+<summary><b>Internet watch</b></summary>
+
 - When the connection drops, an always-on-top dialog explains where it broke (adapter, IP address, gateway, DNS, upstream, captive portal) with live details, and stays until the connection returns or you dismiss it.
 - One-press **Release & renew** (`ipconfig /release`, `/renew`, `/flushdns`), DNS flush, sign-in page for captive portals, copyable report.
 - **DNS profiles**: switch between Automatic, Google, Cloudflare, Quad9, OpenDNS or your own saved servers from the dialog, the tray menu or the control centre.
 
-**Game mode**
+</details>
+
+<details>
+<summary><b>Game mode</b></summary>
 
 On by default. Popups are held back while Roblox, Minecraft, League of Legends, Valorant, Fortnite, CS2 and other listed games run, or while any app is fullscreen. The list is editable.
 
-**Service and tray**
+</details>
+
+<details>
+<summary><b>Service and tray</b></summary>
+
 - Installs itself per user, starts at sign-in and runs under a supervisor that restarts it after a crash.
 - Tray icon with a status dot: mint online, amber offline, violet game mode, grey paused.
 - Right-click menu: control centre, history, shortcuts, connection test, toggles, snooze, DNS, administrator rights, restart, logs, **uninstall**, quit.
 - **Administrator rights** are off by default. Turning them on asks once through UAC, then the service starts elevated at every sign-in until you turn it off.
 
-## Install
+</details>
 
-Every push to `main` builds on Windows and publishes the next release automatically. Download `MonitoringTools-Setup.exe` from the latest release and run it. FFmpeg, FFprobe and portable Git are bundled inside, so nothing else needs installing and conversion works offline. It copies itself to `%LOCALAPPDATA%\Programs\MonitoringTools`, registers start-up and appears in the tray. Settings, logs and scripts live in `%LOCALAPPDATA%\MonitoringTools`.
-
-To remove it, right-click the tray icon and choose **Uninstall service**.
-
-## Control centre
+<details>
+<summary><b>Control centre</b></summary>
 
 Overview with live latency, uptime and outage history; an activity feed of conversions, pushes, shortcuts and file jobs; clipboard history; a command playground that explains what `path:format` will do before it runs; settings for every feature; and an about page with an update check. A welcome tour with **Try it** buttons opens on first run and from the tray menu.
 
-## Self-test
+</details>
 
-`MonitoringTools.exe --selftest <folder>` runs 24 checks of search, the regex builder, exports, settings history, language switching, themes, density, locks, the two-key confirmation, the authenticator, QR pairing, the docs and every page inside the built app. It uses its own throwaway data folder, so it never touches your settings, and writes `selftest.json`.
+<details>
+<summary><b>Self-test</b></summary>
+
+`MonitoringTools.exe --selftest <folder>` runs 45 checks of search, the regex builder, exports, settings history, language switching, themes, density, locks, the two-key confirmation, the authenticator, QR pairing, the docs and every page inside the built app. It uses its own throwaway data folder, so it never touches your settings, and writes `selftest.json`.
 
 The regex builder also works from a terminal: `MonitoringTools.exe --regex "<pattern>" <file>...` (see [docs/features/search](docs/features/search/regex-builder.md)).
 
-## Screenshots
+</details>
+
+<details>
+<summary><b>Screenshots</b></summary>
 
 Every build renders the real app on a Windows runner (`MonitoringTools.exe --screenshots <folder>`), attaches the images to the release and publishes them on the project site.
 
-## Build
+</details>
+
+<details>
+<summary><b>Build</b></summary>
 
 ```
 download-dependencies.bat      fetch pinned, digest-verified dependencies into .deps\ (also installs a .NET 8 SDK if missing)
@@ -123,12 +188,40 @@ Prefer a window? `MonitoringTools-BuildTool.exe` (in every release, source in `a
 
 Dependencies are pinned in `deps/manifest.json` with SHA-256 digests. On Linux or macOS, `download-dependencies.sh` fetches the same files for cross-building.
 
-## Public IP history
+</details>
+
+<details>
+<summary><b>Public IP history</b></summary>
 
 When the public IP address changes, a dialog shows the old and new address, and the change is committed to a local git repository (`%LOCALAPPDATA%\MonitoringTools\ip-history`) as `ip-history.md` and `history.json`, with first seen and last seen times for every address. Set a remote in the control centre to push the history automatically. Lookups use ipinfo.io, with api.ipify.org as a fallback.
 
-## Licenses of bundled tools
+</details>
+
+<details>
+<summary><b>Release figures and how long a human would have taken</b></summary>
+
+Line counts are produced by the release workflow with `node scripts/line-counts.mjs` and published in each release's notes. The block below is refreshed from the latest release by that workflow; until the first release that runs it, it shows no figures rather than invented ones.
+
+<!-- release-figures:start -->
+No release has published figures yet. They appear here after the next release.
+<!-- release-figures:end -->
+
+**How the human-time estimate is made.** It is an estimate, not a measurement, and it is given as a range because a single figure would imply precision it does not have.
+
+- Code days = non-blank hand-written code lines (source, tests, styles and markup) divided by 50 (fast) to 20 (slow) lines per working day.
+- Documentation days = non-blank documentation lines divided by 150 (fast) to 75 (slow) lines per working day.
+- Total = code days + documentation days, in 8-hour days; months = days / 20. No complexity multiplier is applied.
+- Generated files, lockfiles, historical design prototypes and vendored or build-output trees are excluded, exactly as in the line counts.
+
+It is information about scale, never a boast and never an apology.
+
+</details>
+
+<details>
+<summary><b>Licenses of bundled tools</b></summary>
 
 FFmpeg (GPL build from BtbN/FFmpeg-Builds, includes libx264) and Git for Windows MinGit (GPL-2.0) ship inside the app unmodified; their sources are available from those projects.
+
+</details>
 
 The design for every surface lives in the project's design canvas; the app implements the same "Graphite Signal" look.

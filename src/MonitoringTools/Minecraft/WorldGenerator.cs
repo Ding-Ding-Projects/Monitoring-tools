@@ -40,6 +40,10 @@ namespace MonitoringTools.Minecraft
         /// <summary>Custom superflat layers, bottom to top. Empty means the version's own default layers. Used only for the Flat type on Java 1.19 and newer.</summary>
         public List<FlatLayer> FlatLayers = new List<FlatLayer>();
         public string FlatBiome = "minecraft:plains";
+        /// <summary>Centre of the pre-generated square, in chunk coordinates. Default 0, 0. The square covers chunks centre - radius up to centre + radius - 1.</summary>
+        public int AreaCenterX, AreaCenterZ;
+        /// <summary>Changed noise settings and dimension type values, written as a data pack of only the changed files. Empty means the jar's defaults.</summary>
+        public List<WorldgenEdit> WorldgenEdits = new List<WorldgenEdit>();
     }
 
     public sealed class FlatLayer
@@ -82,7 +86,7 @@ namespace MonitoringTools.Minecraft
         private static readonly HttpClient Http = CreateHttp();
         private static HttpClient CreateHttp() { var h = new HttpClient { Timeout = TimeSpan.FromMinutes(10) }; h.DefaultRequestHeaders.UserAgent.ParseAdd("MonitoringTools/1.0"); return h; }
 
-        private static string CacheRoot { get { var d = Path.Combine(ServerManager.Root, "worldgen-cache"); Directory.CreateDirectory(d); return d; } }
+        internal static string CacheRoot { get { var d = Path.Combine(ServerManager.Root, "worldgen-cache"); Directory.CreateDirectory(d); return d; } }
 
         // -------------------------------------------------------------- capabilities
 
@@ -153,7 +157,7 @@ namespace MonitoringTools.Minecraft
         private static string Sha1(string path) { using var f = File.OpenRead(path); return Convert.ToHexString(SHA1.HashData(f)); }
 
         /// <summary>The zip that holds the game data: the nested server jar inside a bundler jar (1.18+), or the jar itself.</summary>
-        private static ZipArchive OpenDataZip(string jar)
+        internal static ZipArchive OpenDataZip(string jar)
         {
             var outer = new ZipArchive(File.OpenRead(jar), ZipArchiveMode.Read);
             var nested = outer.Entries.FirstOrDefault(e => e.FullName.StartsWith("META-INF/versions/", StringComparison.Ordinal) && e.FullName.EndsWith(".jar", StringComparison.Ordinal));
@@ -183,7 +187,7 @@ namespace MonitoringTools.Minecraft
             return rd.ReadToEnd();
         }
 
-        private static int DataPackFormat(string jar)
+        internal static int DataPackFormat(string jar)
         {
             var json = ReadEntry(jar, "version.json");
             if (json == null) return -1;
@@ -217,7 +221,7 @@ namespace MonitoringTools.Minecraft
 
         // -------------------------------------------------------------- what the jar says about itself
 
-        private static bool IsBundler(string jar)
+        internal static bool IsBundler(string jar)
         {
             using var z = new ZipArchive(File.OpenRead(jar), ZipArchiveMode.Read);
             return z.Entries.Any(e => e.FullName.StartsWith("META-INF/versions/", StringComparison.Ordinal));
@@ -366,6 +370,16 @@ namespace MonitoringTools.Minecraft
             File.WriteAllText(Path.Combine(presetDir, "generated.json"), node.ToJsonString());
         }
 
+        /// <summary>Validates the edits against the version's own default files and writes the data pack with only the changed files.</summary>
+        internal static async Task<List<string>> WriteWorldgenEditsAsync(string version, string jar, string datapacksDir, IEnumerable<WorldgenEdit> edits, ISet<string> knownBlocks)
+        {
+            var fmt = DataPackFormat(jar);
+            if (fmt < 0) throw new InvalidOperationException("Could not read the data pack format from the server jar.");
+            var source = await WorldgenEditor.OpenAsync(version, jar, null);
+            var files = WorldgenEditor.BuildFiles(source, edits, knownBlocks);
+            return WorldgenEditor.WritePack(datapacksDir, fmt, files);
+        }
+
         // -------------------------------------------------------------- apply to an existing server
 
         /// <summary>
@@ -400,6 +414,14 @@ namespace MonitoringTools.Minecraft
                 var bad = ValidateFlat(o.FlatLayers, o.FlatBiome, null);
                 if (bad.Count > 0) throw new InvalidOperationException(bad[0]);
                 WriteFlatPack(jar, Path.Combine(s.Folder, level, "datapacks"), o.FlatLayers, o.FlatBiome);
+            }
+            if (o.WorldgenEdits.Count > 0)
+            {
+                if (s.Target != Target.LocalProcess || !sup.DataDriven)
+                    throw new NotSupportedException("Noise settings and dimension type edits need a local process server on Java 1.19 or newer, so the tool can read the real jar.");
+                var jar = Path.Combine(s.Folder, "server.jar");
+                if (!File.Exists(jar)) throw new FileNotFoundException("The server jar is not in the server folder yet.");
+                await WriteWorldgenEditsAsync(s.Version, jar, Path.Combine(s.Folder, level, "datapacks"), o.WorldgenEdits, null);
             }
             ServerManager.WriteProperties(s, new Dictionary<string, string>
             {
@@ -482,7 +504,7 @@ namespace MonitoringTools.Minecraft
                 string preGenNote = null;
                 if (preGen && !sup.Forceload) { preGen = false; preGenNote = sup.ForceloadReason; }
                 JarFacts facts = null;
-                if (preGen || o.GameRules.Count > 0 || flatPack)
+                if (preGen || o.GameRules.Count > 0 || flatPack || o.WorldgenEdits.Count > 0)
                 {
                     progress("Asking the jar which commands and blocks it has…", 0.09);
                     facts = await JarFactsAsync(o.Version, t => progress(t, 0.09));
@@ -517,6 +539,12 @@ namespace MonitoringTools.Minecraft
                     WriteSingleBiomePack(jar, Path.Combine(stage, "world", "datapacks"), o.Biome);
                 if (flatPack)
                     WriteFlatPack(jar, Path.Combine(stage, "world", "datapacks"), o.FlatLayers, o.FlatBiome);
+                if (o.WorldgenEdits.Count > 0)
+                {
+                    if (!sup.DataDriven) throw new NotSupportedException("Noise settings and dimension type edits need Java 1.19 or newer. This version keeps them inside the game.");
+                    progress("Writing the worldgen data pack…", 0.1);
+                    await WriteWorldgenEditsAsync(o.Version, jar, Path.Combine(stage, "world", "datapacks"), o.WorldgenEdits, facts?.Available == true ? facts.Blocks : null);
+                }
 
                 progress("Starting a private server to build the world…", 0.12);
                 var psi = new ProcessStartInfo(java, "-Xmx2G -jar server.jar nogui")
@@ -530,10 +558,10 @@ namespace MonitoringTools.Minecraft
                 string note = preGenNote;
                 var ruleNote = ApplyGameRules(con, o.GameRules, facts, ct);
                 if (ruleNote != null) note = (note == null ? "" : note + " ") + ruleNote;
-                if (preGen) await PreGenerateAsync(con, o.RadiusChunks, dims, progress, ct);
+                if (preGen) await PreGenerateAsync(con, o.RadiusChunks, o.AreaCenterX, o.AreaCenterZ, dims, progress, ct);
                 if (o.BorderToSize)
                 {
-                    con.Send("worldborder center 0 0");
+                    con.Send($"worldborder center {o.AreaCenterX * 16} {o.AreaCenterZ * 16}");
                     con.Send($"worldborder set {o.RadiusChunks * 32}");
                 }
 
@@ -578,7 +606,7 @@ namespace MonitoringTools.Minecraft
         }
 
         /// <summary>Force-loads rectangles of at most 256 chunks in each requested dimension, confirming every chunk loaded before moving on. A null dimension id means the overworld.</summary>
-        private static async Task PreGenerateAsync(Console2 con, int radius, List<(string Id, string Label)> dims, Action<string, double> progress, CancellationToken ct)
+        private static async Task PreGenerateAsync(Console2 con, int radius, int centerX, int centerZ, List<(string Id, string Label)> dims, Action<string, double> progress, CancellationToken ct)
         {
             int perDim = BatchCount(radius), total = perDim * dims.Count, n = 0;
             for (int d = 0; d < dims.Count; d++)
@@ -587,11 +615,11 @@ namespace MonitoringTools.Minecraft
                 string run = dim.Id == null ? "" : $"execute in {dim.Id} run ";
                 string inDim = dim.Id == null ? "execute" : $"execute in {dim.Id}";
                 int inThis = 0;
-                for (int cx = -radius; cx < radius; cx += ChunksPerBatchSide)
-                    for (int cz = -radius; cz < radius; cz += ChunksPerBatchSide)
+                for (int cx = centerX - radius; cx < centerX + radius; cx += ChunksPerBatchSide)
+                    for (int cz = centerZ - radius; cz < centerZ + radius; cz += ChunksPerBatchSide)
                     {
                         ct.ThrowIfCancellationRequested();
-                        int cx2 = Math.Min(cx + ChunksPerBatchSide - 1, radius - 1), cz2 = Math.Min(cz + ChunksPerBatchSide - 1, radius - 1);
+                        int cx2 = Math.Min(cx + ChunksPerBatchSide - 1, centerX + radius - 1), cz2 = Math.Min(cz + ChunksPerBatchSide - 1, centerZ + radius - 1);
                         con.Send($"{run}forceload add {cx * 16} {cz * 16} {cx2 * 16 + 15} {cz2 * 16 + 15}");
                         var pending = new List<(int X, int Z)>();
                         for (int x = cx; x <= cx2; x++) for (int z = cz; z <= cz2; z++) pending.Add((x, z));
