@@ -6,8 +6,19 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.18, up to `3b09869`.
+Commits after v1.0.19, up to `c0bbcd8`.
 
+- Refresh screenshots for v1.0.19 ([`c0bbcd8`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c0bbcd8218651457266de5716ac1a1e9cded169f))
+
+## 1.0.19 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.19)
+
+- Translate the Conversion page's format list ([`6da89d8`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/6da89d84c2ca47fb024dfdf49dedb6938051693a))
+- Let the language switch check wait for the page instead of guessing ([`0fc0836`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0fc0836718df107d8f33679de1517cb2c1becfc2))
+- Translate labels added after a window opens, and stop deleting temp originals ([`68347fe`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/68347fea736da3f2c0a41beb1ec9549498b3f417))
+- Record v1.0.18 figures and changelog ([`0bab566`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0bab5661789fbcd8610b34db3425d7004fe62a7c))
+- Work in progress: convert dialog, 30 more formats, wording that sticks ([`886e9b9`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/886e9b919daf96194c3cbc4550b483fa9298b626))
 - Refresh screenshots for v1.0.18 ([`3b09869`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/3b098699025d3e8a1abed580408efcf4d29395db))
 
 ## 1.0.18 (2026-11-04)
