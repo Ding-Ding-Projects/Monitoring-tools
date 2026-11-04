@@ -332,7 +332,7 @@ namespace MonitoringTools.Core
             // ---- palette groups and misc
             Add("Search", "搜尋"); Add("Search every page", "搜尋所有頁面"); Add("invalid", "無效"); Add("Tray right-click menu", "系統匣右鍵選單");
             Add("Icon", "圖示"); Add("Samples", "範例"); Add("Library", "資料庫");
-            Add("Plain", "簡明"); Add("Light", "輕鬆"); Add("Friendly", "友善"); Add("Cheeky", "調皮"); Add("Playful", "好玩");
+            Add("Plain", "簡明"); Add("Light", "淺色"); Add("Friendly", "友善"); Add("Cheeky", "調皮"); Add("Playful", "好玩");
 
             // ---- the language page itself
             Add("Language", "語言");

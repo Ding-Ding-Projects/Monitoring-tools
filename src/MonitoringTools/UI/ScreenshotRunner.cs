@@ -269,7 +269,7 @@ namespace MonitoringTools.UI
                 Language.Refresh();
                 await Shot(cc, "lang-" + name + "-language", "Language page in " + name + " mode", 900);
                 // the pages whose labels were the longest to translate, checked for clipping in each language mode
-                foreach (var page in new[] { "ollama", "safety", "modes", "tools", "records" })
+                foreach (var page in new[] { "ollama", "safety", "modes", "tools", "records", "appearance", "activity" })
                 {
                     cc.Navigate(page);
                     await Task.Delay(700);

@@ -377,7 +377,7 @@ namespace MonitoringTools.Core
         private static void Retip(FrameworkElement fe)
         {
             var cur = fe.ToolTip as string;
-            if (cur == null) return;
+            if (cur == null || GetLiteral(fe)) return;
             var en = (string)fe.GetValue(TipEnProp);
             if (en != null && cur != (string)fe.GetValue(TipFinalProp)) en = null;
             if (en == null) { if (IsEnglish) return; en = cur; }

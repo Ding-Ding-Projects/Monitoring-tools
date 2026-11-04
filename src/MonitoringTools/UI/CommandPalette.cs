@@ -23,6 +23,7 @@ namespace MonitoringTools.UI
         public sealed class Item
         {
             public string Group, Title, Detail, Icon, Page;
+            public bool LiteralDetail;   // the detail is the person's own text, such as a shortcut description
             public Action Run;
             public Func<FrameworkElement> Inline;   // live control rendered in the row
         }
@@ -120,8 +121,8 @@ namespace MonitoringTools.UI
                         return wrap;
                     }
                 });
-            void Act(string title, string icon, Action run, string detail = null, string group = "Actions") =>
-                list.Add(new Item { Group = group, Title = title, Detail = detail, Icon = icon, Run = run });
+            void Act(string title, string icon, Action run, string detail = null, string group = "Actions", bool literalDetail = false) =>
+                list.Add(new Item { Group = group, Title = title, Detail = detail, Icon = icon, Run = run, LiteralDetail = literalDetail });
 
             Page("overview", "Overview", Icons.Pulse, "Live latency, outages and activity");
             Page("activity", "Activity", Icons.Lines, "Everything the service has done");
@@ -186,7 +187,7 @@ namespace MonitoringTools.UI
             foreach (var sc in s.Shortcuts)
             {
                 var x = sc;
-                Act(":" + sc.Name, Icons.Code, () => { Go("shortcuts"); }, string.IsNullOrWhiteSpace(sc.Description) ? "Edit this shortcut" : sc.Description, "Shortcuts");
+                Act(":" + sc.Name, Icons.Code, () => { Go("shortcuts"); }, string.IsNullOrWhiteSpace(sc.Description) ? "Edit this shortcut" : sc.Description, "Shortcuts", !string.IsNullOrWhiteSpace(sc.Description));
             }
             return list;
         }
@@ -315,7 +316,7 @@ namespace MonitoringTools.UI
                 g.Children.Add(Ui.IconChip(it.Icon ?? Icons.Bolt, Ui.Res("B.Mint"), Ui.Res("B.MintWash"), 28, 14));
                 var text = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
                 text.Children.Add(new TextBlock { Text = it.Title, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
-                if (!string.IsNullOrEmpty(it.Detail)) text.Children.Add(new TextBlock { Text = it.Detail, Style = Ui.Style("T.Mono"), FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis });
+                if (!string.IsNullOrEmpty(it.Detail)) { var detailText = new TextBlock { Text = it.Detail, Style = Ui.Style("T.Mono"), FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis }; if (it.LiteralDetail) Core.Language.SetLiteral(detailText, true); text.Children.Add(detailText); }
                 Grid.SetColumn(text, 1); g.Children.Add(text);
                 var guard = LockFor(it);
                 if (guard != null)

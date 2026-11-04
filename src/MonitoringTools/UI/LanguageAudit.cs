@@ -48,7 +48,7 @@ namespace MonitoringTools.UI
         private static readonly HashSet<string> TestLabels = new HashSet<string>(StringComparer.Ordinal) { "Frozen look", "Frozen look (PIN)", "Selftest button", "Selftest button (PIN)" };
 
         // Sample data and data the person owns: a commit message, a file name with its extension.
-        private static readonly Regex SampleData = new Regex(@"(Update \S+ on \S+ at \S+$)|(\.[A-Za-z0-9]{1,5}$)|(^[A-Za-z]:\\)|(^%[A-Z]+%)", RegexOptions.Compiled);
+        private static readonly Regex SampleData = new Regex(@"(Update \S+ on \S+ at \S+$)|(^Selftest\b)|(\bSelftest (lock|button|outage|entry))|(\bBulk drive notice \d+$)|(^detail \d+$)|(^poster$)|(\.[A-Za-z0-9]{1,5}$)|(^[A-Za-z]:\\)|(^%[A-Z]+%)", RegexOptions.Compiled);
 
         private static readonly Regex Word = new Regex(@"[A-Za-z]+", RegexOptions.Compiled);
         private static readonly char[] CodeChars = "0123456789/\\_@#=%$~<>{}|^*+[]".ToCharArray();
@@ -138,7 +138,7 @@ namespace MonitoringTools.UI
             }
             if (d is FrameworkElement fe)
             {
-                if (fe.ToolTip is string tip) Check(tip, where, "tooltip", Language.OriginalTip(fe));
+                if (fe.ToolTip is string tip && !Language.GetLiteral(fe)) Check(tip, where, "tooltip", Language.OriginalTip(fe));
                 if (d is ComboBox cb)
                     foreach (var item in cb.Items)
                     {

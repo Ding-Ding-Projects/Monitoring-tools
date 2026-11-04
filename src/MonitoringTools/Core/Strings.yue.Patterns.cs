@@ -74,6 +74,22 @@ namespace MonitoringTools.Core
             Add(@"^up to (\d+) KiB$", "最多 $1 KiB");
             Add(@"^The app data folder is: (.+)$", "程式資料資料夾係：$1");
 
+            // ---- counts, times and activity rows
+            Add(@"^(\d+) locks?$", "$1 個鎖"); Add(@"^(\d+) kept$", "保留 $1 個");
+            Add(@"^Showing the newest (\d+) of (\d+) snapshots\.$", "顯示最新 $1 個，共 $2 個快照。");
+            Add(@"^recent  (#\w+)$", "最近用過  $1");
+            AddFn(@"^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (\d\d:\d\d)( · ongoing)?$", m =>
+            {
+                var d = new System.Collections.Generic.Dictionary<string, string> { ["Mon"] = "一", ["Tue"] = "二", ["Wed"] = "三", ["Thu"] = "四", ["Fri"] = "五", ["Sat"] = "六", ["Sun"] = "日" }[m.Groups[1].Value];
+                return "星期" + d + " " + m.Groups[2].Value + (m.Groups[3].Success ? " · 持續中" : "");
+            });
+            string Span(string s) => Regex.Replace(s, @"^(\d+) h (\d+) m$", "$1 小時 $2 分").Replace(" m ", " 分 ").Replace(" s", " 秒").Replace(" h ", " 小時 ");
+            AddFn(@"^(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)  lasted (.+?)  (.+)$", m => m.Groups[1].Value + "  維持咗 " + Span(m.Groups[2].Value) + "  " + Inner(m.Groups[3].Value));
+            AddFn(@"^(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)  ongoing  (.+)$", m => m.Groups[1].Value + "  持續中  " + Inner(m.Groups[2].Value));
+            Add(@"^Encrypted (\d+) items?$", "已加密 $1 個項目"); Add(@"^Decrypted (\d+) items?$", "已解密 $1 個項目");
+            Add(@"^Committed (\d+) files? and pushed (.+)$", "已提交 $1 個檔案並推送 $2");
+            Add(@"^(:\S+) finished in ([\d.]+) s$", "$1 用咗 $2 秒完成");
+
             // ---- Ollama
             Add(@"^Add (\S+:\S+) to the pull cart$", "將 $1 加入下載購物車");
             Add(@"^Delete (\S+:\S+)$", "刪除 $1"); Add(@"^Details of (\S+:\S+)$", "$1 嘅詳細資料");
@@ -154,7 +170,7 @@ namespace MonitoringTools.Core
             AddFn(@"^Not available in \.NET: (.+)$", m => ".NET 冇提供：" + Inner(m.Groups[1].Value));
             AddFn(@"^Not valid: (.+) at offset (\d+)\. (.+)$", m => "表達式無效：" + m.Groups[1].Value + "，位置 " + m.Groups[2].Value + "。" + Inner(m.Groups[3].Value));
             Add(@"^SELECTED: (.*)$", "已選：$1");
-            AddFn(@"^Step (\d+) of (\d+) at text position (\d+): (.+)$", m => "第 " + m.Groups[1].Value + " 步，共 " + m.Groups[2].Value + " 步，文字位置 " + m.Groups[3].Value + "：" + Inner(m.Groups[4].Value));
+            AddFn(@"^Step ([\d,]+) of ([\d,]+) at text position ([\d,]+): (.+)$", m => "第 " + m.Groups[1].Value + " 步，共 " + m.Groups[2].Value + " 步，文字位置 " + m.Groups[3].Value + "：" + Inner(m.Groups[4].Value));
             AddFn(@"^Iteration (\d+) of (greedy|lazy) (.+)$", m => "第 " + m.Groups[1].Value + " 次重複（" + (m.Groups[2].Value == "greedy" ? "貪婪" : "惰性") + " " + m.Groups[3].Value + "）");
             Add(@"^(.+) matches '(.*)'$", "$1 配對「$2」");
             AddFn(@"^(Black|Bold|Light|Medium|Regular|Semibold) weight$", m => Inner(m.Groups[1].Value) + "字重");

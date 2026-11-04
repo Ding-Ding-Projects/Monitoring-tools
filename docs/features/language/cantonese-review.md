@@ -8,49 +8,49 @@ How to correct an entry: find the English key in `Core/Strings.yue.cs` or `Core/
 
 How this file is produced: the self-test check writes `language-table.tsv` (table entries and the page where each was first seen) and `language-patterns.tsv` (strings that matched a pattern, with the Cantonese they produced). This sheet is those two files formatted. Entries are matched ignoring case, so an upper-case eyebrow uses the same line.
 
-Entries: 1945 table entries, 631 strings produced by patterns.
+Entries: 2014 table entries, 678 strings produced by patterns.
 
 ## Contents
 
-- [Appearance editor](#appearance-editor) (50)
-- [Bulk selection](#bulk-selection) (11)
-- [Colour picker](#colour-picker) (23)
-- [Command palette](#command-palette) (54)
+- [Appearance editor](#appearance-editor) (51)
+- [Bulk selection](#bulk-selection) (15)
+- [Colour picker](#colour-picker) (22)
+- [Command palette](#command-palette) (55)
 - [Commit template](#commit-template) (7)
 - [Confirmation](#confirmation) (10)
 - [Confirmation armed](#confirmation-armed) (1)
 - [File tools tab 1](#file-tools-tab-1) (5)
 - [File tools tab 2](#file-tools-tab-2) (4)
 - [File tools tab 3](#file-tools-tab-3) (5)
-- [Guided forms (DNS profile, new shortcut, new server)](#guided-forms-dns-profile-new-shortcut-new-server) (61)
+- [Guided forms (DNS profile, new shortcut, new server)](#guided-forms-dns-profile-new-shortcut-new-server) (41)
 - [History panel](#history-panel) (6)
 - [Offline dialog](#offline-dialog) (23)
 - [Page: about](#page-about) (14)
-- [Page: activity](#page-activity) (8)
-- [Page: appearance](#page-appearance) (49)
+- [Page: activity](#page-activity) (11)
+- [Page: appearance](#page-appearance) (76)
 - [Page: clipboard](#page-clipboard) (16)
 - [Page: conversion](#page-conversion) (17)
-- [Page: game](#page-game) (11)
+- [Page: game](#page-game) (10)
 - [Page: help](#page-help) (49)
-- [Page: history](#page-history) (1)
 - [Page: language](#page-language) (31)
-- [Page: minecraft](#page-minecraft) (85)
-- [Page: modes](#page-modes) (89)
+- [Page: minecraft](#page-minecraft) (89)
+- [Page: modes](#page-modes) (94)
 - [Page: network](#page-network) (28)
-- [Page: ollama](#page-ollama) (151)
-- [Page: overview](#page-overview) (24)
-- [Page: records](#page-records) (34)
-- [Page: safety](#page-safety) (66)
+- [Page: ollama](#page-ollama) (149)
+- [Page: overview](#page-overview) (27)
+- [Page: records](#page-records) (41)
+- [Page: safety](#page-safety) (67)
 - [Page: service](#page-service) (12)
-- [Page: shortcuts](#page-shortcuts) (6)
-- [Page: tools](#page-tools) (57)
-- [Page: tools (forge host choice)](#page-tools-forge-host-choice) (16)
-- [Regex builder](#regex-builder) (213)
-- [Setup wizard](#setup-wizard) (49)
+- [Page: shortcuts](#page-shortcuts) (28)
+- [Page: tools](#page-tools) (62)
+- [Page: tools (forge host choice)](#page-tools-forge-host-choice) (17)
+- [Regex builder](#regex-builder) (212)
+- [Search](#search) (1)
+- [Setup wizard](#setup-wizard) (53)
 - [Toasts](#toasts) (44)
-- [Tray menu](#tray-menu) (27)
+- [Tray menu](#tray-menu) (26)
 - [Welcome](#welcome) (16)
-- [Not reached by the audit (messages, dialogs and states that need a particular event)](#not-reached-by-the-audit-messages-dialogs-and-states-that-need-a-particular-event) (572)
+- [Not reached by the audit (messages, dialogs and states that need a particular event)](#not-reached-by-the-audit-messages-dialogs-and-states-that-need-a-particular-event) (579)
 - [Strings produced by patterns](#strings-produced-by-patterns)
 
 ## Appearance editor
@@ -79,6 +79,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Italic | 斜體 |
 | Letter spacing | 字距 |
 | Library settings | 資料庫設定 |
+| Light weight | 細幼字重 |
 | Redo (Ctrl+Y) | 重做 (Ctrl+Y) |
 | Redo appearance change | 重做外觀更改 |
 | Regular | 正常 |
@@ -112,17 +113,21 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 
 | English | Cantonese |
 | --- | --- |
+| Choose several releases to copy, export or remove together. Off by default. | 揀幾個版本一齊複製、匯出或者移除。預設關閉。 |
 | Copy | 複製 |
 | Copy the chosen notifications to the clipboard as plain text. | 將所揀嘅通知以純文字複製到剪貼簿。 |
 | Done selecting | 揀完 |
 | Export as text… | 匯出成文字檔… |
 | Leave select mode and clear the selection. | 離開選取模式並清除已選項目。 |
+| Remove from history | 喺紀錄度移除 |
 | Remove only the chosen notifications from the centre, after you confirm. Others stay. | 確認之後，只會由通知中心移除所揀嘅通知。其他會保留。 |
 | Remove selected | 移除所選項目 |
+| Save as text… | 存做文字檔… |
 | Save the chosen notifications to a text file. | 將所揀嘅通知儲存到文字檔。 |
 | Select all shown | 揀晒顯示緊嘅 |
 | Select none | 全部不選 |
 | Stop watching the chosen games. Restore defaults brings the built-in list back. | 停止監察所揀嘅遊戲。「還原預設值」會帶返內置清單。 |
+| ·  RUNNING NOW | ·  而家運行緊 |
 
 ## Colour picker
 
@@ -134,7 +139,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Click any pixel on any screen to take its colour. Press Esc to cancel. | 撳任何螢幕上嘅任何一點，就會攞到嗰點嘅顏色。按 Esc 取消。 |
 | Colour picker | 顏色選擇器 |
 | Colour space: sRGB. Edit any field and press Enter; the others follow. | 色彩空間：sRGB。改任何一個欄位然後按 Enter，其餘欄位會跟住變。 |
-| Colours you choose appear here. | 你揀過嘅顏色會出現喺呢度。 |
 | Cyan, magenta, yellow and key (black) 0 to 100. A simple conversion with no printer profile. | 青、洋紅、黃同黑（K）0 至 100。只係簡單轉換，冇用印表機色彩設定檔。 |
 | Drag, or use the arrow keys. Hold Shift for larger steps. | 拖曳，或者用方向鍵。按住 Shift 可以行大步啲。 |
 | Drag, or use the left and right arrow keys. | 拖曳，或者用左右方向鍵。 |
@@ -195,6 +199,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Search commands, pages and settings | 搜尋指令、頁面同設定 |
 | Service | 背景服務 |
 | Settings | 設定 |
+| Shortcuts | 捷徑 |
 | Show sample toasts | 顯示範例通知 |
 | Skip password managers | 略過密碼管理員 |
 | Snooze 1 hour | 暫停一小時 |
@@ -281,7 +286,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | A short label, for example Work or Family filter | 簡短標籤，例如「工作」或者「家庭過濾」 |
 | Add a DNS profile | 新增 DNS 設定檔 |
 | Asks Windows for administrator rights on each run. Leave off unless the script needs them. | 每次執行都會向 Windows 要求管理員權限。除非腳本需要，否則請保持關閉。 |
-| Batch (.bat) | 批次檔 (.bat) |
 | Batch file | 批次檔 |
 | Blank | 空白 |
 | Blank batch file | 空白批次檔 |
@@ -289,27 +293,18 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Check what will be created. | 檢查將會建立咩。 |
 | Choose a version first. | 請先揀版本。 |
 | Choose how it runs | 選擇執行方式 |
-| Choose several shortcuts to copy, export or remove together. Off by default. | 揀幾個捷徑一齊複製、匯出或者移除。預設關閉。 |
 | Computes the SHA-256 hash of the file, prints it, and copies it to the clipboard. | 計算檔案嘅 SHA-256 雜湊值，顯示出嚟，並複製到剪貼簿。 |
 | Copy path | 複製路徑 |
 | Creates a .zip next to the file or folder, named after it, using the tar tool that ships with Windows. | 喺檔案或資料夾旁邊建立一個 .zip，用同一個名稱，使用 Windows 內置嘅 tar 工具。 |
-| DESCRIPTION | 說明 |
 | Each one fills the script for you and can be edited afterwards. The blank ones use the app's own template. | 每個選項都會幫你填好腳本，之後仍然可以修改。空白嗰啲用程式自己嘅範本。 |
-| folder of input | 輸入嘅資料夾 |
 | Give the profile a name. | 請為設定檔命名。 |
 | Hash file | 檔案雜湊 |
-| input path | 輸入路徑 |
-| INSERT | 插入 |
-| Lets the console window of the script appear while it runs. Off runs it hidden. Off by default. | 令腳本執行期間顯示主控台視窗。關閉就會隱藏執行。預設關閉。 |
 | Letters, digits, - and _, starting with a letter, 2 to 32 characters | 字母、數字、- 同 _，以字母開頭，2 至 32 個字元 |
 | Makes a copy of an image no wider than 1600 pixels, keeping its proportions, saved beside the original with -resized in the name. The original is untouched. | 製作一張闊度唔超過 1600 像素嘅圖片副本，保持比例，儲存喺原圖旁邊，名稱加上 -resized。原圖保持不變。 |
 | Name  (you type it after a colon, for example :script) | 名稱（喺冒號後面輸入，例如 :script） |
 | Name it | 為佢命名 |
-| name only | 只有名稱 |
 | Name the profile | 為設定檔命名 |
-| Name: letters, digits, - and _ | 名稱：字母、數字、- 同 _ |
 | Off runs the script hidden. Turn it on to see its output as it runs. | 關閉就會隱藏執行腳本。開啟就可以喺執行時睇到輸出。 |
-| Open scripts folder | 開啟腳本資料夾 |
 | Opens the folder in Explorer. If the copied path is a file, its containing folder opens. | 喺檔案總管開啟資料夾。如果複製咗嘅路徑係檔案，就會開啟佢所在嘅資料夾。 |
 | Pick a starting point | 揀一個起點 |
 | Press “Read this version's worldgen files” to list them. | 撳「讀取呢個版本嘅世界生成檔案」就會列出佢哋。 |
@@ -318,26 +313,16 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Renames the file to start with its last-modified date as yyyy-MM-dd. A file that already starts with a date is left alone. | 將檔案重新命名，開頭加上最後修改日期（yyyy-MM-dd）。已經以日期開頭嘅檔案唔會處理。 |
 | Resize image | 縮放圖片 |
 | Review | 檢視 |
-| Run as administrator | 以系統管理員身分執行 |
-| Runs the script with administrator rights, which asks for consent once per run unless the service already has them. Off by default. | 以管理員權限執行腳本，每次執行都會問一次同意，除非服務本身已經有權限。預設關閉。 |
-| Runs with | 執行方式 |
-| Save and run | 儲存並執行 |
 | Script preview | 腳本預覽 |
 | Shortcut name | 捷徑名稱 |
-| Show a console window | 顯示主控台視窗 |
 | Shows as the tooltip on the shortcut chip | 會顯示做捷徑標籤嘅提示 |
 | Starts with the app's own template: %~1 receives whatever was before the colon, and one line prints it. | 由程式自己嘅範本開始：%~1 接收冒號前面嘅任何內容，再加一行將佢顯示出嚟。 |
 | Starts with the app's own template: a $Target parameter that receives whatever was before the colon, and one line that prints it. | 由程式自己嘅範本開始：一個 $Target 參數，接收冒號前面嘅任何內容，再加一行將佢顯示出嚟。 |
-| Test input (a path or any text) | 測試輸入（路徑或任何文字） |
-| today | 今日 |
 | What it does | 功能說明 |
 | What it does (optional) | 功能說明（可選） |
-| What it does (shows as the chip tooltip) | 功能說明（會顯示做提示） |
-| Whether the script is a PowerShell script (.ps1) or a batch file (.bat). Default: PowerShell. | 腳本係 PowerShell 腳本 (.ps1) 定係批次檔 (.bat)。預設：PowerShell。 |
 | You can change either choice later in the editor. | 兩個選擇之後都可以喺編輯器更改。 |
 | You run the shortcut by copying a path or text and adding :name to the end. | 複製路徑或者文字，尾加 :名稱，就可以執行捷徑。 |
 | Zip it | 壓縮成 ZIP |
-| zip next to it | 旁邊嘅 zip |
 
 ## History panel
 
@@ -402,12 +387,15 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | English | Cantonese |
 | --- | --- |
 | All | 全部 |
+| Choose several entries to copy, export or remove together. Off by default. | 揀幾個項目一齊複製、匯出或者移除。預設關閉。 |
+| Choose several outages to copy, export or remove together. Off by default. | 揀幾次斷線一齊複製、匯出或者移除。預設關閉。 |
 | Conversions | 轉檔 |
 | Everything | 所有嘢 |
 | Files | 檔案 |
+| Kept in memory while the service runs. An outage that is still going cannot be removed. | 服務運行期間保留喺記憶體。仍然持續中嘅斷線唔可以移除。 |
 | Kept in memory while the service runs. The log folder keeps the full record. | 服務行緊期間留喺記憶體，完整紀錄喺日誌資料夾。 |
 | Pushes | 推送 |
-| Shortcuts | 捷徑 |
+| Select | 揀選 |
 | What it has been doing | 佢做過啲咩 |
 
 ## Page: appearance
@@ -415,41 +403,64 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | English | Cantonese |
 | --- | --- |
 | A custom logo colour as #RRGGBB, applied when the field loses focus or you press Enter. Only used when Logo tint is Custom colour. Default: empty. | 自訂標誌顏色，格式 #RRGGBB，欄位失去焦點或者撳 Enter 就會套用。只喺標誌色調設為「自訂顏色」先會用。預設：空白。 |
+| A guided way to set theme, seed colour, contrast, density and text size together, with a review of what changes before anything is applied. | 引導式一次過設定主題、主色、對比、密度同文字大小，套用之前會先俾你睇有咩改變。 |
 | A switch, turned on | 一個開關，已開啟 |
 | Amber | 琥珀色 |
 | Another | 另一個 |
 | Appearance | 外觀 |
+| Bolt | 閃電 |
+| Box | 盒子 |
 | Chip | 標籤 |
+| Choose a glyph from the app's icon set, or your own PNG or ICO picture, for the drawer logo and the tray icon. The tint above still colours a glyph. Starts as the Pulse glyph. | 喺程式嘅圖示庫揀一個圖案，或者用你自己嘅 PNG 或 ICO 圖片，做側欄標誌同系統匣圖示。上面嘅色調仍然會令圖案變色。預設係「脈搏」圖案。 |
+| Choose a PNG or ICO... | 揀 PNG 或 ICO... |
+| Clock | 時鐘 |
+| Code | 程式碼 |
 | Colours and text size apply at once. Code-built pages pick up new colours when the page reloads; a few older windows pick them up the next time they open. | 顏色同文字大小即時生效。用程式碼砌嘅頁面會喺頁面重新載入嗰陣用新顏色；少數較舊嘅視窗要下次開啟先會跟。 |
 | Comfortable | 舒適 |
 | Compact | 緊湊 |
 | Compact tightens row heights so more fits on screen. Default: Comfortable. | 緊湊會收窄行高，令螢幕可以放多啲內容。預設：舒適。 |
+| Controller | 遊戲手掣 |
 | Custom colour | 自訂顏色 |
 | Dark | 深色 |
 | Density | 密度 |
 | Display name | 顯示名稱 |
+| Drawer logo | 側欄標誌 |
+| Drawer logo preview | 側欄標誌預覽 |
 | Drawn with the colours in use right now. | 用而家使用緊嘅顏色繪畫。 |
 | Draws dividers and card borders in the stronger outline colour so edges are easier to see. Default: off. | 用較深嘅輪廓顏色畫分隔線同卡片邊框，令邊緣更易睇。預設：關。 |
 | Filled | 實心 |
 | Follow Windows | 跟隨 Windows |
+| Globe | 地球 |
+| Glyph | 圖案 |
 | High-contrast outlines | 高對比輪廓 |
 | How big things are, how tightly they sit and how much moves. | 東西幾大、排得幾密，同有幾多動態。 |
-| Light | 輕鬆 |
+| Light | 淺色 |
 | Light or dark colours. System follows the Windows app mode and changes with it. Default: System. | 淺色或者深色。「系統」會跟隨 Windows 嘅應用程式模式一齊轉。預設：系統。 |
 | Light, dark or whatever Windows is using, plus the colour the app is built around. | 淺色、深色或者 Windows 而家用緊嘅，再加上程式圍繞嘅主色。 |
+| Logo glyph and image | 標誌圖案同圖片 |
 | Logo tint | 標誌色調 |
+| Make a look | 製作造型 |
+| Make a look step by step | 逐步製作造型 |
 | Match seed colour | 配合主色 |
+| Monitor | 螢幕 |
+| Moon | 月亮 |
 | Name and logo | 名稱同標誌 |
 | Ocean | 海洋 |
 | On | 開 |
 | On skips animation. Follow Windows uses the Windows animation setting. Off always animates. Default: Follow Windows. | 「開」會跳過動畫。「跟隨 Windows」用 Windows 嘅動畫設定。「關」永遠都有動畫。預設：跟隨 Windows。 |
 | Outlined | 外框 |
+| Plain | 簡明 |
+| PNG or ICO only, up to 256 KB, 16 to 512 pixels on each side. The picture is checked, then copied into the app's data folder; the original is never read again. | 只限 PNG 或 ICO，最大 256 KB，每邊 16 至 512 像素。圖片會先檢查，然後複製入程式嘅資料夾；之後唔會再讀取原檔。 |
+| Pulse | 脈搏 |
 | Puts every choice on this page back to its default: System theme, Mint, 100 %, Comfortable, Follow Windows, normal outlines, the default name and a seed-coloured logo. | 將呢頁所有選擇還原做預設：系統主題、薄荷色、100 %、舒適、跟隨 Windows、普通輪廓、預設名稱，同主色標誌。 |
 | Reduce motion | 減少動態效果 |
+| Remove the image | 移除圖片 |
 | Reset | 重設 |
+| Reset logo | 重設標誌 |
 | Reset to defaults | 還原預設值 |
 | Scales text and spacing together in open windows, 90 to 150 percent. Default: 100 %. | 喺已開啟嘅視窗同時縮放文字同間距，90 至 150%。預設：100 %。 |
 | Seed colour | 主色 |
+| Shield | 盾牌 |
 | Shown in headers and the tray tooltip | 顯示喺標題列同系統匣提示 |
 | Size, density and motion | 大小、密度同動態效果 |
 | System | 系統 |
@@ -457,12 +468,16 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | The colour every other colour is derived from. Each one has a full light and dark set. Default: Mint. | 其他所有顏色都由呢個顏色衍生。每個主色都有完整嘅淺色同深色配套。預設：薄荷色。 |
 | The colour of the tray and header glyph. Custom uses the hex value below. Default: Match seed colour. | 系統匣同標題列圖示嘅顏色。「自訂」會用下面嘅十六進制數值。預設：配合主色。 |
 | The name shown for the app. An empty name goes back to the default. Default: Monitoring Tools. | 程式顯示嘅名稱。留空就會返回預設。預設：Monitoring Tools。 |
+| The symbol drawn in the drawer header and the tray icon. Choosing one replaces a custom image. Default: the pulse line. | 畫喺側欄標題同系統匣圖示嘅符號。揀一個就會取代自訂圖片。預設：脈搏線。 |
 | Theme | 主題 |
 | Theme and colour | 主題同顏色 |
 | Theme, colour, text size, density and motion. | 主題、顏色、字體大小、密度同動態效果。 |
 | Tonal | 色調 |
+| Tray icon (the status dot is added on top) | 系統匣圖示（狀態圓點會加喺上面） |
+| Tray icon preview | 系統匣圖示預覽 |
 | Violet | 紫色 |
 | What the app calls itself and the tint of its glyph. | 程式自稱嘅名稱，同佢圖示嘅色調。 |
+| Wi-Fi | Wi-Fi |
 
 ## Page: clipboard
 
@@ -518,7 +533,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | On by default. Toasts are held back while a listed game runs. An outage still going when you stop playing shows then. Quick commands still run. | 預設開啟。清單入面嘅遊戲行緊時會暫停彈出通知。如果你玩完之後仲斷緊線，嗰陣先會顯示。快捷指令照樣執行。 |
 | Process names without .exe. Use process:Title to also match the window title (Minecraft Java runs as javaw). | 處理程序名稱唔使加 .exe。用 process:Title 可以同時配對視窗標題（Minecraft Java 係以 javaw 行）。 |
 | Restore defaults | 還原預設 |
-| Select | 揀選 |
 | Suppress popups while gaming | 玩遊戲時收埋通知 |
 | Treats any fullscreen window (exclusive fullscreen games, fullscreen video, presentations) like a game, even if it is not on the list. On by default. | 任何全螢幕視窗（獨佔全螢幕遊戲、全螢幕影片、簡報）都當做遊戲，即使唔喺清單入面。預設開啟。 |
 | Watched games | 監察嘅遊戲 |
@@ -576,12 +590,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Turn a copied path into an action: convert media, push a repo, or run your own script. All of them start the same way: copy something, add :name on the end. | 將複製咗嘅路徑變成操作：轉換媒體、推送儲存庫，或者執行你自己嘅腳本。全部都係同一個開始方法：複製啲嘢，尾加 :名稱。 |
 | What do you want to do? | 你想做啲咩？ |
 | When the connection drops, an always-on-top dialog explains where it broke and stays until the connection returns or you dismiss it. | 斷線嗰陣，會有個置頂視窗解釋喺邊度出事，並且一直留喺度，直到連線恢復或者你自己關閉。 |
-
-## Page: history
-
-| English | Cantonese |
-| --- | --- |
-| Nothing yet. Copy something and it shows up here. | 暫時未有嘢，複製啲嘢就會出現喺度。 |
 
 ## Page: language
 
@@ -657,7 +665,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | I accept the | 我接受 |
 | Large biomes | 大型生態域 |
 | Leave empty for a random seed chosen by the server. Any text or number works. | 留空就由伺服器隨機揀種子。任何文字或數字都得。 |
-| NAME | 名稱 |
 | Name and version | 名稱同版本 |
 | New server | 新增伺服器 |
 | New world only | 只限新世界 |
@@ -676,10 +683,13 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Read this version's worldgen files | 讀取呢個版本嘅世界生成檔案 |
 | Reads the version's own default files from its server jar and lets you change single values, such as the sea level, the world height or the ambient light. A data pack file replaces a whole entry, so each file written is the jar's default with only your values different, and files you did not touch are not written. Whether the game accepts a combination is decided by the game; this tool checks value types and the documented height limits. | 由伺服器 jar 讀取該版本自己嘅預設檔案，等你更改單一數值，例如海平面、世界高度或者環境光。資料包檔案會取代成個項目，所以寫出嚟嘅每個檔案都係 jar 嘅預設值，只有你改過嘅數值唔同，你冇碰過嘅檔案就唔會寫出。遊戲接唔接受某個組合由遊戲決定；呢個工具只會檢查數值類型同有記載嘅高度限制。 |
 | Releases | 正式版 |
+| Required: the server that builds the world will not run without it. Off until you accept. | 必須：冇呢個，建立世界嘅伺服器就唔會運行。你接受之前保持關閉。 |
 | Reset all rules to server defaults | 將所有規則重設為伺服器預設值 |
 | Runs a private server on this computer to build the world, then saves it to the destination. | 喺呢部電腦運行一個私人伺服器去建立世界，然後儲存到目的地。 |
 | Runs the same bounded forceload procedure in the End with execute in minecraft:the_end, when the jar supports it. | 如果 jar 支援，會用 execute in minecraft:the_end 喺終界執行同樣有範圍限制嘅強制載入程序。 |
 | Runs the same bounded forceload procedure in the Nether with execute in minecraft:the_nether, when the jar supports it. | 如果 jar 支援，會用 execute in minecraft:the_nether 喺地獄執行同樣有範圍限制嘅強制載入程序。 |
+| Runs the same bounded procedure in the End when the jar supports it. Off by default. | 如果 jar 支援，會喺終界執行同樣有範圍限制嘅程序。預設關閉。 |
+| Runs the same bounded procedure in the Nether when the jar supports it. Off by default. | 如果 jar 支援，會喺地獄執行同樣有範圍限制嘅程序。預設關閉。 |
 | Runs worldborder set after generation. Default off. | 生成之後執行 worldborder set。預設關閉。 |
 | Save the world as (default folder) | 世界儲存為（預設資料夾） |
 | Saves the seed, world type, structures and (for a local process server on Java 1.19 or newer) custom superflat layers into the chosen local server. No world is built. Game rules and extra dimensions apply only to a generated world. | 將種子、世界類型、結構，以及（Java 1.19 或以上嘅本機程序伺服器）自訂超平坦圖層儲存到所揀嘅本機伺服器。唔會建立世界。遊戲規則同額外維度只適用於生成出嚟嘅世界。 |
@@ -695,6 +705,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | so a private server may run once to build this world | 所以可能會運行一次私人伺服器去建立呢個世界 |
 | Stops the build and deletes the temporary server folder. | 停止建立並刪除臨時伺服器資料夾。 |
 | The jar's command list gives each rule's name and type but not its default, so a rule left on “Server default” is not touched. Rules are applied to a world this tool generates; they are not written to an existing server. | jar 嘅指令清單只提供每條規則嘅名稱同類型，冇提供預設值，所以停喺「伺服器預設」嘅規則唔會被改動。規則只會套用喺呢個工具生成嘅世界，唔會寫入現有伺服器。 |
+| The kind of terrain generated. Single biome appears only for versions that support it. Default: Normal. | 生成嘅地形類型。「單一生態域」只會喺支援嘅版本出現。預設：普通。 |
 | There is no preview. Terrain cannot be drawn without running the game's own generator, so what you get is the real output of the server for the chosen version. | 冇預覽。唔運行遊戲自己嘅生成器就畫唔到地形，所以你攞到嘅係所揀版本伺服器嘅真正輸出。 |
 | Uses the same chunk radius in each dimension. Whether this jar supports it is confirmed when you read the jar or generate; if not, that dimension is skipped and the result says so. | 每個維度用同一個區塊半徑。呢個 jar 支唔支援，要等你讀取 jar 或者生成嗰陣先確認；如果唔支援，嗰個維度就會被跳過，結果會講明。 |
 | Version | 版本 |
@@ -706,6 +717,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | World seed | 世界種子 |
 | World type (default Normal) | 世界類型（預設普通） |
 | World version | 世界版本 |
+| Write the finished world as a plain folder, or pack it into one ZIP file you can share. Default: folder. | 將完成嘅世界寫成普通資料夾，或者打包成一個可以分享嘅 ZIP 檔案。預設：資料夾。 |
 | Write to server settings | 寫入伺服器設定 |
 | ZIP file | ZIP 檔案 |
 
@@ -715,12 +727,14 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | --- | --- |
 | A rule says: between two times on chosen days, set one value. Rules are checked every minute. When a rule ends, your saved choice comes back; a rule never rewrites it. None by default. | 規則嘅意思係：喺揀咗嘅日子，兩個時間之間套用一個數值。規則每分鐘檢查一次。規則完咗，你儲存嘅選擇就會返嚟，規則永遠唔會改寫佢。預設冇規則。 |
 | A shared switch. While it is on: game mode stays on and cannot be switched off, sounds are muted, quick commands that push to git are paused, and the app shows English only, with Cantonese, bilingual, humour levels, personal wording and the dim sum surprise left out entirely. It is turned off with the PIN or the password you set. Starts off. | 一個共用開關。開咗之後：遊戲模式會一直開住而且關唔到、聲音靜音、會推送去 git 嘅快捷指令暫停，而程式只會顯示英文，廣東話、雙語、幽默程度、個人用語同點心驚喜全部唔出現。要用你設定嘅 PIN 或密碼先可以關。預設係關。 |
+| Add a rule step by step | 逐步新增規則 |
 | Add rule | 新增規則 |
 | ADHD modes | 專注力輔助模式 |
 | and | 同 |
 | Apply now | 即刻套用 |
 | Browse | 瀏覽 |
 | Choose a way to turn the mode off: a PIN of 4 to 12 digits, a password of at least 8 characters, or both. Either one works later. They are stored only as salted PBKDF2-SHA256 hashes (200,000 rounds). | 請揀一個關閉模式嘅方法：4 至 12 位數字嘅 PIN、至少 8 個字元嘅密碼，或者兩個都設。之後用邊個都得。兩者只會以加鹽 PBKDF2-SHA256 雜湊（200,000 輪）儲存。 |
+| Choose several rules to copy, export or remove together. Off by default. | 揀幾條規則一齊複製、匯出或者移除。預設關閉。 |
 | Clear cached pictures | 清除已快取嘅圖片 |
 | Dates are written yyyy-MM-dd and both ends are included. Leave both empty for a rule with no date limit, or fill only one for an open-ended range. The window still follows the times and days above. | 日期寫法係 yyyy-MM-dd，頭尾兩日都計。兩個都留空就係冇日期限制，只填一個就係冇盡頭嘅範圍。時段仍然跟隨上面嘅時間同日子。 |
 | Days (none selected means every day) | 日子（冇揀即係每日） |
@@ -739,6 +753,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Friday | 星期五 |
 | From | 由 |
 | Full path to a .json file | .json 檔案嘅完整路徑 |
+| How often the plain reminder appears while Time awareness is on. Ignored when it is off. | 開咗「時間意識」嗰陣，簡單提醒幾耐出現一次。關閉就唔會理。 |
 | Language and theme rules are stored and offered to the rest of the app as the scheduled choice. Sounds, toasts and game mode rules apply immediately. A rule never changes your saved choice. | 語言同主題規則會被儲存，並以排程選擇嘅形式提供畀程式其他部分。聲音、通知同遊戲模式規則會即時生效。規則永遠唔會改變你儲存嘅選擇。 |
 | Language mode | 語言模式 |
 | Mode name | 模式名稱 |
@@ -801,6 +816,8 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Waiting for its time | 等緊嘅時間到 |
 | Wed | 三 |
 | Wednesday | 星期三 |
+| What the setting is set to during the window. Your saved choice comes back when the rule ends. | 喺時段內，設定會變成咩。規則完咗，你儲存嘅選擇就會返嚟。 |
+| Which setting this rule changes while its time window is open. | 時段開啟期間，呢條規則會更改邊個設定。 |
 | While School mode is on, these modes stay as you set them. School mode only adds its own limits on top. | 學校模式開咗嗰陣，呢啲模式照舊保持你嘅設定。學校模式只係喺上面加多佢自己嘅限制。 |
 
 ## Page: network
@@ -853,12 +870,10 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Attach file | 附加檔案 |
 | Attach up to 6 files to the next message. Images (PNG, JPEG, GIF, WebP, BMP, up to 12 MB) go to vision models; text files up to 1024 KB are pasted into the message, cut at 24,000 characters. You can also drop files on this card. | 下一則訊息最多可以附加 6 個檔案。圖片（PNG、JPEG、GIF、WebP、BMP，最大 12 MB）會交畀視覺模型；最大 1024 KB 嘅文字檔會貼入訊息，超過 24,000 個字元就會截斷。你亦可以將檔案拖放到呢張卡片。 |
 | Can read images as well as text. | 除咗文字，仲睇得圖。 |
-| Careful reviewer | 細心嘅審閱者 |
 | Chat | 對話 |
 | Chat message | 對話訊息 |
 | Choose an installed model to see what it can do. | 揀一個已安裝嘅模型，睇下佢做到啲咩。 |
 | Compact reasoning-oriented model. | 精簡嘅推理型模型。 |
-| Concise | 簡潔 |
 | Context (tokens) | 上下文（token 數） |
 | Context length in tokens | 上下文長度（token 數） |
 | Context window in tokens (128 to 1048576). Empty uses the server default. A larger window needs more memory. | 上下文視窗大小（token 數，128 至 1048576）。留空就用伺服器預設值。視窗越大，要用越多記憶體。 |
@@ -873,12 +888,12 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Empty the cart | 清空購物車 |
 | Ends the Ollama processes you own. Models stay on disk. | 結束你擁有嘅 Ollama 程序。模型會保留喺磁碟。 |
 | Export as Markdown | 匯出成 Markdown |
-| Fills the system prompt and parameters below. Answer briefly and directly. Use short sentences and no filler. | 填入下面嘅系統提示同參數。簡短直接咁答，用短句，唔好講廢話。 |
-| Fills the system prompt and parameters below. You review text and code carefully. List concrete problems first, then suggestions. If you are unsure, say so instead of guessing. | 填入下面嘅系統提示同參數。你會仔細審閱文字同程式碼，先列出具體問題，再提出建議。如果唔肯定，就直接講，唔好估。 |
+| Fills the system prompt and parameters below. Be strict. | 填入下面嘅系統提示同參數。要嚴格。 |
 | Find a free port | 搵一個空閒埠 |
 | From the server's process list. A model unloads by itself after its keep-alive time. | 來自伺服器嘅程序清單。模型過咗保持載入時間就會自動卸載。 |
 | Goes back to the dated built-in list. | 返去有日期嘅內置清單。 |
 | Good multilingual and coding balance. | 多語言同寫程式之間平衡得好。 |
+| How long a model stays loaded in memory after a reply when the chat does not set its own time. A shorter time frees memory sooner but the next reply starts slower. Default: 5 minutes. | 對話冇自己設定時間嗰陣，模型喺回覆之後保持載入記憶體幾耐。時間越短越快釋放記憶體，不過下一次回覆會開始得慢啲。預設：5 分鐘。 |
 | How long the model stays loaded after this chat's reply, such as 5m, 1h or 0. Empty uses the default below. | 呢個對話回覆之後，模型保持載入幾耐，例如 5m、1h 或者 0。留空就用下面嘅預設值。 |
 | i  Firewall note | i  防火牆提示 |
 | i  Server log found | i  搵到伺服器紀錄檔 |
@@ -900,9 +915,9 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Model name with an optional tag, for example llama3.2:3b | 模型名稱，可以加標籤，例如 llama3.2:3b |
 | Model to pull | 要下載嘅模型 |
 | New chat | 新對話 |
+| New profile, step by step | 逐步建立新設定檔 |
 | No model selected yet. | 未揀模型。 |
 | No saved chats yet. | 未有已儲存嘅對話。 |
-| No system prompt. Fills the fields below with this profile's parameters. | 冇系統提示。用呢個設定檔嘅參數填入下面嘅欄位。 |
 | Not included yet | 暫時未包含 |
 | Nothing is listening there, so a server can start. If a server keeps failing to start, read the log below. | 嗰度冇嘢喺度監聽，所以可以啟動伺服器。如果伺服器一直啟動唔到，請睇下面嘅紀錄檔。 |
 | Noticeably stronger; wants about 12 GB of memory. | 明顯強啲，要約 12 GB 記憶體。 |
@@ -916,7 +931,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Opens ollama.com/download in your browser, for when winget is not available. | 喺瀏覽器開啟 ollama.com/download，用喺冇 winget 嘅時候。 |
 | Opens the folder that holds Ollama's server.log and app.log. | 開啟存放 Ollama 嘅 server.log 同 app.log 嘅資料夾。 |
 | Opens the folder where downloaded models are stored. | 開啟存放已下載模型嘅資料夾。 |
-| Plain | 簡明 |
 | Port (default 11434) | 埠（預設 11434） |
 | Port of the local Ollama server, 1024 to 65535. Default 11434. | 本機 Ollama 伺服器嘅埠，1024 至 65535。預設 11434。 |
 | Press Start server above. If it exits straight away, read the log below. | 請撳上面嘅「啟動伺服器」。如果佢一啟動就退出，請睇下面嘅紀錄檔。 |
@@ -968,6 +982,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Stops the reply that is streaming. | 停止正在串流嘅回覆。 |
 | Stores the system prompt, temperature, top-p and context length shown here under the name in the box. The same name replaces the old profile. | 將呢度顯示嘅系統提示、溫度、top-p 同上下文長度，用輸入框入面嘅名稱儲存。同名會取代舊設定檔。 |
 | Stores this conversation on this computer so you can open, export or delete it later. | 將呢個對話儲存喺本機，等你之後可以開啟、匯出或者刪除。 |
+| Strict reviewer | 嚴格嘅審閱者 |
 | Strong for its size. | 以體積嚟講好能打。 |
 | Suggests an unused port above 11434 for when the default is taken. It does not change any setting. | 預設埠被佔用嗰陣，建議一個 11434 以上冇人用嘅埠。唔會更改任何設定。 |
 | System prompt | 系統提示 |
@@ -996,13 +1011,15 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 
 | English | Cantonese |
 | --- | --- |
+| Back online | 已恢復連線 |
 | Clipboard today | 今日複製 |
-| collecting the first probes… | 正在收集頭幾次探測… |
 | commit and push the repo | 提交並推送儲存庫 |
-| Conversions, pushes, shortcuts, file jobs and outages show up here. | 轉檔、推送、捷徑、檔案工作同斷線都會喺呢度顯示。 |
+| Connection lost | 連線中斷 |
 | Copies today | 今日複製次數 |
 | Copy a path with a command on the end. The command runs the moment it lands on the clipboard. | 複製路徑時喺尾加個指令，指令一去到剪貼簿就即刻行。 |
+| Copy again | 再複製一次 |
 | DNS avg | DNS 平均 |
+| DNS lookups failing | DNS 查詢失敗 |
 | Every probe of the last few minutes. Gaps are failed checks. | 最近幾分鐘每一次探測，有缺口即係探測失敗。 |
 | Everything is quiet | 一切平靜 |
 | extract or convert audio | 抽取或轉換音訊 |
@@ -1013,9 +1030,10 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Live | 即時 |
 | Maximize | 最大化 |
 | Minimize | 最小化 |
-| None since the service started. Nice and quiet. | 服務啟動之後未斷過線，好平靜。 |
 | Outages | 斷線次數 |
 | Probes | 探測次數 |
+| Recently copied | 最近複製 |
+| Router is not responding | 路由器冇回應 |
 | Standing by | 待命中 |
 | Uptime | 連線時間 |
 | video or audio to MP4 | 影片或音訊轉 MP4 |
@@ -1025,22 +1043,30 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 
 | English | Cantonese |
 | --- | --- |
+| Also include clipboard history | 同時包括剪貼簿紀錄 |
 | Changelog | 更新日誌 |
 | Choose a file and write the selected data in the selected format | 揀一個檔案，將所選資料按所選格式寫入 |
 | Choose several notifications to copy, export or remove together. Off by default. | 揀幾個通知一齊複製、匯出或者移除。預設關閉。 |
+| Choose several snapshots to copy, export or remove together. Off by default. | 揀幾個快照一齊複製、匯出或者移除。預設關閉。 |
+| Choose where to save one zip holding every dataset in every format | 揀一個位置，儲存包含所有資料集、所有格式嘅 ZIP |
 | Clear all | 全部清除 |
-| Copy to clipboard | 複製到剪貼簿 |
 | Each save that changes a setting keeps a snapshot, up to 200. Restore puts a snapshot back after you confirm. | 每次儲存如果改變咗設定，都會留一個快照，最多 200 個。確認之後，「還原」就會將快照放返。 |
 | Every toast, notice, offline alert and IP change since the app started, newest first. Kept in memory only, up to 500. | 程式啟動之後每個通知、提示、斷線警示同 IP 變更，最新排最前。只保留喺記憶體，最多 500 項。 |
+| Export everything | 全部匯出 |
+| Export everything... | 全部匯出... |
 | Exports | 匯出 |
 | Fetch the release notes from GitHub again | 重新由 GitHub 取得版本說明 |
+| Fetching release notes… | 正在取得版本說明… |
 | Format | 格式 |
+| Included: Activity, Settings, Notifications, Settings history, Shortcuts, Regex library, Appearance and looks, Schedule rules, Lock records (no secrets), DNS profiles. | 包括：活動紀錄、設定、通知、設定歷史、捷徑、正規表示式資料庫、外觀同造型、排程規則、鎖紀錄（不含機密）、DNS 設定檔。 |
 | IP changed | IP 已更改 |
 | Notice | 提示 |
 | Notification centre | 通知中心 |
 | Notifications | 通知 |
 | Notifications, settings history, exports and the changelog. | 通知、設定歷史、匯出同更新日誌。 |
+| Off by default. Clipboard history is plain text and may hold private copies, so it is left out unless you choose it. | 預設關閉。剪貼簿紀錄係純文字，可能有私人內容，所以除非你揀，否則唔會包括。 |
 | Offline | 離線 |
+| One zip with every dataset below in JSON, CSV, Markdown, HTML and plain text. Lock records list what each lock covers but never a PIN, a password or an authenticator secret. | 一個 ZIP，包含下面每個資料集嘅 JSON、CSV、Markdown、HTML 同純文字版本。鎖紀錄會列出每個鎖涵蓋咩，但永遠唔會有 PIN、密碼或者驗證器密鑰。 |
 | Personal wording applied | 個人用語已套用 |
 | Pick what to export and how. Clipboard history exports text entries only, never images, files or audio. | 揀要匯出咩同點樣匯出。剪貼簿紀錄只會匯出文字項目，唔會匯出圖片、檔案或者音訊。 |
 | Plain text | 純文字 |
@@ -1058,7 +1084,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Toast | 通知 |
 | View diff | 睇差異 |
 | What to export | 要匯出咩 |
-| ·  RUNNING NOW | ·  而家運行緊 |
 
 ## Page: safety
 
@@ -1104,11 +1129,11 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Lost my authenticator | 遺失咗驗證器 |
 | New locks stay unlocked for (default 5 minutes) | 新鎖解鎖後保持開啟嘅時間（預設 5 分鐘） |
 | No accounts yet. Add one above. | 未有帳戶。請喺上面新增一個。 |
-| No locks yet. Lock something from its right-click menu and it will be listed here. | 未有鎖。喺任何元素嘅右鍵選單揀「鎖住」，就會列喺呢度。 |
 | No tickets. Good for you. | 冇單據，好嘢。 |
 | Nothing is sent anywhere. These tickets exist only on this computer, no network request is made, no data is collected, and nobody is reading them. | 唔會傳送任何嘢。呢啲單據只存在於呢部電腦，唔會發出網絡請求，唔會收集資料，亦冇人會睇。 |
 | Off by default, so locked items are shown and marked as locked instead of quietly disappearing. | 預設關閉，所以已鎖項目會照常顯示並標明已鎖，而唔係靜靜雞消失。 |
 | Offer Windows Hello | 提供 Windows Hello |
+| Opens the unlock prompt for this lock | 開啟呢個鎖嘅解鎖提示 |
 | otpauth link or base32 secret | otpauth 連結或者 base32 密鑰 |
 | otpauth:// link or base32 secret | otpauth:// 連結或者 base32 密鑰 |
 | Paste an otpauth:// link, or just a base32 secret. A link brings its issuer, algorithm, digits and period with it. Default for a bare secret: SHA-1, 6 digits, 30 seconds. | 貼上 otpauth:// 連結，或者單獨一個 base32 密鑰。連結會連同簽發者、演算法、位數同週期一齊帶入。單獨密鑰嘅預設：SHA-1、6 位、30 秒。 |
@@ -1126,6 +1151,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Support Tickets | 支援單據 |
 | This lock is just for fun. It is not security and does not protect or encrypt anything. | 呢個鎖只係玩下。唔算安全措施，亦唔會保護或者加密任何嘢。 |
 | Time-based one-time codes (RFC 6238) for any account, calculated here. Secrets are kept in a Windows-protected file and never in settings, logs or history. | 為任何帳戶喺本機計算基於時間嘅一次性驗證碼（RFC 6238）。密鑰存放喺受 Windows 保護嘅檔案，永遠唔會出現喺設定、紀錄或者歷史入面。 |
+| Unlock | 解鎖 |
 | Until the app closes | 直到程式關閉 |
 | What changed in locks, authenticator accounts, tickets and the display name, and when. It records actions and labels only. No secret, PIN, password or code is ever written here. | 鎖、驗證器帳戶、單據同顯示名稱幾時改過咩。只記錄操作同標籤，永遠唔會寫入任何密鑰、PIN、密碼或者驗證碼。 |
 | What happened | 發生咗咩事 |
@@ -1153,11 +1179,33 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | English | Cantonese |
 | --- | --- |
 | :push message | :push 提交訊息 |
+| Batch (.bat) | 批次檔 (.bat) |
 | Built in. Stages everything, commits with this message and pushes the current branch. | 內置功能。會暫存所有改動，用呢個訊息提交，再推送目前分支。 |
+| Choose several shortcuts to copy, export or remove together. Off by default. | 揀幾個捷徑一齊複製、匯出或者移除。預設關閉。 |
+| Copy to clipboard | 複製到剪貼簿 |
+| DESCRIPTION | 說明 |
 | Edit | 編輯 |
+| folder of input | 輸入嘅資料夾 |
+| input path | 輸入路徑 |
+| INSERT | 插入 |
+| Lets the console window of the script appear while it runs. Off runs it hidden. Off by default. | 令腳本執行期間顯示主控台視窗。關閉就會隱藏執行。預設關閉。 |
 | Make your own :commands. Copy any path or text with :name on the end and your batch or PowerShell script runs with it. | 自訂你嘅 :指令。複製任何路徑或文字，尾加 :名稱，就會用佢行你嘅批次檔或 PowerShell 腳本。 |
+| NAME | 名稱 |
+| name only | 只有名稱 |
+| Name: letters, digits, - and _ | 名稱：字母、數字、- 同 _ |
 | New shortcut | 新增捷徑 |
-| None yet. | 暫時冇。 |
+| Open scripts folder | 開啟腳本資料夾 |
+| PowerShell | PowerShell |
+| Run as administrator | 以系統管理員身分執行 |
+| Runs the script with administrator rights, which asks for consent once per run unless the service already has them. Off by default. | 以管理員權限執行腳本，每次執行都會問一次同意，除非服務本身已經有權限。預設關閉。 |
+| Runs with | 執行方式 |
+| Save and run | 儲存並執行 |
+| Show a console window | 顯示主控台視窗 |
+| Test input (a path or any text) | 測試輸入（路徑或任何文字） |
+| today | 今日 |
+| What it does (shows as the chip tooltip) | 功能說明（會顯示做提示） |
+| Whether the script is a PowerShell script (.ps1) or a batch file (.bat). Default: PowerShell. | 腳本係 PowerShell 腳本 (.ps1) 定係批次檔 (.bat)。預設：PowerShell。 |
+| zip next to it | 旁邊嘅 zip |
 
 ## Page: tools
 
@@ -1186,6 +1234,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Gitea or Forgejo | Gitea 或 Forgejo |
 | GitHub CLI found. Accounts, creating repositories and sign-in are available. | 搵到 GitHub CLI。可以使用帳戶、建立儲存庫同登入。 |
 | How it is built: this is a native Windows drawing board built on the ink canvas that ships with Windows. The Drawesome package is a JavaScript library, and using it would need a web view and a package download that this app does not have, so it is not used. Pencil, Pen and Brush thin as you draw faster and the Fountain pen follows the stroke direction; the width is applied when you lift the pen, so the live line is a constant width while you draw. Saved pictures never overwrite the original: a PNG goes next to it with "-annotated" added to the name. | 製作方式：呢個係原生 Windows 畫板，建基於 Windows 內置嘅墨跡畫布。Drawesome 套件係 JavaScript 程式庫，要用就需要網頁檢視同套件下載，而呢個程式冇，所以唔用。鉛筆、鋼筆同毛筆畫得越快就越幼，墨水筆會跟住筆劃方向；闊度喺你提起筆嗰陣先套用，所以畫緊嗰陣見到嘅線條闊度係固定嘅。儲存嘅圖片永遠唔會覆蓋原圖：會喺旁邊另存一個 PNG，名稱加上「-annotated」。 |
+| How many times larger the exported PNG is than the board on screen. 2x and 3x are sharper and make bigger files. Default: 1x. | 匯出嘅 PNG 比螢幕上嘅畫板大幾多倍。2 倍同 3 倍更清晰，檔案亦更大。預設：1 倍。 |
 | Left | 左 |
 | New blank board | 新空白畫板 |
 | No picture is in clipboard history right now. Copy one and it will show up here. | 剪貼簿紀錄而家冇圖片。複製一張，就會出現喺呢度。 |
@@ -1201,6 +1250,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | PNG export size (default 1x) | PNG 匯出大小（預設 1 倍） |
 | Preferred editor (default automatic: VS Code, then Notepad++, then the system default) | 偏好嘅編輯器（預設自動：先 VS Code，再 Notepad++，最後系統預設） |
 | Private | 私人 |
+| Private means only you and people you invite can see it; public means anyone can. Default: private. | 私人即係只有你同你邀請嘅人睇到；公開即係任何人都睇到。預設：私人。 |
 | Public | 公開 |
 | Publish | 發佈 |
 | Publish a folder to GitHub | 將資料夾發佈到 GitHub |
@@ -1214,12 +1264,15 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | The full path of the program to use when "Custom program" is chosen. | 揀咗「自訂程式」之後要用嘅程式完整路徑。 |
 | The IP history repository has not been set up on this computer, so its shortcut is not shown. | IP 紀錄儲存庫未喺呢部電腦設定，所以唔顯示佢嘅捷徑。 |
 | The new repository's name on GitHub. Defaults to the folder name. | 新儲存庫喺 GitHub 嘅名稱。預設係資料夾名稱。 |
+| The program that opens a shortcut's script when you choose Open in editor. Automatic tries VS Code, then Notepad++, then the system default. | 你揀「用編輯器開啟」嗰陣，用嚟開啟捷徑腳本嘅程式。「自動」會先試 VS Code，再試 Notepad++，最後用系統預設。 |
+| The screen edge the drawing toolbar sits on when the board opens. Default: top. | 畫板開啟嗰陣，繪圖工具列所在嘅螢幕邊緣。預設：頂部。 |
 | Toolbar position (default top) | 工具列位置（預設頂部） |
 | Tools | 工具 |
 | Top | 上 |
 | Upload after committing | 提交之後上載 |
 | Visibility of a new repository (default private) | 新儲存庫嘅可見度（預設私人） |
 | Where to publish (default GitHub) | 發佈到邊度（預設 GitHub） |
+| Which kind of site the folder is published to. Each one has its own sign-in and options below. Default: GitHub. | 資料夾發佈到邊類網站。每類都有自己嘅登入同下面嘅選項。預設：GitHub。 |
 
 ## Page: tools (forge host choice)
 
@@ -1236,6 +1289,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Server address (empty means gitlab.com for GitLab) | 伺服器位址（留空即係 GitLab 嘅 gitlab.com） |
 | Set active | 設為使用中 |
 | Sign out | 登出 |
+| The account or organisation that will own the new repository. | 將會擁有新儲存庫嘅帳戶或者組織。 |
 | The glab command-line tool is not installed, so creating a repository here needs a token. Publishing to an existing empty repository does not. | 未安裝 glab 命令列工具，所以喺呢度建立儲存庫需要權杖。發佈到現有嘅空儲存庫就唔使。 |
 | The group, organization or user that should own the new repository. Empty means the account that signs in. | 擁有新儲存庫嘅群組、組織或者使用者。留空即係登入嘅帳戶。 |
 | The server address, for example https://git.example.org. Leave empty for gitlab.com. Gitea and Forgejo need an address. | 伺服器位址，例如 https://git.example.org。留空就用 gitlab.com。Gitea 同 Forgejo 一定要填位址。 |
@@ -1284,8 +1338,8 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Build | 建構 |
 | case-insensitive matching ignores the current culture | 唔分大細楷配對時唔理目前文化特性 |
 | Characters | 字元 |
+| Choose several saved patterns to copy, export or remove together. Off by default. | 揀幾個已儲存嘅表達式一齊複製、匯出或者移除。預設關閉。 |
 | Close the regex builder | 關閉正規表示式建構器 |
-| Code | 程式碼 |
 | comment | 註解 |
 | Compare | 比較 |
 | Compare the .NET engine modes | 比較 .NET 引擎模式 |
@@ -1336,6 +1390,8 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | info | 資訊 |
 | Inline options | 內嵌選項 |
 | Insert literal text | 插入字面文字 |
+| IPv4 address | IPv4 位址 |
+| ISO date | ISO 日期 |
 | JavaScript-style behaviour; only works with ignore case and multiline | JavaScript 式行為；只可以同「忽略大細楷」同「多行」一齊用 |
 | Kind of group | 群組類型 |
 | Last | 最後一個 |
@@ -1363,7 +1419,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | named group | 具名群組 |
 | No capture | 非擷取 |
 | No expected outcomes yet. | 未有預期結果。 |
-| No match in the sample. | 樣本入面冇配對。 |
 | No search yet. Choose a folder and press Search files. | 未有搜尋。揀一個資料夾，然後撳「搜尋檔案」。 |
 | Non-backtracking | 非回溯 |
 | none of | 以下皆非 |
@@ -1374,7 +1429,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Not available in .NET. Subroutine calls, which re-use a group's pattern elsewhere, are not part of the .NET flavour. Repeat the sub-pattern, or build the pattern in code from a shared string. | .NET 冇提供。子程序呼叫（喺其他位置重用群組嘅表達式）唔屬於 .NET 語法。請重複子表達式，或者喺程式碼用共用字串砌出表達式。 |
 | Not followed by | 後面唔緊接 |
 | Not preceded by | 前面唔緊接 |
-| Nothing saved yet. | 未有已儲存嘅項目。 |
 | Numbered | 編號 |
 | numbered group | 編號群組 |
 | Off by default because patterns can be private. When on, up to 50 recent patterns per search box are stored on this computer in the app settings. Turning it off erases them. | 預設關閉，因為表達式可能係私人嘅。開啟後，每個搜尋框最多 50 個最近用過嘅表達式會儲存喺呢部電腦嘅程式設定入面。關閉就會清除。 |
@@ -1388,7 +1442,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Pattern (current token highlighted) | 表達式（目前標記已突顯） |
 | Patterns you use here appear while the app runs. Turn on Remember across restarts to keep them. | 你喺呢度用過嘅表達式會喺程式運行期間顯示。開啟「重新啟動後仍然記住」就可以保留佢哋。 |
 | Play | 播放 |
-| PowerShell | PowerShell |
 | Preceded by | 前面緊接 |
 | Press Run comparison to measure this pattern on the sample. | 撳「執行比較」，喺樣本上量度呢個表達式。 |
 | Prev | 上一個 |
@@ -1419,7 +1472,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Sample text to test the pattern against | 用嚟測試表達式嘅樣本文字 |
 | Save every match as a CSV file | 將每個配對儲存成 CSV 檔案 |
 | Save the current pattern | 儲存目前嘅表達式 |
-| Search every page | 搜尋所有頁面 |
 | Search from the end of the text | 由文字結尾開始搜尋 |
 | Search inside folders below the chosen one. On by default. | 搜尋所揀資料夾下面嘅子資料夾。預設開啟。 |
 | Search the folder. Nothing is changed. | 搜尋資料夾。唔會改動任何嘢。 |
@@ -1456,15 +1508,25 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Use this list as the sample | 用呢張清單做樣本 |
 | where the last match ended | 上一個配對結束嘅位置 |
 | Whitespace | 空白字元 |
+| Windows path | Windows 路徑 |
 | Word boundary | 字詞邊界 |
 | Word character | 字詞字元 |
 | zero or more | 零個或以上 |
+
+## Search
+
+| English | Cantonese |
+| --- | --- |
+| Search every page | 搜尋所有頁面 |
 
 ## Setup wizard
 
 | English | Cantonese |
 | --- | --- |
+| A dialog appears when the connection is lost and stays until the line returns or you dismiss it. | 斷線嗰陣會彈出視窗，一直留喺度，直到連線恢復或者你自己關閉。 |
 | A dialog on every change, and a history with first and last seen times. | 每次變動都有提示，並記錄首次同最後見到嘅時間。 |
+| A small card with actions pops up each time you copy something. | 每次複製嘢，角落都會彈出一張帶操作嘅細卡片。 |
+| A toast stays on screen while the pointer is over it, so you can reach its buttons. | 滑鼠停喺通知上面嗰陣，通知會留喺螢幕，等你撳到佢嘅按鈕。 |
 | Alert me when the internet drops | 上網中斷時通知我 |
 | All set | 全部設定好 |
 | Any fullscreen app counts | 任何全螢幕程式都算 |
@@ -1512,6 +1574,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Tuesday | 星期二 |
 | Watch my public IP address | 監察我嘅公開 IP 位址 |
 | When the connection drops, a dialog explains where it broke and stays until it is back. | 連線中斷時會有視窗講解邊度出事，並且留低直到恢復。 |
+| While a watched game is running, popups wait until you stop playing. | 受監察嘅遊戲行緊嗰陣，彈出通知會等你唔玩先出現。 |
 | Windows user name | Windows 使用者名稱 |
 
 ## Toasts
@@ -1567,7 +1630,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 
 | English | Cantonese |
 | --- | --- |
-| 0 kept | 保留 0 個 |
 | Administrator rights | 系統管理員權限 |
 | auto | 自動 |
 | Clipboard history | 剪貼簿紀錄 |
@@ -1624,6 +1686,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | (theme) | （主題） |
 | , ignore case | ，唔分大小寫 |
 | , match case | ，區分大小寫 |
+| 0 kept | 保留 0 個 |
 | a backslash with nothing after it (the engine rejects this) | 後面冇嘢嘅反斜線（引擎會拒絕） |
 | a carriage return (U+000D) | 歸位字元 (U+000D) |
 | a closing parenthesis with no group to close (the engine rejects this) | 一個冇群組可以關閉嘅右括號（引擎會拒絕） |
@@ -1663,7 +1726,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Arguments, for example a player name or 'day' | 參數，例如玩家名稱或 'day' |
 | Audio clip | 音訊片段 |
 | Audio file | 音訊檔案 |
-| Back online | 已恢復連線 |
 | Base64 and password encryption for all of them | 全部檔案都可以做 Base64 同密碼加密 |
 | Bell | 響鈴 |
 | Bitmap on the clipboard. Drag the preview out to drop it as a PNG file. | 剪貼簿入面係點陣圖。拖曳預覽出去就可以存成 PNG 檔案。 |
@@ -1678,6 +1740,7 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Cancelled at the approval prompt. Nothing changed. | 喺批准提示取消咗，冇任何更改。 |
 | Cancelled at the prompt. | 喺提示取消咗。 |
 | Cancelling | 取消緊 |
+| Careful reviewer | 細心嘅審閱者 |
 | Carriage return | 歸位 |
 | Check accounts with Mojang | 向 Mojang 驗證帳戶 |
 | Check host key | 檢查主機金鑰 |
@@ -1708,7 +1771,9 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Code file | 程式碼檔案 |
 | Collapse group | 收合群組 |
 | collapsed | 已收合 |
+| collecting the first probes… | 正在收集頭幾次探測… |
 | Colours come from the app theme, so they follow light, dark and your appearance choices. | 顏色來自程式主題，所以會跟住淺色、深色同你嘅外觀選擇。 |
+| Colours you choose appear here. | 你揀過嘅顏色會出現喺呢度。 |
 | Commit | 提交 |
 | Commit and push | 提交並推送 |
 | Commit everything and push. Same as copying the path with :push on the end. | 提交所有改動並推送。同複製路徑尾加 :push 一樣。 |
@@ -1719,20 +1784,21 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | completion | 文字補全 |
 | Compose file | Compose 檔案 |
 | Compose up | Compose 啟動 |
+| Compose up finished | Compose 啟動完成 |
+| Concise | 簡潔 |
 | Condition | 條件 |
-| Connection lost | 連線中斷 |
 | Console | 主控台 |
 | Console window: hidden. Administrator rights: not requested. | 主控台視窗：隱藏。管理員權限：不要求。 |
 | Control centre | 控制中心 |
 | Conversion cancelled | 轉檔已取消 |
 | Conversion failed | 轉檔失敗 |
 | Conversion tried | 已試過轉檔 |
+| Conversions, pushes, shortcuts, file jobs and outages show up here. | 轉檔、推送、捷徑、檔案工作同斷線都會喺呢度顯示。 |
 | Convert media | 轉換媒體 |
 | Copied | 已複製 |
 | Copied with quotes. Hover for Remove quotes. | 連引號一齊複製。滑鼠停留可以移除引號。 |
 | copies | 複製紀錄 |
 | Copies marked private by the source app never pop up or reach history. | 來源程式標記為私人嘅複製，唔會彈出，亦唔會入紀錄。 |
-| Copy again | 再複製一次 |
 | Copy as Base64 text | 複製做 Base64 文字 |
 | Copy as data URI (for HTML and CSS) | 複製做 data URI（用於 HTML 同 CSS） |
 | Copy as file | 複製做檔案 |
@@ -1765,7 +1831,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Dim all but the card under focus or the mouse | 將焦點或者滑鼠所在卡片以外嘅嘢全部調暗 |
 | DNS cache flushed. Checking again… | DNS 快取已清除，再檢查一次… |
 | DNS left as it was | DNS 保持原狀 |
-| DNS lookups failing | DNS 查詢失敗 |
 | DNS switch failed | 轉 DNS 失敗 |
 | Dock tabs to the bottom | 將分頁列移到下邊 |
 | Dock tabs to the left | 將分頁列移到左邊 |
@@ -1817,10 +1882,11 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Fetch FFmpeg | 下載 FFmpeg |
 | Fetching did not finish | 下載未完成 |
 | Fetching FFmpeg | 下載緊 FFmpeg |
-| Fetching release notes… | 正在取得版本說明… |
 | FFmpeg is missing from this build | 呢個版本冇附帶 FFmpeg |
 | FFmpeg ready | FFmpeg 已就緒 |
 | File | 檔案 |
+| Fills the system prompt and parameters below. Answer briefly and directly. Use short sentences and no filler. | 填入下面嘅系統提示同參數。簡短直接咁答，用短句，唔好講廢話。 |
+| Fills the system prompt and parameters below. You review text and code carefully. List concrete problems first, then suggestions. If you are unsure, say so instead of guessing. | 填入下面嘅系統提示同參數。你會仔細審閱文字同程式碼，先列出具體問題，再提出建議。如果唔肯定，就直接講，唔好估。 |
 | Filter actions | 篩選動作 |
 | Find ffmpeg.exe | 搵 ffmpeg.exe |
 | Finished | 已完成 |
@@ -1937,15 +2003,20 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | no group | 冇群組 |
 | No groups yet. Create the first one below and the tab moves into it. | 仲未有群組。喺下面建立第一個，分頁就會移入去。 |
 | No IP address from the router | 路由器冇分配 IP 位址 |
+| No locks yet. Lock something from its right-click menu and it will be listed here. | 未有鎖。喺任何元素嘅右鍵選單揀「鎖住」，就會列喺呢度。 |
 | no match | 冇配對 |
+| No match in the sample. | 樣本入面冇配對。 |
 | No model is loaded right now. | 而家冇載入任何模型。 |
 | no motion, only warnings make a sound | 冇動態效果，只有警告先會發聲 |
 | No network connection | 冇網絡連線 |
 | No output. | 冇輸出。 |
 | no published picture was found for the dishes tried | 試過嘅點心都搵唔到已發佈嘅圖片 |
 | No route to the internet | 去唔到互聯網 |
+| No system prompt. Fills the fields below with this profile's parameters. | 冇系統提示。用呢個設定檔嘅參數填入下面嘅欄位。 |
 | No versions match. | 冇符合嘅版本。 |
 | No voices match. | 冇符合嘅語音。 |
+| None since the service started. Nice and quiet. | 服務啟動之後未斷過線，好平靜。 |
+| None yet. | 暫時冇。 |
 | Not a digit | 非數字 |
 | Not a word boundary | 非字詞邊界 |
 | Not a word character | 非字詞字元 |
@@ -1958,13 +2029,16 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | not set yet: the first :push will ask | 未設定：第一次 :push 會問你 |
 | Not whitespace | 非空白字元 |
 | Nothing runs now. You can edit the script, test it and delete it afterwards in the editor. | 而家唔會執行任何嘢。之後你可以喺編輯器修改、測試或者刪除腳本。 |
+| Nothing saved yet. | 未有已儲存嘅項目。 |
 | Nothing was written. | 冇寫入任何嘢。 |
+| Nothing yet. Copy something and it shows up here. | 暫時未有嘢，複製啲嘢就會出現喺度。 |
 | one character that is not a digit | 一個非數字字元 |
 | one character that is not a word character | 一個非字詞字元 |
 | one character that is not whitespace | 一個非空白字元 |
 | one digit (a decimal digit in any script) | 一個數字（任何文字系統嘅十進制數字） |
 | one popup on screen at once | 同一時間只顯示一個彈出通知 |
 | one whitespace character (space, tab, line break and similar) | 一個空白字元（空格、Tab、換行等） |
+| ongoing | 持續中 |
 | Open in Notepad | 用記事本開啟 |
 | Open in Paint | 用「繪圖」開啟 |
 | Open logs | 開啟日誌 |
@@ -2004,13 +2078,11 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | reading source… | 讀取來源緊… |
 | Reading the host key… | 讀取緊主機金鑰… |
 | RECENT · click to copy, shift-click to move | 最近 · 撳一下複製，Shift 加撳一下移動 |
-| Recently copied | 最近複製 |
 | Released and renewed. Checking again… | 已釋放並更新，再檢查一次… |
 | Released, renewed and flushed DNS. | 已釋放、更新 IP 並清除 DNS 快取。 |
 | Releasing and renewing the IP address… | 釋放同更新緊 IP 位址… |
 | Remember across restarts. | 重新啟動後仍然記住。 |
 | Remove from group | 從群組移除 |
-| Remove from history | 喺紀錄度移除 |
 | Remove group (keeps its tabs) | 移除群組（保留分頁） |
 | Remove quotes | 移除引號 |
 | Remove this lock | 移除呢個鎖 |
@@ -2021,7 +2093,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Replace file… | 更換檔案… |
 | Restart | 重新啟動 |
 | Restarts the running services in place. | 就地重新啟動行緊嘅服務。 |
-| Router is not responding | 路由器冇回應 |
 | Run :mp4, :push and your own shortcuts when they land on the clipboard. | 當 :mp4、:push 同你自訂嘅捷徑出現喺剪貼簿，就會自動執行。 |
 | Running the probe ladder now. | 而家行探測階梯。 |
 | Runs the pattern over the sample in each mode this runtime really has: the default backtracking engine, the non-backtracking engine, ECMAScript mode and compiled. Each result shows whether the mode accepts the pattern, the match count, the first difference from the default engine and the time of the run. | 喺呢個執行環境真正有嘅每個模式，對樣本執行表達式：預設回溯引擎、非回溯引擎、ECMAScript 模式同編譯模式。每個結果都會顯示該模式接唔接受呢個表達式、配對數目、同預設引擎第一個差異，同執行時間。 |
@@ -2032,7 +2103,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Save + copy as file | 儲存並複製做檔案 |
 | Save and push | 儲存並推送 |
 | Save as .txt | 儲存為 .txt |
-| Save as text… | 存做文字檔… |
 | Save JPG | 儲存 JPG |
 | Save PNG | 儲存 PNG |
 | Save profile | 儲存設定檔 |
@@ -2176,7 +2246,6 @@ Entries: 1945 table entries, 631 strings produced by patterns.
 | Welcome tour | 歡迎導覽 |
 | Where it runs | 執行位置 |
 | Which edge of the control centre the tabs sit on. Default: left. | 分頁放喺控制中心邊一邊。預設：左。 |
-| Wi-Fi | Wi-Fi |
 | Wi-Fi is off or disconnected, the cable is unplugged, or airplane mode is on. | Wi-Fi 關咗或者斷咗線、網線拔咗，或者開咗飛行模式。 |
 | Will not start at sign-in | 登入時唔會啟動 |
 | Wording file refused | 用語檔案被拒絕 |
@@ -2202,85 +2271,102 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | (?<name>\w+): Group "name" (2) | (?<name>\w+)：群組「name」（2） | Regex builder |
 | (png\|md\|csv): Group 1 | (png\|md\|csv)：群組 1 | Regex builder |
 | .NET 8.0.30 · System.Text.RegularExpressions · backtracking · 200 ms limit | .NET 8.0.30 · System.Text.RegularExpressions · 回溯 · 上限 200 毫秒 | Regex builder |
-| 0 copies | 0 次複製 | Page: overview |
 | 0 folders · 5 files · 475.9 KB · 4 .png, 1 .txt | 0 folders · 5 個檔案 · 475.9 KB · 4 .png, 1 .txt | Toasts |
-| 0 match(es) · 0.09 ms measured | 0 個配對 · 量度到 0.09 毫秒 | Regex builder |
-| 0 of 6 | 0 / 6 | Regex builder |
-| 0 of 6 settings and sections | 0／6 個設定同分頁 | Regex builder |
+| 0 of 15 | 0 / 15 | Search |
+| 0 of 15 settings and sections | 0／15 個設定同分頁 | Search |
 | 0 selected | 揀咗 0 個 | Bulk selection |
-| 0 text · 0 links · 0 files · 0 media | 0 段文字 · 0 條連結 · 0 個檔案 · 0 個媒體 | Page: overview |
 | 0.5B · 0.4 GB · 32K context · Qwen | 0.5B · 0.4 GB · 32K 上下文 · Qwen | Page: ollama |
 | 02:14 / 04:46 · 3.1× · ~49 s left | 02:14 / 04:46 · 3.1× · 尚餘約 49 秒 | Toasts |
 | 09:00 to 17:00, every day: sounds = off | 09:00 至 17:00，每日：sounds = off | Page: modes |
 | 1 article | 1 篇文章 | Page: help |
-| 1 copies | 1 次複製 | Page: history |
+| 1 h ago | 1 個鐘前 | Page: activity |
+| 1 locks | 1 個鎖 | Page: safety |
+| 1 m ago | 1 分鐘前 | Page: activity |
 | 1 rules | 1 條規則 | Page: modes |
 | 1.1B · 0.6 GB · 2K context · TinyLlama | 1.1B · 0.6 GB · 2K 上下文 · TinyLlama | Page: ollama |
 | 1.5B · 1.0 GB · 32K context · Qwen | 1.5B · 1.0 GB · 32K 上下文 · Qwen | Page: ollama |
 | 1.5B · 1.1 GB · 128K context · DeepSeek | 1.5B · 1.1 GB · 128K 上下文 · DeepSeek | Page: ollama |
+| 10 m ago | 10 分鐘前 | Page: overview |
 | 10 settings and sections | 10 個設定同分頁 | Page: clipboard |
 | 100 x 100 chunks = 1600 x 1600 blocks, 10,000 chunks in 49 batches of at most 256 chunks, centred on chunk 0, 0 (block 0, 0) in each chosen dimension (the Overworld always, the Nether and the End if switched on below, with no coordinate scaling). Time and disk grow with the square of the radius. | 100 x 100 個區塊 = 1600 x 1600 格，共 10,000 個區塊，分 49 批，每批最多 256 個區塊，以區塊 0, 0（方塊 0, 0）為中心，用喺每個所揀嘅維度（主世界必定包括，如果下面開啟咗就包括地獄同終界，座標唔作縮放）。所需時間同磁碟空間會隨半徑嘅平方增長。 | Page: minecraft |
 | 103 versions | 103 個版本 | Page: minecraft |
 | 11 articles | 11 篇文章 | Page: help |
+| 11 m ago | 11 分鐘前 | Element menu / ControlCentreWindow |
 | 12 chars · 2 words | 12 個字元 · 2 個字 | Toasts |
-| 12 settings and sections | 12 個設定同分頁 | Page: modes |
+| 12 settings and sections | 12 個設定同分頁 | Page: safety |
 | 12B · 7.1 GB · 128K context · Mistral | 12B · 7.1 GB · 128K 上下文 · Mistral | Page: ollama |
 | 12B · 8.1 GB · 128K context · Gemma | 12B · 8.1 GB · 128K 上下文 · Gemma | Page: ollama |
-| 13 settings and sections | 13 個設定同分頁 | Page: appearance |
+| 13 entries | 13 個項目 | Page: activity |
 | 137M · 0.3 GB · 8K context · Nomic | 137M · 0.3 GB · 8K 上下文 · Nomic | Page: ollama |
 | 14B · 9.0 GB · 128K context · DeepSeek | 14B · 9.0 GB · 128K 上下文 · DeepSeek | Page: ollama |
 | 14B · 9.0 GB · 32K context · Qwen | 14B · 9.0 GB · 32K 上下文 · Qwen | Page: ollama |
 | 14B · 9.1 GB · 16K context · Phi | 14B · 9.1 GB · 16K 上下文 · Phi | Page: ollama |
 | 15 m | 15 分 | Tray menu |
+| 15 m ago | 15 分鐘前 | Page: overview |
 | 15 min | 15 分鐘 | Command palette |
-| 15 notifications | 15 個通知 | Page: records |
-| 17 releases | 17 個版本 | Page: records |
-| 17 releases fetched from GitHub just now. | 已由 GitHub 取得 17 個版本（啱啱）。 | Page: records |
+| 15 settings and sections | 15 個設定同分頁 | Page: overview |
+| 16 m ago | 16 分鐘前 | Element menu / ControlCentreWindow |
+| 17 notifications | 17 個通知 | Page: records |
+| 17 releases | 17 個版本 | Bulk selection |
+| 17 releases fetched from GitHub just now. | 已由 GitHub 取得 17 個版本（啱啱）。 | Bulk selection |
 | 18 games watched · fullscreen on | 監察緊 18 隻遊戲 · 全螢幕都計 | Page: overview |
 | 1B · 1.3 GB · 128K context · Llama | 1B · 1.3 GB · 128K 上下文 · Llama | Page: ollama |
 | 2 articles | 2 篇文章 | Page: help |
-| 2 shortcuts | 2 個捷徑 | Page: shortcuts |
+| 2 match(es) · 0.16 ms measured | 2 個配對 · 量度到 0.16 毫秒 | Regex builder |
+| 2 of 15 | 2 / 15 | Regex builder |
+| 2 of 15 settings and sections | 2／15 個設定同分頁 | Regex builder |
 | 20 menu items | 20 個選單項目 | Tray menu |
 | 20 settings and sections | 20 個設定同分頁 | Page: game |
+| 2026-11-04 03:05:11  lasted 7 m 00 s  Router is not responding | 2026-11-04 03:05:11  維持咗 7 分 00 秒  路由器冇回應 | Page: activity |
+| 2026-11-04 07:32:11  lasted 2 m 00 s  DNS lookups failing | 2026-11-04 07:32:11  維持咗 2 分 00 秒  DNS 查詢失敗 | Page: activity |
+| 2026-11-04 08:03:48  ongoing  Selftest outage ongoing | 2026-11-04 08:03:48  持續中  Selftest outage ongoing | Page: activity |
 | 233 chars · 36 words · 7 lines | 233 個字元 · 36 個字 · 7 行 | Toasts |
 | 27B · 16.0 GB · 8K context · Gemma | 27B · 16.0 GB · 8K 上下文 · Gemma | Page: ollama |
 | 27B · 17.0 GB · 128K context · Gemma | 27B · 17.0 GB · 128K 上下文 · Gemma | Page: ollama |
 | 29 models | 29 個模型 | Page: ollama |
 | 2B · 1.6 GB · 8K context · Gemma | 2B · 1.6 GB · 8K 上下文 · Gemma | Page: ollama |
 | 3 articles | 3 篇文章 | Page: help |
-| 3 entries | 3 個項目 | Page: activity |
 | 3 files | 3 個檔案 | Toasts |
+| 3 m ago | 3 分鐘前 | Page: overview |
 | 3 settings and sections | 3 個設定同分頁 | Page: conversion |
-| 3 shortcuts | 3 個捷徑 | Guided forms (DNS profile, new shortcut, new server) |
+| 3 text · 1 links · 1 files · 1 media | 3 段文字 · 1 條連結 · 1 個檔案 · 1 個媒體 | Page: overview |
 | 3 voices | 3 把語音 | Page: language |
 | 3 · Friendly | 3 · 友善 | Page: language |
 | 3.8B · 2.2 GB · 128K context · Phi | 3.8B · 2.2 GB · 128K 上下文 · Phi | Page: ollama |
 | 30 min | 30 分鐘 | Command palette |
+| 32 m ago | 32 分鐘前 | Page: overview |
 | 32B · 20.0 GB · 128K context · DeepSeek | 32B · 20.0 GB · 128K 上下文 · DeepSeek | Page: ollama |
 | 32B · 20.0 GB · 32K context · Qwen | 32B · 20.0 GB · 32K 上下文 · Qwen | Page: ollama |
 | 33 chars · 7 words | 33 個字元 · 7 個字 | Toasts |
+| 33 m ago | 33 分鐘前 | Element menu / ControlCentreWindow |
+| 34 m ago | 34 分鐘前 | Page: overview |
+| 35 m ago | 35 分鐘前 | Element menu / ControlCentreWindow |
 | 39 settings and sections | 39 個設定同分頁 | Page: ollama |
 | 3B · 1.9 GB · 32K context · Qwen | 3B · 1.9 GB · 32K 上下文 · Qwen | Page: ollama |
 | 3B · 2.0 GB · 128K context · Llama | 3B · 2.0 GB · 128K 上下文 · Llama | Page: ollama |
 | 4 articles | 4 篇文章 | Page: help |
+| 4 m ago | 4 分鐘前 | Element menu / ControlCentreWindow |
 | 4 settings and sections | 4 個設定同分頁 | Page: service |
 | 45 min | 45 分鐘 | Command palette |
-| 47 settings and sections | 47 個設定同分頁 | Page: records |
-| 49 settings and sections | 49 個設定同分頁 | Bulk selection |
+| 49 m ago | 49 分鐘前 | Page: activity |
 | 4B · 3.3 GB · 128K context · Gemma | 4B · 3.3 GB · 128K 上下文 · Gemma | Page: ollama |
 | 5 accounts | 5 個帳戶 | Page: tools (forge host choice) |
 | 5 accounts signed in. Tokens stay in the GitHub CLI's credential store; this app only reads the names. | 5 個帳戶已登入。權杖留喺 GitHub CLI 嘅憑證庫，呢個程式只會讀取名稱。 | Page: tools (forge host choice) |
 | 5 articles | 5 篇文章 | Page: help |
 | 5 items | 5 個項目 | Toasts |
 | 5 settings and sections | 5 個設定同分頁 | Page: minecraft |
-| 5 shortcuts | 5 個捷徑 | Guided forms (DNS profile, new shortcut, new server) |
-| 51 commands | 51 個指令 | Command palette |
-| 51 of 51 · ↑↓ to move · Enter to go · Esc to close · Alt+B regex builder | 51 / 51 · ↑↓ 移動 · Enter 前往 · Esc 關閉 · Alt+B 正規表示式建構器 | Command palette |
 | 52 chars · 1 words | 52 個字元 · 1 個字 | Toasts |
+| 53 commands | 53 個指令 | Command palette |
+| 53 of 53 · ↑↓ to move · Enter to go · Esc to close · Alt+B regex builder | 53 / 53 · ↑↓ 移動 · Enter 前往 · Esc 關閉 · Alt+B 正規表示式建構器 | Command palette |
 | 6 articles | 6 篇文章 | Page: help |
-| 6 entries | 6 個項目 | Page: safety |
-| 6 settings and sections | 6 個設定同分頁 | Page: overview |
+| 6 copies | 6 次複製 | Page: overview |
+| 6 kept | 保留 6 個 | Tray menu |
+| 6 settings and sections | 6 個設定同分頁 | Page: network |
+| 6 shortcuts | 6 個捷徑 | Page: shortcuts |
 | 60 min | 60 分鐘 | Command palette |
+| 7 entries | 7 個項目 | Page: safety |
+| 7 shortcuts | 7 個捷徑 | Guided forms (DNS profile, new shortcut, new server) |
+| 70 settings and sections | 70 個設定同分頁 | Page: records |
 | 70B · 43.0 GB · 128K context · Llama | 70B · 43.0 GB · 128K 上下文 · Llama | Page: ollama |
 | 7B · 3.8 GB · 16K context · Code Llama | 7B · 3.8 GB · 16K 上下文 · Code Llama | Page: ollama |
 | 7B · 4.1 GB · 32K context · Mistral | 7B · 4.1 GB · 32K 上下文 · Mistral | Page: ollama |
@@ -2290,14 +2376,18 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | 8 articles | 8 篇文章 | Page: help |
 | 8 settings and sections | 8 個設定同分頁 | Page: tools |
 | 86 fonts | 86 款字體 | Appearance editor |
-| 89 articles | 89 篇文章 | Page: help |
 | 8B · 4.9 GB · 128K context · Llama | 8B · 4.9 GB · 128K 上下文 · Llama | Page: ollama |
+| 90 articles | 90 篇文章 | Page: help |
 | 90 min | 90 分鐘 | Command palette |
 | 9B · 5.4 GB · 8K context · Gemma | 9B · 5.4 GB · 8K 上下文 · Gemma | Page: ollama |
+| :backup · :backup finished in 1.8 s | :backup · :backup 用咗 1.8 秒完成 | Page: overview |
 | \.: Literal "." | \.：字面「.」 | Regex builder |
+| \w matches 'F' | \w 配對「F」 | Regex builder |
+| \w matches 'i' | \w 配對「i」 | Regex builder |
 | \w+: 1 or more | \w+：1 個或以上 | Regex builder |
 | \w: Word character | \w：字詞字元 | Regex builder |
 | About Alert after | 關於「連續失敗幾多次先警示」 | Page: network |
+| About Also include clipboard history | 關於「同時包括剪貼簿紀錄」 | Page: records |
 | About Any fullscreen app counts | 關於「任何全螢幕程式都算」 | Page: game |
 | About App language | 關於「程式語言」 | Page: language |
 | About Apply a copied wording file | 關於「複製咗用字檔就即刻套用」 | Page: service |
@@ -2311,6 +2401,7 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | About Focus spotlight | 關於「專注聚光燈」 | Page: modes |
 | About Font family | 關於「字體系列」 | Appearance editor |
 | About Generate structures | 關於「生成結構」 | Page: minecraft |
+| About Glyph | 關於「圖案」 | Page: appearance |
 | About Hide locked elements from page search | 關於「喺頁面搜尋隱藏已鎖元素」 | Page: safety |
 | About High-contrast outlines | 關於「高對比輪廓」 | Page: appearance |
 | About History size | 關於「紀錄數量」 | Page: clipboard |
@@ -2330,14 +2421,14 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | About Reduce motion | 關於「減少動態效果」 | Page: appearance |
 | About Reminder interval (default 30 minutes, used only with Time awareness) | 關於「提醒間隔（預設 30 分鐘，只喺開咗時間意識先用）」 | Page: modes |
 | About Render Markdown | 關於「顯示 Markdown 格式」 | Page: clipboard |
-| About Run as administrator | 關於「以系統管理員身分執行」 | Guided forms (DNS profile, new shortcut, new server) |
-| About Runs with | 關於「執行方式」 | Guided forms (DNS profile, new shortcut, new server) |
+| About Run as administrator | 關於「以系統管理員身分執行」 | Page: shortcuts |
+| About Runs with | 關於「執行方式」 | Page: shortcuts |
 | About Save chats automatically | 關於「自動儲存對話」 | Page: ollama |
 | About Save the world as (default folder) | 關於「世界儲存為（預設資料夾）」 | Page: minecraft |
 | About Seed colour | 關於「主色」 | Page: appearance |
 | About Set the world border to this size | 關於「將世界邊界設為呢個大小」 | Page: minecraft |
 | About Setting to change | 關於「要更改嘅設定」 | Page: modes |
-| About Show a console window | 關於「顯示主控台視窗」 | Guided forms (DNS profile, new shortcut, new server) |
+| About Show a console window | 關於「顯示主控台視窗」 | Page: shortcuts |
 | About Show the next code too | 關於「同時顯示下一個驗證碼」 | Page: safety |
 | About Size | 關於「大小」 | Appearance editor |
 | About Skip password managers | 關於「略過密碼管理員」 | Page: clipboard |
@@ -2438,9 +2529,11 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Category: Locked out by too many wrong tries | 類別：輸錯太多次而被鎖住 | Page: safety |
 | Category: Lost my authenticator | 類別：遺失咗驗證器 | Page: safety |
 | Category: Something else is locked | 類別：有其他嘢被鎖 | Page: safety |
-| Checked against the .NET engine: same result (no match). | 已同 .NET 引擎核對：結果一樣（冇配對）。 | Regex builder |
+| Checked against the .NET engine: same result (match at 72, length 10). | 已同 .NET 引擎核對：結果一樣（match at 72, length 10）。 | Regex builder |
 | CMYK value | CMYK 數值 | Colour picker |
+| color · 08:05:11 | 顏色 · 08:05:11 | Page: overview |
 | Commands · optional | 指令 · 可選 | Setup wizard |
+| Commit and push · Committed 3 files and pushed main | 提交並推送 · 已提交 3 個檔案並推送 main | Page: overview |
 | Control centre · clipboard | 控制中心 · 剪貼簿 | Command palette |
 | Control centre · game | 控制中心 · game | Command palette |
 | Control centre · modes | 控制中心 · 模式 | Command palette |
@@ -2477,10 +2570,13 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Digits: 8 | 位數：8 | Page: safety |
 | Dim all but the card under focus or the mouse · Ctrl+Shift+Space | 將焦點或者滑鼠所在卡片以外嘅嘢全部調暗 · Ctrl+Shift+Space | Command palette |
 | DNS · optional | DNS · 可選 | Setup wizard |
+| docker compose up · Compose up finished | docker compose up · Compose 啟動完成 | Page: activity |
 | down 0 m 38 s · next probe 0 s | 已斷線 0 分 38 秒 · 0 秒後再探測 | Offline dialog |
+| Edit :backup | 編輯 :backup | Page: shortcuts |
 | Edit :script | 編輯 :script | Guided forms (DNS profile, new shortcut, new server) |
 | Encode 3 | 編碼 3 個 | File tools tab 2 |
 | Encrypt 3 | 加密 3 個 | File tools tab 3 |
+| Encrypted 2 items | 已加密 2 個項目 | Page: activity |
 | Enter named group "name" | 進入具名群組「name」 | Regex builder |
 | exactly 2 | 剛好 2 個 | Regex builder |
 | Export: Activity | 匯出：活動紀錄 | Page: records |
@@ -2488,6 +2584,7 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Export: Notifications | 匯出：通知 | Page: records |
 | Export: Settings | 匯出：設定 | Page: records |
 | Export: Settings history | 匯出：設定歷史 | Page: records |
+| files · 08:05:11 | 檔案 · 08:05:11 | Page: overview |
 | Fits on the GPU. Needs about 0.8 GB; your best GPU reports 8.0 GB of memory. Should run fast. | 啱晒喺 GPU 度行。大約需要 0.8 GB；你最好嘅 GPU 報告有 8.0 GB 記憶體。應該行得快。 | Page: ollama |
 | Fits on the GPU. Needs about 1.0 GB; your best GPU reports 8.0 GB of memory. Should run fast. | 啱晒喺 GPU 度行。大約需要 1.0 GB；你最好嘅 GPU 報告有 8.0 GB 記憶體。應該行得快。 | Page: ollama |
 | Fits on the GPU. Needs about 1.2 GB; your best GPU reports 8.0 GB of memory. Should run fast. | 啱晒喺 GPU 度行。大約需要 1.2 GB；你最好嘅 GPU 報告有 8.0 GB 記憶體。應該行得快。 | Page: ollama |
@@ -2519,8 +2616,9 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Iteration 3 of greedy + | greedy + 嘅第 3 次重複 | Regex builder |
 | LAB value | LAB 數值 | Colour picker |
 | LCH value | LCH 數值 | Colour picker |
-| Light weight | 輕鬆字重 | Appearance editor |
 | Literal "." | 字面「.」 | Regex builder |
+| Locked · PIN · page selftest-page · made 2026-11-04 08:04 | 已鎖 · 釘選 · page selftest-page · made 2026-11-04 08:04 | Page: safety |
+| markdown · 08:05:11 | Markdown · 08:05:11 | Page: overview |
 | Match any one of 3 alternatives, trying them from left to right | 配對 3 個選項其中任何一個，由左至右逐個試 | Regex builder |
 | Match any one of 3 alternatives, trying them from left to right. Enter selects it in the pattern; Left and Right collapse and expand. | 配對 3 個選項其中任何一個，由左至右逐個試。按 Enter 會喺表達式中選取；按左右方向鍵可以收合同展開。 | Regex builder |
 | md: Alternative 2 | md：選項 2 | Regex builder |
@@ -2540,9 +2638,9 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | One word character (a letter, digit, connector such as _). Enter selects it in the pattern; Left and Right collapse and expand. | 一個字詞字元（字母、數字，或者 _ 呢類連接字元）。按 Enter 會喺表達式中選取；按左右方向鍵可以收合同展開。 | Regex builder |
 | online · watching clipboard | 在線 · 監察緊剪貼簿 | Tray menu |
 | Open folder. Opens the folder in Explorer. If the copied path is a file, its containing folder opens. | 開啟資料夾。喺檔案總管開啟資料夾。如果複製咗嘅路徑係檔案，就會開啟佢所在嘅資料夾。 | Guided forms (DNS profile, new shortcut, new server) |
-| Open in editor | 用 editor 開啟 | Guided forms (DNS profile, new shortcut, new server) |
+| Open in editor | 用 editor 開啟 | Page: shortcuts |
 | Open in Visual Studio Code | 用 Visual Studio Code 開啟 | Toasts |
-| open in VS Code | 用 VS Code 開啟 | Guided forms (DNS profile, new shortcut, new server) |
+| open in VS Code | 用 VS Code 開啟 | Page: shortcuts |
 | Opens: Clipboard history | 開啟：剪貼簿紀錄 | Page: help |
 | Opens: Game mode | 開啟：遊戲模式 | Page: help |
 | Opens: Internet watch | 開啟：網絡監察 | Page: help |
@@ -2566,8 +2664,8 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Period in seconds: 60 s | 週期（秒）：60 秒 | Page: safety |
 | png: Alternative 1 | png：選項 1 | Regex builder |
 | png\|md\|csv: One of 3 alternatives | png\|md\|csv：3 個選項其中之一 | Regex builder |
-| Preview: Update my-repo on 2026-11-04 at 07:32 | 預覽：Update my-repo on 2026-11-04 at 07:32 | Setup wizard |
-| previous held 5 h 59 m · last seen 07:31 | 上一個維持咗 5 h 59 m · last seen 07:31 | Toasts |
+| Preview: Update my-repo on 2026-11-04 at 08:06 | 預覽：Update my-repo on 2026-11-04 at 08:06 | Setup wizard |
+| previous held 5 h 59 m · last seen 08:05 | 上一個維持咗 5 h 59 m · last seen 08:05 | Toasts |
 | Queues codellama:7b in the pull cart below. Nothing is downloaded until you press Pull all. | 將 codellama:7b 排入下面嘅下載購物車。撳「全部下載」之前唔會下載任何嘢。 | Page: ollama |
 | Queues deepseek-r1:1.5b in the pull cart below. Nothing is downloaded until you press Pull all. | 將 deepseek-r1:1.5b 排入下面嘅下載購物車。撳「全部下載」之前唔會下載任何嘢。 | Page: ollama |
 | Queues deepseek-r1:14b in the pull cart below. Nothing is downloaded until you press Pull all. | 將 deepseek-r1:14b 排入下面嘅下載購物車。撳「全部下載」之前唔會下載任何嘢。 | Page: ollama |
@@ -2597,6 +2695,16 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Queues qwen2.5:3b in the pull cart below. Nothing is downloaded until you press Pull all. | 將 qwen2.5:3b 排入下面嘅下載購物車。撳「全部下載」之前唔會下載任何嘢。 | Page: ollama |
 | Queues qwen2.5:7b in the pull cart below. Nothing is downloaded until you press Pull all. | 將 qwen2.5:7b 排入下面嘅下載購物車。撳「全部下載」之前唔會下載任何嘢。 | Page: ollama |
 | Queues tinyllama:1.1b in the pull cart below. Nothing is downloaded until you press Pull all. | 將 tinyllama:1.1b 排入下面嘅下載購物車。撳「全部下載」之前唔會下載任何嘢。 | Page: ollama |
+| recent  #FF00D600 | 最近用過  #FF00D600 | Colour picker |
+| recent  #FF33CC99 | 最近用過  #FF33CC99 | Colour picker |
+| recent  #FF3B7BF1 | 最近用過  #FF3B7BF1 | Colour picker |
+| recent  #FF3D7BF2 | 最近用過  #FF3D7BF2 | Colour picker |
+| recent  #FF3D7CF2 | 最近用過  #FF3D7CF2 | Colour picker |
+| recent  #FF3D7DF2 | 最近用過  #FF3D7DF2 | Colour picker |
+| recent  #FFFF3366 | 最近用過  #FFFF3366 | Colour picker |
+| recent  #FFFF8000 | 最近用過  #FFFF8000 | Colour picker |
+| recent  #FFFF8001 | 最近用過  #FFFF8001 | Colour picker |
+| recent  #FFFF8800 | 最近用過  #FFFF8800 | Colour picker |
 | Regex builder for Search overview | 「搜尋總覽」嘅正規表示式建構器 | Regex builder |
 | Regular weight | 正常字重 | Appearance editor |
 | Release notes from GitHub. You are running v1.0.0. | 來自 GitHub 嘅版本說明。你而家用緊 v1.0.0。 | Page: records |
@@ -2613,13 +2721,14 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Runs, partly on the CPU. Needs about 23.5 GB; you have 29.8 GB of free RAM and 8.0 GB of GPU memory. It will work but slower than a full GPU fit. | 一部分喺 CPU 度行。大約需要 23.5 GB；你有 29.8 GB 可用 RAM 同 8.0 GB GPU 記憶體。行得到，不過會慢過完全放入 GPU 嘅情況。 | Page: ollama |
 | Runs, partly on the CPU. Needs about 8.7 GB; you have 29.8 GB of free RAM and 8.0 GB of GPU memory. It will work but slower than a full GPU fit. | 一部分喺 CPU 度行。大約需要 8.7 GB；你有 29.8 GB 可用 RAM 同 8.0 GB GPU 記憶體。行得到，不過會慢過完全放入 GPU 嘅情況。 | Page: ollama |
 | Runs, partly on the CPU. Needs about 9.8 GB; you have 29.8 GB of free RAM and 8.0 GB of GPU memory. It will work but slower than a full GPU fit. | 一部分喺 CPU 度行。大約需要 9.8 GB；你有 29.8 GB 可用 RAM 同 8.0 GB GPU 記憶體。行得到，不過會慢過完全放入 GPU 嘅情況。 | Page: ollama |
-| SAVED · 0 | 已儲存 · 0 | Regex builder |
+| SAVED · 3 | 已儲存 · 3 | Regex builder |
 | Search about and updates | 搜尋關於同更新 | Page: about |
 | Search accounts | 搜尋帳戶 | Page: safety |
 | Search activity | 搜尋活動紀錄 | Page: activity |
 | Search appearance | 搜尋外觀 | Page: appearance |
 | Search clipboard | 搜尋剪貼簿 | Page: clipboard |
 | Search clipboard history | 搜尋剪貼簿紀錄 | Page: history |
+| Search clipboard history with a pattern | 搜尋剪貼簿紀錄（用正規表示式） | Page: history |
 | Search conversion | 搜尋轉檔 | Page: conversion |
 | SEARCH FILES | 搜尋檔案 | Regex builder |
 | Search fonts | 搜尋字體 | Appearance editor |
@@ -2649,6 +2758,7 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Search tickets | 搜尋單據 | Page: safety |
 | Search tools | 搜尋工具 | Page: tools |
 | Select 3 files | 揀 3 個檔案 | Bulk selection |
+| Select Bulk drive notice 1 | 揀 Bulk drive notice 1 | Bulk selection |
 | Select Color | 揀 顏色 | Bulk selection |
 | Select cs2 | 揀 cs2 | Bulk selection |
 | Select Document | 揀 文件 | Bulk selection |
@@ -2722,7 +2832,8 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Show the Replace view | 顯示「取代」檢視 | Regex builder |
 | Show the Test view | 顯示「測試」檢視 | Regex builder |
 | Showing the built-in snapshot of 29 models from 2026-11-04. | 顯示內置嘅 29 個模型快照（2026-11-04）。 | Page: ollama |
-| Step 1 of 240 at text position 0: Start a match attempt at position 0 | 第 1 步，共 240 步，文字位置 0：喺位置 0 開始一次配對嘗試 | Regex builder |
+| Showing the newest 50 of 71 snapshots. | 顯示最新 50 個，共 71 個快照。 | Page: records |
+| Step 1 of 1,798 at text position 0: Start a match attempt at position 0 | 第 1 步，共 1,798 步，文字位置 0：喺位置 0 開始一次配對嘗試 | Regex builder |
 | Step 1 of 3 | 第 1 步，共 3 步 | Guided forms (DNS profile, new shortcut, new server) |
 | Step 1 of 4 | 第 1 步，共 4 步 | Page: minecraft |
 | STEP 1 OF 7 | 第 1 步，共 7 步 | Setup wizard |
@@ -2767,6 +2878,7 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Task: Make your own command | 任務：自訂指令 | Page: help |
 | Task: Push a repo from the clipboard | 任務：由剪貼簿推送儲存庫 | Page: help |
 | Task: Run a Minecraft server | 任務：運行 Minecraft 伺服器 | Page: help |
+| text · 08:05:10 | 文字 · 08:05:10 | Page: history |
 | The last 50 copies, kept in memory only. Quitting the app forgets them. | 最近 50 次複製，只留喺記憶體。退出程式就會忘記。 | Page: history |
 | The literal character "." | 字面字元「.」 | Regex builder |
 | The literal character ".". Enter selects it in the pattern; Left and Right collapse and expand. | 字面字元「.」。按 Enter 會喺表達式中選取；按左右方向鍵可以收合同展開。 | Regex builder |
@@ -2809,6 +2921,7 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Use colour outlineVariant | 用顏色 outlineVariant | Colour picker |
 | Use colour primary | 用顏色 primary | Colour picker |
 | Use colour primaryContainer | 用顏色 primaryContainer | Colour picker |
+| Use colour recent | 用顏色 recent | Colour picker |
 | Use colour secondaryContainer | 用顏色 secondaryContainer | Colour picker |
 | Use colour surface | 用顏色 surface | Colour picker |
 | Use colour surfaceContainer | 用顏色 surfaceContainer | Colour picker |
@@ -2820,6 +2933,9 @@ Built strings (counts, names, times, status lines) are not table entries: a patt
 | Valid · 12 node(s) · 2 capturing group(s) | 有效 · 12 個節點 · 2 個擷取群組 | Regex builder |
 | valid · 2 top-level keys | 有效 · 2 個頂層項目 | Toasts |
 | Watching: Roblox, Minecraft, javaw, League of Legends, Valorant, Fortnite, Counter-Strike 2, Dota 2, Apex Legends, RocketLeague. Edit the list in the control centre. | 監察緊：Roblox, Minecraft, javaw, League of Legends, Valorant, Fortnite, Counter-Strike 2, Dota 2, Apex Legends, RocketLeague。可以喺控制中心編輯清單。 | Setup wizard |
+| Wed 03:05 | 星期三 03:05 | Page: overview |
+| Wed 07:32 | 星期三 07:32 | Page: overview |
+| Wed 08:03 · ongoing | 星期三 08:03 · 持續中 | Page: overview |
 | Wi-Fi · Intel Wi-Fi 6E AX211 | Wi-Fi · Intel Wi-Fi 6E AX211 | Offline dialog |
 | Write as: CSV | 寫成：CSV | Page: records |
 | Write as: HTML | 寫成：HTML | Page: records |

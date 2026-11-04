@@ -296,7 +296,9 @@ namespace MonitoringTools.UI
             {
                 var item = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 18, 10) };
                 item.Children.Add(new Border { Background = Ui.Res("B.MintWash"), CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 3, 8, 4), Child = Ui.Mono(cmd, Ui.Res("B.Mint")) });
-                item.Children.Add(new TextBlock { Text = what, Style = Ui.Style("T.Body"), Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
+                var whatText = new TextBlock { Text = what, Style = Ui.Style("T.Body"), Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                if (s.Shortcuts.Any(x => ":" + x.Name == cmd && !string.IsNullOrWhiteSpace(x.Description) && x.Description == what)) Core.Language.SetLiteral(whatText, true);   // a shortcut description is the person's own
+                item.Children.Add(whatText);
                 g.Children.Add(item);
             }
             cheat.Children.Add(g);
@@ -410,7 +412,7 @@ namespace MonitoringTools.UI
             {
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var cb = new CheckBox { IsChecked = _selected.Contains(it), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 12, 0) };
-                AutomationProperties.SetName(cb, "Select " + (it.Preview ?? it.Kind.ToString()));
+                AutomationProperties.SetName(cb, Core.Language.T("Select") + " " + (it.Preview ?? it.Kind.ToString())); Core.Language.SetLiteral(cb, true);   // the copied text is the person's own
                 cb.Checked += (s, e) => { _selected.Add(it); Navigate("history", animate: false); };
                 cb.Unchecked += (s, e) => { _selected.Remove(it); Navigate("history", animate: false); };
                 g.Children.Add(cb);
@@ -428,7 +430,7 @@ namespace MonitoringTools.UI
             Grid.SetColumn(chip, c0); g.Children.Add(chip);
             var mid = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
             var prev = Core.PathDisplay.Shown(it.Preview ?? "").Replace("\r", " ").Replace("\n", " ");
-            mid.Children.Add(new TextBlock { Text = prev.Length > 140 ? prev[..140] + "…" : prev, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = it.Kind == ClipKind.Files ? Ui.Font("F.Mono") : Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
+            mid.Children.Add(LiteralText(new TextBlock { Text = prev.Length > 140 ? prev[..140] + "…" : prev, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = it.Kind == ClipKind.Files ? Ui.Font("F.Mono") : Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis }));
             mid.Children.Add(Ui.Mono($"{it.Kind.ToString().ToLowerInvariant()} · {it.At:HH:mm:ss}", Ui.Res("B.TextMute"), 11));
             Grid.SetColumn(mid, c0 + 1); g.Children.Add(mid);
             var btns = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
@@ -533,14 +535,14 @@ namespace MonitoringTools.UI
                 {
                     var line = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 4) };
                     line.Children.Add(new Border { Background = Ui.Res("B.MintWash"), CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 3, 8, 4), Child = Ui.Mono(":" + sc.Name, Ui.Res("B.OnPrimaryContainer")) });
-                    line.Children.Add(new TextBlock { Text = string.IsNullOrWhiteSpace(sc.Description) ? sc.Shell.ToString() : sc.Shell + " · " + sc.Description, Style = Ui.Style("T.Body"), Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
+                    line.Children.Add(LiteralText(new TextBlock { Text = string.IsNullOrWhiteSpace(sc.Description) ? sc.Shell.ToString() : sc.Shell + " · " + sc.Description, Style = Ui.Style("T.Body"), Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center }));
                     SearchScope.SetItem(line, $"{sc.Name} {sc.Shell} {sc.Description}");
                     list.Children.Add(_shortcutBulk.Wrap(sc, line, ":" + sc.Name));
                     continue;
                 }
                 var chip = Ui.Button(":" + sc.Name, () => { _editing = x; Navigate("shortcuts", animate: false); }, "Btn.Chip");
                 if (_editing != null && _editing.Name == sc.Name) { chip.Background = Ui.Res("B.Mint"); chip.Foreground = Ui.Res("B.MintInk"); }
-                chip.ToolTip = $"{sc.Shell} · {sc.Description}";
+                chip.ToolTip = $"{sc.Shell} · {sc.Description}"; Core.Language.SetLiteral(chip, true);   // the description is the person's own
                 SearchScope.SetItem(chip, $"{sc.Shell} {sc.Description}");
                 wrap.Children.Add(chip);
             }
@@ -1177,7 +1179,7 @@ namespace MonitoringTools.UI
             g.Children.Add(Ui.IconChip(KindIcon(e.Kind), accent, wash, 28, 14));
             var mid = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
             mid.Children.Add(new TextBlock { Text = e.Title, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
-            if (!string.IsNullOrWhiteSpace(e.Detail)) mid.Children.Add(new TextBlock { Text = e.Detail, Style = Ui.Style("T.Mono"), FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis });
+            if (!string.IsNullOrWhiteSpace(e.Detail)) mid.Children.Add(LiteralText(new TextBlock { Text = e.Detail, Style = Ui.Style("T.Mono"), FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis }));
             Grid.SetColumn(mid, 1); g.Children.Add(mid);
             var when = Ui.Mono(Ago(e.At), Ui.Res("B.TextMute"), 11);
             when.VerticalAlignment = VerticalAlignment.Center;
