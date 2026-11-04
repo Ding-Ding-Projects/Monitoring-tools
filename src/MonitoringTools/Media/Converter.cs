@@ -280,7 +280,18 @@ namespace MonitoringTools.Media
             return p;
         }
 
+        private static int _running;
+        /// <summary>True while any conversion is running, so a background update waits for it.</summary>
+        public static bool Busy => System.Threading.Volatile.Read(ref _running) > 0;
+
         public static async Task RunAsync(ConversionJob job)
+        {
+            System.Threading.Interlocked.Increment(ref _running);
+            try { await RunCoreAsync(job); }
+            finally { System.Threading.Interlocked.Decrement(ref _running); }
+        }
+
+        private static async Task RunCoreAsync(ConversionJob job)
         {
             var srcKind = ClipItem.Classify(job.Source);
 

@@ -417,6 +417,13 @@ namespace MonitoringTools.Minecraft
         /// <summary>The live process of a local process server, or null when it is not running from this app.</summary>
         internal static Process ProcessOf(ServerDef s) => Running.TryGetValue(s.Id, out var p) && !p.HasExited ? p : null;
 
+        /// <summary>True while a server started from this app runs as a local process: its console belongs to this
+        /// process, so a background update waits until it stops.</summary>
+        internal static bool AnyLocalProcessRunning
+        {
+            get { try { return Running.Values.ToArray().Any(p => { try { return !p.HasExited; } catch { return false; } }); } catch { return false; } }
+        }
+
         internal static string Escape(string s) => (s ?? "").Replace("\\", "").Replace("\"", "").Replace("'", "").Replace("\n", " ");
         internal static string ActionLine(string s) => (s ?? "").Split('\n').Where(l => l.Trim().Length > 0).LastOrDefault() ?? "";
 

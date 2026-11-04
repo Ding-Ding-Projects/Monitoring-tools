@@ -1397,9 +1397,10 @@ namespace MonitoringTools.UI
             var version = typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
             var root = PageRoot("About", "Monitoring Tools " + version, "Clipboard toasts, internet watch and quick commands for Windows.");
             var a = new StackPanel();
-            a.Children.Add(CardTitle("Updates", _updateText ?? "Every change to the project ships as a new release on GitHub."));
+            a.Children.Add(CardTitle("Updates", _updateText ?? AutoUpdater.Status));
+            a.Children.Add(Switch("Install updates by themselves", "Downloads each new release in the background, checks it against the checksum GitHub publishes, and installs it at a quiet moment: not during a conversion, a game, or a Minecraft server started here. The service is back in a few seconds; nothing to download or restart. On by default.", Settings.Current.AutoUpdate, v => { Settings.Current.AutoUpdate = v; Settings.Save(); }));
             var row = new WrapPanel();
-            row.Children.Add(Ui.Button("Check for updates", async () => await RunUpdateCheck(version), "Btn.Accent", Icons.Restart));
+            row.Children.Add(Ui.Button("Check now", async () => await RunUpdateCheck(version), "Btn.Accent", Icons.Restart));
             row.Children.Add(Ui.Button("Release notes", () => Markdown.Open("https://github.com/Ding-Ding-Projects/Monitoring-tools/releases"), "Btn.Ghost", Icons.Globe));
             row.Children.Add(Ui.Button("Project page", () => Markdown.Open("https://ding-ding-projects.github.io/Monitoring-tools/"), "Btn.Ghost", Icons.Link));
             a.Children.Add(row);
@@ -1437,8 +1438,18 @@ namespace MonitoringTools.UI
         {
             _updateText = "Checking…";
             Navigate("about", animate: false);
-            _updateText = await CheckUpdates(version);
+            _updateText = SimulatedLatestTagForTest != null ? await CheckUpdates(version) : await CheckAndInstall();
             Navigate("about", animate: false);
+        }
+
+        /// <summary>The real path: download, verify and install now when nothing would be interrupted.</summary>
+        private static async System.Threading.Tasks.Task<string> CheckAndInstall()
+        {
+            await AutoUpdater.CheckAsync(installWhenQuiet: true);
+            var st = AutoUpdater.State;
+            if ((st == AutoUpdater.Phase.Waiting || st == AutoUpdater.Phase.Installing) && AutoUpdater.ReadyVersion != null)
+                return Core.Language.Headline("update.available", AutoUpdater.ReadyVersion.ToString(3)) + "\n" + AutoUpdater.Status;
+            return AutoUpdater.Status;
         }
 
         /// <summary>Test hook for the self-test: the same work the Check for updates button does.</summary>
@@ -1452,14 +1463,14 @@ namespace MonitoringTools.UI
             try
             {
                 if (SimulatedLatestTagForTest != null && Version.TryParse(SimulatedLatestTagForTest, out var fake) && Version.TryParse(current, out var here))
-                    return fake > here ? Core.Language.Headline("update.available", fake.ToString()) + "\n" + $"You have {here}. Grab it from Release notes." : $"You are up to date ({here}).";
+                    return fake > here ? Core.Language.Headline("update.available", fake.ToString()) + "\n" + $"You have {here}. It installs by itself in the background." : $"You are up to date ({here}).";
                 using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(8) };
                 http.DefaultRequestHeaders.UserAgent.ParseAdd("MonitoringTools/" + current);
                 var json = await http.GetStringAsync("https://api.github.com/repos/Ding-Ding-Projects/Monitoring-tools/releases/latest");
                 using var doc = System.Text.Json.JsonDocument.Parse(json);
                 var tag = doc.RootElement.GetProperty("tag_name").GetString()?.TrimStart('v') ?? "";
                 if (Version.TryParse(tag, out var latest) && Version.TryParse(current, out var mine))
-                    return latest > mine ? Core.Language.Headline("update.available", latest.ToString()) + "\n" + $"You have {mine}. Grab it from Release notes." : $"You are up to date ({mine}).";
+                    return latest > mine ? Core.Language.Headline("update.available", latest.ToString()) + "\n" + $"You have {mine}. It installs by itself in the background." : $"You are up to date ({mine}).";
                 return "Could not read the latest version.";
             }
             catch (Exception ex) { return "Update check failed: " + ex.Message; }

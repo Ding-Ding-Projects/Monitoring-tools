@@ -87,10 +87,14 @@ namespace MonitoringTools
             Net.Start();
             PublicIp.Start();
             Minecraft.McScheduler.Start();   // runs the Minecraft servers' schedules from the background app
+            AutoUpdater.Start();             // new releases download and install themselves at a quiet moment
             Tray.Refresh();
 
             ListenForSignal(ServiceHost.QuitEventName, () => Quit(ServiceHost.ExitQuit));
             ListenForSignal(ServiceHost.ShowEventName, () => OpenControlCentre(null));
+
+            var updated = AutoUpdater.TakeUpdatedNote();
+            if (updated != null) Toasts.ShowNotice("Monitoring Tools updated", updated, Toasts.Mint, 6);
 
             var flag = Path.Combine(Settings.DataDir, "welcome.flag");
             if (File.Exists(flag))

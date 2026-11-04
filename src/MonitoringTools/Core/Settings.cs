@@ -61,6 +61,8 @@ namespace MonitoringTools.Core
         // Service
         public bool StartWithWindows { get; set; } = true;
         public bool RunElevated { get; set; } = false;
+        /// <summary>Download and install new releases in the background, at a quiet moment.</summary>
+        public bool AutoUpdate { get; set; } = true;
 
         public static readonly string[] GameDefaults =
         {

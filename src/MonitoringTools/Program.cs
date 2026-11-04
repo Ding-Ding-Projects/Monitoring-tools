@@ -18,6 +18,7 @@ namespace MonitoringTools
                 if (args.Contains("--elevate-on")) return ServiceHost.ElevateHelper(true);
                 if (args.Contains("--elevate-off")) return ServiceHost.ElevateHelper(false);
                 if (args.Contains("--agent")) return RunAgent();
+                if (args.Contains(AutoUpdater.InstallArg)) return AutoUpdater.RunInstall();
                 var testIdx = Array.IndexOf(args, "--selftest");
                 if (testIdx >= 0)
                 {
