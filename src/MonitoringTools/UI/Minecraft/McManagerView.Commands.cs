@@ -561,6 +561,9 @@ namespace MonitoringTools.UI.Minecraft
             }, "Btn.Ghost", Icons.Clipboard);
             buttons.Children.Add(copy);
             var fav = Ui.Button("Save as a favourite", () => SaveFavourite(s), "Btn.Ghost", StarIcon);
+            // the ghost style draws a disabled button like an enabled one; dim it so "already a favourite" reads as off
+            fav.IsEnabledChanged += (o, e) => fav.Opacity = fav.IsEnabled ? 1 : 0.38;
+            fav.Opacity = fav.IsEnabled ? 1 : 0.38;
             buttons.Children.Add(fav);
             var sched = Ui.Button("Schedule it", () => ScheduleLine(s), "Btn.Ghost", Icons.Clock);
             buttons.Children.Add(sched);

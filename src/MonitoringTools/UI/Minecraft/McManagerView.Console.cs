@@ -124,9 +124,11 @@ namespace MonitoringTools.UI.Minecraft
             where.Margin = new Thickness(0, 2, 0, 10);
             card.Children.Add(where);
             var open = new WrapPanel();
-            open.Children.Add(Ui.Button("Open the command builder", () => { CommandMode = "tasks"; ShowSection("commands"); }, "Btn.Accent", Icons.Bolt));
+            var openBuilder = Ui.Button("Open the command builder", () => { CommandMode = "tasks"; ShowSection("commands"); }, "Btn.Accent", Icons.Bolt);
+            openBuilder.Margin = new Thickness(0, 0, 8, 0); openBuilder.VerticalAlignment = VerticalAlignment.Center;
+            open.Children.Add(openBuilder);
             var every = Ui.Button("Every command", () => { CommandMode = "tree"; ShowSection("commands"); }, "Btn.Ghost", Icons.Code);
-            every.Margin = new Thickness(8, 0, 0, 0);
+            every.Margin = new Thickness(0); every.VerticalAlignment = VerticalAlignment.Center;   // same margins as its neighbour, so the two line up
             open.Children.Add(every);
             card.Children.Add(open);
             var answer = McUi.Body("", "B.TextSoft", 12.5);
