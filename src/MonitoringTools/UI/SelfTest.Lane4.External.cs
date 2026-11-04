@@ -27,6 +27,7 @@ namespace MonitoringTools.UI
                 var s = Settings.Current;
                 bool sounds0 = s.SoundsEnabled, clip0 = s.ClipboardEnabled, game0 = s.GameModeEnabled;
                 s.GameModeEnabled = false;
+                var rules0 = s.ScheduleRules; s.ScheduleRules = new System.Collections.Generic.List<ScheduleRule>(); Modes.Evaluate();   // a schedule rule left by another check would win over the file
                 s.SoundsEnabled = true; s.ClipboardEnabled = true;
                 var cc = new ControlCentreWindow { Width = 1180, Height = 900 };
                 try
@@ -68,7 +69,7 @@ namespace MonitoringTools.UI
                 finally
                 {
                     Modes.StopFollowing(); cc.Close();
-                    s.SoundsEnabled = sounds0; s.ClipboardEnabled = clip0; s.GameModeEnabled = game0; s.ExternalSettingsPath = "";
+                    s.SoundsEnabled = sounds0; s.ClipboardEnabled = clip0; s.GameModeEnabled = game0; s.ScheduleRules = rules0; Modes.Evaluate(); s.ExternalSettingsPath = "";
                     try { File.Delete(file); } catch { }
                 }
             });

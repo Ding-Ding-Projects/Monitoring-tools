@@ -6,9 +6,9 @@ Five independent switches and a Focus spotlight, all off by default. Any mix can
 | --- | --- | --- |
 | Focus | Messages that are not urgent (a copied item, an address change) go quietly to History instead of showing. Failures and lost connections still show. Nothing is hidden for good. | `Modes.Focus`, `Modes.ShouldHoldToast(urgent)` |
 | Low stimulation | No fade or slide motion; only warnings and failures make a sound. It adds to Windows' animation setting and never overrides it: if Windows has animation off, the flag is on regardless. | `Modes.LowStimulation`, `Modes.ReduceMotion`, `Modes.SoundAllowed(essential)` |
-| Time awareness | Running jobs show elapsed time, and a plain reminder toast appears every 15, 30 (default), 45, 60 or 90 minutes. The reminder is implemented in `Modes`; the elapsed-time display on jobs is for the toast code to add. | `Modes.TimeAwareness` |
-| One thing at a time | At most one popup is on screen. The rest wait and also appear in History. | `Modes.OneThing` |
-| Momentum | The window reopens on the page last used (`Settings.LastPage`), so work can resume where it stopped. | `Modes.Momentum` |
+| Time awareness | A running background task toast shows `N s elapsed` and, when it finishes, `Took N s`. A plain reminder toast appears every 15, 30 (default), 45, 60 or 90 minutes; it is exempt from Focus. | `Modes.TimeAwareness` |
+| One thing at a time | At most one popup is on screen. The rest wait their turn, in order, and are written to History at once. A waiting popup whose time runs out is dropped. | `Modes.OneThing` |
+| Momentum | The control centre reopens on the page last used (`Settings.LastPage`, saved when you change page while the mode is on), so work can resume where it stopped. Naming the next step after a finished task is not built. | `Modes.Momentum` |
 
 ## Focus spotlight
 
@@ -32,4 +32,7 @@ The modes keep their saved state while School mode is on. School mode adds its o
 
 ## Not applicable or not wired yet
 
-The tray app has no canvas or document, so the Focus switch is expressed as holding non-urgent popups and the Focus spotlight dims cards instead. Local history and export of these choices are not implemented. The consuming call sites (toast manager, sounds, window navigation) must still read the flags.
+The tray app has no canvas or document, so the Focus switch is expressed as holding non-urgent popups and the Focus spotlight dims cards instead. Local history and export of these choices are not implemented.
+
+## Verification
+The self-test reads each effect in a running window: Focus holds a non-urgent toast into the notification history while a warning shows; One thing at a time queues the second and third toast and shows them in order; Low stimulation makes a fade finish at once and refuses ordinary sounds while warnings still play; Time awareness shows `N s elapsed` then `Took N s` on a task toast and starts and stops the reminder timer; Momentum reopens the window on the remembered page and not with the mode off. Not covered: waiting for the reminder toast itself (the shortest interval is 5 minutes), and listening to a sound. Checking the effects found that Focus, One thing at a time, the elapsed time and Momentum had no code reading their switches; each now has one (`ToastManager`, the task toast, `ControlCentreWindow`).

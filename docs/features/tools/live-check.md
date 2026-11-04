@@ -55,7 +55,8 @@ token with `gitea admin user create` and `gitea admin user generate-access-token
 | Ollama text attachment | passed (gemma4:12b, 43 s) |
 | Ollama image attachment | passed (gemma4:12b, 45 s) |
 | Dim sum | passed |
-| Forge | passed (Gitea 1.22.6 in a local container; repository created, commit pushed, README read back) |
+| Forge, Gitea | passed (Gitea 1.22.6 in a local container; repository created, commit pushed, README read back) |
+| Forge, GitLab | passed (GitLab CE 19.5.3 in a local `gitlab/gitlab-ce` container, a one-time personal access token; repository created, commit pushed, README read back; 4.4 s once the server was up, which took about 20 minutes on the first start) |
 | Minecraft | passed (1.21.4 jar: game rules, blocks, biomes, noise and dimension edits) |
 | Minecraft server | passed (1.21.4 Vanilla: created, started, `list` answered 0 of 7, stopped; 46 s) |
 | Minecraft catalogues | passed (Modrinth 6 hits, Hangar 10 hits; ViaVersion 5.12.2 from Hangar, SHA-256 matched; Chunky 1.4.36 from Modrinth, SHA-512 matched; badges Update to 1.4.40 and Compatible; Update all updated 1; 3.9 s) |
@@ -66,4 +67,4 @@ token with `gitea admin user create` and `gitea admin user generate-access-token
 | Minecraft SSH target | passed (throwaway account, host key approved, created in 3 s, Done after 22 s, `list` 0 of 7, stopped; 56.5 s) |
 | Minecraft SSH Docker target | passed (Docker-in-Docker host with a throwaway account ready in 5 s, created in 24 s, Done after 33 s, `list` 0 of 7, stopped; 72.5 s) |
 
-GitLab was not run: no GitLab server was available.
+Run only the forge with `MT_LIVE_ONLY=forge`. A GitLab container needs `nginx['listen_port'] = 80` when its external URL has another port, and a token made with `gitlab-rails runner`; remove the container afterwards.

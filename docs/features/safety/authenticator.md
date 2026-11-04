@@ -22,7 +22,7 @@ Accounts and secrets are in `safety\authenticator.dat`, protected with Windows d
 
 ## What is not done
 
-- QR reading and drawing exist but have limits (versions 1 to 10, no mirrored codes, no bulk-export codes): see [QR pairing](qr-pairing.md).
+- QR reading and drawing exist but have limits (versions 1 to 40, mirrored codes read, no bulk-export codes): see [QR pairing](qr-pairing.md).
 - Camera scanning is not available.
 - Grouping and bulk actions on the list are not offered. Reordering is.
 - The clock cannot be checked offline. The page says so and tells you where to sync it. It does not detect skew.

@@ -79,6 +79,14 @@ namespace MonitoringTools.UI
             await Task.Delay(900);
             await Reveal("Export everything", 700);
             await Shot(cc, "export-everything", "Export everything: one zip with every dataset in five formats, clipboard history left out unless chosen", 600);
+
+            // Local history manager: two saved versions of a sample script, with the protection and retention controls.
+            ScriptHistory.Save("script-sample", "echo one"); ScriptHistory.Save("script-sample", "echo two");
+            cc.Navigate("records", animate: false);
+            await Task.Delay(900);
+            await Reveal("Local history", 700);
+            await Shot(cc, "history-manager", "Local history: how saved versions are protected and how long they are kept, with each saved history", 600);
+            ScriptHistory.Delete("script-sample");
             s.LanguageMode = LanguageMode.English;
         }
     }
