@@ -23,6 +23,18 @@ namespace MonitoringTools.Minecraft
     }
 
     /// <summary>
+    /// What the NBT tree editor last found wrong with the value of an argument, so the command status can say exactly that
+    /// instead of only asking for the field to be filled in. Empty once the tree is valid.
+    /// </summary>
+    public static class McNbtProblems
+    {
+        private sealed class Holder { public string Problem; }
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<McCommandNode, Holder> Map = new System.Runtime.CompilerServices.ConditionalWeakTable<McCommandNode, Holder>();
+        public static void Set(McCommandNode node, string problem) { if (node != null) Map.GetOrCreateValue(node).Problem = problem; }
+        public static string Get(McCommandNode node) => node != null && Map.TryGetValue(node, out var v) ? v.Problem : null;
+    }
+
+    /// <summary>
     /// Writes and reads SNBT, the text form of NBT that commands take: {Name:"x",Count:3b,Tags:[1,2]}. The editor builds a
     /// tree and this renders it, so nothing is typed by hand; reading a value back lets an existing command open in the
     /// editor. Typed arrays ([B;1b]) are not part of the editor's vocabulary, so a value that uses one is left as text.

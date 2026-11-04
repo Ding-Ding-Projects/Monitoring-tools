@@ -83,7 +83,7 @@ namespace MonitoringTools.UI.Minecraft
             else if (p == "minecraft:gamemode") { var c = Enum("gamemode", label, McCommandTree.GameModes, optional, value, set, false); body = focus = c; }
             else if (McCommandTree.IsTarget(p)) (body, focus) = Who(s, n, label, value, set);
             else if (McCommandTree.Axes(p) > 0) (body, focus) = Position(s, n, label, optional, value, set, readPos);
-            else if (p == "minecraft:nbt_compound_tag" || p == "minecraft:nbt_tag") { var ed = new McNbtEditor(label, value, set); body = ed; focus = Logical<Button>(ed).FirstOrDefault() ?? (FrameworkElement)ed; }
+            else if (p == "minecraft:nbt_compound_tag" || p == "minecraft:nbt_tag") { var ed = new McNbtEditor(label, value, set, n); body = ed; focus = Logical<Button>(ed).FirstOrDefault() ?? (FrameworkElement)ed; }
             else if (p == "minecraft:item_stack" && McRegistries.RegistryOf(n) is string itemRegistry) (body, focus) = ItemStack(s, n, itemRegistry, label, value, set, reg);
             else if (McRegistries.RegistryOf(n) is string registry) (body, focus) = Pick(n, registry, label, value, set, reg);
             else if (p == "minecraft:component") { var box = Text(McCommandTasks.Uncomponent(value), label, 420, n.Hint); box.TextChanged += (o, e) => set(box.Text.Length == 0 ? "" : McCommandTasks.Component(box.Text)); body = focus = box; }

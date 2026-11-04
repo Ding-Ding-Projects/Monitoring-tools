@@ -142,6 +142,24 @@ namespace MonitoringTools.Minecraft
 
         public static string LevelType(WorldGenOptions o, bool dataDriven) => UsesFlatPack(o, dataDriven) ? "materialbrowser:generated" : LevelType(o.Type, dataDriven);
 
+        /// <summary>
+        /// Splits a span of chunks into as few batches as the 16 x 16 limit allows, all of nearly the same width, so no batch is a thin strip
+        /// (17 chunks became a batch of 16 and a batch of 1, and thin batches were the ones seen to stall). Returns inclusive first and last chunk.
+        /// </summary>
+        internal static List<(int First, int Last)> Tiles(int start, int span)
+        {
+            var list = new List<(int, int)>();
+            if (span <= 0) return list;
+            int count = (int)Math.Ceiling(span / (double)ChunksPerBatchSide), at = start;
+            for (int i = 0; i < count; i++)
+            {
+                int width = span / count + (i < span % count ? 1 : 0);
+                list.Add((at, at + width - 1));
+                at += width;
+            }
+            return list;
+        }
+
         public static int BatchCount(int radius)
         {
             if (radius <= 0) return 0;
@@ -458,18 +476,38 @@ namespace MonitoringTools.Minecraft
 
         private sealed class Console2 : IDisposable
         {
-            public readonly Process P;
+            public Process P { get; private set; }
             private readonly BlockingCollection<string> _lines = new BlockingCollection<string>();
             public readonly List<string> Tail = new List<string>();
-            public Console2(Process p)
+            public Console2(Process p) { Attach(p); }
+            private void Attach(Process p)
             {
                 P = p;
                 p.OutputDataReceived += (o, e) => Add(e.Data);
                 p.ErrorDataReceived += (o, e) => Add(e.Data);
             }
-            private void Add(string l) { if (l == null) return; _lines.Add(l); lock (Tail) { Tail.Add(l); if (Tail.Count > 40) Tail.RemoveAt(0); } }
+
+            /// <summary>
+            /// Stops the staging server (saving first) and starts it again on the same folder, waiting for Done. A server was seen to go on running normally
+            /// while every chunk it had been asked to force-load stayed unloaded, with nothing in its log; a fresh process loads them. The world is saved
+            /// after every batch, so a restart loses nothing that was finished.
+            /// </summary>
+            public void Restart(CancellationToken ct)
+            {
+                var psi = P.StartInfo;
+                try { Send("save-all flush"); WaitFor(l => l.Contains("Saved the game") || l.Contains("Saved the world"), TimeSpan.FromSeconds(60), ct); Send("stop"); } catch (OperationCanceledException) { throw; } catch { }
+                if (!P.WaitForExit(60000)) { try { P.Kill(true); P.WaitForExit(10000); } catch { } }
+                P.Dispose();
+                while (_lines.TryTake(out _)) { }
+                var fresh = new Process { StartInfo = psi };
+                Attach(fresh);
+                fresh.Start(); fresh.BeginOutputReadLine(); fresh.BeginErrorReadLine();
+                if (WaitFor(l => l.Contains("Done ("), TimeSpan.FromMinutes(6), ct) == null)
+                    throw new InvalidOperationException("The staging server did not start again. Last output:\n" + TailText());
+            }
+            private void Add(string l) { if (l == null) return; _lines.Add(l); lock (Tail) { Tail.Add(l); if (Tail.Count > 400) Tail.RemoveAt(0); } }
             public void Send(string cmd) { P.StandardInput.WriteLine(cmd); P.StandardInput.Flush(); }
-            public string TailText() { lock (Tail) return string.Join("\n", Tail.TakeLast(8)); }
+            public string TailText() { lock (Tail) return string.Join("\n", Tail.Where(l => !l.Contains("Test failed") && !l.Contains("Test passed")).TakeLast(8)); }
 
             /// <summary>Reads lines until one satisfies the test. Returns that line, or null on timeout or when the server has exited.</summary>
             public string WaitFor(Func<string, bool> test, TimeSpan timeout, CancellationToken ct)
@@ -482,6 +520,33 @@ namespace MonitoringTools.Minecraft
                     else if (P.HasExited) return null;
                 }
                 return null;
+            }
+            /// <summary>What the server says about itself when a batch will not load: its forced chunks, its tick state and, when the runtime has jcmd, what its busiest threads are doing.</summary>
+            public string Diagnose(string run)
+            {
+                var sb = new System.Text.StringBuilder();
+                try
+                {
+                    Send($"{run}forceload query");
+                    var q = WaitFor(l => l.Contains("force loaded") || l.Contains("force-loaded") || l.Contains("No chunks"), TimeSpan.FromSeconds(10), CancellationToken.None);
+                    sb.Append("forceload query: ").Append(q?.Trim() ?? "no answer").Append('\n');
+                    Send("tick query");
+                    var t = WaitFor(l => l.Contains("tick rate") || l.Contains("Target tick") || l.Contains("The game is"), TimeSpan.FromSeconds(10), CancellationToken.None);
+                    sb.Append("tick query: ").Append(t?.Trim() ?? "no answer").Append('\n');
+                    var jcmd = Path.Combine(Path.GetDirectoryName(P.MainModule.FileName) ?? "", "jcmd.exe");
+                    if (File.Exists(jcmd))
+                    {
+                        var psi = new ProcessStartInfo(jcmd, $"{P.Id} Thread.print") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true };
+                        using var j = Process.Start(psi);
+                        var dump = j.StandardOutput.ReadToEnd(); j.WaitForExit(15000);
+                        var keep = dump.Split('\n').Where(x => x.StartsWith("\"Server thread") || x.StartsWith("\"Worker-Main") || x.Contains("State: BLOCKED") || x.Contains("deadlock")).Take(12);
+                        sb.Append("threads: ").Append(string.Join(" | ", keep.Select(x => x.Trim()))).Append('\n');
+                        File.WriteAllText(Path.Combine(Path.GetTempPath(), "pregen-threads-" + DateTime.Now.ToString("HHmmss") + ".txt"), dump);
+                    }
+                    else sb.Append("no jcmd beside this runtime\n");
+                }
+                catch (Exception ex) { sb.Append("diagnosis failed: " + ex.Message); }
+                return sb.ToString();
             }
             public void Dispose() { try { if (!P.HasExited) P.Kill(true); } catch { } P.Dispose(); }
         }
@@ -567,7 +632,7 @@ namespace MonitoringTools.Minecraft
                 }
 
                 progress("Starting a private server to build the world…", 0.12);
-                var psi = new ProcessStartInfo(java, "-Xmx2G -jar server.jar nogui")
+                var psi = new ProcessStartInfo(java, "-Xmx" + (Environment.GetEnvironmentVariable("MT_STAGING_XMX") ?? "2G") + " -jar server.jar nogui")
                 { WorkingDirectory = stage, UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
                 using var con = new Console2(new Process { StartInfo = psi });
                 con.P.Start(); con.P.BeginOutputReadLine(); con.P.BeginErrorReadLine();
@@ -635,13 +700,13 @@ namespace MonitoringTools.Minecraft
                 string run = dim.Id == null ? "" : $"execute in {dim.Id} run ";
                 string inDim = dim.Id == null ? "execute" : $"execute in {dim.Id}";
                 int inThis = 0;
-                for (int cx = centerX - radius; cx < centerX + radius; cx += ChunksPerBatchSide)
-                    for (int cz = centerZ - radius; cz < centerZ + radius; cz += ChunksPerBatchSide)
+                foreach (var (cx, cxEnd) in Tiles(centerX - radius, radius * 2))
+                    foreach (var (cz, czEnd) in Tiles(centerZ - radius, radius * 2))
                     {
                         ct.ThrowIfCancellationRequested();
                         // a pause takes effect between batches, when no chunk is being loaded and nothing is force-loaded
                         if (pause != null) await pause.WaitAsync(ct, () => progress($"Paused after batch {inThis} of {perDim}. Resume to carry on.", 0.15 + 0.7 * n / total));
-                        int cx2 = Math.Min(cx + ChunksPerBatchSide - 1, centerX + radius - 1), cz2 = Math.Min(cz + ChunksPerBatchSide - 1, centerZ + radius - 1);
+                        int cx2 = cxEnd, cz2 = czEnd;
                         con.Send($"{run}forceload add {cx * 16} {cz * 16} {cx2 * 16 + 15} {cz2 * 16 + 15}");
                         // the server answers the forceload command; an error here is reported with its own words instead of a five minute wait
                         var added = con.WaitFor(l => l.Contains("force loaded") || l.Contains("force-loaded") || l.Contains("Unable") || l.Contains("Incorrect") || l.Contains("Too many") || l.Contains("Unknown or incomplete") || l.Contains("out of the world") || l.Contains("Cannot"), TimeSpan.FromSeconds(30), ct);
@@ -650,10 +715,27 @@ namespace MonitoringTools.Minecraft
                         var pending = new List<(int X, int Z)>();
                         for (int x = cx; x <= cx2; x++) for (int z = cz; z <= cz2; z++) pending.Add((x, z));
                         var deadline = DateTime.UtcNow.AddMinutes(5);
+                        // A batch whose chunks stop loading is asked for again: the server's force-load tickets can stall when a batch is
+                        // requested right after the last one was removed, and removing them all and adding the area once more starts them over.
+                        var lastGain = DateTime.UtcNow; int lastCount = pending.Count, restarts = 0;
                         while (pending.Count > 0)
                         {
                             ct.ThrowIfCancellationRequested();
-                            if (DateTime.UtcNow > deadline) throw new TimeoutException($"{dim.Label} batch {inThis + 1} of {perDim} did not finish loading in 5 minutes; {pending.Count} chunks were still not loaded, the first at chunk {pending[0].X}, {pending[0].Z}. Last output:\n" + con.TailText());
+                            if (pending.Count < lastCount) { lastCount = pending.Count; lastGain = DateTime.UtcNow; }
+                            else if ((DateTime.UtcNow - lastGain).TotalSeconds > 45 && restarts < 3)
+                            {
+                                restarts++; lastGain = DateTime.UtcNow; deadline = DateTime.UtcNow.AddMinutes(5);
+                                progress($"Pre-generating the {dim.Label}: batch {inThis + 1} of {perDim} stopped loading, so the staging server was restarted ({restarts} of 3)", 0.15 + 0.7 * n / total);
+                                var diagnosis = con.Diagnose(run);
+                                Core.Log.Info("Pre-generation stalled and the staging server was restarted. " + diagnosis.Replace("\n", " | "));
+                                con.Restart(ct);
+                                con.Send($"{run}forceload remove all");
+                                con.WaitFor(l => l.Contains("no longer") || l.Contains("No chunks"), TimeSpan.FromSeconds(15), ct);
+                                con.Send($"{run}forceload add {cx * 16} {cz * 16} {cx2 * 16 + 15} {cz2 * 16 + 15}");
+                                con.WaitFor(l => l.Contains("force loaded") || l.Contains("force-loaded"), TimeSpan.FromSeconds(30), ct);
+                                lastCount = pending.Count;
+                            }
+                            if (DateTime.UtcNow > deadline) throw new TimeoutException($"{dim.Label} batch {inThis + 1} of {perDim} did not finish loading in 5 minutes (asked again {restarts} times); {pending.Count} chunks were still not loaded, the first at chunk {pending[0].X}, {pending[0].Z}. Last output:\n" + con.TailText() + "\n" + con.Diagnose(run));
                             var still = new List<(int X, int Z)>();
                             foreach (var c in pending)
                             {
@@ -666,6 +748,11 @@ namespace MonitoringTools.Minecraft
                             if (pending.Count > 0) await Task.Delay(400, ct);
                         }
                         con.Send($"{run}forceload remove all");
+                        con.WaitFor(l => l.Contains("no longer") || l.Contains("No chunks"), TimeSpan.FromSeconds(15), ct);
+                        // Let the chunks just released be written out before the next batch asks for chunks beside them: a batch requested while its neighbours
+                        // were still being unloaded was seen never to load.
+                        con.Send("save-all flush");
+                        con.WaitFor(l => l.Contains("Saved the game") || l.Contains("Saved the world"), TimeSpan.FromSeconds(60), ct);
                         n++; inThis++;
                         progress($"Pre-generating the {dim.Label}: batch {inThis} of {perDim}" + (dims.Count > 1 ? $" (area {d + 1} of {dims.Count})" : ""), 0.15 + 0.7 * n / total);
                     }

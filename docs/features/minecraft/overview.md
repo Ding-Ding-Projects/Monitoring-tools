@@ -47,4 +47,4 @@ day), save it to the file and read it back after a reload, prune after 30 days, 
 and the dashes on the Overview, redrawn when a new peak arrives. The live check (`MT_LIVE_ONLY=minecraft-lane`) starts a
 real Paper server and reads `tps` through the same poll the Overview uses (20.0 on a quiet server), and runs the
 update check against the real Paper API: the newest build is reported as current, and a server recorded as build 1 is
-told a newer build exists.
+told a newer build exists. The update check was also run against the real Purpur, Fabric, Forge and NeoForge APIs (`MT_LIVE_LANE=updates`, 2.7 s): for each the newest build is current and the oldest listed build is told the newest is newer.

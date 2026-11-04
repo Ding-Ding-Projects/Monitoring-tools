@@ -128,6 +128,11 @@ namespace MonitoringTools.UI
                 if (badMinutes.Problem != "minutes must be a whole number.") return "minutes soon said: " + badMinutes.Problem;
                 var spark = McCommandTasks.Build(McLiveCommands.ToTask(cmds.First(c => c.Name == "spark")), McLiveCommands.ToTask(cmds.First(c => c.Name == "spark")).Synthetic, new Dictionary<string, string> { ["choice"] = "stop" }, null);
                 if (spark.Line != "/spark stop") return "a choice came out as " + spark.Line;
+                // RCON returns vanilla's usage lines glued into one run of text; they are told apart again
+                var glued = McLiveCommands.Parse(new[] { "/time set (day|night)/spark <player> [seconds]/give <targets> <item>/profiler (start|stop)/essentials:warp <name>" }, tree);
+                if (string.Join(",", glued.Select(c => c.Name)) != "profiler,spark,warp" || glued.First(c => c.Name == "spark").Usage != "<player> [seconds]") return "glued help read as " + string.Join(",", glued.Select(c => c.Name + ":" + c.Usage));
+                var described = McLiveCommands.Parse(new[] { "/home: Use /help home to see more", "/warp: Goes to a warp" }, tree);
+                if (described.First(c => c.Name == "home").Description != "Use /help home to see more" || described.Count != 2) return "a description naming another command was split";
                 // Paper's own help index and a colour-coded line, as the console prints them
                 var paper = McLiveCommands.Parse(new[] { "[10:00:00 INFO]: --------- Help: Index (1/3) ---------------------", "[10:00:00 INFO]: /bukkit:version: Gets the version of this server", "[10:00:00 INFO]: /§6paper§r: Paper related commands", "[10:00:00 INFO]: /minecraft:help", "[10:00:00 INFO]: /give <targets> <item>" }, tree);
                 return string.Join(",", paper.Select(c => c.Name + "@" + c.Source)) == "paper@server,version@bukkit" ? null : "paper help read as " + string.Join(",", paper.Select(c => c.Name + "@" + c.Source));
@@ -152,6 +157,27 @@ namespace MonitoringTools.UI
                 var json = File.ReadAllText(McPeaks.FilePath);
                 if (!json.Contains("\"2026-11-02\":7") || !json.Contains("lane-b") || json.Contains("2026-09-25")) return "the file holds " + json;
                 return McPeaks.PeakToday("nobody", today) == null && McPeaks.Peak7Days("nobody", today) == null ? null : "an unknown server has a peak";
+            });
+
+            Check("minecraft worlds: pre-generation batches cover the square exactly, never exceed 16 x 16 chunks and are never thin strips", () =>
+            {
+                foreach (var (radius, centre) in new[] { (1, 0), (2, -3), (8, 0), (16, 0), (17, 0), (23, 5), (31, 0), (50, 0), (100, 0) })
+                {
+                    var tiles = WorldGenerator.Tiles(centre - radius, radius * 2);
+                    if (tiles.Count != WorldGenerator.BatchCount(radius) && tiles.Count * tiles.Count != WorldGenerator.BatchCount(radius)) return $"radius {radius}: {tiles.Count} tiles per side but BatchCount says {WorldGenerator.BatchCount(radius)}";
+                    int at = centre - radius;
+                    foreach (var (first, last) in tiles)
+                    {
+                        if (first != at) return $"radius {radius}: a gap or an overlap at chunk {first}";
+                        int width = last - first + 1;
+                        if (width > WorldGenerator.ChunksPerBatchSide) return $"radius {radius}: a batch {width} chunks wide";
+                        if (radius * 2 >= 16 && width < 8) return $"radius {radius}: a thin batch of {width} chunks";
+                        at = last + 1;
+                    }
+                    if (at != centre + radius) return $"radius {radius}: the tiles end at {at - 1}, not {centre + radius - 1}";
+                }
+                var t17 = WorldGenerator.Tiles(-17, 34);
+                return string.Join(",", t17.Select(t => t.Last - t.First + 1)) == "12,11,11" ? null : "17 chunks each side split as " + string.Join(",", t17.Select(t => t.Last - t.First + 1));
             });
 
             Check("minecraft worlds: pausing holds pre-generation at a batch boundary and resuming carries on; cancelling works while paused", () =>
@@ -275,6 +301,7 @@ namespace MonitoringTools.UI
                 Fill(FindBox(mc, "Value of root/1"), "300");
                 await Task.Delay(150);
                 if (mc.RunEnabled) return "Run stayed on with a byte of 300";
+                if (mc.CommandStatus != "Invulnerable: A byte is from -128 to 127.") return "the status line said: " + mc.CommandStatus;
                 var texts = string.Join(" | ", Descend<TextBlock>(mc).Where(t => t.IsVisible).Select(t => t.Text));
                 if (!texts.Contains("A byte is from -128 to 127.")) return "the byte problem was not shown";
                 Fill(FindBox(mc, "Value of root/1"), "1");

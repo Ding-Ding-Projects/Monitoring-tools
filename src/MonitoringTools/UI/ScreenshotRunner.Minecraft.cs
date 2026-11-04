@@ -33,6 +33,7 @@ namespace MonitoringTools.UI
                     ("schedules", "mc-schedules", "Minecraft servers: schedules (sample data)"),
                 })
                 {
+                    if (id == "overview") { cc.Height = 1500; await Task.Delay(500); }   // tall enough for the peak players card to be whole in the frame
                     mc.ShowSection(id);
                     if (id == "settings")
                     {
@@ -50,6 +51,7 @@ namespace MonitoringTools.UI
                     }
                     await Shot(cc, name, caption, 700);
                     cc.Scroller.ScrollToTop();
+                    if (id == "overview") { cc.Height = 900; await Task.Delay(300); }
                 }
                 // the peak players card in full
                 mc.ShowSection("overview");

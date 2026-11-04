@@ -26,8 +26,11 @@ namespace MonitoringTools.UI.Minecraft
         public string Snbt => Problem == null && Root.Items.Count > 0 ? McSnbt.Render(Root) : "";
         public string Problem { get; private set; }
 
-        public McNbtEditor(string name, string initial, Action<string> changed)
+        private readonly McCommandNode _node;
+
+        public McNbtEditor(string name, string initial, Action<string> changed, McCommandNode node = null)
         {
+            _node = node;
             _changed = changed;
             AutomationProperties.SetName(this, name);
             bool text = false;
@@ -64,6 +67,7 @@ namespace MonitoringTools.UI.Minecraft
         private void Report()
         {
             Problem = McSnbt.Validate(Root);
+            McNbtProblems.Set(_node, Problem);
             _problem.Text = Problem ?? "";
             _problem.Visibility = Problem == null ? Visibility.Collapsed : Visibility.Visible;
             _preview.Text = Problem != null || Root.Items.Count == 0 ? "Nothing yet. Add a key to start." : McSnbt.Render(Root);

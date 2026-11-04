@@ -82,6 +82,7 @@ namespace MonitoringTools.UI
             mc.OpenCommandTask("give");
             await System.Threading.Tasks.Task.Delay(1200);
             await ShotAt(SelfTest.Descend<McItemEditor>(mc).FirstOrDefault(), "mc-commands-item-components", "Minecraft servers: a give command with the item component editor: custom name, lore, enchantments with levels, damage, unbreakable and a generic component from the version's component list (sample data)", 260);
+            await ShotAt(SelfTest.Descend<System.Windows.Controls.TextBox>(mc).FirstOrDefault(t => System.Windows.Automation.AutomationProperties.GetName(t) == "Component value"), "mc-commands-item-components-more", "Minecraft servers: the lower half of the item component editor: damage, unbreakable, custom model data and the generic component row with max_stack_size added from the version's component list (sample data)", 760);
             gv.Clear();
 
             // NBT built with a tree

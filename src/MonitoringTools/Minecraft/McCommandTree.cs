@@ -184,6 +184,7 @@ namespace MonitoringTools.Minecraft
         /// <summary>Checks one argument value against its parser, returning a plain reason or null.</summary>
         public static string Check(McCommandNode arg, string value, McRegistries registries = null)
         {
+            if ((value == null || value.Trim().Length == 0) && (arg.Parser == "minecraft:nbt_compound_tag" || arg.Parser == "minecraft:nbt_tag") && McNbtProblems.Get(arg) is string treeProblem) return treeProblem;
             if (value == null || value.Trim().Length == 0) return $"Fill in {arg.Name}.";
             if (value.IndexOfAny(new[] { '\r', '\n' }) >= 0) return "A command is one line.";
             var v = value.Trim();

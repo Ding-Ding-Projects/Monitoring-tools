@@ -88,6 +88,8 @@ model data, and a generic row for any other component, whose id is chosen from t
 custom model data is a number before 1.21.4 and `{floats:[n]}` from it. A component the controls cannot read back stays
 in the generic list untouched. Before 1.20.5 the same place is the NBT editor below.
 
+![Item component editor, lower half](../../screenshots/mc-commands-item-components-more.png)
+
 ![NBT editor](../../screenshots/mc-commands-nbt.png)
 
 An argument that takes NBT (`minecraft:nbt_compound_tag`, for example the last argument of `summon` and `data merge`) gets
@@ -132,17 +134,19 @@ own code, runs them and checks each reply in the console. `MT_LIVE_ONLY=minecraf
 server with a headless bot player (mineflayer in a throwaway folder): the server's own `data get entity` reply gives the
 position the bot itself reports, a `give` with seven components is answered and read back from the player's inventory,
 a `summon` with NBT from the tree is answered, and `help` is read into Plugins and mods; it also runs the builder's lines
-over the Docker and SSH targets. Captures `mc-commands-give`, `mc-commands-tp`, `mc-commands-tree`,
-`mc-commands-favourites`, `mc-commands-item-components`, `mc-commands-nbt` and `mc-commands-plugins` use the sample
+over the Docker, SSH and SSH Docker targets, and (`MT_LIVE_LANE=fabric`) reads `help` on a real Fabric server with the spark mod into a form. Captures `mc-commands-give`, `mc-commands-tp`, `mc-commands-tree`,
+`mc-commands-favourites`, `mc-commands-item-components`, `mc-commands-item-components-more`, `mc-commands-nbt` and `mc-commands-plugins` use the sample
 server.
 
 ## Limits
 
 - Plugin and mod commands depend on what `help` prints: a plugin that registers a command without usage text gets a
-  form with one text field for its words, and one the server does not list in `help` is not offered. Fabric and Forge
-  servers were not run in the live check (Paper was); the same parser reads both formats.
+  form with one text field for its words, and one the server does not list in `help` is not offered. The live check ran
+  Paper (its `help` index, 15 commands) and a Fabric server with the spark mod (`/spark`, whose usage Fabric prints as
+  `[<args>]`, so its form is one optional text field); Forge and NeoForge servers were not run. Over RCON the reply to
+  `help` comes back as one run of text, so the reader splits glued usage lines apart again.
 - The component editor builds six components with controls and any other by id and SNBT; item *predicates* (the
   `item_predicate` parser used by `clear` and `execute if items`) keep the id list and a typed value.
-- An invalid NBT tree turns Run off and the field shows the reason, but the status line says only that the value needs
-  filling in.
+- An invalid NBT tree turns Run off, and the status line names the exact reason (for example "Invulnerable: A byte is
+  from -128 to 127.") as well as the field.
 - Data pack dimensions are typed; the list offers the overworld, the nether and the end.

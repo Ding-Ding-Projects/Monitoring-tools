@@ -21,6 +21,8 @@ namespace MonitoringTools.Minecraft
         public DateTime At = DateTime.Now;
         public bool Sample;
         public bool Reading;
+        /// <summary>The lines the server printed for help, kept so a read that found nothing can say what it was given.</summary>
+        public List<string> Raw = new List<string>();
     }
 
     /// <summary>
@@ -42,14 +44,30 @@ namespace MonitoringTools.Minecraft
         public static void Set(string serverId, McLiveRead read) { lock (Reads) Reads[serverId] = read; }
         public static void Forget(string serverId) { lock (Reads) Reads.Remove(serverId); }
 
+        // RCON hands the reply back as one run of text, so vanilla's usage lines arrive glued together: "/advancement (grant|revoke)/attribute <target>".
+        // A slash straight after a word character or a closing bracket and before a command name starts the next line; a slash after a space (a command
+        // named inside a description, "Use /help") does not.
+        private static readonly Regex Glue = new Regex(@"(?<=[\w\)\]>])/(?=[a-z][\w:\-]*(\s|$|/))", RegexOptions.Compiled);
+
+        private static IEnumerable<string> CleanSplit(string raw)
+        {
+            var line = Timestamp.Replace(Colour.Replace(raw ?? "", ""), "").Trim();
+            if (!line.StartsWith("/", StringComparison.Ordinal)) { yield return line; yield break; }
+            foreach (var piece in Glue.Split(line))
+            {
+                var p = piece.Trim();
+                if (p.Length == 0) continue;
+                yield return p.StartsWith("/", StringComparison.Ordinal) ? p : "/" + p;
+            }
+        }
+
         /// <summary>Commands from help output. Lines are "/name: description" (Bukkit and Paper) or "/name usage" (vanilla and Fabric); anything else is ignored.</summary>
         public static List<McLiveCommand> Parse(IEnumerable<string> lines, McCommandNode tree)
         {
             var byName = new Dictionary<string, McLiveCommand>(StringComparer.OrdinalIgnoreCase);
             var inJar = new HashSet<string>((tree?.Children ?? new List<McCommandNode>()).Where(c => c.IsLiteral).Select(c => c.Name), StringComparer.OrdinalIgnoreCase);
-            foreach (var raw in lines ?? Enumerable.Empty<string>())
+            foreach (var line in (lines ?? Enumerable.Empty<string>()).SelectMany(CleanSplit))
             {
-                var line = Timestamp.Replace(Colour.Replace(raw ?? "", ""), "").Trim();
                 if (!line.StartsWith("/", StringComparison.Ordinal)) continue;
                 string name, usage = "", description = "";
                 var d = Described.Match(line);
@@ -99,6 +117,7 @@ namespace MonitoringTools.Minecraft
             }
             lines.AddRange(await McCommandRun.SendAllAsync(s, "minecraft:help", wait));
             read.Commands = Parse(lines, tree);
+            read.Raw = lines;
             if (read.Commands.Count == 0)
                 read.Problem = lines.Count == 0 ? "The server did not answer help." : "The server answered help, but no command in its answer is missing from the jar's own list.";
             return read;

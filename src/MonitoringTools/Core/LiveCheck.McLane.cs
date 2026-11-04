@@ -17,11 +17,12 @@ namespace MonitoringTools.Core
     {
         private static async Task McLane(List<Result> results)
         {
-            var only = (Environment.GetEnvironmentVariable("MT_LIVE_LANE") ?? "paper,docker,ssh,pregen").Split(',');
+            var only = (Environment.GetEnvironmentVariable("MT_LIVE_LANE") ?? "paper,docker,ssh,pregen,updates,fabric,sshdocker,gen").Split(',');
             if (only.Contains("paper")) await Check(results, "minecraft: on a real Paper server with a bot player, tps, the update check, plugin commands, a player's position, item components and NBT all work", PaperLane);
             if (only.Contains("docker")) await Check(results, "minecraft: the command builder's lines run and answer on the Docker target", DockerLane);
             if (only.Contains("ssh")) await Check(results, "minecraft: the command builder's lines run and answer on the SSH target", SshLane);
             if (only.Contains("pregen")) await Check(results, "minecraft: bounded pre-generation pauses, resumes and writes region files", PreGenLane);
+            await McLane2(results, only);
         }
 
         private static string NodeExe()
@@ -317,16 +318,28 @@ namespace MonitoringTools.Core
         /// <summary>Bounded pre-generation on a throwaway staging server: nine batches, a pause after the first, then resume, and the region files counted.</summary>
         private static async Task<string> PreGenLane()
         {
+            var radii = (Environment.GetEnvironmentVariable("MT_LIVE_RADIUS") ?? "16").Split(',').Select(int.Parse).ToList();
+            for (int i = 0; i < radii.Count; i++)
+            {
+                Say($"radius {radii[i]}:");
+                var bad = await PreGenOne(radii[i], i == 0);
+                if (bad != null) return $"radius {radii[i]}: {bad}";
+            }
+            return null;
+        }
+
+        private static async Task<string> PreGenOne(int radius, bool pauseCheck)
+        {
             var dest = Path.Combine(Settings.DataDir, "pregen-lane-" + Stamp());
             Directory.CreateDirectory(dest);
             try
             {
-                var o = new WorldGenOptions { Version = Version, Seed = Environment.GetEnvironmentVariable("MT_LIVE_SEED") ?? "lane", RadiusChunks = int.Parse(Environment.GetEnvironmentVariable("MT_LIVE_RADIUS") ?? "16"), EulaAccepted = true, Destination = dest, WorldName = "lane-world" };
+                var o = new WorldGenOptions { Version = Version, Seed = Environment.GetEnvironmentVariable("MT_LIVE_SEED") ?? "lane", RadiusChunks = radius, EulaAccepted = true, Destination = dest, WorldName = "lane-world" };
                 var pause = new GenPause();
                 var messages = new List<string>();
                 var sw = Stopwatch.StartNew();
                 int batchesBeforePause = 0, batchesDuringPause = 0;
-                bool pausedSet = false, noPause = Environment.GetEnvironmentVariable("MT_LIVE_NOPAUSE") == "1";
+                bool pausedSet = false, noPause = !pauseCheck || Environment.GetEnvironmentVariable("MT_LIVE_NOPAUSE") == "1";
                 using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(25));
                 var run = Task.Run(() => WorldGenerator.GenerateAsync(o, (t, f) =>
                 {
@@ -345,16 +358,17 @@ namespace MonitoringTools.Core
                 if (run.IsFaulted) return "generation failed before the pause: " + run.Exception.InnerException?.Message;
                 if (!pausedSet) return "pre-generation never reached batch 2: " + Trim(string.Join(" | ", messages.TakeLast(3)));
                 int countAtPause; lock (messages) countAtPause = messages.Count;
-                Say($"paused after {batchesBeforePause} batches at {sw.Elapsed.TotalSeconds:0} s");
+                Say(noPause ? $"{batchesBeforePause} batches done at {sw.Elapsed.TotalSeconds:0} s (no pause this run)" : $"paused after {batchesBeforePause} batches at {sw.Elapsed.TotalSeconds:0} s");
                 if (!noPause) await Task.Delay(8000);
                 lock (messages) if (!noPause && (messages.Count != countAtPause || batchesDuringPause != 0)) return $"progress moved while paused ({messages.Count - countAtPause} new messages)";
                 if (!noPause && run.IsCompleted) return "the run finished while paused";
-                Say("8 s paused with no progress");
+                if (!noPause) Say("8 s paused with no progress");
                 sw.Restart();
                 pause.Paused = false;
                 var written = await run;
-                Say($"resumed and finished in {sw.Elapsed.TotalSeconds:0} s");
+                Say($"{(noPause ? "finished" : "resumed and finished")} in {sw.Elapsed.TotalSeconds:0} s, {WorldGenerator.BatchCount(o.RadiusChunks)} batches");
                 if (!noPause && pause.Waits < 1) return "the run never waited for the pause";
+                lock (messages) Say($"the staging server was restarted for a stalled batch {messages.Count(m => m.Contains("was restarted"))} times");
                 var path = written.Split('\n')[0].Trim();
                 if (!Directory.Exists(path)) return "the output folder is missing: " + path;
                 var regions = Directory.GetFiles(path, "r.*.mca", SearchOption.AllDirectories).Where(f => new FileInfo(f).Length > 0).ToList();
