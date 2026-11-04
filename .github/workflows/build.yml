@@ -211,7 +211,15 @@ jobs:
 
           # Final timing now that publication and verification are done.
           New-Notes ((Get-Date).ToUniversalTime().ToString('o'))
-          gh release edit $tag --notes-file "$tmp/notes.md"
+          # GitHub answers the odd 5xx; the release is already verified, so retry the notes edit rather than fail.
+          $edited = $false
+          foreach ($wait in 0, 2, 4, 8, 16) {
+            Start-Sleep -Seconds $wait
+            gh release edit $tag --notes-file "$tmp/notes.md"
+            if ($LASTEXITCODE -eq 0) { $edited = $true; break }
+          }
+          if (-not $edited) { throw "Could not update the notes of $tag after five tries" }
+          $global:LASTEXITCODE = 0
           "RELEASE_TMP=$tmp" >> $env:GITHUB_ENV
 
       - name: Record release figures and changelog in the repository
