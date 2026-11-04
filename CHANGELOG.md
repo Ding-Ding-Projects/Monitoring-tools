@@ -4,6 +4,15 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.26 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.26)
+
+- Record v1.0.25 figures and changelog ([`9df0652`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9df0652945edc4a893826dcefef0b646c08a8acb))
+- Multi-select player list with bulk actions, Bedrock on Docker and SSH, SSH files, live checks ([`0616fa6`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0616fa6abb44cca00ec880e8729f609ce2440bbf))
+- Wire the sections to the file store: SSH players, plugins, backups, worlds; Bedrock players, add-ons, worlds ([`adb3d9d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/adb3d9de2568700de11479774eac6d7e902f260b))
+- Add server file store (local and SSH), Bedrock players, add-ons, worlds and remote backups ([`eacb82f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/eacb82f1ab0bed1aedd937e6a54735bfe8142e58))
+
 ## 1.0.25 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.25)
