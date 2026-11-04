@@ -27,6 +27,14 @@ namespace MonitoringTools
                     t.InitializeComponent();
                     return t.Run();
                 }
+                var liveIdx = Array.IndexOf(args, "--live-check");
+                if (liveIdx >= 0)
+                {
+                    // Talks to real local services (voices, Ollama, the dish catalogue, a forge, the Minecraft jar),
+                    // still inside a throwaway data folder so the real settings are never touched.
+                    Settings.DataDirOverride = Path.Combine(Path.GetTempPath(), "MonitoringTools-live-" + Environment.ProcessId);
+                    return LiveCheck.Run(liveIdx + 1 < args.Length ? args[liveIdx + 1] : "live-check");
+                }
                 var shotIdx = Array.IndexOf(args, "--screenshots");
                 if (shotIdx >= 0)
                 {

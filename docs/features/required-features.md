@@ -13,12 +13,12 @@ The maintainer's shared app requirements, checked against this app on 2026-11-04
 | Emoji in dialogs switch | done | Language page; toast titles go through `Language.Title`. |
 | Personal wording file (upload, drop and copy) | done | Service page, drop on any window, or copy the file or its path; unrelated JSON files are ignored. Self-test applies a copied file, ignores a `package.json` and respects the switch. |
 | School mode | partial | Modes page: renamable, PIN with PBKDF2-SHA256, back-off, shared record. PIN or password (separate PBKDF2 hashes, 8 or more characters), the Language page hides the language choices, humour sliders and personal wording while it is on, and English is forced. Gap: no passkey. |
-| Narrator | partial | Windows voices, separate English and Cantonese pickers, queue, test button. Gap: not exercised with real voices on this machine. |
+| Narrator | partial | Windows voices, separate English and Cantonese pickers, queue, test button. The [live check](tools/live-check.md) synthesises speech with a real installed English voice. Gap: Cantonese speech is untested because this computer has no zh-HK voice installed. |
 | Action sound effects | done | Existing; now governed by Modes. |
 | Scheduled and external settings | partial | Weekday and time rules with optional start and end dates, in-place rule editing, external JSON file with validation and watching; the date-range rule evaluation is covered by a self-test check. Built but not yet driven or captured on screen. Date and time are validated text boxes, not native pickers. |
 | App rename | done | Appearance → display name drives the drawer title. |
 | ADHD modes | partial | Five switches and reminders, a Focus spotlight (Modes page and Ctrl+Shift+Space) and palette entries for every switch. Gap: the spotlight has not been exercised in a running build by its author. |
-| Dim sum surprise | partial | Modes page; reads the public photo catalogue, with an honest unavailable state. Gap: not exercised against the live catalogue. |
+| Dim sum surprise | done | Modes page; reads the public photo catalogue, with an honest unavailable state. The [live check](tools/live-check.md) loads the live catalogue and picks a dish. |
 
 ## Material 3, appearance and layout
 
@@ -64,10 +64,10 @@ The maintainer's shared app requirements, checked against this app on 2026-11-04
 | Feature | Status | Evidence and gaps |
 | --- | --- | --- |
 | File converter, Base64 toolkit, Minecraft server manager | done | Existing pages and file tools. |
-| Ollama suite manager | partial | Detect, install with consent, start and stop, a dated model catalogue with a hardware-fit verdict from real RAM, VRAM and disk, a pull cart, model details, loaded models, a chat test and a troubleshooter. Chat takes up to six image or text attachments. Gap: not exercised against a live server here. |
-| Minecraft world generator | partial | Seed, level type, structures, single biome, game-rule editor and superflat layers from the real jar, bounded pre-generation in the overworld, Nether and End, folder or ZIP output. Gaps: noise and dimension-type editors, not exercised against a real jar here. |
+| Ollama suite manager | done | Detect, install with consent, start and stop, a dated model catalogue with a hardware-fit verdict from real RAM, VRAM and disk, a pull cart, model details, loaded models, a chat test and a troubleshooter. Chat takes up to six image or text attachments. The [live check](tools/live-check.md) ran it against Ollama 0.33.3 with gemma4:12b: model list and capabilities, a text attachment read correctly and an image attachment described correctly. |
+| Minecraft world generator | partial | Seed, level type, structures, single biome, game-rule editor and superflat layers from the real jar, bounded pre-generation in the overworld, Nether and End, folder or ZIP output. Noise-settings and dimension-type editors. The [live check](tools/live-check.md) downloads the real 1.21.4 jar and Java, reads game rules, blocks and biomes from it, and writes noise and dimension edits from its default files. Gap: bounded pre-generation was not run live. |
 | Drawing and annotation | partial | Native Windows ink board (the named JavaScript library needs a web view this app does not have); pens, shapes, text, undo, PNG and SVG export. |
-| Publishing to a forge | partial | Publish a folder to GitHub with bundled Git and an optional GitHub CLI, explicit consent, no stored tokens, recovery steps. Also GitLab (gitlab.com or self-hosted) and Gitea/Forgejo, with `glab` and `tea` preferred when signed in and a one-time pasted token otherwise (see [publishing](tools/publishing.md)). Gap: the GitLab and Gitea routes have not been run against real servers. |
+| Publishing to a forge | partial | Publish a folder to GitHub with bundled Git and an optional GitHub CLI, explicit consent, no stored tokens, recovery steps. Also GitLab (gitlab.com or self-hosted) and Gitea/Forgejo, with `glab` and `tea` preferred when signed in and a one-time pasted token otherwise (see [publishing](tools/publishing.md)). The [live check](tools/live-check.md) published to a real Gitea 1.22.6 server with a one-time token and read the pushed file back. Gap: GitLab not run against a real server. |
 | External editor hand-off | done | VS Code, Notepad++, the default app or a custom program, for scripts and copied file paths. |
 
 ## Not applicable here

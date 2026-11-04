@@ -176,6 +176,24 @@ namespace MonitoringTools.Core
             finally { lock (Gate) _running = false; }
         }
 
+        /// <summary>Synthesises text with the voice the narrator would pick, without playing it. Returns the audio bytes,
+        /// or null when no voice exists for that language. Used by the live check to prove real voices work.</summary>
+        internal static async Task<(byte[] Audio, string Voice)> SynthesizeAsync(string text, bool cantonese)
+        {
+            var voice = Pick(cantonese);
+            if (voice == null) return (null, null);
+            using var synth = new SpeechSynthesizer { Voice = voice };
+            synth.Options.SpeakingRate = Math.Clamp(Settings.Current.NarratorRate, 0.5, 2.0);
+            using var stream = await synth.SynthesizeTextToStreamAsync(text);
+            var bytes = new byte[stream.Size];
+            using (var reader = new Windows.Storage.Streams.DataReader(stream.GetInputStreamAt(0)))
+            {
+                await reader.LoadAsync((uint)stream.Size);
+                reader.ReadBytes(bytes);
+            }
+            return (bytes, voice.DisplayName);
+        }
+
         private static async Task SayAsync(Item item, int gen)
         {
             var voice = Pick(item.Cantonese);

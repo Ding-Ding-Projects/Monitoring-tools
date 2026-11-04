@@ -152,7 +152,7 @@ namespace MonitoringTools.Core
             catch { return new List<DimSumDish>(); }
         }
 
-        private static async Task<DimSumDish> PickDishAsync()
+        internal static async Task<DimSumDish> PickDishAsync()
         {
             DimSumError = null;
             var all = await LoadCatalogueAsync();
