@@ -21,6 +21,9 @@ for. Items move up as they ship; nothing here is claimed as done until it is in 
 - `build.bat`, `build-installer.bat`, `download-dependencies.bat`/`.sh`, CI screenshots and releases
 - Minecraft servers, first slice: Java edition from the official version catalogue (releases, snapshots, beta, alpha), SHA-1 verified server jars, a verified Temurin runtime, explicit EULA consent, four targets (this computer, Docker here, SSH host, Docker over SSH) with host-key approval, start, stop and restart, console, a typed command builder, server.properties controls, plugin and mod install
 
+- A search bar on every control-centre page, the palette, the tray menu and the Minecraft version picker, each with its own anchored regex builder (Build, Test, Replace, Code, Library) on the .NET engine
+- Running version and its build time (local time with seconds and time zone) on the control centre's front screen
+
 ## In progress
 
 - Minecraft servers: Bedrock edition, a world generator with seed preview, and a recorded acceptance check per target on real hardware
@@ -31,7 +34,9 @@ for. Items move up as they ship; nothing here is claimed as done until it is in 
 - Independent humour-level sliders (1 to 5) for English and Cantonese copy
 - A shared, renamable School mode across the maintainer's apps, with its unlock credential
 - Show-emoji-in-dialogs toggle
-- A full regex builder beside every search (the palette has a regex mode today)
+- Regex builder parity: flavour comparison, a step debugger, benchmarks, file and folder search, test cases, editable code templates (see [the parity ledger](docs/features/search/regexbuddy-parity.md))
+- Settings matches from other pages listed inline under a page search (today: Search every page opens the palette)
+- Right-click menus with their own filter field
 - Resizable, draggable panels with persisted size and position
 - Right-click menus that show working keyboard shortcuts
 - Localized wizard and palette copy

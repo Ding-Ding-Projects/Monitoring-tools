@@ -53,6 +53,9 @@ namespace MonitoringTools.Core
         public bool SoundsEnabled { get; set; } = true;
         public double SoundVolume { get; set; } = 0.6;
 
+        // Search: patterns the user saved on purpose from a regex builder's library
+        public List<SavedPattern> SavedPatterns { get; set; } = new List<SavedPattern>();
+
         // Service
         public bool StartWithWindows { get; set; } = true;
         public bool RunElevated { get; set; } = false;
@@ -101,6 +104,7 @@ namespace MonitoringTools.Core
             if (Current.Shortcuts == null) Current.Shortcuts = new List<Shortcut>();
             if (Current.DnsProfiles == null || Current.DnsProfiles.Count == 0) Current.DnsProfiles = DnsProfile.Defaults();
             if (Current.CommitTemplate == null) Current.CommitTemplate = "";
+            if (Current.SavedPatterns == null) Current.SavedPatterns = new List<SavedPattern>();
         }
 
         public static void Save()
@@ -121,5 +125,14 @@ namespace MonitoringTools.Core
                 return dir;
             }
         }
+    }
+
+    /// <summary>A pattern kept in the regex builder's library.</summary>
+    public sealed class SavedPattern
+    {
+        public string Name { get; set; } = "";
+        public string Pattern { get; set; } = "";
+        public int Options { get; set; }
+        public string Replacement { get; set; } = "";
     }
 }

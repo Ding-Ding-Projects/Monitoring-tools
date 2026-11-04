@@ -12,14 +12,17 @@ namespace MonitoringTools.UI
     public partial class TrayMenuWindow : Window
     {
         private bool _closing;
+        private Search.SearchField _search;
+        public Search.SearchField FindField => _search;
 
         public TrayMenuWindow()
         {
             InitializeComponent();
             SourceInitialized += (s, e) => Native.MakeToolWindow(this, noActivate: false);
-            Deactivated += (s, e) => CloseAnimated();
-            KeyDown += (s, e) => { if (e.Key == System.Windows.Input.Key.Escape) CloseAnimated(); };
+            Deactivated += (s, e) => { if (_search?.BuilderOpen != true) CloseAnimated(); };
+            KeyDown += (s, e) => { if (e.Key == System.Windows.Input.Key.Escape && _search?.BuilderOpen != true) CloseAnimated(); };
             Build();
+            Search.SearchScope.Attach(Rows, _search, "menu items");
         }
 
         // -------------------------------------------------------------- rows
@@ -43,6 +46,8 @@ namespace MonitoringTools.UI
             Grid.SetColumn(hs, 1);
             head.Children.Add(hs);
             Rows.Children.Add(head);
+            _search = new Search.SearchField("tray", "Filter this menu", compact: true) { Margin = new Thickness(6, 0, 6, 8) };
+            Rows.Children.Add(_search);
             Rows.Children.Add(Rule());
 
             // primary

@@ -112,7 +112,24 @@ namespace MonitoringTools.UI
                     cc.Navigate(page);
                     await Shot(cc, "control-" + page, "Control centre: " + page, 1300);
                 }
+
+                // search and the regex builder, anchored to the page's own search field
+                await SearchScenes(cc);
                 cc.Close();
+
+                // tray menu filtered, and the palette in regex mode
+                var fmenu = new TrayMenuWindow();
+                fmenu.ShowAtCursor();
+                fmenu.FindField.State.SetQuery("dns");
+                await Shot(fmenu, "search-tray-filter", "Tray menu filtered with its own search", 1200);
+                fmenu.FindField.State.SetQuery("");
+                fmenu.Close();
+                CommandPalette.Open();
+                var ps = CommandPalette.CurrentSearch;
+                if (ps != null) { ps.State.SetRegex(true); ps.State.SetQuery("^(open|show)"); }
+                await Shot(CommandPalette.Current, "search-palette-regex", "Command palette searching with a regular expression", 900);
+                if (ps != null) { ps.State.SetQuery(""); ps.State.SetRegex(false); }
+                CommandPalette.Current?.Close();
 
                 // file tools, every tab
                 var ft = new FileToolsWindow(new[] { s["image"], s["image2"], s["csv"] });
@@ -143,6 +160,77 @@ namespace MonitoringTools.UI
                 code = 1;
             }
             App.Current.Shutdown(code);
+        }
+
+        private static async Task SearchScenes(ControlCentreWindow cc)
+        {
+            Settings.Current.SavedPatterns.Clear(); // in memory only: the run never saves settings
+            Settings.Current.SavedPatterns.Add(new SavedPattern { Name = "ISO date", Pattern = @"\d{4}-\d{2}-\d{2}" });
+            Settings.Current.SavedPatterns.Add(new SavedPattern { Name = "IPv4 address", Pattern = @"\b(?:\d{1,3}\.){3}\d{1,3}\b" });
+            Settings.Current.SavedPatterns.Add(new SavedPattern { Name = "Windows path", Pattern = @"^[A-Za-z]:\\" });
+
+            cc.Navigate("history");
+            await Task.Delay(900);
+            var f = cc.PageSearch;
+            f.State.SetQuery("png");
+            await Shot(cc, "search-history-plain", "Clipboard history searched as plain text", 900);
+
+            f.State.SetQuery(@"(?<name>\w+)\.(png|md|csv)");
+            f.OpenBuilder("Build");
+            await ShotWithBuilder(cc, f, "search-builder-build", "Regex builder anchored to the history search: tokens, options and explanation", 1100);
+            f.OpenBuilder("Test");
+            await ShotWithBuilder(cc, f, "search-builder-test", "Regex builder: matches and capture groups against the history", 1100);
+            f.State.Replacement = "${name}.webp";
+            f.OpenBuilder("Replace");
+            await ShotWithBuilder(cc, f, "search-builder-replace", "Regex builder: replacement preview", 1000);
+            f.OpenBuilder("Code");
+            await ShotWithBuilder(cc, f, "search-builder-code", "Regex builder: generated code", 900);
+            f.OpenBuilder("Library");
+            await ShotWithBuilder(cc, f, "search-builder-library", "Regex builder: saved patterns", 900);
+            f.State.SetQuery("(a+)+$");
+            f.OpenBuilder("Build");
+            await ShotWithBuilder(cc, f, "search-builder-risk", "Regex builder warns about catastrophic backtracking", 1000);
+            f.State.SetQuery("(unclosed");
+            await ShotWithBuilder(cc, f, "search-builder-invalid", "An invalid pattern is explained and filters nothing", 900);
+            f.State.SetQuery("");
+            f.State.SetRegex(false);
+            await Task.Delay(400);
+
+            cc.Navigate("service");
+            await Task.Delay(900);
+            cc.PageSearch.State.SetQuery("sound");
+            await Shot(cc, "search-settings", "Settings page searched for one option", 1000);
+            cc.PageSearch.State.SetQuery("");
+        }
+
+        /// <summary>Renders the window and composites the builder popup at its anchored position.</summary>
+        private static async Task ShotWithBuilder(Window w, Search.SearchField field, string name, string caption, int waitMs)
+        {
+            await Task.Delay(waitMs);
+            w.UpdateLayout();
+            var card = field.BuilderCard;
+            if (card == null || !field.BuilderOpen) { await Shot(w, name, caption, 0); return; }
+            card.UpdateLayout();
+            var at = field.Bar.TranslatePoint(new Point(0, field.Bar.ActualHeight + 8), w);
+            double width = Math.Max(w.ActualWidth, at.X + card.ActualWidth + 24), height = Math.Max(w.ActualHeight, at.Y + card.ActualHeight + 24);
+            const double scale = 2;
+            int pw = (int)Math.Ceiling(width * scale), ph = (int)Math.Ceiling(height * scale);
+            var win = new RenderTargetBitmap((int)Math.Ceiling(w.ActualWidth * scale), (int)Math.Ceiling(w.ActualHeight * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
+            win.Render(w);
+            var pop = new RenderTargetBitmap((int)Math.Ceiling((card.ActualWidth + 24) * scale), (int)Math.Ceiling((card.ActualHeight + 24) * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
+            pop.Render(card);
+            var dv = new DrawingVisual();
+            using (var dc = dv.RenderOpen())
+            {
+                dc.DrawRectangle(new SolidColorBrush(Color.FromRgb(0x08, 0x09, 0x0C)), null, new Rect(0, 0, width, height));
+                dc.DrawImage(win, new Rect(0, 0, w.ActualWidth, w.ActualHeight));
+                dc.DrawImage(pop, new Rect(at.X, at.Y, card.ActualWidth + 24, card.ActualHeight + 24));
+            }
+            var bmp = new RenderTargetBitmap(pw, ph, 96 * scale, 96 * scale, PixelFormats.Pbgra32);
+            bmp.Render(dv);
+            var file = name + ".png";
+            Demo.SavePng(bmp, Path.Combine(_dir, file));
+            Index.Add(new { file, caption, width = bmp.PixelWidth, height = bmp.PixelHeight });
         }
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]

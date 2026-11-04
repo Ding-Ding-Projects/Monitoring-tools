@@ -15,6 +15,7 @@ using MonitoringTools.Clip;
 using MonitoringTools.Core;
 using MonitoringTools.Media;
 using MonitoringTools.Minecraft;
+using MonitoringTools.UI.Search;
 
 namespace MonitoringTools.UI
 {
@@ -35,6 +36,8 @@ namespace MonitoringTools.UI
             ("about", "About and updates", Icons.Globe),
         };
         private string _current;
+        private SearchField _pageSearch;
+        public SearchField PageSearch => _pageSearch;
         private Shortcut _editing;
 
         public ControlCentreWindow()
@@ -42,7 +45,8 @@ namespace MonitoringTools.UI
             InitializeComponent();
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
             StateChanged += (s, e) => Shell.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0);
-            FooterVersion.Text = "v" + (typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0") + (ServiceHost.IsElevated ? " · admin" : "");
+            FooterVersion.Text = "v" + (typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0") + (ServiceHost.IsElevated ? " · admin" : "")
+                + Environment.NewLine + BuildInfo.UpdatedLabel;
             int i = 0;
             foreach (var (id, label, icon) in _sections)
             {
@@ -55,9 +59,13 @@ namespace MonitoringTools.UI
                 Nav.Children.Add(b);
                 Ui.Rise(b, 60 + i++ * 35, 8);
             }
-            App.History.Updated += () => { if (_current == "history" || _current == "overview") Navigate(_current, animate: false); };
-            Activity.Changed += () => { if (_current == "activity" || _current == "overview") Navigate(_current, animate: false); };
-            App.Net.Sampled += () => { if (_current == "overview" && IsActive) Navigate(_current, animate: false); };
+            App.History.Updated += () => { if ((_current == "history" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
+            Activity.Changed += () => { if ((_current == "activity" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
+            App.Net.Sampled += () => { if (_current == "overview" && IsActive && !SearchField.AnyActive) Navigate(_current, animate: false); };
+            PreviewKeyDown += (s, e) =>
+            {
+                if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && _pageSearch != null) { _pageSearch.Box.Focus(); _pageSearch.Box.SelectAll(); e.Handled = true; }
+            };
             Loaded += (s, e) => Navigate("overview");
             CommandPalette.Attach(this);
             ServerManager.Output += OnServerOutput;
@@ -96,6 +104,15 @@ namespace MonitoringTools.UI
                 "about" => AboutPage(),
                 _ => OverviewPage(),
             };
+            if (page is StackPanel sp && sp.Children.Count > 0)
+            {
+                var label = _sections[idx].Label;
+                _pageSearch = new SearchField("page:" + id, "Search " + label.ToLowerInvariant()) { MinWidth = 640 };
+                _pageSearch.SearchEverywhere = st => CommandPalette.OpenWith(st, this);
+                sp.Children.Insert(1, _pageSearch);
+                SearchScope.Attach(sp, _pageSearch, id switch { "history" => "copies", "activity" => "entries", "shortcuts" => "shortcuts", _ => "settings and sections" });
+            }
+            else _pageSearch = null;
             Page.Content = page;
             if (!animate) return;
             Scroller.ScrollToTop();
@@ -147,6 +164,7 @@ namespace MonitoringTools.UI
             text.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
             if (sub != null) text.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) });
             cb.Content = text;
+            SearchScope.SetItem(cb, (value ? "on " : "off ") + "setting switch");
             cb.Checked += (s, e) => { set(true); Settings.Save(); App.Tray.Refresh(); };
             cb.Unchecked += (s, e) => { set(false); Settings.Save(); App.Tray.Refresh(); };
             return cb;
@@ -178,6 +196,7 @@ namespace MonitoringTools.UI
             }
             Paint();
             sp.Children.Add(wrap);
+            SearchScope.SetItem(sp, "setting choice " + current);
             return sp;
         }
 
@@ -189,7 +208,7 @@ namespace MonitoringTools.UI
             sp.Children.Add(Ui.Mono(sub, Ui.Res("B.TextMute")));
             var c = Card(sp, edge, 16);
             c.Margin = new Thickness(0, 0, 14, 14);
-            return c;
+            return SearchScope.SetItem(c);
         }
 
         private static TextBox Input(string text, double width = double.NaN, string hint = null)
@@ -295,6 +314,7 @@ namespace MonitoringTools.UI
             btns.Children.Add(again); btns.Children.Add(acts);
             Grid.SetColumn(btns, 2); g.Children.Add(btns);
             var row = new Border { CornerRadius = new CornerRadius(12), Padding = new Thickness(6), Child = g, Background = Brushes.Transparent };
+            SearchScope.SetItem(row, $"{it.Kind} {it.Text} {string.Join(" ", it.Files ?? Array.Empty<string>())}");
             row.MouseEnter += (s, e) => row.Background = Ui.Res("B.Raised");
             row.MouseLeave += (s, e) => row.Background = Brushes.Transparent;
             return row;
@@ -382,6 +402,7 @@ namespace MonitoringTools.UI
                 var chip = Ui.Button(":" + sc.Name, () => { _editing = x; Navigate("shortcuts", animate: false); }, "Btn.Chip");
                 if (_editing != null && _editing.Name == sc.Name) { chip.Background = Ui.Res("B.Mint"); chip.Foreground = Ui.Res("B.MintInk"); }
                 chip.ToolTip = $"{sc.Shell} · {sc.Description}";
+                SearchScope.SetItem(chip, $"{sc.Shell} {sc.Description}");
                 wrap.Children.Add(chip);
             }
             list.Children.Add(wrap);
@@ -631,6 +652,7 @@ namespace MonitoringTools.UI
                 x.Click += (o, e) => { s.GameProcesses.Remove(proc); Settings.Save(); Navigate("game", animate: false); };
                 sp.Children.Add(x);
                 chip.Child = sp;
+                SearchScope.SetItem(chip, "watched game process");
                 wrap.Children.Add(chip);
             }
             g.Children.Add(wrap);
@@ -961,7 +983,7 @@ namespace MonitoringTools.UI
             var when = Ui.Mono(Ago(e.At), Ui.Res("B.TextMute"), 11);
             when.VerticalAlignment = VerticalAlignment.Center;
             Grid.SetColumn(when, 2); g.Children.Add(when);
-            return g;
+            return SearchScope.SetItem(g, $"{e.Title} {e.Detail} {e.Kind} {(e.Ok ? "ok" : "failed")}");
         }
 
         private static string Ago(DateTime t)

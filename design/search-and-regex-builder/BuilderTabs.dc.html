@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Regex builder views</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#08090C}
+button{font:inherit}
+</style>
+</helmet>
+<div style="width: 1400px; height: 760px; box-sizing: border-box; padding: 40px; background: #08090C; color: #E8EAED; font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px;">
+
+  <section aria-label="Test view" style="background: #14161B; border: 1px solid #2E333D; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+    <div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 15px; font-weight: 600;">Test</span><span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;">0.08 ms · 3 matches</span></div>
+    <code style="display: block; padding: 10px 12px; border-radius: 10px; background: #0F1115; border: 1px solid #2E333D; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; color: #E8EAED;">(?&lt;year&gt;\d{4})-(?&lt;month&gt;\d{2})-(\d{2})</code>
+    <div style="font-size: 12px; color: #C9CDD4;">Sample text</div>
+    <div style="padding: 12px; border-radius: 10px; background: #0F1115; border: 1px solid #262A33; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; line-height: 1.9; color: #C9CDD4;">Invoice <span style="background: #1D2A26; color: #7CF2C2; border-radius: 3px;">2026-10-31</span> sent<br>Backup finished <span style="background: #1D2A26; color: #7CF2C2; border-radius: 3px;">2026-11-03</span><br>take 3 · <span style="background: #1D2A26; color: #7CF2C2; border-radius: 3px; outline: 2px solid #7CF2C2;">2026-11-02</span></div>
+    <div style="font-size: 12px; color: #C9CDD4;">Match 3 of 3 · groups</div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+      <thead><tr><th style="text-align: left; padding: 6px 8px; color: #9AA1AD; font-weight: 400; border-bottom: 1px solid #262A33;">Group</th><th style="text-align: left; padding: 6px 8px; color: #9AA1AD; font-weight: 400; border-bottom: 1px solid #262A33;">Value</th><th style="text-align: left; padding: 6px 8px; color: #9AA1AD; font-weight: 400; border-bottom: 1px solid #262A33;">At</th></tr></thead>
+      <tbody style="font-family: 'Cascadia Mono', Consolas, monospace;">
+        <tr><td style="padding: 6px 8px;">0</td><td style="padding: 6px 8px; color: #7CF2C2;">2026-11-02</td><td style="padding: 6px 8px; color: #9AA1AD;">64–74</td></tr>
+        <tr><td style="padding: 6px 8px;">year</td><td style="padding: 6px 8px; color: #7CF2C2;">2026</td><td style="padding: 6px 8px; color: #9AA1AD;">64–68</td></tr>
+        <tr><td style="padding: 6px 8px;">month</td><td style="padding: 6px 8px; color: #7CF2C2;">11</td><td style="padding: 6px 8px; color: #9AA1AD;">69–71</td></tr>
+        <tr><td style="padding: 6px 8px;">3</td><td style="padding: 6px 8px; color: #7CF2C2;">02</td><td style="padding: 6px 8px; color: #9AA1AD;">72–74</td></tr>
+      </tbody>
+    </table>
+    <div style="display: flex; gap: 6px; margin-top: auto;">
+      <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Previous</button>
+      <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Next</button>
+      <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Use history as sample</button>
+    </div>
+  </section>
+
+  <section aria-label="Replace and split view" style="background: #14161B; border: 1px solid #2E333D; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+    <div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 15px; font-weight: 600;">Replace</span><div role="tablist" aria-label="Operation" style="display: flex; gap: 4px;"><button type="button" role="tab" aria-selected="true" style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #7CF2C2; background: #1D2A26; color: #E8EAED; font-size: 12px;">Replace</button><button type="button" role="tab" aria-selected="false" style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Split</button></div></div>
+    <label style="font-size: 12px; color: #C9CDD4;">Replacement</label>
+    <code style="display: block; padding: 10px 12px; border-radius: 10px; background: #0F1115; border: 1px solid #2E333D; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; color: #E8EAED;">${3}/${month}/${year}</code>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+      <span style="height: 26px; line-height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid #2E333D; background: #1A1D23; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px;">$0 whole match</span>
+      <span style="height: 26px; line-height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid #2E333D; background: #1A1D23; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px;">${name}</span>
+      <span style="height: 26px; line-height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid #2E333D; background: #1A1D23; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px;">$$ dollar</span>
+      <span style="height: 26px; line-height: 26px; padding: 0 8px; border-radius: 7px; border: 1px solid #2E333D; background: #1A1D23; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px;">$` before</span>
+    </div>
+    <div style="font-size: 12px; color: #C9CDD4;">Preview, nothing is changed until you copy it</div>
+    <div style="padding: 12px; border-radius: 10px; background: #0F1115; border: 1px solid #262A33; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; line-height: 1.9; color: #C9CDD4;">Invoice <span style="color: #7CF2C2;">31/10/2026</span> sent<br>Backup finished <span style="color: #7CF2C2;">03/11/2026</span><br>take 3 · <span style="color: #7CF2C2;">02/11/2026</span></div>
+    <div style="font-size: 12px; color: #C9CDD4;">Invalid input stays visible</div>
+    <div style="padding: 10px 12px; border-radius: 10px; background: #2A2116; border: 1px solid #FFB547; color: #FFB547; font-size: 12px; line-height: 1.5;">Not valid: reference to undefined group name “day” at position 2.</div>
+    <div style="display: flex; gap: 6px; margin-top: auto;">
+      <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #7CF2C2; background: #7CF2C2; color: #062018; font-size: 12px; font-weight: 600;">Copy result</button>
+      <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Copy replacement</button>
+    </div>
+  </section>
+
+  <section aria-label="Code and library views" style="display: flex; flex-direction: column; gap: 24px; min-width: 0;">
+    <div style="background: #14161B; border: 1px solid #2E333D; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 15px; font-weight: 600;">Code</span>
+        <div role="tablist" aria-label="Language" style="display: flex; gap: 4px;">
+          <button type="button" role="tab" aria-selected="true" style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #7CF2C2; background: #1D2A26; color: #E8EAED; font-size: 12px;">C#</button>
+          <button type="button" role="tab" aria-selected="false" style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">PowerShell</button>
+          <button type="button" role="tab" aria-selected="false" style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Batch</button>
+        </div>
+      </div>
+      <pre style="margin: 0; padding: 12px; border-radius: 10px; background: #0F1115; border: 1px solid #262A33; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; line-height: 1.6; color: #C9CDD4; white-space: pre-wrap;">var rx = new Regex(@"(?&lt;year&gt;\d{4})-(?&lt;month&gt;\d{2})-(\d{2})",
+    RegexOptions.IgnoreCase,
+    TimeSpan.FromMilliseconds(200));</pre>
+      <button type="button" style="align-self: flex-start; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Copy code</button>
+    </div>
+    <div style="flex: 1 1 auto; background: #14161B; border: 1px solid #2E333D; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px;">
+      <span style="font-size: 15px; font-weight: 600;">Library</span>
+      <div style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px 0 12px; border-radius: 10px; background: #0F1115; border: 1px solid #2E333D;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA1AD" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+        <span style="flex: 1; font-size: 13px; color: #9AA1AD;">Search saved patterns</span>
+        <span style="width: 32px; height: 28px; line-height: 28px; text-align: center; border-radius: 7px; border: 1px solid #2E333D; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #C9CDD4;">.*</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 9px; background: #1A1D23;"><span>ISO date</span><code style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: #7CF2C2;">\d{4}-\d{2}-\d{2}</code></div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 9px; background: #1A1D23;"><span>Windows path</span><code style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: #7CF2C2;">^[A-Z]:\\</code></div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 9px; background: #1A1D23;"><span>IPv4 address</span><code style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: #7CF2C2;">\b(?:\d{1,3}\.){3}\d{1,3}\b</code></div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 9px; background: #1A1D23;"><span>Recent · this search box</span><code style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: #C9CDD4;">take \d</code></div>
+      </div>
+      <div style="display: flex; gap: 6px; margin-top: auto;">
+        <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Import</button>
+        <button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-size: 12px;">Export JSON</button>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

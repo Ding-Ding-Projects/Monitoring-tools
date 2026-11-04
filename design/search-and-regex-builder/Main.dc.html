@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clipboard history search</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#08090C}
+a{color:#7CF2C2}a:hover{color:#B5F8DC}
+input::placeholder{color:#9AA1AD}
+button{font:inherit}
+</style>
+</helmet>
+<div style="min-height: 860px; display: flex; flex-wrap: wrap; background: #0D0F13; color: #E8EAED; font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;">
+  <nav aria-label="Sections" style="flex: 1 1 240px; max-width: 300px; box-sizing: border-box; padding: 24px 16px; border-right: 1px solid #262A33; display: flex; flex-direction: column; gap: 4px;">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px 20px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7CF2C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg>
+      <span style="font-size: 17px; font-weight: 600;">Monitoring Tools</span>
+    </div>
+    <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #C9CDD4; text-decoration: none; font-size: 14px;">Overview</a>
+    <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #C9CDD4; text-decoration: none; font-size: 14px;">Activity</a>
+    <a href="#" aria-current="page" style="padding: 10px 14px; border-radius: 10px; background: #1A1D23; color: #E8EAED; text-decoration: none; font-size: 14px; box-shadow: inset 3px 0 0 #7CF2C2;">Clipboard history</a>
+    <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #C9CDD4; text-decoration: none; font-size: 14px;">Shortcuts and scripts</a>
+    <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #C9CDD4; text-decoration: none; font-size: 14px;">Network and DNS</a>
+    <a href="#" style="padding: 10px 14px; border-radius: 10px; color: #C9CDD4; text-decoration: none; font-size: 14px;">Game mode</a>
+    <div style="flex-grow: 1;"></div>
+    <div style="padding: 10px; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD; line-height: 1.6;">v1.0.8 · updated 2026-11-04 05:10:32 UTC</div>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px 40px 48px; display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; letter-spacing: 0.08em; color: #9AA1AD;">CLIPBOARD HISTORY</div>
+      <h1 style="margin: 0; font-family: 'Segoe UI Variable Display', 'Segoe UI', sans-serif; font-size: 32px; font-weight: 600;">Recent copies</h1>
+    </div>
+
+    <div style="position: relative; display: flex; flex-direction: column; gap: 0; max-width: 900px;">
+      <div style="display: flex; align-items: center; gap: 8px; height: 48px; box-sizing: border-box; padding: 0 6px 0 14px; background: #0F1115; border: 1px solid {{fieldBorder}}; border-radius: 12px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9AA1AD" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+        <label for="hist-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search clipboard history</label>
+        <input id="hist-search" value="{{query}}" onChange="{{onQuery}}" placeholder="Search clipboard history" style="flex: 1 1 auto; min-width: 0; height: 44px; background: transparent; border: 0; outline: none; color: #E8EAED; font-size: 15px; font-family: {{fieldFont}};">
+        <span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: {{countColor}}; white-space: nowrap; padding: 0 6px;">{{countText}}</span>
+        <button type="button" onClick="{{toggleCase}}" aria-pressed="{{caseOn}}" aria-label="Match case" style="width: 40px; height: 36px; border-radius: 9px; border: 1px solid {{caseBorder}}; background: {{caseBg}}; color: #C9CDD4; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; cursor: pointer;">Aa</button>
+        <button type="button" onClick="{{toggleRegex}}" aria-pressed="{{regexOn}}" aria-label="Regular expression mode" style="width: 40px; height: 36px; border-radius: 9px; border: 1px solid {{regexBorder}}; background: {{regexBg}}; color: #C9CDD4; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; cursor: pointer;">.*</button>
+        <button type="button" onClick="{{toggleBuilder}}" aria-expanded="{{builderOpen}}" aria-controls="hist-builder" style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid {{builderBorder}}; background: {{builderBg}}; color: {{builderInk}}; font-size: 13px; font-weight: 600; cursor: pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l10-10"></path><path d="M15 4v3M18.5 5.5l-2 2M20 9h-3"></path></svg>
+          Builder
+        </button>
+      </div>
+
+      <sc-if value="{{builderOpen}}" hint-placeholder-val="{{ true }}">
+        <section id="hist-builder" aria-label="Regex builder for clipboard history search" style="margin-top: 8px; background: #14161B; border: 1px solid #2E333D; border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); overflow: hidden;">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #262A33;">
+            <span style="font-size: 14px; font-weight: 600;">Regex builder</span>
+            <span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;">.NET 8 · System.Text.RegularExpressions · backtracking · 200 ms limit · 64 KB pattern cap</span>
+            <div style="flex-grow: 1;"></div>
+            <div role="tablist" aria-label="Builder views" style="display: flex; gap: 4px;">
+              <button type="button" role="tab" aria-selected="true" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #7CF2C2; background: #1D2A26; color: #E8EAED; font-size: 12px;">Build</button>
+              <button type="button" role="tab" aria-selected="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Explain</button>
+              <button type="button" role="tab" aria-selected="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Test</button>
+              <button type="button" role="tab" aria-selected="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Replace</button>
+              <button type="button" role="tab" aria-selected="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Code</button>
+              <button type="button" role="tab" aria-selected="false" style="height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 12px;">Library</button>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 0;">
+            <div style="flex: 1 1 300px; min-width: 0; box-sizing: border-box; padding: 16px 18px; border-right: 1px solid #262A33; display: flex; flex-direction: column; gap: 14px;">
+              <sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; letter-spacing: 0.06em; color: #9AA1AD;">{{g.name}}</div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <sc-for list="{{g.tokens}}" as="t" hint-placeholder-count="4">
+                      <button type="button" onClick="{{t.insert}}" title="{{t.help}}" style="height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid #2E333D; background: #1A1D23; color: #E8EAED; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; cursor: pointer;">{{t.label}}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="flex: 1.3 1 360px; min-width: 0; box-sizing: border-box; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;">
+              <label for="hist-pattern" style="font-size: 12px; color: #C9CDD4;">Pattern, kept in step with the search box</label>
+              <input id="hist-pattern" value="{{query}}" onChange="{{onQuery}}" spellcheck="false" style="height: 42px; box-sizing: border-box; padding: 0 12px; background: #0F1115; border: 1px solid {{patternBorder}}; border-radius: 10px; color: #E8EAED; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 14px; outline: none;">
+              <div role="status" style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: {{statusColor}};">
+                <span style="width: 8px; height: 8px; border-radius: 4px; background: {{statusColor}}; flex: none;"></span>
+                <span>{{statusText}}</span>
+              </div>
+              <sc-if value="{{riskOn}}" hint-placeholder-val="{{ false }}">
+                <div style="padding: 10px 12px; border-radius: 10px; background: #2A2116; border: 1px solid #FFB547; color: #FFB547; font-size: 12px; line-height: 1.5;">Nested quantifier: this can backtrack for a very long time on input like “aaaa…!”. The search stops after 200 ms. Try an atomic group (?>…) or a possessive-style rewrite.</div>
+              </sc-if>
+              <div style="font-size: 12px; color: #C9CDD4;">Options</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <sc-for list="{{flags}}" as="f" hint-placeholder-count="6">
+                  <button type="button" onClick="{{f.toggle}}" aria-pressed="{{f.on}}" title="{{f.help}}" style="height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid {{f.border}}; background: {{f.bg}}; color: #E8EAED; font-size: 12px; cursor: pointer;">{{f.label}}</button>
+                </sc-for>
+              </div>
+              <div style="font-size: 12px; color: #C9CDD4;">Explanation</div>
+              <div style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto; padding: 8px 10px; background: #0F1115; border: 1px solid #262A33; border-radius: 10px;">
+                <sc-for list="{{explain}}" as="x" hint-placeholder-count="4">
+                  <div style="display: flex; gap: 10px; font-size: 12px; line-height: 1.5;">
+                    <code style="flex: none; min-width: 64px; color: #7CF2C2; font-family: 'Cascadia Mono', Consolas, monospace;">{{x.token}}</code>
+                    <span style="color: #C9CDD4;">{{x.text}}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 18px; border-top: 1px solid #262A33; background: #0F1115;">
+            <span style="font-size: 12px; color: #9AA1AD;">Esc closes and returns to the search box. Patterns stay on this computer.</span>
+            <div style="flex-grow: 1;"></div>
+            <button type="button" style="height: 34px; padding: 0 14px; border-radius: 9px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 13px;">Save to library</button>
+            <button type="button" onClick="{{plainText}}" style="height: 34px; padding: 0 14px; border-radius: 9px; border: 1px solid #2E333D; background: transparent; color: #C9CDD4; font-size: 13px; cursor: pointer;">Back to plain text</button>
+            <button type="button" onClick="{{toggleBuilder}}" style="height: 34px; padding: 0 16px; border-radius: 9px; border: 1px solid #7CF2C2; background: #7CF2C2; color: #062018; font-size: 13px; font-weight: 600; cursor: pointer;">Done</button>
+          </div>
+        </section>
+      </sc-if>
+    </div>
+
+    <ul aria-label="Clipboard history results" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 900px;">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+        <li style="display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: #14161B; border: 1px solid #262A33; border-radius: 12px;">
+          <span style="flex: none; width: 56px; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;">{{r.kind}}</span>
+          <span style="flex: 1 1 auto; min-width: 0; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; color: #C9CDD4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <sc-for list="{{r.parts}}" as="p" hint-placeholder-count="2"><span style="background: {{p.bg}}; color: {{p.ink}}; border-radius: 3px;">{{p.text}}</span></sc-for>
+          </span>
+          <span style="flex: none; font-size: 12px; color: #9AA1AD;">{{r.when}}</span>
+        </li>
+      </sc-for>
+      <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+        <li style="padding: 20px; border: 1px dashed #2E333D; border-radius: 12px; color: #C9CDD4; font-size: 14px;">No copies match this search.</li>
+      </sc-if>
+    </ul>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":860}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { query: '\\d{4}-\\d{2}-\\d{2}', regex: true, matchCase: false, builder: true, flags: { m: false, s: false, x: false, n: false, r: false, nb: false } };
+  }
+  explainOf(src) {
+    var out = [];
+    var re = /\\[dDwWsSbB]|\\.|\[[^\]]*\]|\(\?<[A-Za-z]\w*>|\(\?:|\(\?=|\(\?!|\(\?<=|\(\?<!|\(\?>|\(|\)|\{\d+(,\d*)?\}\??|[*+?]\??|\^|\$|\||./g;
+    var names = { '\\d': 'one digit 0 to 9', '\\D': 'one character that is not a digit', '\\w': 'one word character', '\\W': 'one non-word character', '\\s': 'one whitespace character', '\\S': 'one non-whitespace character', '\\b': 'a word boundary', '\\B': 'not a word boundary', '^': 'start of the text, or of a line with Multiline', '$': 'end of the text, or of a line with Multiline', '|': 'or', '.': 'any character except a line break', '(': 'start a numbered group', ')': 'end the group', '(?:': 'start a group that is not captured', '(?=': 'start a lookahead', '(?!': 'start a negative lookahead', '(?<=': 'start a lookbehind', '(?<!': 'start a negative lookbehind', '(?>': 'start an atomic group (no backtracking into it)', '*': 'zero or more, as many as possible', '+': 'one or more, as many as possible', '?': 'optional', '*?': 'zero or more, as few as possible', '+?': 'one or more, as few as possible' };
+    var m;
+    while ((m = re.exec(src)) && out.length < 40) {
+      var t = m[0], text = names[t];
+      if (!text && /^\{/.test(t)) text = 'repeat the previous item ' + t.replace(/[{}?]/g, '').replace(',', ' to ') + ' times';
+      if (!text && /^\[/.test(t)) text = 'one character from the set ' + t;
+      if (!text && /^\(\?</.test(t)) text = 'start the named group “' + t.slice(3, -1) + '”';
+      if (!text && /^\\./.test(t)) text = 'the literal character ' + t.slice(1);
+      if (!text) text = 'the literal character ' + t;
+      out.push({ token: t, text: text });
+    }
+    return out;
+  }
+  renderVals() {
+    var s = this.state, self = this;
+    var items = [
+      { kind: 'text', text: 'Invoice 2026-10-31 sent to accounts', when: '2 m ago' },
+      { kind: 'link', text: 'https://github.com/Ding-Ding-Projects/Monitoring-tools/releases', when: '5 m ago' },
+      { kind: 'path', text: '"D:\\Footage\\2026-11-02 launch\\take 3.mov"', when: '9 m ago' },
+      { kind: 'text', text: 'Meeting moved to Thursday', when: '14 m ago' },
+      { kind: 'color', text: '#7CF2C2', when: '20 m ago' },
+      { kind: 'text', text: 'Backup finished 2026-11-03 at 22:14', when: '31 m ago' },
+      { kind: 'email', text: 'support@example.com', when: '1 h ago' }
+    ];
+    var q = s.query, rx = null, err = null;
+    if (q && s.regex) {
+      try { rx = new RegExp(q, 'g' + (s.matchCase ? '' : 'i') + (s.flags.m ? 'm' : '') + (s.flags.s ? 's' : '')); } catch (e) { err = String(e.message).replace(/^Invalid regular expression: /, ''); }
+    }
+    var rows = [];
+    items.forEach(function (it) {
+      var parts = [], hit = false;
+      if (!q) { parts.push({ text: it.text, bg: 'transparent', ink: '#C9CDD4' }); hit = true; }
+      else if (s.regex) {
+        if (rx) {
+          var last = 0, m; rx.lastIndex = 0;
+          while ((m = rx.exec(it.text))) {
+            if (m[0] === '') { rx.lastIndex++; continue; }
+            hit = true;
+            if (m.index > last) parts.push({ text: it.text.slice(last, m.index), bg: 'transparent', ink: '#C9CDD4' });
+            parts.push({ text: m[0], bg: '#1D2A26', ink: '#7CF2C2' });
+            last = m.index + m[0].length;
+          }
+          if (last < it.text.length) parts.push({ text: it.text.slice(last), bg: 'transparent', ink: '#C9CDD4' });
+        }
+      } else {
+        var hay = s.matchCase ? it.text : it.text.toLowerCase(), nee = s.matchCase ? q : q.toLowerCase(), i = hay.indexOf(nee);
+        if (i >= 0) { hit = true; parts.push({ text: it.text.slice(0, i), bg: 'transparent', ink: '#C9CDD4' }, { text: it.text.slice(i, i + q.length), bg: '#1D2A26', ink: '#7CF2C2' }, { text: it.text.slice(i + q.length), bg: 'transparent', ink: '#C9CDD4' }); }
+      }
+      if (hit) rows.push({ kind: it.kind, when: it.when, parts: parts });
+    });
+    var flagDefs = [['m', 'Multiline', '^ and $ match at every line'], ['s', 'Singleline', '. also matches line breaks'], ['x', 'Ignore whitespace', 'spaces and # comments in the pattern are ignored'], ['n', 'Explicit capture', 'only named groups capture'], ['r', 'Right to left', 'search from the end'], ['nb', 'Non-backtracking', 'linear-time engine; no lookaround or backreferences']];
+    var groups = [
+      { name: 'CHARACTERS', tokens: [['\\d', 'digit'], ['\\w', 'word character'], ['\\s', 'whitespace'], ['.', 'any character'], ['\\p{L}', 'any letter, any script'], ['\\u00E9', 'a code point']] },
+      { name: 'SETS', tokens: [['[abc]', 'one of'], ['[^abc]', 'none of'], ['[a-z]', 'range'], ['[a-z-[aeiou]]', 'subtraction']] },
+      { name: 'ANCHORS', tokens: [['^', 'start'], ['$', 'end'], ['\\b', 'word boundary'], ['\\G', 'where the last match ended']] },
+      { name: 'GROUPS', tokens: [['( )', 'numbered group'], ['(?<name> )', 'named group'], ['(?: )', 'not captured'], ['(?> )', 'atomic'], ['\\1', 'backreference'], ['(?(1)yes|no)', 'conditional']] },
+      { name: 'REPEAT', tokens: [['*', 'zero or more'], ['+', 'one or more'], ['?', 'optional'], ['{n,m}', 'n to m times'], ['*?', 'lazy']] },
+      { name: 'LOOK AROUND', tokens: [['(?= )', 'followed by'], ['(?! )', 'not followed by'], ['(?<= )', 'preceded by'], ['(?<! )', 'not preceded by']] }
+    ].map(function (g) { return { name: g.name, tokens: g.tokens.map(function (t) { return { label: t[0], help: t[1], insert: function () { self.setState({ query: self.state.query + t[0].replace(' ', ''), regex: true }); } }; }) }; });
+    var risk = s.regex && /\((?:[^()]|\([^()]*\))*[+*]\)[+*{]/.test(q);
+    var valid = !err;
+    return {
+      query: q,
+      onQuery: function (e) { self.setState({ query: e.target.value }); },
+      toggleCase: function () { self.setState({ matchCase: !self.state.matchCase }); },
+      toggleRegex: function () { self.setState({ regex: !self.state.regex }); },
+      toggleBuilder: function () { self.setState({ builder: !self.state.builder, regex: true }); },
+      plainText: function () { self.setState({ regex: false, builder: false }); },
+      caseOn: String(s.matchCase), regexOn: String(s.regex), builderOpen: s.builder,
+      caseBg: s.matchCase ? '#1D2A26' : '#1A1D23', caseBorder: s.matchCase ? '#7CF2C2' : '#2E333D',
+      regexBg: s.regex ? '#1D2A26' : '#1A1D23', regexBorder: s.regex ? '#7CF2C2' : '#2E333D',
+      builderBg: s.builder ? '#7CF2C2' : '#1A1D23', builderInk: s.builder ? '#062018' : '#E8EAED', builderBorder: s.builder ? '#7CF2C2' : '#2E333D',
+      fieldBorder: !valid ? '#FFB547' : (s.builder ? '#7CF2C2' : '#2E333D'),
+      fieldFont: s.regex ? "'Cascadia Mono', Consolas, monospace" : "'Segoe UI Variable Text', 'Segoe UI', sans-serif",
+      patternBorder: valid ? '#2E333D' : '#FFB547',
+      countText: !valid ? 'invalid' : rows.length + ' of ' + items.length,
+      countColor: valid ? '#9AA1AD' : '#FFB547',
+      statusText: !q ? 'Type a pattern or pick a token on the left.' : (valid ? 'Valid pattern · ' + rows.length + ' of ' + items.length + ' copies match' : 'Not valid: ' + err),
+      statusColor: valid ? '#7CF2C2' : '#FFB547',
+      riskOn: risk,
+      flags: flagDefs.map(function (f) { var on = !!s.flags[f[0]]; return { label: f[1], help: f[2], on: String(on), bg: on ? '#1D2A26' : '#1A1D23', border: on ? '#7CF2C2' : '#2E333D', toggle: function () { var n = Object.assign({}, self.state.flags); n[f[0]] = !n[f[0]]; self.setState({ flags: n }); } }; }),
+      groups: groups,
+      explain: this.explainOf(q),
+      rows: rows,
+      empty: rows.length === 0
+    };
+  }
+}
+</script>
+</body>
+</html>

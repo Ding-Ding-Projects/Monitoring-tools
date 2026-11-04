@@ -8,12 +8,13 @@ using System.Windows.Media;
 using MonitoringTools.Core;
 using MonitoringTools.Minecraft;
 
+using MonitoringTools.UI.Search;
+
 namespace MonitoringTools.UI
 {
     public partial class ControlCentreWindow
     {
         private ServerDef _draft;
-        private string _versionFilter = "";
         private string _versionType = "release";
         private string _openConsole;
         private TextBlock _console;
@@ -191,7 +192,7 @@ namespace MonitoringTools.UI
                 typeRow.Children.Add(b);
             }
             sp.Children.Add(typeRow);
-            var filter = Input(_versionFilter, 280, "Search versions, for example 1.21");
+            var filter = new SearchField("minecraft:versions", "Search versions, for example 1.21", compact: true) { MaxWidth = 520, HorizontalAlignment = HorizontalAlignment.Left };
             var list = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
             var verNote = Ui.Mono(d.Version == null ? "No version chosen yet." : "Chosen: " + d.Version, Ui.Res(d.Version == null ? "B.TextMute" : "B.Mint"), 11);
             sp.Children.Add(filter);
@@ -203,8 +204,12 @@ namespace MonitoringTools.UI
                 try
                 {
                     var all = await ServerManager.VersionsAsync();
-                    var q = filter.Text.Trim();
-                    var shown = all.Where(v => v.Type == _versionType && (q.Length == 0 || v.Id.Contains(q, StringComparison.OrdinalIgnoreCase))).Take(120).ToList();
+                    var ofType = all.Where(v => v.Type == _versionType).ToList();
+                    filter.SampleSource = () => ofType.Select(v => v.Id);
+                    filter.State.TimedOut = false;
+                    var matching = ofType.Where(v => filter.State.Matches(v.Id)).ToList();
+                    filter.SetCount(matching.Count, ofType.Count, "versions");
+                    var shown = matching.Take(120).ToList();
                     list.Children.Clear();
                     foreach (var v in shown)
                     {
@@ -229,7 +234,7 @@ namespace MonitoringTools.UI
                 }
                 catch (Exception ex) { list.Children.Clear(); list.Children.Add(Ui.Mono("Could not load the official catalogue: " + ex.Message, Ui.Res("B.Amber"), 11)); }
             }
-            filter.TextChanged += (o, e) => { _versionFilter = filter.Text; Versions(); };
+            filter.Filter += Versions;
             Versions();
 
             sp.Children.Add(Choice("Where it runs", new[] { ("This computer", Target.LocalProcess), ("Docker here", Target.LocalDocker), ("SSH host", Target.SshProcess), ("Docker over SSH", Target.SshDocker) }, d.Target,

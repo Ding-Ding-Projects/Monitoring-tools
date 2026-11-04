@@ -29,6 +29,19 @@ namespace MonitoringTools.UI
 
         private static Window _open;
         public static Window Current => _open;
+        public static Search.SearchField CurrentSearch => (_open as PaletteWindow)?.FindField;
+
+        /// <summary>Opens the palette with another field's query, mode and options, to search every page.</summary>
+        public static void OpenWith(Search.SearchState from, Window owner = null)
+        {
+            Open(owner);
+            var to = CurrentSearch?.State;
+            if (to == null) return;
+            to.SetRegex(from.IsRegex);
+            to.SetMatchCase(from.MatchCase);
+            foreach (var (flag, _, _) in RegexKit.OptionDefs) to.SetOption(flag, (from.Options & flag) != 0);
+            to.SetQuery(from.Query);
+        }
 
         public static void Open(Window owner = null)
         {
@@ -158,7 +171,8 @@ namespace MonitoringTools.UI
             private readonly TextBox _query;
             private readonly StackPanel _list;
             private readonly TextBlock _status;
-            private readonly ToggleButton _regex, _case;
+            private readonly Search.SearchField _search;
+            public Search.SearchField FindField => _search;
             private List<Item> _shown = new List<Item>();
             private int _sel;
             private readonly Border _card;
@@ -170,10 +184,9 @@ namespace MonitoringTools.UI
                 ResizeMode = ResizeMode.NoResize; Topmost = true; ShowInTaskbar = false; Title = "Command palette";
                 ApplySize();
 
-                _query = new TextBox { Style = Ui.Style("Input"), Height = 44, FontSize = 15, FontFamily = Ui.Font("F.Body") };
-                AutomationProperties.SetName(_query, "Search commands, pages and settings");
-                _regex = Flag(".*", "Regex mode");
-                _case = Flag("Aa", "Match case");
+                _search = new Search.SearchField("palette", "Search commands, pages and settings") { Margin = new Thickness(0) };
+                _search.SampleSource = () => _all.Select(i => i.Title);
+                _query = _search.Box;
                 var size = Ui.Button(Settings.Current.PaletteFullWindow ? "Card" : "Full", () =>
                 {
                     Settings.Current.PaletteFullWindow = !Settings.Current.PaletteFullWindow;
@@ -185,9 +198,9 @@ namespace MonitoringTools.UI
                 var top = new Grid();
                 top.ColumnDefinitions.Add(new ColumnDefinition());
                 top.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                top.Children.Add(_query);
+                top.Children.Add(_search);
                 var flags = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 0) };
-                flags.Children.Add(_regex); flags.Children.Add(_case); flags.Children.Add(size);
+                flags.Children.Add(size);
                 Grid.SetColumn(flags, 1); top.Children.Add(flags);
 
                 _list = new StackPanel();
@@ -207,11 +220,9 @@ namespace MonitoringTools.UI
                 };
                 Content = _card;
 
-                _query.TextChanged += (s, e) => Filter();
-                _regex.Click += (s, e) => Filter();
-                _case.Click += (s, e) => Filter();
+                _search.Filter += Filter;
                 PreviewKeyDown += OnKey;
-                Deactivated += (s, e) => { if (IsVisible) Close(); };
+                Deactivated += (s, e) => { if (IsVisible && !_search.BuilderOpen) Close(); };
                 Loaded += (s, e) =>
                 {
                     ((ScaleTransform)_card.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Spring });
@@ -236,65 +247,19 @@ namespace MonitoringTools.UI
                 }
             }
 
-            private static ToggleButton Flag(string text, string name)
-            {
-                var t = new ToggleButton
-                {
-                    Content = text, Width = 38, Height = 34, Margin = new Thickness(6, 0, 0, 0), Cursor = Cursors.Hand, FocusVisualStyle = null,
-                    FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), ToolTip = name
-                };
-                AutomationProperties.SetName(t, name);
-                var tpl = new ControlTemplate(typeof(ToggleButton));
-                var bd = new FrameworkElementFactory(typeof(Border), "Bd");
-                bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(9));
-                bd.SetValue(Border.BackgroundProperty, Ui.Res("B.Raised"));
-                bd.SetValue(Border.BorderBrushProperty, Ui.Res("B.LineStrong"));
-                bd.SetValue(Border.BorderThicknessProperty, new Thickness(1));
-                var cp = new FrameworkElementFactory(typeof(ContentPresenter));
-                cp.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
-                cp.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
-                bd.AppendChild(cp);
-                tpl.VisualTree = bd;
-                var on = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
-                on.Setters.Add(new Setter(Border.BackgroundProperty, Ui.Res("B.MintWash"), "Bd"));
-                on.Setters.Add(new Setter(Border.BorderBrushProperty, Ui.Res("B.Mint"), "Bd"));
-                tpl.Triggers.Add(on);
-                t.Template = tpl;
-                return t;
-            }
-
             private void Filter()
             {
-                var q = _query.Text.Trim();
-                Func<Item, bool> match = _ => true;
+                var st = _search.State;
+                st.TimedOut = false;
                 _status.Foreground = Ui.Res("B.TextMute");
-                if (q.Length > 0)
-                {
-                    if (_regex.IsChecked == true)
-                    {
-                        try
-                        {
-                            var rx = new Regex(q, _case.IsChecked == true ? RegexOptions.None : RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(200));
-                            match = i => rx.IsMatch(i.Title) || (i.Detail != null && rx.IsMatch(i.Detail)) || rx.IsMatch(i.Group);
-                        }
-                        catch (ArgumentException ex)
-                        {
-                            _status.Text = "Pattern is not valid: " + ex.Message.Split('\n')[0];
-                            _status.Foreground = Ui.Res("B.Amber");
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        var cmp = _case.IsChecked == true ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-                        var words = q.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                        match = i => words.All(w => i.Title.Contains(w, cmp) || (i.Detail ?? "").Contains(w, cmp) || i.Group.Contains(w, cmp));
-                    }
-                }
-                _shown = _all.Where(match).ToList();
+                _shown = _all.Where(i => st.Matches(i.Title + " " + (i.Detail ?? "") + " " + i.Group)).ToList();
+                _search.SetCount(_shown.Count, _all.Count, "commands");
                 _sel = 0;
                 Render();
-                _status.Text = $"{_shown.Count} of {_all.Count} · ↑↓ to move · Enter to go · Esc to close" + (_regex.IsChecked == true ? " · regex" : "");
+                _status.Text = st.Error != null
+                    ? "Pattern is not valid: " + st.Error
+                    : $"{_shown.Count} of {_all.Count} · ↑↓ to move · Enter to go · Esc to close · Alt+B regex builder" + (st.IsRegex ? " · regex" : "");
+                if (st.Error != null) _status.Foreground = Ui.Res("B.Amber");
             }
 
             private void Render()
@@ -354,6 +319,7 @@ namespace MonitoringTools.UI
 
             private void OnKey(object sender, KeyEventArgs e)
             {
+                if (_search.BuilderOpen) return;
                 if (e.Key == Key.Escape) { e.Handled = true; Close(); }
                 else if (e.Key == Key.Down && _shown.Count > 0) { e.Handled = true; _sel = (_sel + 1) % _shown.Count; Render(); }
                 else if (e.Key == Key.Up && _shown.Count > 0) { e.Handled = true; _sel = (_sel - 1 + _shown.Count) % _shown.Count; Render(); }

@@ -42,6 +42,8 @@ namespace MonitoringTools.UI
         public const string Globe = "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18";
         public const string Plus = "M12 5v14M5 12h14";
         public const string Play = "M7 5l12 7-12 7z";
+        public const string Search = "M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4";
+        public const string Wand = "M4 20L14 10M15 4v3M18.5 5.5l-2 2M20 9h-3";
         public const string Drag = "M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01";
     }
 
