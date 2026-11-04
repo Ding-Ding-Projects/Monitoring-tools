@@ -4,6 +4,15 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.21 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.21)
+
+- Add the command builder design and record two maintainer decisions ([`a25cc93`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a25cc93e6028f7ff36972036a603190fac4b7d2e))
+- Close the Minecraft manager gaps: Hangar, Bedrock, adoption, Docker and SSH ([`a868755`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a8687554d9f9716dd66a06b81b2c1f58464b5705))
+- Work in progress: Minecraft manager gaps (recovery point, unverified) ([`495aed0`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/495aed0545854bf1baa810ba66c913504a01ae11))
+- Record v1.0.20 figures and changelog ([`dc4f0d8`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/dc4f0d89968b465c6864e44364bbd2459181d75f))
+
 ## 1.0.20 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.20)
