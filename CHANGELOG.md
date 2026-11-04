@@ -4,6 +4,14 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.25 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.25)
+
+- Mark the humour levels row done ([`ca77e9f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ca77e9fd7d1153ca8ea1331da17f17304b6cadc6))
+- Translate every regex explanation line; drive game mode and update headlines on real surfaces ([`a0a5512`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a0a5512863ac6336d77bda7811e6acc4e1c8ec0c))
+- Record v1.0.24 figures and changelog ([`f03ad39`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/f03ad3990f3abae195faf54d46124fdd3ddb70df))
+
 ## 1.0.24 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.24)
