@@ -23,9 +23,9 @@ namespace MonitoringTools.UI.Search
     /// The regex builder for one search field, anchored directly under it. Build, Test, Replace,
     /// Code and Library views share one pattern box that stays in step with the field.
     /// </summary>
-    public sealed class RegexBuilderPopup
+    public sealed partial class RegexBuilderPopup
     {
-        public static readonly string[] Tabs = { "Build", "Test", "Debug", "Compare", "Benchmark", "Replace", "Code", "Library" };
+        public static readonly string[] Tabs = { "Build", "Test", "Debug", "Compare", "Benchmark", "Replace", "Files", "Code", "Library" };
 
         private readonly SearchField _field;
         private readonly SearchState _s;
@@ -212,6 +212,7 @@ namespace MonitoringTools.UI.Search
                 case "Compare": StaleCompare(); break;
                 case "Benchmark": StaleBench(); break;
                 case "Replace": RunReplace(); break;
+                case "Files": FilesStale(); break;
                 case "Code": if (_code != null) _code.Text = RegexKit.Code(_language, _s.Query, _s.EngineOptions); break;
             }
         }
@@ -228,6 +229,7 @@ namespace MonitoringTools.UI.Search
                 "Compare" => CompareView(),
                 "Benchmark" => BenchmarkView(),
                 "Replace" => ReplaceView(),
+                "Files" => FilesView(),
                 "Code" => CodeView(),
                 "Library" => LibraryView(),
                 _ => BuildView(),
@@ -354,6 +356,7 @@ namespace MonitoringTools.UI.Search
             var r = new StackPanel(); r.Children.Add(Eyebrow("Groups of the selected match")); r.Children.Add(_groupTable);
             cols.Children.Add(l); Grid.SetColumn(r, 2); cols.Children.Add(r);
             sp.Children.Add(cols);
+            sp.Children.Add(CasesPanel());
             return sp;
         }
 
@@ -365,6 +368,7 @@ namespace MonitoringTools.UI.Search
 
         private void RunTest()
         {
+            UpdateCases();
             if (_sample == null || _matchList == null) return;
             _matchList.Children.Clear(); _groupTable.Children.Clear();
             var rx = _s.Regex;
@@ -428,6 +432,7 @@ namespace MonitoringTools.UI.Search
         private void StopBackground()
         {
             StopPlay();
+            StopFiles();
             _cmpRun++;
             try { _benchCts?.Cancel(); } catch (ObjectDisposedException) { }
         }
@@ -900,6 +905,9 @@ namespace MonitoringTools.UI.Search
                 var n = string.IsNullOrWhiteSpace(name.Text) ? _s.Query : name.Text.Trim();
                 lib.RemoveAll(p => p.Name == n);
                 lib.Insert(0, new SavedPattern { Name = n, Pattern = _s.Query, Options = (int)_s.EngineOptions, Replacement = _s.Replacement ?? "" });
+                Settings.Current.RegexPatternTests ??= new Dictionary<string, List<RegexTestCase>>();
+                if (_s.TestCases.Count > 0) Settings.Current.RegexPatternTests[n] = _s.TestCases.Select(t => new RegexTestCase { Text = t.Text, ShouldMatch = t.ShouldMatch }).ToList();
+                else Settings.Current.RegexPatternTests.Remove(n);
                 Settings.Save();
                 Show("Library");
             }, "Btn.Accent");
@@ -914,7 +922,7 @@ namespace MonitoringTools.UI.Search
             {
                 var item = p;
                 var line = new DockPanel { Margin = new Thickness(0, 2, 0, 2) };
-                var del = Ui.Button("Remove", () => { lib.Remove(item); Settings.Save(); Show("Library"); }, "Btn.Ghost");
+                var del = Ui.Button("Remove", () => { lib.Remove(item); Settings.Current.RegexPatternTests?.Remove(item.Name); Settings.Save(); Show("Library"); }, "Btn.Ghost");
                 del.Margin = new Thickness(6, 0, 0, 0);
                 var use = Ui.Button("Use", () => _s.Load(item, this), "Btn.Ghost");
                 use.Margin = new Thickness(6, 0, 0, 0);
@@ -923,12 +931,27 @@ namespace MonitoringTools.UI.Search
                 var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
                 text.Children.Add(new TextBlock { Text = item.Name, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") });
                 text.Children.Add(Ui.Mono(item.Pattern, Ui.Res("B.Mint"), 11));
+                if (Settings.Current.RegexPatternTests != null && Settings.Current.RegexPatternTests.TryGetValue(item.Name ?? "", out var tl) && tl.Count > 0)
+                    text.Children.Add(Ui.Mono($"{tl.Count} expected outcome(s) saved with it", Ui.Res("B.TextMute"), 11));
                 line.Children.Add(text);
                 sp.Children.Add(line);
             }
 
             sp.Children.Add(Eyebrow("Recent in this search box"));
-            if (_s.Recent.Count == 0) sp.Children.Add(Ui.Mono("Patterns you use here appear while the app runs.", Ui.Res("B.TextMute"), 12));
+            var keepRow = new WrapPanel();
+            var keep = Chip("Remember across restarts", "Off by default because patterns can be private. When on, up to 50 recent patterns per search box are stored on this computer in the app settings. Turning it off erases them.", () =>
+            {
+                var on = !Settings.Current.RegexKeepHistory;
+                Settings.Current.RegexKeepHistory = on;
+                if (on) SearchState.SaveAllHistory(); else SearchState.ClearAllHistory();
+                Settings.Save();
+                Show("Library");
+            });
+            Paint(keep, Settings.Current.RegexKeepHistory);
+            keepRow.Children.Add(keep);
+            if (Settings.Current.RegexKeepHistory) keepRow.Children.Add(Ui.Button("Forget all remembered patterns", () => { SearchState.ClearAllHistory(); Show("Library"); }, "Btn.Ghost"));
+            sp.Children.Add(keepRow);
+            if (_s.Recent.Count == 0) sp.Children.Add(Ui.Mono(Settings.Current.RegexKeepHistory ? "Patterns you use here appear after you close the builder." : "Patterns you use here appear while the app runs. Turn on Remember across restarts to keep them.", Ui.Res("B.TextMute"), 12));
             var recent = new WrapPanel();
             foreach (var r in _s.Recent)
             {
@@ -952,7 +975,11 @@ namespace MonitoringTools.UI.Search
         {
             var d = new Microsoft.Win32.SaveFileDialog { FileName = "regex-library.json", Filter = "JSON|*.json" };
             if (d.ShowDialog() != true) return;
-            File.WriteAllText(d.FileName, JsonSerializer.Serialize(Settings.Current.SavedPatterns, new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(d.FileName, JsonSerializer.Serialize(Settings.Current.SavedPatterns.Select(p => new
+            {
+                p.Name, p.Pattern, p.Options, p.Replacement,
+                Tests = Settings.Current.RegexPatternTests != null && Settings.Current.RegexPatternTests.TryGetValue(p.Name ?? "", out var tl) ? tl : new List<RegexTestCase>()
+            }).ToList(), new JsonSerializerOptions { WriteIndented = true }));
         }
 
         private void Import()
@@ -963,11 +990,20 @@ namespace MonitoringTools.UI.Search
             {
                 var info = new FileInfo(d.FileName);
                 if (info.Length > 1024 * 1024) throw new InvalidDataException("The file is larger than 1 MB.");
-                var list = JsonSerializer.Deserialize<List<SavedPattern>>(File.ReadAllText(d.FileName)) ?? new List<SavedPattern>();
+                var json = File.ReadAllText(d.FileName);
+                var list = JsonSerializer.Deserialize<List<SavedPattern>>(json) ?? new List<SavedPattern>();
+                // Older exports have no Tests property; newer ones carry the expected outcomes beside each entry.
+                var tests = new Dictionary<string, List<RegexTestCase>>();
+                using (var doc = JsonDocument.Parse(json))
+                    foreach (var el in doc.RootElement.EnumerateArray())
+                        if (el.ValueKind == JsonValueKind.Object && el.TryGetProperty("Name", out var nm) && nm.ValueKind == JsonValueKind.String && el.TryGetProperty("Tests", out var tt) && tt.ValueKind == JsonValueKind.Array)
+                            tests[nm.GetString()] = JsonSerializer.Deserialize<List<RegexTestCase>>(tt.GetRawText()) ?? new List<RegexTestCase>();
+                Settings.Current.RegexPatternTests ??= new Dictionary<string, List<RegexTestCase>>();
                 foreach (var p in list.Where(p => !string.IsNullOrEmpty(p.Pattern) && p.Pattern.Length <= RegexKit.MaxPatternLength).Take(500))
                 {
                     Settings.Current.SavedPatterns.RemoveAll(x => x.Name == p.Name);
                     Settings.Current.SavedPatterns.Add(p);
+                    if (tests.TryGetValue(p.Name ?? "", out var imported) && imported.Count > 0) Settings.Current.RegexPatternTests[p.Name ?? ""] = imported.Take(200).ToList();
                 }
                 Settings.Save();
             }

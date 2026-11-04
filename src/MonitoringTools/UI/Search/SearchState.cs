@@ -18,7 +18,7 @@ namespace MonitoringTools.UI.Search
 
         public static SearchState For(string id)
         {
-            if (!All.TryGetValue(id, out var s)) All[id] = s = new SearchState(id);
+            if (!All.TryGetValue(id, out var s)) { All[id] = s = new SearchState(id); s.LoadHistory(); }
             return s;
         }
 
@@ -30,6 +30,9 @@ namespace MonitoringTools.UI.Search
         public string Replacement { get; set; } = "";
         public string Sample { get; set; }
         public readonly List<string> Recent = new List<string>();
+        /// <summary>Expected-outcome lines for the current pattern: text that should or should not match.</summary>
+        public readonly List<RegexTestCase> TestCases = new List<RegexTestCase>();
+        public const int MaxRecent = 50;
 
         public string Error { get; private set; }
         public bool TimedOut { get; set; }
@@ -60,6 +63,9 @@ namespace MonitoringTools.UI.Search
             Options = (RegexOptions)p.Options & ~RegexOptions.IgnoreCase;
             MatchCase = ((RegexOptions)p.Options & RegexOptions.IgnoreCase) == 0;
             Replacement = p.Replacement ?? "";
+            TestCases.Clear();
+            if (Settings.Current.RegexPatternTests != null && p.Name != null && Settings.Current.RegexPatternTests.TryGetValue(p.Name, out var tests))
+                TestCases.AddRange(tests.Select(t => new RegexTestCase { Text = t.Text, ShouldMatch = t.ShouldMatch }));
             IsRegex = true;
             Rebuild();
             Changed?.Invoke(source);
@@ -77,8 +83,40 @@ namespace MonitoringTools.UI.Search
             if (!IsRegex || Query.Length == 0 || Error != null) return;
             Recent.Remove(Query);
             Recent.Insert(0, Query);
-            if (Recent.Count > 12) Recent.RemoveRange(12, Recent.Count - 12);
+            if (Recent.Count > MaxRecent) Recent.RemoveRange(MaxRecent, Recent.Count - MaxRecent);
+            SaveHistory();
         }
+
+        private void LoadHistory()
+        {
+            var st = Settings.Current;
+            if (st == null || !st.RegexKeepHistory || st.RegexHistory == null) return;
+            if (st.RegexHistory.TryGetValue(Id, out var list) && list != null)
+                Recent.AddRange(list.Where(x => !string.IsNullOrEmpty(x) && x.Length <= RegexKit.MaxPatternLength).Distinct().Take(MaxRecent));
+        }
+
+        /// <summary>Writes this field's recent patterns to settings, but only while the opt-in switch is on.</summary>
+        public void SaveHistory()
+        {
+            var st = Settings.Current;
+            if (st == null || !st.RegexKeepHistory) return;
+            st.RegexHistory ??= new Dictionary<string, List<string>>();
+            st.RegexHistory[Id] = Recent.Take(MaxRecent).ToList();
+            Settings.Save();
+        }
+
+        /// <summary>Forgets the remembered patterns of every field, in memory and on disk.</summary>
+        public static void ClearAllHistory()
+        {
+            foreach (var s in All.Values) s.Recent.Clear();
+            var st = Settings.Current;
+            if (st == null) return;
+            st.RegexHistory = new Dictionary<string, List<string>>();
+            Settings.Save();
+        }
+
+        /// <summary>Loads stored history into fields that already exist, after the switch is turned on.</summary>
+        public static void SaveAllHistory() { foreach (var s in All.Values) s.SaveHistory(); }
 
         private void Rebuild()
         {
