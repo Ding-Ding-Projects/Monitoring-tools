@@ -188,7 +188,11 @@ namespace MonitoringTools.UI
             var text = new StackPanel();
             text.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
             if (sub != null) text.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) });
-            cb.Content = text;
+            // The label, an info button explaining the setting and its default, then the text; the button sits inside the switch's content so the row stays one search item.
+            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            row.Children.Add(text);
+            row.Children.Add(InfoIcon.ForSwitch(label, sub, () => cb.IsChecked == true));
+            cb.Content = row;
             SearchScope.SetItem(cb, (value ? "on " : "off ") + "setting switch");
             cb.Checked += (s, e) => { set(true); Settings.Save(); App.Tray.Refresh(); };
             cb.Unchecked += (s, e) => { set(false); Settings.Save(); App.Tray.Refresh(); };
@@ -198,7 +202,11 @@ namespace MonitoringTools.UI
         private static FrameworkElement Choice<T>(string label, IEnumerable<(string Label, T Value)> options, T current, Action<T> set)
         {
             var sp = new StackPanel { Margin = new Thickness(0, 4, 0, 10) };
-            sp.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 8) });
+            var opts = options.ToList();
+            var labelRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
+            labelRow.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
+            labelRow.Children.Add(InfoIcon.ForChoice(label, opts, () => current));
+            sp.Children.Add(labelRow);
             var wrap = new WrapPanel();
             var buttons = new List<(Button B, T V)>();
             void Paint()
