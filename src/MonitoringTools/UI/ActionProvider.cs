@@ -303,6 +303,11 @@ namespace MonitoringTools.UI
                 var sc = s;
                 l.Add(new ToastAction { Label = ":" + sc.Name, Chip = true, Tip = string.IsNullOrWhiteSpace(sc.Description) ? "Your shortcut" : sc.Description, HandsOff = true, Run = () => App.Toasts.RunShortcut(sc, f) });
             }
+            if (!many && f != null && System.IO.File.Exists(f))
+            {
+                if (kind == FileKind.Image) l.Add(A("Annotate", Icons.Wand, () => DrawingWindow.OpenFile(f, out _), done: "Opened"));
+                l.Add(A("Open in editor", Icons.Code, () => ExternalEditor.OpenAndTell(f), done: "Opened"));
+            }
         }
 
         private static string[] SafeFiles(string folder)
@@ -346,6 +351,7 @@ namespace MonitoringTools.UI
                 var p = Converter.SaveBitmap(img, "png");
                 Process.Start(new ProcessStartInfo("mspaint.exe", $"\"{p}\"") { UseShellExecute = true });
             }, done: "Opened"));
+            l.Add(A("Annotate", Icons.Wand, () => DrawingWindow.OpenBitmap(img, "Copied image"), done: "Opened"));
             foreach (var id in new[] { "webp", "avif", "ico", "bmp" })
             {
                 var f = id;

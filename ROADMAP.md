@@ -30,6 +30,10 @@ for. Items move up as they ship; nothing here is claimed as done until it is in 
 - Records: notification centre, settings history with restore, exports in five formats, changelog viewer
 - Offline Help and docs page, right-click menus on every element, two-key destructive confirmation, bulk actions in history
 
+- Browser-style tabs, a per-element appearance editor and colour picker, info icons and a guided new-shortcut form
+- Element locks, an unlock ladder, Support Tickets and a TOTP authenticator
+- A local AI models (Ollama) manager, a Minecraft world generator, drawing, publishing to GitHub and editor hand-off
+
 ## In progress
 
 - Minecraft servers: Bedrock edition, a world generator with seed preview, and a recorded acceptance check per target on real hardware
@@ -38,10 +42,7 @@ for. Items move up as they ship; nothing here is claimed as done until it is in 
 
 - Regex builder parity: flavour comparison, a step debugger, benchmarks, file and folder search, test cases, editable code templates (see [the parity ledger](docs/features/search/regexbuddy-parity.md))
 - Settings matches from other pages listed inline under a page search (today: Search every page opens the palette)
-- Browser-style tabs with docking, pinning, grouping and the four tab searches
-- An unlock ladder, support tickets and a built-in authenticator
-- A per-element appearance editor and a full colour picker
-- The Ollama suite manager, the Minecraft world generator, drawing and forge publishing
+- Deeper Ollama, world generator and drawing features (see their docs), QR pairing, a passkey route
 - A native-speaker review of the Cantonese copy
 - Resizable, draggable panels with persisted size and position
 - Right-click menus that show working keyboard shortcuts

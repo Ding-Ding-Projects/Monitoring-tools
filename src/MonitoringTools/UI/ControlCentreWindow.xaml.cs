@@ -33,6 +33,9 @@ namespace MonitoringTools.UI
             ("game", "Game mode", Icons.Game),
             ("conversion", "Conversion", Icons.Bolt),
             ("minecraft", "Minecraft servers", Icons.Box),
+            ("ollama", "Local AI models", Icons.Bolt),
+            ("tools", "Tools", Icons.Wand),
+            ("safety", "Safety and locks", Icons.Shield),
             ("service", "Service", Icons.Shield),
             ("appearance", "Appearance", Icons.Palette),
             ("language", "Language and voice", Icons.Translate),
@@ -46,6 +49,7 @@ namespace MonitoringTools.UI
         public SearchField PageSearch => _pageSearch;
         public IEnumerable<string> SectionIds => _sections.Select(s => s.Id);
         private Shortcut _editing;
+        private Tabs.TabStrip _tabs;
 
         public ControlCentreWindow()
         {
@@ -54,20 +58,7 @@ namespace MonitoringTools.UI
             StateChanged += (s, e) => Shell.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0);
             FooterVersion.Text = "v" + (typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0") + (ServiceHost.IsElevated ? " · admin" : "")
                 + Environment.NewLine + BuildInfo.UpdatedLabel;
-            int i = 0;
-            foreach (var (id, label, icon) in _sections)
-            {
-                var row = new StackPanel { Orientation = Orientation.Horizontal };
-                var glyph = Ui.Icon(icon, Ui.Res("B.TextSoft"), 15);
-                glyph.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "B.TextSoft");
-                row.Children.Add(new ContentControl { Content = glyph, Margin = new Thickness(4, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center });
-                row.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
-                var b = new Button { Style = Ui.Style("Btn.Row"), Content = row, Tag = id, HorizontalContentAlignment = HorizontalAlignment.Left, Height = 36, Margin = new Thickness(0, 0, 0, 2) };
-                var sid = id;
-                b.Click += (s, e) => Navigate(sid);
-                Nav.Children.Add(b);
-                Ui.Rise(b, 60 + i++ * 35, 8);
-            }
+            _tabs = new Tabs.TabStrip(this, _sections.Select(x => new Tabs.PageEntry(x.Id, x.Label, x.Icon)).ToList());
             App.History.Updated += () => { if ((_current == "history" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
             Activity.Changed += () => { if ((_current == "activity" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
             App.Net.Sampled += () => { if (_current == "overview" && IsActive && !SearchField.AnyActive) Navigate(_current, animate: false); };
@@ -75,7 +66,7 @@ namespace MonitoringTools.UI
             {
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && _pageSearch != null) { _pageSearch.Box.Focus(); _pageSearch.Box.SelectAll(); e.Handled = true; }
             };
-            Loaded += (s, e) => Navigate("overview");
+            Loaded += (s, e) => Navigate(_tabs.StartupTab);
             void OnLook() { AppName.Text = Appearance.DisplayName; Logo.Stroke = new SolidColorBrush(Appearance.LogoColor); if (_current != null) Navigate(_current, animate: false); }
             Appearance.Changed += OnLook;
             Closed += (s, e) => Appearance.Changed -= OnLook;
@@ -107,7 +98,7 @@ namespace MonitoringTools.UI
             if (idx < 0) idx = 0;
             id = _sections[idx].Id;
             _current = id;
-            NavShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(idx * 38, TimeSpan.FromMilliseconds(animate ? 360 : 0)) { EasingFunction = Ui.Spring });
+            _tabs.Show(id);
 
             FrameworkElement page = id switch
             {
@@ -120,6 +111,9 @@ namespace MonitoringTools.UI
                 "service" => ServicePage(),
                 "activity" => ActivityPage(),
                 "minecraft" => MinecraftPage(),
+                "ollama" => OllamaPage(),
+                "tools" => ToolsPage(),
+                "safety" => SafetyPage(),
                 "appearance" => AppearancePage(),
                 "language" => LanguagePage(),
                 "modes" => ModesPage(),
@@ -138,6 +132,7 @@ namespace MonitoringTools.UI
             }
             else _pageSearch = null;
             Page.Content = page;
+            ElementStyles.ApplyAll(page, id);
             if (!animate) return;
             Scroller.ScrollToTop();
             if (page is Panel p)
@@ -188,7 +183,11 @@ namespace MonitoringTools.UI
             var text = new StackPanel();
             text.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
             if (sub != null) text.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) });
-            cb.Content = text;
+            // The label, an info button explaining the setting and its default, then the text; the button sits inside the switch's content so the row stays one search item.
+            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            row.Children.Add(text);
+            row.Children.Add(InfoIcon.ForSwitch(label, sub, () => cb.IsChecked == true));
+            cb.Content = row;
             SearchScope.SetItem(cb, (value ? "on " : "off ") + "setting switch");
             cb.Checked += (s, e) => { set(true); Settings.Save(); App.Tray.Refresh(); };
             cb.Unchecked += (s, e) => { set(false); Settings.Save(); App.Tray.Refresh(); };
@@ -198,7 +197,11 @@ namespace MonitoringTools.UI
         private static FrameworkElement Choice<T>(string label, IEnumerable<(string Label, T Value)> options, T current, Action<T> set)
         {
             var sp = new StackPanel { Margin = new Thickness(0, 4, 0, 10) };
-            sp.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 8) });
+            var opts = options.ToList();
+            var labelRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
+            labelRow.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
+            labelRow.Children.Add(InfoIcon.ForChoice(label, opts, () => current));
+            sp.Children.Add(labelRow);
             var wrap = new WrapPanel();
             var buttons = new List<(Button B, T V)>();
             void Paint()
@@ -504,6 +507,7 @@ namespace MonitoringTools.UI
             }
             list.Children.Add(wrap);
             root.Children.Add(Card(list));
+            if (_guiding) root.Children.Add(ShortcutGuide.Build(sc => { _guiding = false; _editing = sc; Navigate("shortcuts", animate: false); }, () => { _guiding = false; Navigate("shortcuts", animate: false); }));
 
             if (_editing == null && s.Shortcuts.Count > 0) _editing = s.Shortcuts[0];
             if (_editing != null) root.Children.Add(Editor(_editing));
@@ -512,17 +516,12 @@ namespace MonitoringTools.UI
 
         private void NewShortcut()
         {
-            var s = Settings.Current;
-            int n = 1;
-            string name;
-            do { name = "script" + n++; } while (Shortcuts.Find(name) != null);
-            var sc = new Shortcut { Name = name, Shell = ScriptShell.PowerShell, Description = "" };
-            s.Shortcuts.Add(sc);
-            Shortcuts.WriteScript(sc, Shortcuts.Template(sc.Shell));
-            Settings.Save();
-            _editing = sc;
+            // The guided form creates the shortcut step by step; name and shell are chosen there.
+            _guiding = true;
             Navigate("shortcuts", animate: false);
         }
+
+        private bool _guiding;
 
         private FrameworkElement Editor(Shortcut sc)
         {
@@ -566,6 +565,7 @@ namespace MonitoringTools.UI
             var editorFrame = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Child = edGrid, Margin = new Thickness(0, 4, 0, 10) };
             code.GotKeyboardFocus += (s, e) => editorFrame.BorderBrush = Ui.Res("B.Mint");
             code.LostKeyboardFocus += (s, e) => editorFrame.BorderBrush = Ui.Res("B.LineStrong");
+            if (string.IsNullOrWhiteSpace(code.Text)) root.Children.Add(ScriptPresets.Chips(shell, p => { code.Text = p.Body; }));
             root.Children.Add(editorFrame);
 
             // snippet inserts
@@ -627,7 +627,7 @@ namespace MonitoringTools.UI
 
             var bar = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
             bar.Children.Add(Ui.Button("Save", () => { if (Commit() != null) Navigate("shortcuts", animate: false); }, "Btn.Accent"));
-            bar.Children.Add(Ui.Button("Open in Notepad", () => { Commit(); System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("notepad.exe", $"\"{sc.ScriptPath}\"") { UseShellExecute = true }); }));
+            bar.Children.Add(Ui.Button("Open in editor", () => { Commit(); ExternalEditor.OpenAndTell(sc.ScriptPath); }));
             bar.Children.Add(Ui.Button("Open scripts folder", () => ActionProvider.Shell(Shortcuts.Folder)));
             bar.Children.Add(Ui.Button("Delete", () =>
             {
