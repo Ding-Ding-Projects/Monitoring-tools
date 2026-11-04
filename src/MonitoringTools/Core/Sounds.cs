@@ -35,7 +35,7 @@ namespace MonitoringTools.Core
             try
             {
                 var s = Settings.Current;
-                if (!s.SoundsEnabled || s.SoundVolume <= 0) return;
+                if (!Modes.SoundAllowed(cue == Cue.Warning || cue == Cue.Invalid) || s.SoundVolume <= 0) return;
                 if (QuietNow()) return;
                 if (Last.TryGetValue(cue, out var t) && (DateTime.UtcNow - t).TotalMilliseconds < 450) return;
                 Last[cue] = DateTime.UtcNow;
