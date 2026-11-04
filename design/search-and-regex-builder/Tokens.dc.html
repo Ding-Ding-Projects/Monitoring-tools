@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tokens, shape and motion</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0F1512}
+*{box-sizing:border-box}
+button{font:inherit;cursor:pointer;border:0}
+.lane{position:relative;height:40px;border-radius:20px;background:#1B211E;overflow:hidden}
+.dot{position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:14px;background:#6FDBB4}
+.e1 .dot{animation:run 2.4s cubic-bezier(.2,0,0,1) infinite alternate}
+.e2 .dot{animation:run 2.4s cubic-bezier(.05,.7,.1,1) infinite alternate}
+.e3 .dot{animation:run 2.4s cubic-bezier(.3,0,.8,.15) infinite alternate}
+.e4 .dot{animation:run 2.4s cubic-bezier(.34,1.56,.64,1) infinite alternate}
+@keyframes run{0%,15%{left:6px}85%,100%{left:calc(100% - 34px)}}
+.morph{width:96px;height:96px;background:#00513A;animation:shape 3.2s cubic-bezier(.34,1.56,.64,1) infinite alternate}
+@keyframes shape{0%,20%{border-radius:28px}80%,100%{border-radius:48px}}
+.press{transition:border-radius .35s cubic-bezier(.34,1.56,.64,1)}
+.press:active{border-radius:12px!important}
+@media (prefers-reduced-motion: reduce){.dot,.morph{animation:none}}
+</style>
+</helmet>
+<div style="width: 1220px; height: 900px; padding: 48px; background: #0F1512; color: #DEE4DF; font-family: 'Roboto Flex', system-ui, sans-serif; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px;">
+
+  <section aria-label="Colour roles" style="grid-column: span 2; border-radius: 28px; background: #171D1A; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="font-size: 22px;">Colour roles · dark · seed Mint</div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; font-size: 12px; letter-spacing: .4px;">
+      <div style="height: 72px; border-radius: 16px; padding: 10px; background: #6FDBB4; color: #003827;">primary<br>#6FDBB4</div>
+      <div style="height: 72px; border-radius: 16px; padding: 10px; background: #00513A; color: #8CF8CF;">primary container<br>#00513A</div>
+      <div style="height: 72px; border-radius: 16px; padding: 10px; background: #354B41; color: #CFE9DB;">secondary container<br>#354B41</div>
+      <div style="height: 72px; border-radius: 16px; padding: 10px; background: #244C5D; color: #C2E8FD;">tertiary container<br>#244C5D</div>
+      <div style="height: 72px; border-radius: 16px; padding: 10px; background: #93000A; color: #FFDAD6;">error container<br>#93000A</div>
+      <div style="height: 72px; border-radius: 16px; padding: 10px; background: #1B211E; color: #DEE4DF; border: 1px solid #404943;">surface container<br>#1B211E</div>
+      <div style="height: 72px; border-radius: 16px; padding: 10px; background: #262B28; color: #DEE4DF;">container high<br>#262B28</div>
+      <div style="height: 72px; border-radius: 16px; padding: 10px; background: #303633; color: #BFC9C2;">container highest<br>#303633</div>
+    </div>
+    <div style="font-size: 13px; color: #BFC9C2; line-height: 1.5;">Every colour is a role, not a hex in a control. Five seeds (Mint, Violet, Amber, Ocean, Rose) each ship a light and a dark scheme; text on every role passes 4.5:1.</div>
+  </section>
+
+  <section aria-label="Shape" style="border-radius: 28px; background: #171D1A; padding: 24px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
+    <div style="font-size: 22px;">Shape that moves</div>
+    <div class="morph" role="img" aria-label="A shape morphing from rounded square to circle"></div>
+    <div style="font-size: 13px; color: #BFC9C2; line-height: 1.6;">Small 8 · medium 12 · large 16 · extra large 28 · full pill. Pressed buttons tighten from pill to 12. Selected items round up. The FAB breathes from 28 to 48 on hover.</div>
+    <button type="button" class="press" style="height: 40px; padding: 0 24px; border-radius: 20px; background: #6FDBB4; color: #003827; font-size: 14px; font-weight: 500;">Press me</button>
+  </section>
+
+  <section aria-label="Type scale" style="border-radius: 28px; background: #171D1A; padding: 24px; display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 22px; margin-bottom: 8px;">Type · Roboto Flex</div>
+    <div style="font-size: 45px; line-height: 52px;">Display S</div>
+    <div style="font-size: 32px; line-height: 40px;">Headline L</div>
+    <div style="font-size: 22px; line-height: 28px;">Title L</div>
+    <div style="font-size: 16px; line-height: 24px;">Body L, for reading</div>
+    <div style="font-size: 14px; font-weight: 500;">Label L, for controls</div>
+    <div style="font-family: 'Roboto Mono', monospace; font-size: 14px; color: #6FDBB4;">Roboto Mono for paths and patterns</div>
+  </section>
+
+  <section aria-label="Motion" style="grid-column: span 2; border-radius: 28px; background: #171D1A; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="font-size: 22px;">Motion · four curves, one reason each</div>
+    <div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 12px; align-items: center; font-size: 13px;">
+      <div><b>Emphasized</b><br><span style="color: #BFC9C2;">page changes · 500 ms</span></div><div class="lane e1"><span class="dot"></span></div>
+      <div><b>Emphasized decelerate</b><br><span style="color: #BFC9C2;">things arriving · 400 ms</span></div><div class="lane e2"><span class="dot"></span></div>
+      <div><b>Emphasized accelerate</b><br><span style="color: #BFC9C2;">things leaving · 200 ms</span></div><div class="lane e3"><span class="dot"></span></div>
+      <div><b>Expressive spring</b><br><span style="color: #BFC9C2;">shape and selection · 450 ms</span></div><div class="lane e4"><span class="dot"></span></div>
+    </div>
+    <div style="font-size: 13px; color: #BFC9C2; line-height: 1.6;">Pages enter on the shared Y axis. The search bar opens the regex builder as a container transform. Lists stagger in by 40 ms. Reduce motion swaps every slide and spring for a 1 ms change.</div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1220,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

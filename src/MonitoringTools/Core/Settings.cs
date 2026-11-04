@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace MonitoringTools.Core
 {
-    public sealed class Settings
+    public sealed partial class Settings
     {
         // Clipboard
         public bool ClipboardEnabled { get; set; } = true;

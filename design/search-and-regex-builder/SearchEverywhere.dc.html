@@ -8,67 +8,65 @@
 <body>
 <x-dc>
 <helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#08090C}
-button{font:inherit}
+body{margin:0;background:#0F1512}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.ms{font-family:'Material Symbols Rounded';font-size:20px;line-height:1;display:inline-block;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20}
+.mono{font-family:'Roboto Mono',Consolas,monospace}
+.sb{display:flex;align-items:center;gap:8px;height:56px;padding:0 8px 0 16px;border-radius:28px;background:#262B28}
+.sb.small{height:44px;border-radius:22px;padding:0 4px 0 14px}
+.ib{width:40px;height:40px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;color:#BFC9C2}
+.ib.on{background:#6FDBB4;color:#003827;border-radius:12px}
+.hl{background:#00513A;color:#8CF8CF;border-radius:6px;padding:0 2px}
+.item{display:flex;align-items:center;gap:16px;min-height:64px;padding:8px 16px;border-radius:16px}
+.menu{border-radius:16px;background:#262B28;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:pop .4s cubic-bezier(.05,.7,.1,1) both;transform-origin:top left}
+@keyframes pop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+.mi{display:flex;align-items:center;gap:12px;height:48px;padding:0 12px;border-radius:12px;font-size:14px}
+.mi.sel{background:#354B41;color:#CFE9DB}
+.k{margin-left:auto;font-size:12px;color:#89938C}
+.sw{width:52px;height:32px;border-radius:16px;background:#6FDBB4;position:relative;flex:none}
+.sw i{position:absolute;top:4px;left:24px;width:24px;height:24px;border-radius:12px;background:#003827}
+.in{animation:in .5s cubic-bezier(.05,.7,.1,1) both}.in2{animation-delay:.08s}.in3{animation-delay:.16s}
+@keyframes in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
 </style>
 </helmet>
-<div style="width: 1180px; height: 860px; box-sizing: border-box; padding: 40px; background: #08090C; color: #E8EAED; font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px;">
+<div style="width: 1180px; height: 820px; padding: 40px; background: #0F1512; color: #DEE4DF; font-family: 'Roboto Flex', system-ui, sans-serif; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px;">
 
-  <section aria-label="Settings search" style="grid-row: span 2; background: #0D0F13; border: 1px solid #262A33; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px; min-width: 0;">
-    <div style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; letter-spacing: 0.08em; color: #9AA1AD;">SERVICE</div>
-    <h2 style="margin: 0; font-size: 26px; font-weight: 600;">Settings</h2>
-    <div style="display: flex; align-items: center; gap: 8px; height: 46px; box-sizing: border-box; padding: 0 6px 0 14px; background: #0F1115; border: 1px solid #7CF2C2; border-radius: 12px;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9AA1AD" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
-      <span style="flex: 1; font-size: 15px;">sound</span>
-      <span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 12px; color: #9AA1AD;">4 settings</span>
-      <span style="width: 38px; height: 34px; line-height: 34px; text-align: center; border-radius: 9px; border: 1px solid #2E333D; background: #1A1D23; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; color: #C9CDD4;">Aa</span>
-      <span style="width: 38px; height: 34px; line-height: 34px; text-align: center; border-radius: 9px; border: 1px solid #2E333D; background: #1A1D23; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; color: #C9CDD4;">.*</span>
-      <span style="height: 34px; line-height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid #2E333D; background: #1A1D23; font-size: 13px; font-weight: 600;">Builder</span>
-    </div>
-    <div style="font-size: 12px; color: #C9CDD4;">On this page</div>
-    <div style="padding: 14px 16px; background: #14161B; border: 1px solid #262A33; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-      <div><div style="font-size: 14px;">Action <span style="background: #1D2A26; color: #7CF2C2; border-radius: 3px;">sound</span>s</div><div style="font-size: 12px; color: #9AA1AD;">Short cues for copies, conversions and pushes. Default: on.</div></div>
-      <span style="flex: none; width: 44px; height: 24px; border-radius: 12px; background: #7CF2C2;"></span>
-    </div>
-    <div style="padding: 14px 16px; background: #14161B; border: 1px solid #262A33; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-      <div><div style="font-size: 14px;"><span style="background: #1D2A26; color: #7CF2C2; border-radius: 3px;">Sound</span> volume</div><div style="font-size: 12px; color: #9AA1AD;">Current value: 60 %. Default: 60 %.</div></div>
-      <span style="flex: none; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 13px; color: #C9CDD4;">60 %</span>
-    </div>
-    <div style="font-size: 12px; color: #C9CDD4;">On other pages</div>
-    <a href="#" style="padding: 12px 16px; border: 1px dashed #2E333D; border-radius: 12px; color: #E8EAED; text-decoration: none; display: flex; justify-content: space-between; gap: 12px;"><span>Quiet hours mute <span style="background: #1D2A26; color: #7CF2C2; border-radius: 3px;">sound</span>s</span><span style="font-size: 12px; color: #9AA1AD;">Game mode →</span></a>
-    <a href="#" style="padding: 12px 16px; border: 1px dashed #2E333D; border-radius: 12px; color: #E8EAED; text-decoration: none; display: flex; justify-content: space-between; gap: 12px;"><span>Offline alert <span style="background: #1D2A26; color: #7CF2C2; border-radius: 3px;">sound</span></span><span style="font-size: 12px; color: #9AA1AD;">Network and DNS →</span></a>
+  <section class="in" aria-label="Settings search" style="grid-row: span 2; border-radius: 28px; background: #171D1A; padding: 28px; display: flex; flex-direction: column; gap: 14px; min-width: 0;">
+    <div style="font-size: 12px; letter-spacing: .8px; color: #BFC9C2;">SETTINGS</div>
+    <div style="font-size: 32px; line-height: 40px;">Service</div>
+    <div class="sb"><span class="ms" aria-hidden="true">search</span><span style="flex: 1; font-size: 16px;">sound</span><span class="mono" style="font-size: 12px; color: #BFC9C2;">2 here · 2 elsewhere</span><span class="ib" aria-hidden="true"><span class="ms">match_case</span></span><span class="ib" aria-hidden="true"><span class="ms">regular_expression</span></span></div>
+    <div style="font-size: 14px; font-weight: 500; color: #BFC9C2; margin-top: 6px;">On this page</div>
+    <div class="item" style="background: #1B211E;"><div style="flex: 1;"><div style="font-size: 16px;">Action <span class="hl">sound</span>s</div><div style="font-size: 12px; color: #BFC9C2;">Short cues for copies, conversions and pushes. Default: on.</div></div><span class="sw" aria-hidden="true"><i></i></span></div>
+    <div class="item" style="background: #1B211E;"><div style="flex: 1;"><div style="font-size: 16px;"><span class="hl">Sound</span> volume</div><div style="font-size: 12px; color: #BFC9C2;">Current: 60 %. Default: 60 %.</div></div><span class="mono" style="font-size: 14px;">60 %</span></div>
+    <div style="font-size: 14px; font-weight: 500; color: #BFC9C2; margin-top: 6px;">On other pages</div>
+    <a href="#" class="item" style="color: inherit; text-decoration: none; border: 1px solid #404943;"><span class="ms" aria-hidden="true">sports_esports</span><span style="flex: 1;">Quiet hours mute <span class="hl">sound</span>s</span><span style="font-size: 12px; color: #BFC9C2;">Game mode</span><span class="ms" aria-hidden="true">arrow_forward</span></a>
+    <a href="#" class="item" style="color: inherit; text-decoration: none; border: 1px solid #404943;"><span class="ms" aria-hidden="true">wifi</span><span style="flex: 1;">Offline alert <span class="hl">sound</span></span><span style="font-size: 12px; color: #BFC9C2;">Network</span><span class="ms" aria-hidden="true">arrow_forward</span></a>
   </section>
 
-  <section aria-label="Tray menu filter" style="background: #14161B; border: 1px solid #2E333D; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; box-shadow: 0 24px 60px rgba(0,0,0,0.5);">
-    <div style="display: flex; align-items: center; gap: 6px; height: 38px; box-sizing: border-box; padding: 0 4px 0 10px; border-radius: 10px; background: #0F1115; border: 1px solid #7CF2C2;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9AA1AD" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
-      <span style="flex: 1; font-size: 13px;">dns</span>
-      <span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;">2 of 14</span>
-      <span style="width: 30px; height: 28px; line-height: 28px; text-align: center; border-radius: 7px; border: 1px solid #2E333D; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #C9CDD4;">.*</span>
-      <span aria-label="Regex builder" style="width: 30px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 7px; border: 1px solid #2E333D;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9CDD4" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20l10-10"></path><path d="M15 4v3M18.5 5.5l-2 2M20 9h-3"></path></svg></span>
-    </div>
-    <div style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 9px; background: #1A1D23; font-size: 13px;"><span>Switch <span style="color: #7CF2C2;">DNS</span> profile</span><span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;">Ctrl+D</span></div>
-    <div style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 9px; font-size: 13px;"><span>Flush <span style="color: #7CF2C2;">DNS</span></span><span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;"></span></div>
-    <div style="font-size: 11px; color: #9AA1AD; padding: 4px 12px;">↑↓ move · Enter run · Esc clears, then closes</div>
+  <section class="menu in2" aria-label="Tray menu filter" style="align-self: start;">
+    <div class="sb small"><span class="ms" aria-hidden="true">search</span><span style="flex: 1; font-size: 14px;">dns</span><span class="mono" style="font-size: 11px; color: #BFC9C2;">2 of 14</span><span class="ib" aria-hidden="true"><span class="ms">regular_expression</span></span><span class="ib on" aria-hidden="true"><span class="ms">build</span></span></div>
+    <div class="mi sel" style="margin-top: 8px;"><span class="ms" aria-hidden="true">dns</span>Switch <span class="hl">DNS</span> profile<span class="k mono">Ctrl+D</span></div>
+    <div class="mi"><span class="ms" aria-hidden="true">mop</span>Flush <span class="hl">DNS</span></div>
+    <div style="font-size: 12px; color: #89938C; padding: 6px 12px;">↑↓ move · Enter run · Esc clears, then closes</div>
   </section>
 
-  <section aria-label="Row menu filter and empty result" style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
-    <div style="background: #14161B; border: 1px solid #2E333D; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 24px 60px rgba(0,0,0,0.5);">
-      <div style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 4px 0 10px; border-radius: 9px; background: #0F1115; border: 1px solid #2E333D;">
-        <span style="flex: 1; font-size: 12px; color: #9AA1AD;">Filter actions</span>
-        <span style="width: 28px; height: 26px; line-height: 26px; text-align: center; border-radius: 7px; border: 1px solid #2E333D; font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #C9CDD4;">.*</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 8px; font-size: 13px;"><span>Copy again</span><span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;">Enter</span></div>
-      <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 8px; font-size: 13px;"><span>Copy as plain text</span><span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: #9AA1AD;">Shift+Enter</span></div>
-      <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 8px; font-size: 13px;"><span>Edit appearance…</span></div>
-      <div style="display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: #FF8A7A;"><span>Remove from history</span><span style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px;">Del</span></div>
-    </div>
-    <div role="status" style="padding: 16px; border: 1px dashed #2E333D; border-radius: 12px; font-size: 13px; color: #C9CDD4; line-height: 1.5;">No shortcuts match <code style="font-family: 'Cascadia Mono', Consolas, monospace; color: #7CF2C2;">^back.*zip$</code>. <a href="#" style="color: #7CF2C2;">Clear search</a></div>
-  </section>
+  <div class="in3" style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+    <section class="menu" aria-label="Row menu with filter">
+      <div class="sb small" style="background: #303633;"><span class="ms" aria-hidden="true">filter_list</span><span style="flex: 1; font-size: 13px; color: #BFC9C2;">Filter actions</span><span class="ib" aria-hidden="true"><span class="ms">regular_expression</span></span></div>
+      <div class="mi" style="margin-top: 6px;"><span class="ms" aria-hidden="true">content_copy</span>Copy again<span class="k mono">Enter</span></div>
+      <div class="mi"><span class="ms" aria-hidden="true">text_fields</span>Copy as plain text<span class="k mono">Shift+Enter</span></div>
+      <div class="mi"><span class="ms" aria-hidden="true">brush</span>Edit appearance…</div>
+      <div class="mi"><span class="ms" aria-hidden="true">lock</span>Lock this element…</div>
+      <div class="mi" style="color: #FFB4AB;"><span class="ms" aria-hidden="true">delete</span>Remove from history<span class="k mono" style="color: #FFB4AB;">Del</span></div>
+    </section>
+    <div role="status" style="display: flex; align-items: center; gap: 16px; padding: 20px; border-radius: 24px; border: 1px dashed #404943;"><span class="ms" style="font-size: 36px; color: #BFC9C2;" aria-hidden="true">search_off</span><div style="font-size: 14px;">No shortcuts match <span class="mono" style="color: #6FDBB4;">^back.*zip$</span>.<br><a href="#" style="color: #6FDBB4;">Clear search</a> · <a href="#" style="color: #6FDBB4;">Search every page</a></div></div>
+  </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1180,"height":860}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1180,"height":820}}'>
 class Component extends DCLogic {
   renderVals() { return {}; }
 }

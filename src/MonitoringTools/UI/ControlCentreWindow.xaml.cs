@@ -33,11 +33,17 @@ namespace MonitoringTools.UI
             ("conversion", "Conversion", Icons.Bolt),
             ("minecraft", "Minecraft servers", Icons.Box),
             ("service", "Service", Icons.Shield),
+            ("appearance", "Appearance", Icons.Palette),
+            ("language", "Language and voice", Icons.Text),
+            ("modes", "Modes", Icons.Shield),
+            ("records", "Records and exports", Icons.Lines),
+            ("help", "Help and docs", Icons.Globe),
             ("about", "About and updates", Icons.Globe),
         };
         private string _current;
         private SearchField _pageSearch;
         public SearchField PageSearch => _pageSearch;
+        public IEnumerable<string> SectionIds => _sections.Select(s => s.Id);
         private Shortcut _editing;
 
         public ControlCentreWindow()
@@ -101,6 +107,11 @@ namespace MonitoringTools.UI
                 "service" => ServicePage(),
                 "activity" => ActivityPage(),
                 "minecraft" => MinecraftPage(),
+                "appearance" => AppearancePage(),
+                "language" => LanguagePage(),
+                "modes" => ModesPage(),
+                "records" => RecordsPage(),
+                "help" => HelpPage(),
                 "about" => AboutPage(),
                 _ => OverviewPage(),
             };
