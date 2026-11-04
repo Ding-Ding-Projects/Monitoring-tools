@@ -69,11 +69,14 @@ namespace MonitoringTools.Core
             "cs2", "dota2", "r5apex", "RocketLeague", "Overwatch", "GTA5", "eldenring"
         };
 
+        /// <summary>Set by the screenshot and self-test runs so they work in a throwaway folder and never touch the real settings.</summary>
+        public static string DataDirOverride { get; set; }
+
         public static string DataDir
         {
             get
             {
-                var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MonitoringTools");
+                var dir = DataDirOverride ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MonitoringTools");
                 Directory.CreateDirectory(dir);
                 return dir;
             }

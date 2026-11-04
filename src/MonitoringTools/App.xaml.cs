@@ -25,6 +25,8 @@ namespace MonitoringTools
         public static bool IsSnoozed => DateTime.Now < SnoozeUntil;
         /// <summary>Set by "--screenshots DIR": render every surface with sample data and exit.</summary>
         public static string ScreenshotDir { get; set; }
+        /// <summary>Set by "--selftest DIR": drive the real features in a throwaway folder, report, and exit.</summary>
+        public static string SelfTestDir { get; set; }
 
         private OfflineWindow _offline;
         private bool _offlineDeferred;
@@ -54,6 +56,11 @@ namespace MonitoringTools
             Net = new NetworkMonitor();
             PublicIp = new PublicIpMonitor();
 
+            if (SelfTestDir != null)
+            {
+                Dispatcher.BeginInvoke(new Action(async () => await SelfTest.RunAsync(SelfTestDir)), DispatcherPriority.ApplicationIdle);
+                return;
+            }
             if (ScreenshotDir != null)
             {
                 // No watchers, no install, no saved settings: just render and leave.

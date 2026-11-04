@@ -17,9 +17,20 @@ namespace MonitoringTools
                 if (args.Contains("--elevate-on")) return ServiceHost.ElevateHelper(true);
                 if (args.Contains("--elevate-off")) return ServiceHost.ElevateHelper(false);
                 if (args.Contains("--agent")) return RunAgent();
+                var testIdx = Array.IndexOf(args, "--selftest");
+                if (testIdx >= 0)
+                {
+                    Settings.DataDirOverride = Path.Combine(Path.GetTempPath(), "MonitoringTools-capture-" + Environment.ProcessId);
+                    App.SelfTestDir = testIdx + 1 < args.Length ? args[testIdx + 1] : "selftest";
+                    var t = new App();
+                    t.InitializeComponent();
+                    return t.Run();
+                }
                 var shotIdx = Array.IndexOf(args, "--screenshots");
                 if (shotIdx >= 0)
                 {
+                    // A capture run uses its own empty data folder: it must never read or write the real settings.
+                    Settings.DataDirOverride = Path.Combine(Path.GetTempPath(), "MonitoringTools-capture-" + Environment.ProcessId);
                     App.ScreenshotDir = shotIdx + 1 < args.Length ? args[shotIdx + 1] : "screenshots";
                     var demo = new App();
                     demo.InitializeComponent();
