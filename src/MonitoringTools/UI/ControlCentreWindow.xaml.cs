@@ -94,7 +94,7 @@ namespace MonitoringTools.UI
             if (idx < 0) idx = 0;
             id = _sections[idx].Id;
             _current = id;
-            NavShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(idx * 42, TimeSpan.FromMilliseconds(animate ? 360 : 0)) { EasingFunction = Ui.Spring });
+            NavShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(idx * 44, TimeSpan.FromMilliseconds(animate ? 360 : 0)) { EasingFunction = Ui.Spring });
 
             FrameworkElement page = id switch
             {
@@ -141,7 +141,7 @@ namespace MonitoringTools.UI
             var root = new StackPanel { MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 20) };
             var head = new StackPanel { Margin = new Thickness(0, 4, 0, 22) };
             head.Children.Add(new TextBlock { Text = eyebrow.ToUpperInvariant(), Style = Ui.Style("T.Eyebrow"), FontSize = 12 });
-            head.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 30, Margin = new Thickness(0, 4, 0, 0) });
+            head.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 32, Margin = new Thickness(0, 4, 0, 0) });
             if (sub != null) head.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 6, 0, 0), MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left });
             root.Children.Add(head);
             return root;
@@ -151,12 +151,13 @@ namespace MonitoringTools.UI
         {
             var b = new Border
             {
-                Background = Ui.Res("B.Surface"), CornerRadius = new CornerRadius(16), Padding = new Thickness(pad),
-                BorderBrush = edge == null ? Ui.Res("B.Line") : new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge)),
-                BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 0, 14), Child = child
+                Background = Ui.Res("B.Surface"), CornerRadius = new CornerRadius(24), Padding = new Thickness(pad + 4),
+                BorderBrush = edge == null ? Brushes.Transparent : new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge)),
+                BorderThickness = new Thickness(edge == null ? 0 : 1), Margin = new Thickness(0, 0, 0, 16), Child = child
             };
-            b.MouseEnter += (s, e) => b.BorderBrush = Ui.Res("B.LineStrong");
-            b.MouseLeave += (s, e) => b.BorderBrush = edge == null ? Ui.Res("B.Line") : new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge));
+            // Material 3 filled card: no outline; a soft tonal lift on hover.
+            b.MouseEnter += (s, e) => b.Background = Ui.Res("B.Raised");
+            b.MouseLeave += (s, e) => b.Background = Ui.Res("B.Surface");
             return b;
         }
 

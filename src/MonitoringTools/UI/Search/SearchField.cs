@@ -56,7 +56,7 @@ namespace MonitoringTools.UI.Search
             State = SearchState.For(id);
             Label = label;
             Live.Add(new WeakReference<SearchField>(this));
-            double h = compact ? 38 : 46;
+            double h = compact ? 44 : 56;
 
             Box = new TextBox
             {
@@ -90,8 +90,8 @@ namespace MonitoringTools.UI.Search
 
             Bar = new Border
             {
-                Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(compact ? 10 : 12), Padding = new Thickness(compact ? 10 : 14, 0, 4, 0), Height = h, Child = g
+                Background = Ui.Res("B.Raised"), BorderBrush = Brushes.Transparent, BorderThickness = new Thickness(2),
+                CornerRadius = new CornerRadius(h / 2), Padding = new Thickness(compact ? 12 : 18, 0, compact ? 4 : 8, 0), Height = h, Child = g
             };
             _empty = new TextBlock { Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
             _everywhere = Ui.Button("Search every page", () => SearchEverywhere?.Invoke(State), "Btn.Ghost", Icons.Search);
@@ -181,7 +181,8 @@ namespace MonitoringTools.UI.Search
             _case.IsChecked = State.MatchCase;
             _regex.IsChecked = State.IsRegex;
             _build.IsChecked = BuilderOpen;
-            Bar.BorderBrush = State.Error != null ? Ui.Res("B.Amber") : Box.IsKeyboardFocusWithin || BuilderOpen ? Ui.Res("B.Mint") : Ui.Res("B.LineStrong");
+            Bar.BorderBrush = State.Error != null ? Ui.Res("B.Danger") : Box.IsKeyboardFocusWithin || BuilderOpen ? Ui.Res("B.Mint") : Brushes.Transparent;
+            Bar.CornerRadius = BuilderOpen ? new CornerRadius(Bar.Height / 2, Bar.Height / 2, 16, 16) : new CornerRadius(Bar.Height / 2);
         }
 
         private static ToggleButton Toggle(string text, string name, bool compact, string icon = null)
@@ -196,15 +197,15 @@ namespace MonitoringTools.UI.Search
             }
             var t = new ToggleButton
             {
-                Content = content, MinWidth = compact ? 30 : 38, Height = compact ? 28 : 34, Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(text != null && icon != null ? 10 : 0, 0, text != null && icon != null ? 12 : 0, 0),
+                Content = content, MinWidth = compact ? 32 : 40, Height = compact ? 32 : 40, Margin = new Thickness(4, 0, 0, 0), Padding = new Thickness(text != null && icon != null ? 10 : 0, 0, text != null && icon != null ? 12 : 0, 0),
                 Cursor = Cursors.Hand, FocusVisualStyle = null, FontFamily = Ui.Font("F.Mono"), FontSize = compact ? 11 : 12, Foreground = Ui.Res("B.TextSoft"), ToolTip = name
             };
             AutomationProperties.SetName(t, name);
             var tpl = new ControlTemplate(typeof(ToggleButton));
             var bd = new FrameworkElementFactory(typeof(Border), "Bd");
-            bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(compact ? 7 : 9));
-            bd.SetValue(Border.BackgroundProperty, Ui.Res("B.Raised"));
-            bd.SetValue(Border.BorderBrushProperty, Ui.Res("B.LineStrong"));
+            bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(compact ? 14 : 20));
+            bd.SetValue(Border.BackgroundProperty, Brushes.Transparent);
+            bd.SetValue(Border.BorderBrushProperty, Brushes.Transparent);
             bd.SetValue(Border.BorderThicknessProperty, new Thickness(1));
             bd.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
             var cp = new FrameworkElementFactory(typeof(ContentPresenter));
@@ -213,8 +214,9 @@ namespace MonitoringTools.UI.Search
             bd.AppendChild(cp);
             tpl.VisualTree = bd;
             var on = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
-            on.Setters.Add(new Setter(Border.BackgroundProperty, Ui.Res("B.MintWash"), "Bd"));
-            on.Setters.Add(new Setter(Border.BorderBrushProperty, Ui.Res("B.Mint"), "Bd"));
+            on.Setters.Add(new Setter(Border.BackgroundProperty, Ui.Res("B.SecondaryContainer"), "Bd"));
+            on.Setters.Add(new Setter(Border.CornerRadiusProperty, new CornerRadius(12), "Bd"));
+            on.Setters.Add(new Setter(Control.ForegroundProperty, Ui.Res("B.OnSecondaryContainer")));
             tpl.Triggers.Add(on);
             var focus = new Trigger { Property = UIElement.IsKeyboardFocusedProperty, Value = true };
             focus.Setters.Add(new Setter(Border.BorderBrushProperty, Ui.Res("B.Mint"), "Bd"));

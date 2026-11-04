@@ -37,6 +37,7 @@
     <EmbeddedResource Include="$(DepsDir)ffmpeg\*.exe;$(DepsDir)ffmpeg\*.dll" LogicalName="bundled/ffmpeg/%(Filename)%(Extension)" />
     <EmbeddedResource Include="$(DepsDir)cache\MinGit-*-64-bit.zip" LogicalName="bundled/mingit.zip" />
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)..\..\deps\manifest.json" LogicalName="bundled/manifest.json" />
+    <Resource Include="$(DepsDir)roboto\Roboto-Light.ttf;$(DepsDir)roboto\Roboto-Regular.ttf;$(DepsDir)roboto\Roboto-Medium.ttf;$(DepsDir)roboto\Roboto-Bold.ttf" Link="Fonts\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- Stamps the build time into the app so the front screen can show when this exact build was made. -->
