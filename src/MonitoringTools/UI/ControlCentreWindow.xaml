@@ -21,14 +21,14 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal" Margin="8,4,0,22">
+                <StackPanel Orientation="Horizontal" Margin="8,4,0,16">
                     <Path x:Name="Logo" Data="M3 12h4l3-7 4 14 3-7h4" Stroke="{DynamicResource B.Mint}" StrokeThickness="2.2" StrokeLineJoin="Round"
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="22" Height="22" Stretch="Uniform" Margin="0,0,10,0"/>
                     <TextBlock x:Name="AppName" Text="Monitoring Tools" Style="{StaticResource T.Title}" FontSize="22" VerticalAlignment="Center"/>
                 </StackPanel>
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,0,12">
                     <Grid>
-                        <Border x:Name="NavIndicator" Height="40" VerticalAlignment="Top" CornerRadius="20" Background="{DynamicResource B.SecondaryContainer}">
+                        <Border x:Name="NavIndicator" Height="36" VerticalAlignment="Top" CornerRadius="20" Background="{DynamicResource B.SecondaryContainer}">
                             <Border.RenderTransform><TranslateTransform x:Name="NavShift"/></Border.RenderTransform>
                         </Border>
                         <StackPanel x:Name="Nav"/>

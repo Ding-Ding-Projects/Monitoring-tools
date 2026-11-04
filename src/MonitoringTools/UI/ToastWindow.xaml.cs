@@ -51,6 +51,8 @@ namespace MonitoringTools.UI
             var accent = new SolidColorBrush(_accent);
             var wash = new SolidColorBrush(Color.FromArgb(0x26, _accent.R, _accent.G, _accent.B));
             IconHost.Content = icon == null ? null : Ui.IconChip(icon, accent, wash);
+            title = Core.Language.Title(title);
+            Core.Narrator.Speak(title, Core.Language.Yue(title));
             TitleText.Text = title;
             MetaText.Text = meta ?? "";
         }

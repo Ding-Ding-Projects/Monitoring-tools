@@ -35,10 +35,10 @@ namespace MonitoringTools.UI
             ("minecraft", "Minecraft servers", Icons.Box),
             ("service", "Service", Icons.Shield),
             ("appearance", "Appearance", Icons.Palette),
-            ("language", "Language and voice", Icons.Text),
-            ("modes", "Modes", Icons.Shield),
-            ("records", "Records and exports", Icons.Lines),
-            ("help", "Help and docs", Icons.Globe),
+            ("language", "Language and voice", Icons.Translate),
+            ("modes", "Modes", Icons.Moon),
+            ("records", "Records and exports", Icons.Archive),
+            ("help", "Help and docs", Icons.Help),
             ("about", "About and updates", Icons.Globe),
         };
         private string _current;
@@ -60,7 +60,7 @@ namespace MonitoringTools.UI
                 var row = new StackPanel { Orientation = Orientation.Horizontal };
                 row.Children.Add(new ContentControl { Content = Ui.Icon(icon, Ui.Res("B.TextSoft"), 15), Margin = new Thickness(4, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center });
                 row.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
-                var b = new Button { Style = Ui.Style("Btn.Row"), Content = row, Tag = id, HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 4) };
+                var b = new Button { Style = Ui.Style("Btn.Row"), Content = row, Tag = id, HorizontalContentAlignment = HorizontalAlignment.Left, Height = 36, Margin = new Thickness(0, 0, 0, 2) };
                 var sid = id;
                 b.Click += (s, e) => Navigate(sid);
                 Nav.Children.Add(b);
@@ -105,7 +105,7 @@ namespace MonitoringTools.UI
             if (idx < 0) idx = 0;
             id = _sections[idx].Id;
             _current = id;
-            NavShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(idx * 44, TimeSpan.FromMilliseconds(animate ? 360 : 0)) { EasingFunction = Ui.Spring });
+            NavShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(idx * 38, TimeSpan.FromMilliseconds(animate ? 360 : 0)) { EasingFunction = Ui.Spring });
 
             FrameworkElement page = id switch
             {

@@ -46,6 +46,7 @@ namespace MonitoringTools
             EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((s, e) => { if (s is Window w) Appearance.ScaleFor(w); }));
             PersonalWording.LoadCache();
             WordingLayer.Install();
+            Core.Language.Initialize();
             Games = new GameDetector();
             Toasts = new ToastManager();
             Modes.Initialize();
