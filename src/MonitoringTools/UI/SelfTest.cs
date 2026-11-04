@@ -708,6 +708,17 @@ namespace MonitoringTools.UI
                 if (Modes.MatchesCredential("longer-pass!", c.Salt, c.Hash, c.Iterations)) return "a wrong password matched";
                 return null;
             });
+            // The page search skips button labels on purpose, so choices are found by walking the visible tree.
+            static bool HasChoice(DependencyObject root, string label)
+            {
+                for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(root); i++)
+                {
+                    var c = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+                    if (c is System.Windows.Controls.Primitives.ButtonBase b && b.IsVisible && (b.Content as string ?? (b.Content as TextBlock)?.Text) == label) return true;
+                    if (HasChoice(c, label)) return true;
+                }
+                return false;
+            }
             await CheckAsync("school: the language page hides the language choices and humour sliders and English is forced", async () =>
             {
                 var saved = Settings.Current.LanguageMode;
@@ -720,7 +731,7 @@ namespace MonitoringTools.UI
                     cc.Navigate("language", animate: false);
                     await Task.Delay(400);
                     var open = SearchScope.Text(cc);
-                    if (!open.Contains("English humour") || !open.Contains("廣東話")) return "the language choices or humour sliders are missing before School mode";
+                    if (!open.Contains("English humour") || !HasChoice(cc, "廣東話")) return "the language choices or humour sliders are missing before School mode";
                     Settings.Current.LanguageMode = LanguageMode.Cantonese;
                     Modes.ForceSchoolForTest(true);
                     if (!Core.Language.IsEnglish) return "language is not forced to English";
@@ -728,7 +739,7 @@ namespace MonitoringTools.UI
                     cc.Navigate("language", animate: false);
                     await Task.Delay(400);
                     var text = SearchScope.Text(cc);
-                    if (text.Contains("廣東話")) return "a Cantonese choice is still shown";
+                    if (HasChoice(cc, "廣東話")) return "a Cantonese choice is still shown";
                     if (text.Contains("English humour") || text.Contains("Cantonese humour")) return "a humour slider is still shown";
                     return text.Contains("English only") ? null : "the page does not name the mode";
                 }
