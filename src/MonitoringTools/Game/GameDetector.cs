@@ -30,8 +30,20 @@ namespace MonitoringTools.Game
             _timer.Start();
         }
 
+        private bool _simulated;
+
+        /// <summary>Test hook for the self-test: report this game as running (or, with null, go back to real detection). Never used by the app itself.</summary>
+        internal void SimulateForTest(string game)
+        {
+            _simulated = game != null;
+            ActiveGame = game;
+            var gaming = game != null;
+            if (gaming != IsGaming) { IsGaming = gaming; GamingChanged?.Invoke(gaming); }
+        }
+
         public void Check()
         {
+            if (_simulated) return;
             string found = null;
             var s = Settings.Current;
             try

@@ -1390,13 +1390,7 @@ namespace MonitoringTools.UI
             var a = new StackPanel();
             a.Children.Add(CardTitle("Updates", _updateText ?? "Every change to the project ships as a new release on GitHub."));
             var row = new WrapPanel();
-            row.Children.Add(Ui.Button("Check for updates", async () =>
-            {
-                _updateText = "Checking…";
-                Navigate("about", animate: false);
-                _updateText = await CheckUpdates(version);
-                Navigate("about", animate: false);
-            }, "Btn.Accent", Icons.Restart));
+            row.Children.Add(Ui.Button("Check for updates", async () => await RunUpdateCheck(version), "Btn.Accent", Icons.Restart));
             row.Children.Add(Ui.Button("Release notes", () => Markdown.Open("https://github.com/Ding-Ding-Projects/Monitoring-tools/releases"), "Btn.Ghost", Icons.Globe));
             row.Children.Add(Ui.Button("Project page", () => Markdown.Open("https://ding-ding-projects.github.io/Monitoring-tools/"), "Btn.Ghost", Icons.Link));
             a.Children.Add(row);
@@ -1430,10 +1424,26 @@ namespace MonitoringTools.UI
             return root;
         }
 
+        private async System.Threading.Tasks.Task RunUpdateCheck(string version)
+        {
+            _updateText = "Checking…";
+            Navigate("about", animate: false);
+            _updateText = await CheckUpdates(version);
+            Navigate("about", animate: false);
+        }
+
+        /// <summary>Test hook for the self-test: the same work the Check for updates button does.</summary>
+        internal System.Threading.Tasks.Task CheckUpdatesForTest() => RunUpdateCheck(typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0");
+
+        /// <summary>Test hook for the self-test: when set, the update check reads this tag instead of asking GitHub. Never set by the app itself.</summary>
+        internal static string SimulatedLatestTagForTest;
+
         private static async System.Threading.Tasks.Task<string> CheckUpdates(string current)
         {
             try
             {
+                if (SimulatedLatestTagForTest != null && Version.TryParse(SimulatedLatestTagForTest, out var fake) && Version.TryParse(current, out var here))
+                    return fake > here ? Core.Language.Headline("update.available", fake.ToString()) + "\n" + $"You have {here}. Grab it from Release notes." : $"You are up to date ({here}).";
                 using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(8) };
                 http.DefaultRequestHeaders.UserAgent.ParseAdd("MonitoringTools/" + current);
                 var json = await http.GetStringAsync("https://api.github.com/repos/Ding-Ding-Projects/Monitoring-tools/releases/latest");

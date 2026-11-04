@@ -105,7 +105,7 @@ namespace MonitoringTools.Core
         };
 
         private static readonly Regex Lexer = new Regex(
-            @"\\[pP]\{[^}]*\}|\\k<[^>]*>|\\u[0-9A-Fa-f]{4}|\\x[0-9A-Fa-f]{2}|\\c[A-Za-z]|\\[0-9]+|\\.|\[(?:\\.|[^\]\\])*\]|\(\?<[A-Za-z_]\w*>|\(\?'[A-Za-z_]\w*'|\(\?\(|\(\?[imnsx-]+[:)]|\(\?<=|\(\?<!|\(\?[:=!>#]|\(|\)|\{\d+(?:,\d*)?\}\??|[*+?]\??|[\^$|.]|[\s\S]",
+            @"\\[pP]\{[^}]*\}|\\k<[^>]*>|\\k'[^']*'|\\u[0-9A-Fa-f]{4}|\\x[0-9A-Fa-f]{2}|\\c[A-Za-z]|\\[0-9]+|\\.|\[(?:\\.|[^\]\\])*\]|\(\?<[A-Za-z_]\w*>|\(\?'[A-Za-z_]\w*'|\(\?\(|\(\?[imnsx-]+[:)]|\(\?<=|\(\?<!|\(\?#[^)]*\)|\(\?[:=!>#]|\(|\)|\{\d+(?:,\d*)?\}\??|[*+?]\??|[\^$|.]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S]",
             RegexOptions.None, TimeSpan.FromMilliseconds(200));
 
         /// <summary>Token-by-token annotation. Built by a lexer here, not by the engine, so it is labelled as an explanation, not a parse tree.</summary>
@@ -134,25 +134,39 @@ namespace MonitoringTools.Core
             if (Named.TryGetValue(t, out var n)) return n;
             if (t.StartsWith(@"\p{", StringComparison.Ordinal)) return $"one character in the Unicode category or block {t[3..^1]}";
             if (t.StartsWith(@"\P{", StringComparison.Ordinal)) return $"one character not in the Unicode category or block {t[3..^1]}";
-            if (t.StartsWith(@"\k<", StringComparison.Ordinal)) return $"the same text the group \"{t[3..^1]}\" matched";
-            if (t.StartsWith(@"\u", StringComparison.Ordinal) || t.StartsWith(@"\x", StringComparison.Ordinal)) return $"the character U+{Convert.ToInt32(t[2..], 16):X4} ({char.ConvertFromUtf32(Convert.ToInt32(t[2..], 16))})";
+            if (t.StartsWith(@"\k<", StringComparison.Ordinal) || t.StartsWith(@"\k'", StringComparison.Ordinal)) return $"the same text the group \"{t[3..^1]}\" matched";
+            if (t == @"\x" || t == @"\u") return "an incomplete hexadecimal escape (the engine rejects this)";
+            if (t == @"\c") return "an incomplete control-character escape (the engine rejects this)";
+            if (t == @"\k") return "an incomplete named backreference (the engine rejects this)";
+            if (t == @"\p" || t == @"\P") return "an incomplete Unicode property escape (the engine rejects this)";
+            if (t.StartsWith(@"\u", StringComparison.Ordinal) || t.StartsWith(@"\x", StringComparison.Ordinal))
+            {
+                var code = Convert.ToInt32(t[2..], 16);
+                return code >= 0xD800 && code <= 0xDFFF ? $"the UTF-16 surrogate half U+{code:X4}" : $"the character U+{code:X4} ({char.ConvertFromUtf32(code)})";
+            }
             if (t.StartsWith(@"\c", StringComparison.Ordinal)) return $"the control character Ctrl+{char.ToUpperInvariant(t[2])}";
+            if (t.StartsWith(@"\0", StringComparison.Ordinal)) return $"the character with octal code {t[1..]}";
+            if (t.StartsWith("(?#", StringComparison.Ordinal)) return "a comment, ignored when matching";
             if (t.Length > 1 && t[0] == '\\' && char.IsDigit(t[1])) return $"the same text group {t[1..]} matched";
+            if (t == @"\") return "a backslash with nothing after it (the engine rejects this)";
             if (t.StartsWith(@"\", StringComparison.Ordinal)) return $"the literal character {t[1..]}";
             if (t.StartsWith("[^", StringComparison.Ordinal)) return $"one character not in the set {t}";
             if (t.StartsWith("[", StringComparison.Ordinal)) return t.Contains("-[") ? $"one character from the set {t} (with subtraction)" : $"one character from the set {t}";
             if (t.StartsWith("(?<", StringComparison.Ordinal) || t.StartsWith("(?'", StringComparison.Ordinal)) return $"start of the named group \"{t[3..^1]}\"";
             if (t == "(?(") return "start of a conditional: (?(condition)yes|no)";
             if (t.StartsWith("(?", StringComparison.Ordinal)) return t.EndsWith(":", StringComparison.Ordinal) ? $"start of a group with inline options {t[2..^1]}" : $"turn on inline options {t[2..^1]} from here";
-            if (t.StartsWith("{", StringComparison.Ordinal))
+            if (t.StartsWith("{", StringComparison.Ordinal) && t.Length > 2 && (t.EndsWith("}", StringComparison.Ordinal) || t.EndsWith("}?", StringComparison.Ordinal)))
             {
                 var lazy = t.EndsWith("?", StringComparison.Ordinal);
                 var body = t.Trim('{', '}', '?');
                 var parts = body.Split(',');
-                var what = parts.Length == 1 ? $"exactly {parts[0]} times" : parts[1].Length == 0 ? $"{parts[0]} or more times" : $"{parts[0]} to {parts[1]} times";
+                var what = parts.Length == 1 ? (parts[0] == "1" ? "exactly once" : $"exactly {parts[0]} times") : parts[1].Length == 0 ? $"{parts[0]} or more times" : $"{parts[0]} to {parts[1]} times";
                 return $"repeat the previous item {what}" + (lazy ? ", as few as possible" : "");
             }
             if (t == " ") return "a space";
+            if (t == "\n" || t == "\r") return "a line break";
+            if (t == "\t") return "a tab";
+            if (t.Length > 0 && char.IsWhiteSpace(t[0])) return "a whitespace character";
             return $"the literal character {t}";
         }
 
