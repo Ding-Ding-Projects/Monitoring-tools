@@ -103,7 +103,7 @@
   },
   {
     "file": "command-palette.png",
-    "caption": "Command palette (Ctrl+Shift+F)",
+    "caption": "Command palette (Ctrl\u002BShift\u002BF)",
     "width": 1360,
     "height": 1120
   },
@@ -661,25 +661,25 @@
   },
   {
     "file": "guided-minecraft-1.png",
-    "caption": "New server, step 1: name and version",
+    "caption": "New server, step 1: edition and version",
     "width": 2088,
     "height": 1576
   },
   {
     "file": "guided-minecraft-2.png",
-    "caption": "New server, step 2: where it runs",
+    "caption": "New server, step 2: software",
     "width": 2088,
     "height": 1576
   },
   {
     "file": "guided-minecraft-3.png",
-    "caption": "New server, step 3: memory and port",
+    "caption": "New server, step 4: name, memory and port",
     "width": 2088,
     "height": 1576
   },
   {
     "file": "guided-minecraft-4.png",
-    "caption": "New server, step 4: review and accept the EULA",
+    "caption": "New server, step 6: review and accept the EULA",
     "width": 2088,
     "height": 1576
   },
@@ -744,27 +744,165 @@
     "height": 1576
   },
   {
+    "file": "number-field-clipboard.png",
+    "caption": "Clipboard: History size is a typed number field; an out-of-range entry is refused and the last good value stays",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "number-field-modes.png",
+    "caption": "Modes: the reminder interval is a typed number with steppers, a unit and a subtitle with its default",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "number-field-safety.png",
+    "caption": "Safety: the default unlock time is typed in minutes, with 0 meaning until the app closes",
+    "width": 2088,
+    "height": 1576
+  },
+  {
     "file": "mc-commands-give.png",
-    "caption": "Minecraft servers: the command builder giving an item, with the online players, the version's item list searched for diamond and the coloured command line (sample data)",
-    "width": 3400,
-    "height": 2168
+    "caption": "Minecraft servers: the command builder giving an item, with the online players, the version\u0027s item list searched for diamond and the coloured command line (sample data)",
+    "width": 2088,
+    "height": 1576
   },
   {
     "file": "mc-commands-tp.png",
     "caption": "Minecraft servers: teleport with a selector filter and relative axes (sample data)",
-    "width": 3400,
-    "height": 2168
+    "width": 2088,
+    "height": 1576
   },
   {
     "file": "mc-commands-tree.png",
-    "caption": "Minecraft servers: Every command, walking effect give through the server's own command tree with a control per argument (sample data)",
-    "width": 3400,
-    "height": 2168
+    "caption": "Minecraft servers: Every command, walking effect give through the server\u0027s own command tree with a control per argument (sample data)",
+    "width": 2088,
+    "height": 1576
   },
   {
     "file": "mc-commands-favourites.png",
     "caption": "Minecraft servers: favourite commands at the top of the task gallery, and the weather task (sample data)",
-    "width": 3400,
-    "height": 2168
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-overview.png",
+    "caption": "Minecraft servers: overview of a running server (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-console.png",
+    "caption": "Minecraft servers: console with the live log, the way into the command builder and the recent commands (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-players.png",
+    "caption": "Minecraft servers: players from ops.json, whitelist.json and banned-players.json (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-settings.png",
+    "caption": "Minecraft servers: settings with keys, defaults and when each applies (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-worlds.png",
+    "caption": "Minecraft servers: worlds with size and seed (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-plugins.png",
+    "caption": "Minecraft servers: installed plugins and the catalogue (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-backups.png",
+    "caption": "Minecraft servers: backups (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-schedules.png",
+    "caption": "Minecraft servers: schedules (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-create-1.png",
+    "caption": "New server, step 1 of 6: Edition and version",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-create-2.png",
+    "caption": "New server, step 2 of 6: Software",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-create-3.png",
+    "caption": "New server, step 3 of 6: Where it runs",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-create-4.png",
+    "caption": "New server, step 4 of 6: Name and resources",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-create-5.png",
+    "caption": "New server, step 5 of 6: World",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-create-6.png",
+    "caption": "New server, step 6 of 6: Review",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-plugins-badges.png",
+    "caption": "Minecraft servers: installed plugins with a compatibility badge each, Update all and Undo (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-plugins-hangar.png",
+    "caption": "Minecraft servers: Hangar results beside Modrinth for a Paper server (sample results)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-create-bedrock.png",
+    "caption": "New server: Bedrock edition, with Mojang\u0027s newest Windows server",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-create-bedrock-review.png",
+    "caption": "New server: the review step for a Bedrock server",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-found.png",
+    "caption": "Minecraft servers: servers found on this computer that the app did not make, each with Adopt (sample processes)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-adopted.png",
+    "caption": "Minecraft servers: an adopted Paper server that was started outside the app (sample process)",
+    "width": 2088,
+    "height": 1576
   }
 ]
