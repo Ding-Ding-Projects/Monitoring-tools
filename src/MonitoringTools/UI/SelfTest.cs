@@ -811,6 +811,8 @@ namespace MonitoringTools.UI
                 return left.Count + " untranslated of " + LanguageAudit.Examined + " examined: " + string.Join(" | ", shown) + (left.Count > 80 ? " | ... see language-untranslated.txt" : "");
             });
 
+            await RunNumberFieldsAsync();
+
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>

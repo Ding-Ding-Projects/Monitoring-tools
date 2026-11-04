@@ -59,29 +59,8 @@ namespace MonitoringTools.UI
             body.Children.Add(policies);
             body.Children.Add(_fields);
 
-            body.Children.Add(SafetyUi.Text("Stay unlocked for", 12, "B.TextMute", null, 6));
-            var dur = new WrapPanel();
-            var durChips = new List<(Button B, int M)>();
-            void PaintDur()
-            {
-                foreach (var (b, m) in durChips)
-                {
-                    bool on = m == _minutes;
-                    b.Background = on ? Ui.Res("B.Mint") : Ui.Res("B.Raised");
-                    b.Foreground = on ? Ui.Res("B.MintInk") : Ui.Res("B.TextSoft");
-                    b.BorderBrush = on ? Ui.Res("B.Mint") : Ui.Res("B.LineStrong");
-                }
-            }
-            foreach (var (text, m) in new[] { ("Until the app closes", 0), ("5 minutes", 5), ("15 minutes", 15), ("1 hour", 60) })
-            {
-                var mm = m;
-                var b = Ui.Button(text, () => { _minutes = mm; PaintDur(); }, "Btn.Chip");
-                b.ToolTip = "How long this lock stays open after you unlock it";
-                durChips.Add((b, m)); dur.Children.Add(b);
-            }
-            if (!durChips.Any(d => d.M == _minutes)) _minutes = 5;
-            PaintDur();
-            body.Children.Add(dur);
+            body.Children.Add(new NumberField("Stay unlocked for", "How long this lock stays open after you unlock it. 0 keeps it open until the app closes. Default: 5 min.",
+                _minutes, 0, 1440, 1, v => _minutes = (int)v, "min"));
 
             body.Children.Add(SafetyUi.Text(Locks.Disclosure, 12, "B.TextSoft", null, 6));
             body.Children.Add(SafetyUi.Text(Locks.RecoveryLine, 12, "B.TextMute", null, 4));

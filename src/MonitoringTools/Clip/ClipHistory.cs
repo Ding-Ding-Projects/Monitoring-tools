@@ -34,8 +34,21 @@ namespace MonitoringTools.Clip
             Items.Insert(0, item);
             // Keep pixels only for the newest few images so history stays light on memory.
             for (int i = 5; i < Items.Count; i++) { Items[i].Image = null; Items[i].Audio = null; }
-            while (Items.Count > Math.Max(5, Settings.Current.HistorySize)) Items.RemoveAt(Items.Count - 1);
+            TrimQuiet();
             Updated?.Invoke();
+        }
+
+        /// <summary>Drops the oldest copies beyond the History size setting. Called when a copy is added and when the setting is lowered.</summary>
+        public void Trim()
+        {
+            if (TrimQuiet()) Updated?.Invoke();
+        }
+
+        private bool TrimQuiet()
+        {
+            int before = Items.Count;
+            while (Items.Count > Math.Max(5, Settings.Current.HistorySize)) Items.RemoveAt(Items.Count - 1);
+            return Items.Count != before;
         }
     }
 }

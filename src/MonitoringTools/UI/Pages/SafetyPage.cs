@@ -99,9 +99,9 @@ namespace MonitoringTools.UI
             if (Locks.LoadError != null) box.Children.Add(SafetyLine("The lock store could not be read, so no locks are applied: " + Locks.LoadError, "B.Amber", 13, 6));
 
             var s = Settings.Current;
-            box.Children.Add(SafetyChips("New locks stay unlocked for (default 5 minutes)",
-                new[] { ("Until the app closes", 0), ("5 minutes", 5), ("15 minutes", 15), ("1 hour", 60) }, s.LockUnlockMinutes,
-                v => { s.LockUnlockMinutes = v; Settings.Save(); }, "Default unlock time for the next lock you make"));
+            box.Children.Add(Number("New locks stay unlocked for (default 5 minutes)",
+                "Default unlock time for the next lock you make. 0 keeps a lock open until the app closes.",
+                s.LockUnlockMinutes, 0, 1440, 1, v => s.LockUnlockMinutes = (int)v, "min"));
             box.Children.Add(Switch("Offer Windows Hello", "Adds \"Unlock with Windows Hello\" to lock prompts and the unlock ladder, and \"Show as QR (Windows Hello)\" to authenticator accounts, when Windows Hello is set up on this computer. It is an extra route and never replaces a lock's PIN or password. Default: on.", s.LockOfferWindowsHello, v => s.LockOfferWindowsHello = v));
             box.Children.Add(Switch("Hide locked elements from page search", "Off by default, so locked items are shown and marked as locked instead of quietly disappearing.", s.LocksHiddenInSearch, v => s.LocksHiddenInSearch = v));
 
@@ -183,8 +183,8 @@ namespace MonitoringTools.UI
             addBox.Children.Add(nameRow);
             string algo = "SHA1"; int digits = 6; int period = 30;
             addBox.Children.Add(SafetyChips("Algorithm for a bare secret", Totp.Algorithms.Select(a => (a, a)), algo, v => algo = v, "Algorithm"));
-            addBox.Children.Add(SafetyChips("Digits", new[] { ("6", 6), ("7", 7), ("8", 8) }, digits, v => digits = v, "Digits"));
-            addBox.Children.Add(SafetyChips("Period", new[] { ("30 s", 30), ("60 s", 60), ("15 s", 15) }, period, v => period = v, "Period in seconds"));
+            addBox.Children.Add(new NumberField("Digits", "How many digits each code has. Default: 6.", digits, 6, 8, 1, v => digits = (int)v));
+            addBox.Children.Add(new NumberField("Period", "How many seconds each code lasts. Default: 30 s.", period, 1, 3600, 1, v => period = (int)v, "s"));
             var addMsg = SafetyLine("", "B.TextSoft", 13, 4);
             AutomationProperties.SetLiveSetting(addMsg, AutomationLiveSetting.Polite);
             AutomationProperties.SetName(addMsg, "Add account status");

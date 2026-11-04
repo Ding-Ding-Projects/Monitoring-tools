@@ -177,9 +177,9 @@ namespace MonitoringTools.UI
                 s.AdhdLowStimulation, v => { s.AdhdLowStimulation = v; Modes.NotifyChanged(); }, "B.Violet"));
             sp.Children.Add(Switch("Time awareness", "Off by default. Running jobs show how long they have taken, and a plain reminder appears at the interval below.",
                 s.AdhdTimeAwareness, v => { s.AdhdTimeAwareness = v; Modes.NotifyChanged(); }, "B.Violet"));
-            sp.Children.Add(Choice("Reminder interval (default 30 minutes, used only with Time awareness)",
-                new[] { ("15 min", 15), ("30 min", 30), ("45 min", 45), ("60 min", 60), ("90 min", 90) }, s.TimeReminderMinutes, v => { s.TimeReminderMinutes = v; Modes.NotifyChanged(); },
-                "How often the plain reminder appears while Time awareness is on. Ignored when it is off."));
+            sp.Children.Add(Number("Reminder interval (default 30 minutes, used only with Time awareness)",
+                "How often the plain reminder appears while Time awareness is on. Ignored when it is off.",
+                s.TimeReminderMinutes, 5, 1440, 5, v => { s.TimeReminderMinutes = (int)v; Modes.NotifyChanged(); }, "min"));
             sp.Children.Add(Switch("One thing at a time", "Off by default. Only one popup is on screen at once. The rest wait their turn and also appear in History.",
                 s.AdhdOneThing, v => { s.AdhdOneThing = v; Modes.NotifyChanged(); }, "B.Violet"));
             sp.Children.Add(Switch("Momentum", "Off by default. This window reopens on the page you were last using, so you can pick up where you stopped.",

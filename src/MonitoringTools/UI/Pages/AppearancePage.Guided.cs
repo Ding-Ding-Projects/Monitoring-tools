@@ -50,7 +50,7 @@ namespace MonitoringTools.UI
                         var sp = new StackPanel();
                         sp.Children.Add(Switch("High-contrast outlines", "Draws dividers and card borders in the stronger outline colour.", look.HighContrastOutlines, v => look.HighContrastOutlines = v));
                         sp.Children.Add(Choice("Density", new[] { ("Comfortable", false), ("Compact", true) }, look.Compact, v => look.Compact = v));
-                        sp.Children.Add(Choice("Text size", new[] { 90, 100, 110, 120, 130, 140, 150 }.Select(p => (p + " %", p)).ToArray(), look.TextPercent, v => look.TextPercent = v));
+                        sp.Children.Add(new NumberField("Text size", "Scales text and spacing together, 90 to 150 percent. Default: 100 %.", look.TextPercent, 90, 150, 10, v => look.TextPercent = (int)v, "%", 0, true));
                         return sp;
                     }
                 },

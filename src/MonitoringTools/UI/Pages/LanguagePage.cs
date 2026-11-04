@@ -89,8 +89,12 @@ namespace MonitoringTools.UI
             row.Children.Add(head);
 
             var slider = MakeSlider(1, 5, 1, get(), label);
-            slider.Margin = new Thickness(0, 8, 0, 6);
-            row.Children.Add(slider);
+            slider.Margin = new Thickness(0, 0, 14, 0);
+            // A typed box beside the slider; each one moves the other.
+            var typed = new NumberField(label, null, get(), 1, 5, 1, v => slider.Value = v, null, 0, false, true) { VerticalAlignment = VerticalAlignment.Center };
+            var sliderRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 6) };
+            sliderRow.Children.Add(slider); sliderRow.Children.Add(typed);
+            row.Children.Add(sliderRow);
             row.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap });
 
             var preview = new StackPanel { Margin = new Thickness(0, 10, 0, 0) };
@@ -117,6 +121,7 @@ namespace MonitoringTools.UI
             slider.ValueChanged += (a, e) =>
             {
                 int v = (int)Math.Round(slider.Value);
+                typed.SetValue(v);
                 if (v == get()) { Paint(v); return; }
                 set(v); Settings.Save(); Paint(v);
             };
@@ -219,13 +224,17 @@ namespace MonitoringTools.UI
             Grid.SetColumn(rateValue, 1); rateHead.Children.Add(rateValue);
             rate.Children.Add(rateHead);
             var slider = MakeSlider(0.5, 2.0, 0.1, s.NarratorRate, "Speaking rate");
-            slider.Margin = new Thickness(0, 8, 0, 6);
-            rate.Children.Add(slider);
+            slider.Margin = new Thickness(0, 0, 14, 0);
+            var typedRate = new NumberField("Speaking rate", null, s.NarratorRate, 0.5, 2.0, 0.1, v => slider.Value = v, "×", 1, false, true) { VerticalAlignment = VerticalAlignment.Center };
+            var rateRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 6) };
+            rateRow.Children.Add(slider); rateRow.Children.Add(typedRate);
+            rate.Children.Add(rateRow);
             rate.Children.Add(new TextBlock { Text = "Default: 1.0×. Slower is 0.5×, faster is 2.0×.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
             rateValue.Text = s.NarratorRate.ToString("0.0") + "×";
             slider.ValueChanged += (a, e) =>
             {
                 var v = Math.Round(slider.Value, 1);
+                typedRate.SetValue(v);
                 rateValue.Text = v.ToString("0.0") + "×";
                 if (Math.Abs(v - s.NarratorRate) < 0.001) return;
                 s.NarratorRate = v; Settings.Save();

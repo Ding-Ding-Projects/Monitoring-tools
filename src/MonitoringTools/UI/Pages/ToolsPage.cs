@@ -65,8 +65,9 @@ namespace MonitoringTools.UI
                 "The screen edge the drawing toolbar sits on when the board opens. Default: top."));
             sp.Children.Add(Switch("Start with the toolbar minimised", "Off by default. The toolbar starts as a small disc that still shows the active tool. Click it to expand.",
                 s.DrawToolbarMinimised, v => s.DrawToolbarMinimised = v));
-            sp.Children.Add(Choice("PNG export size (default 1x)", new[] { ("1x", 1), ("2x", 2), ("3x", 3) }, Math.Max(1, Math.Min(3, s.DrawExportScale)), v => s.DrawExportScale = v,
-                "How many times larger the exported PNG is than the board on screen. 2x and 3x are sharper and make bigger files. Default: 1x."));
+            sp.Children.Add(Number("PNG export size (default 1x)",
+                "How many times larger the exported PNG is than the board on screen. 2x and 3x are sharper and make bigger files. Default: 1x.",
+                Math.Max(1, Math.Min(3, s.DrawExportScale)), 1, 3, 1, v => s.DrawExportScale = (int)v, "×"));
 
             sp.Children.Add(ToolsNote("Pens: Pencil P, Pen N, Fineliner F, Marker M, Highlighter H, Brush B, Fountain pen U. Eraser E, Select S, Line L, Arrow A, Rectangle R, Ellipse O, Text T. " +
                 "Colour C and size Z turn the toolbar into a palette or sliders. Ctrl+Z undo, Ctrl+Y redo, Ctrl+S save a PNG, Ctrl+Shift+C copy, Esc minimise. Hold Shift to lock a stroke to the nearest of eight directions."));

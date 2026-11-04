@@ -236,7 +236,7 @@ namespace MonitoringTools.UI
                     host = Host(form);
                     Press(form, "Dark"); Press(form, "Next");
                     Press(form, "Violet"); Press(form, "Next");
-                    Press(form, "Compact"); Press(form, "120 %");
+                    Press(form, "Compact"); Drive.Type(Descend<NumberField>(form).First(f => f.Label == "Text size").Box, "120", true);
                     var sw = Descend<CheckBox>(form).FirstOrDefault();
                     if (sw != null) sw.IsChecked = true;
                     Press(form, "Next");

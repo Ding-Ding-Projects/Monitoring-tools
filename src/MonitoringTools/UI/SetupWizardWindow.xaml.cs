@@ -77,7 +77,7 @@ namespace MonitoringTools.UI
                     sp.Children.Add(Switch("Show clipboard toasts", "A small card with actions pops up each time you copy something.", s.ClipboardEnabled, v => s.ClipboardEnabled = v));
                     sp.Children.Add(Switch("Keep open while hovered", "A toast stays on screen while the pointer is over it, so you can reach its buttons.", s.KeepOpenOnHover, v => s.KeepOpenOnHover = v));
                     sp.Children.Add(Switch("Skip copies from password managers", "Private copies never pop up or reach history.", s.IgnoreSensitiveSources, v => s.IgnoreSensitiveSources = v));
-                    sp.Children.Add(Chips("Toast duration", new[] { ("2 s", 2.0), ("3 s", 3.0), ("5 s", 5.0), ("8 s", 8.0) }, s.ToastSeconds, v => s.ToastSeconds = v));
+                    sp.Children.Add(new NumberField("Toast duration", "How long a toast stays on screen before it fades. Default: 3 s.", s.ToastSeconds, 1, 600, 0.5, v => s.ToastSeconds = v, "s", 1));
                     var result = Note("");
                     sp.Children.Add(Ui.Button("Show me a toast", () =>
                     {

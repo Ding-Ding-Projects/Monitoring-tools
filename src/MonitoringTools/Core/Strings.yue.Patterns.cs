@@ -20,6 +20,14 @@ namespace MonitoringTools.Core
             // The Cantonese of an inner phrase, or null when it has none, so the whole pattern steps aside.
             string Known(string s) => Language.Yue(s);
 
+            // ---- typed number fields: messages, tooltip and stepper names
+            Add(@"^Not changed: enter a whole number from (.+) to (.+)\.$", "冇改到：請輸入 $1 至 $2 之間嘅整數。");
+            Add(@"^Not changed: enter a number from (.+) to (.+)\.$", "冇改到：請輸入 $1 至 $2 之間嘅數字。");
+            Add(@"^Rounded to (.+)\.$", "已四捨五入到 $1。");
+            Add(@"^Type a number from (.+) to (.+)\. Up and Down keys step it\.$", "輸入 $1 至 $2 之間嘅數字。用上下鍵一格一格調整。");
+            AddFn(@"^Decrease (.+)$", m => "減少「" + Inner(m.Groups[1].Value) + "」");
+            AddFn(@"^Increase (.+)$", m => "增加「" + Inner(m.Groups[1].Value) + "」");
+
             // ---- counts and labels
             AddFn(@"^About (.+)$", m => "關於「" + Inner(m.Groups[1].Value) + "」");
             Add(@"^(\d+) of (\d+) settings and sections$", "$1／$2 個設定同分頁");

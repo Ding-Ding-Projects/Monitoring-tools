@@ -29,6 +29,17 @@ namespace MonitoringTools.UI
         /// The Ollama chat card: attachments (images for vision models, text files inlined), saved chats, profiles
         /// (system prompt presets), per-chat parameters and an honest capability badge read from /api/show.
         /// </summary>
+        /// <summary>The stored keep-alive text ("5m", "1h", "0") as whole minutes; anything unreadable is the default of 5.</summary>
+        internal static int KeepAliveMinutes(string text)
+        {
+            text = (text ?? "").Trim();
+            if (text.Length == 0) return 5;
+            if (text == "0") return 0;
+            if (text.EndsWith("m", StringComparison.OrdinalIgnoreCase) && int.TryParse(text[..^1], out var m) && m >= 0) return Math.Min(1440, m);
+            if (text.EndsWith("h", StringComparison.OrdinalIgnoreCase) && int.TryParse(text[..^1], out var h) && h >= 0) return Math.Min(1440, h * 60);
+            return 5;
+        }
+
         private OllamaChatUi BuildOllamaChat(WrapPanel modelChips, Func<bool> serverUp, Func<IEnumerable<string>> installed, Action<string> chooseModel, Func<Task> afterReply)
         {
             var ui = new OllamaChatUi();
@@ -236,10 +247,10 @@ namespace MonitoringTools.UI
             box.Children.Add(profNote);
             paintProfiles();
 
-            box.Children.Add(Choice("Default keep-alive when a chat sets none (default 5 minutes)",
-                new[] { ("5 minutes", "5m"), ("30 minutes", "30m"), ("1 hour", "1h"), ("Unload at once", "0") }, Settings.Current.OllamaKeepAlive ?? "5m",
-                v => Settings.Current.OllamaKeepAlive = v,
-                "How long a model stays loaded in memory after a reply when the chat does not set its own time. A shorter time frees memory sooner but the next reply starts slower. Default: 5 minutes."));
+            box.Children.Add(Number("Default keep-alive when a chat sets none (default 5 minutes)",
+                "How long a model stays loaded in memory after a reply when the chat does not set its own time. A shorter time frees memory sooner but the next reply starts slower. 0 unloads it at once. Default: 5 minutes.",
+                KeepAliveMinutes(Settings.Current.OllamaKeepAlive), 0, 1440, 1,
+                v => Settings.Current.OllamaKeepAlive = v <= 0 ? "0" : (int)v + "m", "min"));
 
             // ---------------------------------------------------------------- transcript
             var chatOut = new TextBlock { Style = Ui.Style("T.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap };
