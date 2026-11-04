@@ -26,7 +26,19 @@ For SSH targets, **Check host key** shows the machine's key first so you can con
 
 ## Manage it
 
-Each server has Start, Stop, Restart, Add plugin or mod, Open folder and Remove. A console shows output and has a box to send commands to the server.
+Each server card shows an icon tile, the name, chips for version, flavour, where it runs and the port, and a
+status pill. While the server runs, the pill and tile turn mint and the dot breathes; a stopped server stays still,
+and an unreachable or missing one turns amber. The page header counts the servers and how many are running.
+
+Actions: Start, Stop, Restart, Console, Settings (local targets), Add plugin or mod, Open folder (local targets) and Remove.
+
+- **Console** opens a terminal panel under the actions: the live log, then the command builder. Pick a known
+  command from the chips (the prompt shows it), type its arguments and press Send. Commands are sent to the server,
+  never to a shell.
+- **Settings** opens a drawer with the `server.properties` controls (switches, choices and numbers). Changes are
+  saved at once and applied on the next start. The drawer is closed by default so the card stays short.
+
+With no servers yet, the page shows a short empty state above the New server guide.
 
 ## Failure modes
 

@@ -22,6 +22,7 @@ namespace MonitoringTools.UI.Minecraft
         internal static string SelectedId;
         internal static string Section = "overview";
         internal static bool Creating;
+        private static int _lastSection;
 
         internal static readonly (string Id, string Label, string Icon)[] Sections =
         {
@@ -153,7 +154,9 @@ namespace MonitoringTools.UI.Minecraft
                 };
                 sp.Children.Add(body);
                 SectionBody = body;
-                McUi.SlideIn(body);
+                int at = Array.FindIndex(Sections, x => x.Id == Section);
+                Ui.SharedAxis(body, Math.Sign(at - _lastSection));
+                _lastSection = at;
                 content = sp;
             }
             _workspace.Content = content;

@@ -18,7 +18,6 @@ namespace MonitoringTools.UI.Minecraft
     /// <summary>Small Material 3 building blocks for the server manager, drawn from the app's theme roles.</summary>
     internal static class McUi
     {
-        public static bool Calm => Appearance.ReduceMotion || Modes.ReduceMotion;
 
         public static Border Card(UIElement child, double pad = 20, string bg = "B.Surface") => new Border
         {
@@ -60,9 +59,9 @@ namespace MonitoringTools.UI.Minecraft
         {
             var (bg, fg, dot) = StateTone(s);
             var sp = new StackPanel { Orientation = Orientation.Horizontal };
-            var d = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Ui.Res(dot), Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
-            if ((s == McRunState.Running || s == McRunState.Starting) && !Calm)
-                d.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, 0.35, TimeSpan.FromMilliseconds(800)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
+            // The shared live dot breathes while the server runs and stays still otherwise (and under reduced motion).
+            var (d, _) = Ui.LiveDot(Ui.Res(dot), s == McRunState.Running || s == McRunState.Starting, 8);
+            d.Margin = new Thickness(-6, -6, 0, -6);
             sp.Children.Add(d);
             sp.Children.Add(new TextBlock { Text = McState.Label(s), FontSize = large ? 14 : 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res(fg), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
             var b = new Border { Background = Ui.Res(bg), CornerRadius = new CornerRadius(large ? 16 : 10), Padding = large ? new Thickness(14, 6, 14, 7) : new Thickness(10, 3, 10, 4), Child = sp, VerticalAlignment = VerticalAlignment.Center };
@@ -182,20 +181,10 @@ namespace MonitoringTools.UI.Minecraft
         public static string TargetLabel(Target t) => t switch { Target.LocalProcess => "This PC", Target.LocalDocker => "Docker", Target.SshProcess => "SSH", _ => "SSH Docker" };
         public static string TargetIcon(Target t) => t switch { Target.LocalProcess => Icons.Monitor, Target.LocalDocker => Icons.Box, Target.SshProcess => Icons.Link, _ => Icons.Globe };
 
-        /// <summary>Slides a section or step in from the side; skipped under reduced motion and low stimulation.</summary>
-        public static void SlideIn(FrameworkElement e, double from = 18)
-        {
-            if (Calm) { e.Opacity = 1; e.RenderTransform = Transform.Identity; return; }
-            var tt = new TranslateTransform(from, 0);
-            e.RenderTransform = tt; e.Opacity = 0;
-            tt.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(from, 0, TimeSpan.FromMilliseconds(320)) { EasingFunction = Ui.Out });
-            e.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Out });
-        }
-
         /// <summary>Morphs a selected row's corner radius, as the design's selected list rows do.</summary>
         public static void Morph(Border b, double to)
         {
-            if (Calm) { b.CornerRadius = new CornerRadius(to); return; }
+            if (Ui.Reduced) { b.CornerRadius = new CornerRadius(to); return; }
             double from = b.CornerRadius.TopLeft;
             var clock = new DoubleAnimation(from, to, TimeSpan.FromMilliseconds(320)) { EasingFunction = Ui.Spring };
             var anim = clock.CreateClock();

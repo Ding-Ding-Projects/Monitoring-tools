@@ -96,6 +96,8 @@ namespace MonitoringTools.UI
             var idx = Array.FindIndex(_sections, s => s.Id == id);
             if (idx < 0) idx = 0;
             id = _sections[idx].Id;
+            int direction = _lastIdx < 0 || _lastIdx == idx ? 0 : idx > _lastIdx ? 1 : -1;
+            _lastIdx = idx;
             _current = id;
             _tabs.Show(id);
 
@@ -134,12 +136,16 @@ namespace MonitoringTools.UI
             ElementStyles.ApplyAll(page, id);
             if (!animate) return;
             Scroller.ScrollToTop();
+            // Shared axis: the page slides in from the side of the tab you moved toward, then its cards rise in order.
+            Ui.SharedAxis(Page, direction);
             if (page is Panel p)
             {
                 int i = 0;
-                foreach (FrameworkElement c in p.Children) Ui.Rise(c, i++ * 45, 14, 420);
+                foreach (FrameworkElement c in p.Children) Ui.Rise(c, 60 + Math.Min(i++, 12) * 45, 14, 420);
             }
         }
+
+        private int _lastIdx = -1;
 
         // -------------------------------------------------------------- building blocks
 
@@ -162,9 +168,12 @@ namespace MonitoringTools.UI
                 BorderBrush = edge == null ? Brushes.Transparent : new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge)),
                 BorderThickness = new Thickness(edge == null ? 0 : 1), Margin = new Thickness(0, 0, 0, Appearance.Gap(16)), Child = child
             };
-            // Material 3 filled card: no outline; a soft tonal lift on hover.
-            b.MouseEnter += (s, e) => b.Background = Ui.Res("B.Raised");
-            b.MouseLeave += (s, e) => b.Background = Ui.Res("B.Surface");
+            // Material 3 filled card: no outline; a soft tonal lift on hover that glides instead of snapping.
+            var tint = new SolidColorBrush(((SolidColorBrush)Ui.Res("B.Surface")).Color);
+            b.Background = tint;
+            b.MouseEnter += (s, e) => { if (Ui.Reduced) tint.Color = ((SolidColorBrush)Ui.Res("B.Raised")).Color; else Ui.ColorTo(tint, ((SolidColorBrush)Ui.Res("B.Raised")).Color, 200); };
+            b.MouseLeave += (s, e) => { if (Ui.Reduced) tint.Color = ((SolidColorBrush)Ui.Res("B.Surface")).Color; else Ui.ColorTo(tint, ((SolidColorBrush)Ui.Res("B.Surface")).Color, 260); };
+            Ui.Liftable(b);
             return b;
         }
 
@@ -887,23 +896,7 @@ namespace MonitoringTools.UI
             a.Children.Add(row);
             root.Children.Add(Card(a, ff == null ? "#FF4A3A22" : null));
 
-            var f = new StackPanel();
-            f.Children.Add(CardTitle("Formats"));
-            foreach (var group in Formats.All.Where(x => x.Id != "jpeg").GroupBy(x => x.Kind))
-            {
-                f.Children.Add(Ui.Mono(group.Key.ToString().ToUpperInvariant(), Ui.Res("B.TextMute"), 11));
-                var wrap = new WrapPanel { Margin = new Thickness(0, 6, 0, 10) };
-                foreach (var spec in group)
-                {
-                    var it = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 16, 8) };
-                    it.Children.Add(new Border { Background = Ui.Res("B.MintWash"), CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 3, 8, 4), Child = Ui.Mono(":" + spec.Id, Ui.Res("B.Mint")) });
-                    it.Children.Add(new TextBlock { Text = spec.Label, Style = Ui.Style("T.Body"), Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
-                    wrap.Children.Add(it);
-                }
-                f.Children.Add(wrap);
-            }
-            f.Children.Add(Ui.Text("An existing file is never overwritten: the new one gets a (1), (2) suffix."));
-            root.Children.Add(Card(f));
+            root.Children.Add(FormatListCard());
             return root;
         }
 

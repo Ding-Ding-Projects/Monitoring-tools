@@ -12,6 +12,14 @@ checked; anything unchecked is labelled.
   publishes the next normal release and deploys the site (`.github/workflows/build.yml`).
 - Latest release at the time of writing: v1.0.12 (see [CHANGELOG.md](CHANGELOG.md)).
 
+## Motion and page redesign (2026-11-04)
+
+- Design canvas and its handoff: [design/motion-and-pages](design/motion-and-pages/HANDOFF.md).
+- Shared motion helpers in `UI/Ui.cs`; shared-axis page changes in `ControlCentreWindow.Navigate`.
+- Redesigned Ollama, Minecraft servers and Conversion pages; Conversion is now a searchable list of 39 formats.
+- **Checked:** compiles with `EnableWindowsTargeting` on Linux (0 errors). **Not checked:** running the app, and the
+  new FFmpeg encoders against the bundled build. The first Windows build and its screenshots are the real test.
+
 ## Release pipeline additions (written, not yet run on the build machine)
 
 - `scripts/line-counts.mjs` counts lines per category and language at a commit, with surviving-line

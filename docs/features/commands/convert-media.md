@@ -14,9 +14,23 @@ You can also press a format chip on the toast of a copied media file; that does 
 
 ## Formats
 
-- Video and animation: `mp4 mov mkv webm avi gif`
-- Audio: `mp3 wav flac m4a ogg opus`
-- Images: `png jpg webp bmp tiff avif ico`
+The Conversion page lists every format with a search box and Video, Audio and Image filters. Each row shows
+the `:command`, the file extension, when to pick it, and what it can be made from. **Convert files…** on a row
+opens a picker limited to files that convert to that format; one file runs as a single conversion, several run
+as a batch under one toast.
+
+| Kind | Commands |
+| --- | --- |
+| Video | `mp4` (H.264), `hevc` (H.265 in MP4), `av1` (AV1 in MP4), `webm`, `mkv` (stream copy), `mov`, `m4v`, `avi`, `wmv`, `flv`, `mpg` (MPEG-2), `ts`, `3gp` |
+| Animation | `gif`, `apng` (made from a video or an image) |
+| Audio | `mp3`, `m4a`, `aac`, `opus`, `ogg`, `flac`, `alac`, `wav`, `aiff`, `wma`, `ac3`, `mka` (audio copy) |
+| Images | `png`, `jpg` (or `jpeg`), `webp`, `avif`, `jxl`, `bmp`, `tiff`, `tga`, `qoi`, `ppm`, `jp2`, `ico` |
+
+Files the app recognises as a source also grew: video now includes `.vob .mxf .f4v .m2v .asf .divx .rm .rmvb
+.y4m .hevc .h264 .h265 .3g2`; audio includes `.ac3 .eac3 .mka .mp2 .caf .dts .wv .ape .au .oga .m4b .tta .spx`;
+images include `.jxl .tga .qoi .ppm .pgm .pbm .pcx .dds .exr .hdr .jp2 .j2k .psd .sgi .apng .jfif`.
+
+A folder batch to a still image format takes the images in the folder only; `gif` and `apng` also take videos.
 
 ## A whole folder
 

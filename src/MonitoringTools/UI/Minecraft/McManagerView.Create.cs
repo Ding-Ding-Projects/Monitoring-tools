@@ -121,7 +121,7 @@ namespace MonitoringTools.UI.Minecraft
                 }
                 catch (Exception ex) { Sounds.Play(Cue.Warning); return ex.Message; }
             };
-            McUi.SlideIn(g);
+            Ui.SharedAxis(g, 1);
             return g;
         }
 

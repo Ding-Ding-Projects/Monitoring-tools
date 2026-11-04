@@ -6,8 +6,29 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.16, up to `bc714fe`.
+Commits after v1.0.18, up to `3b09869`.
 
+- Refresh screenshots for v1.0.18 ([`3b09869`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/3b098699025d3e8a1abed580408efcf4d29395db))
+
+## 1.0.18 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.18)
+
+- Redesign Ollama, Minecraft and Conversion pages with a motion system ([`df3a6dc`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/df3a6dcdcaa5aca7b8a6bf34c9d9b8448490da9e))
+- Record v1.0.17 figures and changelog ([`8ad6688`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8ad6688e070e2c58397b82ad5095c5a0bcb12bf2))
+- Refresh screenshots for v1.0.17 ([`39440f2`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/39440f2a93d684f923d7ff89d6256b8c58682aab))
+
+## 1.0.17 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.17)
+
+- Translate the new guided forms and avoid two reserved words ([`b1a9b86`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b1a9b86a738190b6d0cc85503b925a1407485a92))
+- Translate the wave 6 strings and mark user data literal at its source ([`eb61d9b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/eb61d9b02959cdadc0ee932cbb1dec958e5a4172))
+- Cover every visible string in Cantonese and audit it in the self-test ([`e57b6bc`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e57b6bccd7e5e9e4ee26eeedafb8d09c4f3df568))
+- Explain the logo glyph choice like every other setting ([`09a0903`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/09a0903bd4f130bd01047f32a5c4ddc968b5be18))
+- Drive ten built features through their real controls in the self-test and capture run ([`b19bd2b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b19bd2b8c5122d4518438a8088d5d339596d7448))
+- Add School mode Windows Hello, guided forms, bulk actions, logo glyphs, Export everything ([`4571f2f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/4571f2f19488e615a636180c3b215bf80b7545a4))
+- Record v1.0.16 figures and changelog ([`fe53628`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/fe5362856dda509be01e0f3abd579f93d45c9299))
 - Refresh screenshots for v1.0.16 ([`bc714fe`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/bc714fee0b576e8d116dc44e4172bab464bab3c6))
 
 ## 1.0.16 (2026-11-04)

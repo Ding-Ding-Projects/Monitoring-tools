@@ -1309,6 +1309,42 @@ namespace MonitoringTools.Core
             Add("Compose up finished", "Compose 啟動完成");
             Add("ongoing", "持續中");
             Add("Light weight", "細幼字重");
+
+            // ---- 2026-11 motion redesign: Ollama hero, Minecraft server cards, conversion format list
+            Add("installed models", "已安裝模型"); Add("on disk", "佔用磁碟"); Add("loaded in memory", "已載入記憶體");
+            Add("Running", "運行中"); Add("checking…", "檢查緊…"); Add("Server status", "伺服器狀態");
+            Add("Settings", "設定"); Add("Hide settings", "收埋設定"); Add("Command arguments", "指令參數");
+            Add("No servers yet", "仲未有伺服器"); Add("Create one with the guide below. Nothing is downloaded until the last step.", "用下面嘅指引開一個。去到最後一步先會下載任何嘢。");
+            Add("1 server", "1 個伺服器");
+            Add("Search formats, for example webm or lossless", "搜尋格式，例如 webm 或者 lossless");
+            Add("Convert files…", "轉換檔案…"); Add("formats", "格式");
+            Add("No format matches. Try a file extension, a codec or a word like lossless.", "冇格式符合。試吓副檔名、編碼器，或者 lossless 呢類字眼。");
+            Add("Plays everywhere; the safe default", "邊度都播到，最穩陣嘅預設"); Add("Plays everywhere", "邊度都播到");
+            Add("About half the size of H.264 at the same quality", "同樣畫質下，大約係 H.264 一半大小");
+            Add("Smallest files; newer players only", "檔案最細，只限較新嘅播放器");
+            Add("For the web and chat apps", "適合網頁同通訊 app");
+            Add("Copies every stream without re-encoding", "直接複製所有串流，唔重新編碼");
+            Add("For Apple apps and video editors", "適合 Apple app 同影片剪接軟件");
+            Add("Apple style MP4 for TVs and players", "Apple 風格嘅 MP4，適合電視同播放器");
+            Add("Old players and devices", "舊式播放器同裝置"); Add("Old Windows players and slide shows", "舊式 Windows 播放器同簡報");
+            Add("Old streaming tools", "舊式串流工具"); Add("DVD tools and old hardware players", "DVD 工具同舊式硬件播放器");
+            Add("Broadcast and recording tools", "廣播同錄影工具"); Add("Old phones; small and low resolution", "舊式手機用，細檔低解像度");
+            Add("Short loops from a video, with a tuned palette", "由影片剪出嘅短循環，配調校好嘅調色盤");
+            Add("Full colour loops with transparency", "全彩循環動畫，支援透明");
+            Add("Small, good quality, Apple friendly", "細檔、音質好、啱 Apple 裝置"); Add("A plain AAC stream", "純 AAC 串流");
+            Add("Best quality for the size", "以大小計音質最好"); Add("Open format for games and Linux", "開放格式，啱遊戲同 Linux");
+            Add("Lossless and compressed", "無損兼壓縮"); Add("Lossless for Apple devices", "Apple 裝置用嘅無損格式");
+            Add("Lossless and uncompressed", "無損、無壓縮"); Add("Lossless and uncompressed, Mac style", "無損、無壓縮，Mac 風格");
+            Add("Old Windows players", "舊式 Windows 播放器"); Add("Surround sound for home theatre", "家庭影院環迴聲");
+            Add("Copies the audio track without re-encoding", "直接複製音軌，唔重新編碼");
+            Add("Lossless with transparency", "無損兼支援透明"); Add("Photos; small and universal", "相片用，細檔又通用");
+            Add("Same as :jpg", "同 :jpg 一樣"); Add("Small images for the web", "網頁用嘅細圖");
+            Add("Smallest photos; newer apps only", "相片最細，只限較新嘅 app"); Add("Modern photo format, close to lossless", "新式相片格式，接近無損");
+            Add("Old apps that need raw pixels", "需要原始像素嘅舊式 app"); Add("Print and scanning, lossless", "印刷同掃描用，無損");
+            Add("Game textures and 3D tools", "遊戲材質同 3D 工具"); Add("Fast lossless images for games", "遊戲用嘅快速無損圖片");
+            Add("Plain pixel map for scripts", "腳本用嘅純像素圖"); Add("Archives and medical imaging", "檔案庫同醫學影像");
+            Add("256 square app icon with transparency", "256 正方 app 圖示，支援透明");
+            Add("An existing file is never overwritten: the new one gets a (1), (2) suffix.", "現有檔案永遠唔會被覆蓋：新檔案會加 (1)、(2) 後綴。");
         }
     }
 }

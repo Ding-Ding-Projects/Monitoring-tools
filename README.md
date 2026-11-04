@@ -56,7 +56,7 @@ C:\Code\my-repo:push            stages, commits with your default message and pu
 D:\Footage:mp4                  converts every compatible file in the folder
 ```
 
-Formats: `mp4 mov mkv webm avi gif mp3 wav flac m4a ogg opus png jpg webp bmp tiff avif ico`. Existing files are never overwritten. Conversion uses FFmpeg; if it is missing, the toast offers to install it with winget.
+Formats (39, searchable on the Conversion page): video `mp4 hevc av1 webm mkv mov m4v avi wmv flv mpg ts 3gp`, animation `gif apng`, audio `mp3 m4a aac opus ogg flac alac wav aiff wma ac3 mka`, images `png jpg webp avif jxl bmp tiff tga qoi ppm jp2 ico`. Existing files are never overwritten. Conversion uses FFmpeg; if it is missing, the toast offers to install it with winget.
 
 The first `:push` asks for a default commit message, with snippets such as `{date}`, `{time}`, `{branch}`, `{repo}` and `{files}`.
 
@@ -203,12 +203,12 @@ When the public IP address changes, a dialog shows the old and new address, and 
 Line counts are produced by the release workflow with `node scripts/line-counts.mjs` and published in each release's notes. The block below is refreshed from the latest release by that workflow; until the first release that runs it, it shows no figures rather than invented ones.
 
 <!-- release-figures:start -->
-Figures from release v1.0.16 (commit `4103da40e164`), refreshed automatically by the release workflow. The release notes are the record; this is a convenience copy.
+Figures from release v1.0.18 (commit `df3a6dcdcaa5`), refreshed automatically by the release workflow. The release notes are the record; this is a convenience copy.
 
-- Project total: 46,987 lines (42,553 non-blank); grand total with excluded rows: 55,346 lines.
-- Source 40,530, tests 824, styles and markup 1,363, documentation 2,804, configuration and data 1,466.
-- Agent-written surviving lines: 46,987 of 46,987, by `git blame`.
-- Human time estimate: about 797 to 1,987 working days for one person, an estimate rather than a measurement (method below).
+- Project total: 55,508 lines (50,663 non-blank); grand total with excluded rows: 64,751 lines.
+- Source 45,462, tests 1,362, styles and markup 1,363, documentation 5,855, configuration and data 1,466.
+- Agent-written surviving lines: 55,508 of 55,508, by `git blame`.
+- Human time estimate: about 920 to 2,284 working days for one person, an estimate rather than a measurement (method below).
 <!-- release-figures:end -->
 
 **How the human-time estimate is made.** It is an estimate, not a measurement, and it is given as a range because a single figure would imply precision it does not have.

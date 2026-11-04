@@ -97,7 +97,7 @@ namespace MonitoringTools.UI.Minecraft
                 var card = new Border { Background = Ui.Res("B.SecondaryContainer"), CornerRadius = new CornerRadius(28), Padding = new Thickness(20, 10, 12, 4), Margin = new Thickness(0, 0, 0, 14), Child = b };
                 AutomationProperties.SetName(card, "Unsaved changes");
                 bar.Content = card;
-                McUi.SlideIn(card, 0);
+                Ui.Expand(card);
                 Core.Language.Refresh(bar);
             }
 

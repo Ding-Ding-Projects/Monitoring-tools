@@ -93,6 +93,7 @@ namespace MonitoringTools.UI.Minecraft
                 _rows.Children.Add(row);
                 _rowParts[s.Id] = (row, dot, sub);
             }
+            Ui.RiseAll(_rows.Children);
             if (ServerManager.Servers.Count == 0) _rows.Children.Add(McUi.Body("No servers yet. New server walks you through making one.", "B.TextMute", 12.5));
             RepaintList();
         }

@@ -130,6 +130,7 @@ namespace MonitoringTools.UI.Minecraft
             sp.Children.Add(new TextBlock { Text = value, FontSize = 24, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Display"), Margin = new Thickness(0, 6, 0, 4), TextWrapping = TextWrapping.Wrap });
             sp.Children.Add(new TextBlock { Text = note, FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
             var c = McUi.Card(sp, 16);
+            Ui.Liftable(c);
             c.Margin = new Thickness(0, 0, 12, 12);
             AutomationProperties.SetName(c, label + ": " + value + ", " + note);
             return c;

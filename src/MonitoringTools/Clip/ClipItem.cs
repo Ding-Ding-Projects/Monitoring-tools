@@ -41,11 +41,14 @@ namespace MonitoringTools.Clip
         // ------------------------------------------------------------ file kinds
 
         public static readonly HashSet<string> VideoExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        { ".mp4", ".mov", ".mkv", ".avi", ".wmv", ".webm", ".flv", ".m4v", ".mpg", ".mpeg", ".ts", ".mts", ".m2ts", ".3gp", ".ogv" };
+        { ".mp4", ".mov", ".mkv", ".avi", ".wmv", ".webm", ".flv", ".m4v", ".mpg", ".mpeg", ".ts", ".mts", ".m2ts", ".3gp", ".3g2", ".ogv",
+          ".vob", ".mxf", ".f4v", ".m2v", ".asf", ".divx", ".rm", ".rmvb", ".y4m", ".hevc", ".h264", ".h265" };
         public static readonly HashSet<string> AudioExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        { ".mp3", ".wav", ".flac", ".m4a", ".aac", ".ogg", ".opus", ".wma", ".aiff", ".aif", ".alac", ".amr" };
+        { ".mp3", ".wav", ".flac", ".m4a", ".aac", ".ogg", ".opus", ".wma", ".aiff", ".aif", ".alac", ".amr",
+          ".ac3", ".eac3", ".mka", ".mp2", ".caf", ".dts", ".wv", ".ape", ".au", ".oga", ".m4b", ".tta", ".spx" };
         public static readonly HashSet<string> ImageExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".ico", ".heic", ".heif", ".avif" };
+        { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".ico", ".heic", ".heif", ".avif",
+          ".jxl", ".tga", ".qoi", ".ppm", ".pgm", ".pbm", ".pcx", ".dds", ".exr", ".hdr", ".jp2", ".j2k", ".psd", ".sgi", ".apng", ".jfif" };
         private static readonly HashSet<string> DocExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".md", ".rtf", ".csv" };
         private static readonly HashSet<string> ArchiveExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)

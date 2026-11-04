@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Motion spec</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#0A0F0D}
+a{color:#6FDBB4}a:hover{color:#8CF8CF}
+@keyframes axis{0%{opacity:0;transform:translateX(28px)}100%{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes press{0%{transform:scale(1)}20%{transform:scale(.95)}100%{transform:scale(1)}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(111,219,180,.55)}70%{box-shadow:0 0 0 12px rgba(111,219,180,0)}100%{box-shadow:0 0 0 0 rgba(111,219,180,0)}}
+@keyframes grow{from{opacity:0;max-height:0}to{opacity:1;max-height:120px}}
+@keyframes fill{from{width:0}to{width:82%}}
+@keyframes lift{0%,100%{transform:none;background:#1B211E}50%{transform:translateY(-3px);background:#262B28}}
+.axis{animation:axis .42s cubic-bezier(.05,.7,.1,1) both}
+.rise{animation:rise .48s cubic-bezier(.34,1.36,.64,1) both}
+.press{animation:press .5s cubic-bezier(.34,1.56,.64,1) .3s both}
+.dot{animation:pulse 1.8s ease-out infinite}
+.grow{animation:grow .36s cubic-bezier(.2,0,0,1) both;overflow:hidden}
+.fill{animation:fill 1.2s cubic-bezier(.2,0,0,1) both}
+.lift{animation:lift 1.6s cubic-bezier(.2,0,0,1) infinite}
+@media (prefers-reduced-motion: reduce){.axis,.rise,.press,.dot,.grow,.fill,.lift{animation:none}}
+</style>
+</helmet>
+<div style="width: 1360px; min-height: 1100px; box-sizing: border-box; padding: 48px; background: #0F1512; color: #DEE4DF; font-family: Roboto, system-ui, sans-serif; display: flex; flex-direction: column; gap: 24px;">
+  <header style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;">
+    <div>
+      <div style="font-size: 12px; letter-spacing: .1em; color: #6FDBB4; font-weight: 500;">MOTION</div>
+      <h1 style="margin: 4px 0 0; font-size: 36px; font-weight: 400;">Every movement has a cause</h1>
+      <p style="margin: 6px 0 0; color: #BFC9C2; font-size: 15px; max-width: 720px;">Six motions, used everywhere in the app. Reduce motion (Appearance or a mode) turns slides, springs and pulses off and keeps instant fades.</p>
+    </div>
+    <button type="button" onClick="{{replay}}" style="height: 44px; padding: 0 24px; border-radius: 999px; border: 0; background: #6FDBB4; color: #003827; font: 500 14px Roboto, sans-serif; cursor: pointer;">Replay all</button>
+  </header>
+  <sc-if value="{{show}}" hint-placeholder-val="{{ true }}">
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;">
+
+      <section style="background: #1B211E; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 500;">Page change</h2>
+        <div style="height: 150px; border-radius: 20px; background: #0A0F0D; position: relative; overflow: hidden; padding: 16px; box-sizing: border-box;">
+          <div class="axis" style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="height: 14px; width: 40%; border-radius: 7px; background: #6FDBB4;"></div>
+            <div style="height: 28px; width: 70%; border-radius: 8px; background: #303633;"></div>
+            <div style="height: 54px; border-radius: 16px; background: #262B28;"></div>
+          </div>
+        </div>
+        <div style="font: 12px 'Roboto Mono', monospace; color: #BFC9C2;">shared axis X · 420 ms · emphasized decelerate (0.05, 0.7, 0.1, 1) · ±28 px from the side of the tab you moved toward</div>
+        <p style="margin: 0; font-size: 13px; color: #89938C;">Why: tells you which way you travelled in the tab strip.</p>
+      </section>
+
+      <section style="background: #1B211E; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 500;">Cards and rows arrive</h2>
+        <div style="height: 150px; border-radius: 20px; background: #0A0F0D; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px;">
+          <div class="rise" style="height: 30px; border-radius: 10px; background: #262B28; animation-delay: 0ms;"></div>
+          <div class="rise" style="height: 30px; border-radius: 10px; background: #262B28; animation-delay: 60ms;"></div>
+          <div class="rise" style="height: 30px; border-radius: 10px; background: #262B28; animation-delay: 120ms;"></div>
+        </div>
+        <div style="font: 12px 'Roboto Mono', monospace; color: #BFC9C2;">rise 14 px + fade · 420 ms · gentle spring (back ease 0.35) · 45 ms stagger, capped at 12 items</div>
+        <p style="margin: 0; font-size: 13px; color: #89938C;">Why: reading order follows the order things land.</p>
+      </section>
+
+      <section style="background: #1B211E; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 500;">Press</h2>
+        <div style="height: 150px; border-radius: 20px; background: #0A0F0D; display: flex; align-items: center; justify-content: center;">
+          <span class="press" style="display: inline-flex; height: 44px; padding: 0 24px; align-items: center; border-radius: 999px; background: #6FDBB4; color: #003827; font-weight: 500;">Start</span>
+        </div>
+        <div style="font: 12px 'Roboto Mono', monospace; color: #BFC9C2;">scale 0.95 in 80 ms, back to 1 in 350 ms on a spring</div>
+        <p style="margin: 0; font-size: 13px; color: #89938C;">Why: the button answers the finger before the work does.</p>
+      </section>
+
+      <section style="background: #1B211E; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 500;">Live status</h2>
+        <div style="height: 150px; border-radius: 20px; background: #0A0F0D; display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <span class="dot" style="width: 14px; height: 14px; border-radius: 50%; background: #6FDBB4; display: inline-block;"></span><span style="color: #8CF8CF; font-size: 18px;">Running</span>
+        </div>
+        <div style="font: 12px 'Roboto Mono', monospace; color: #BFC9C2;">ring pulse · 1.8 s loop · only on things that are running right now</div>
+        <p style="margin: 0; font-size: 13px; color: #89938C;">Why: alive things breathe; stopped things are still.</p>
+      </section>
+
+      <section style="background: #1B211E; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 500;">Open and close</h2>
+        <div style="height: 150px; border-radius: 20px; background: #0A0F0D; padding: 16px; box-sizing: border-box;">
+          <div style="height: 30px; border-radius: 10px; background: #354B41; color: #CFE9DB; font-size: 13px; display: flex; align-items: center; padding: 0 12px;">Console</div>
+          <div class="grow" style="margin-top: 8px; border-radius: 10px; background: #1B211E; padding: 10px; font: 11px 'Roboto Mono', monospace; color: #6FDBB4;">Done (7.9s)! For help, type "help"</div>
+        </div>
+        <div style="font: 12px 'Roboto Mono', monospace; color: #BFC9C2;">height + fade · 360 ms · standard (0.2, 0, 0, 1)</div>
+        <p style="margin: 0; font-size: 13px; color: #89938C;">Why: the panel grows out of the button that opened it.</p>
+      </section>
+
+      <section style="background: #1B211E; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 500;">Progress and hover</h2>
+        <div style="height: 150px; border-radius: 20px; background: #0A0F0D; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+          <div style="height: 8px; border-radius: 4px; background: #303633; overflow: hidden;"><div class="fill" style="height: 8px; background: #6FDBB4; border-radius: 4px;"></div></div>
+          <div class="lift" style="height: 70px; border-radius: 20px;"></div>
+        </div>
+        <div style="font: 12px 'Roboto Mono', monospace; color: #BFC9C2;">bar value glides 500 ms · card hover lifts 2 px and tints in 200 ms</div>
+        <p style="margin: 0; font-size: 13px; color: #89938C;">Why: numbers that jump look broken; glides look measured.</p>
+      </section>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { show: true }; }
+  renderVals() {
+    return {
+      show: this.state.show,
+      replay: () => { this.setState({ show: false }); setTimeout(() => this.setState({ show: true }), 60); }
+    };
+  }
+}
+</script>
+</body>
+</html>

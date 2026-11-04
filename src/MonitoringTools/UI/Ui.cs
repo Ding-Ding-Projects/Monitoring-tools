@@ -144,6 +144,107 @@ namespace MonitoringTools.UI
             b.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation(to, TimeSpan.FromMilliseconds(ms)) { EasingFunction = Out });
         }
 
+        // The motion spec (design/motion-and-pages/Motion.dc.html): six motions, each with a cause.
+        // Reduce motion (Appearance or a mode) turns slides, springs and pulses off; content still appears at once.
+
+        /// <summary>True when Appearance or the active mode asks for reduced motion.</summary>
+        public static bool Reduced => Core.Appearance.ReduceMotion || Core.Modes.ReduceMotion;
+
+        /// <summary>Material 3 emphasized decelerate, close to cubic-bezier(0.05, 0.7, 0.1, 1): fast start, long settle.</summary>
+        public static readonly IEasingFunction Emphasized = new QuinticEase { EasingMode = EasingMode.EaseOut };
+        /// <summary>A livelier spring for presses and toggles.</summary>
+        public static readonly IEasingFunction Bouncy = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.55 };
+
+        /// <summary>
+        /// Shared-axis page change: the new page slides in from the side of the tab you moved toward and fades up.
+        /// <paramref name="direction"/> is +1 (moved down the tab strip), -1 (moved up) or 0 (same page: a short fade only).
+        /// </summary>
+        public static void SharedAxis(FrameworkElement host, int direction, double ms = 420)
+        {
+            if (Reduced) { host.RenderTransform = Transform.Identity; host.BeginAnimation(UIElement.OpacityProperty, null); host.Opacity = 1; return; }
+            var tt = new TranslateTransform(28 * Math.Sign(direction), 0);
+            host.RenderTransform = tt;
+            if (direction != 0)
+                tt.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(28 * Math.Sign(direction), 0, TimeSpan.FromMilliseconds(ms)) { EasingFunction = Emphasized });
+            host.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(direction == 0 ? 180 : ms * 0.7)) { EasingFunction = Out });
+        }
+
+        /// <summary>Staggered rise for a list of rows; the delay is capped so long lists never feel slow.</summary>
+        public static void RiseAll(System.Collections.IEnumerable items, double step = 35, int cap = 12)
+        {
+            int i = 0;
+            foreach (var o in items)
+                if (o is FrameworkElement fe) Rise(fe, Math.Min(i++, cap) * step, 10, 380);
+        }
+
+        /// <summary>A panel that grows out of the control that opened it: fades in while scaling from 96% at its top edge.</summary>
+        public static void Expand(FrameworkElement e, double ms = 360)
+        {
+            if (Reduced) { e.Opacity = 1; return; }
+            var st = new ScaleTransform(1, 0.96);
+            e.RenderTransformOrigin = new Point(0.5, 0);
+            e.RenderTransform = st;
+            st.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(0.96, 1, TimeSpan.FromMilliseconds(ms)) { EasingFunction = Spring });
+            e.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(ms * 0.7)) { EasingFunction = Out });
+        }
+
+        /// <summary>Lets a progress value glide to its new place instead of jumping.</summary>
+        public static void Glide(System.Windows.Controls.Primitives.RangeBase bar, double to, double ms = 500)
+        {
+            if (Reduced) { bar.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, null); bar.Value = to; return; }
+            bar.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty,
+                new DoubleAnimation(to, TimeSpan.FromMilliseconds(ms)) { EasingFunction = Out });
+        }
+
+        /// <summary>Hover lift for cards and rows: 2 px up on a gentle spring, back down on leave.</summary>
+        public static void Liftable(FrameworkElement e, double distance = 2)
+        {
+            e.MouseEnter += (s, ev) => LiftTo(e, -distance);
+            e.MouseLeave += (s, ev) => LiftTo(e, 0);
+        }
+
+        private static void LiftTo(FrameworkElement e, double y)
+        {
+            if (Reduced) return;
+            if (!(e.RenderTransform is TranslateTransform tt) || tt.IsFrozen) { tt = new TranslateTransform(); e.RenderTransform = tt; }
+            tt.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(y, TimeSpan.FromMilliseconds(320)) { EasingFunction = Spring });
+        }
+
+        /// <summary>
+        /// A status dot. When <paramref name="live"/> is true a soft ring breathes out of it every 1.8 seconds,
+        /// so running things look alive and stopped things stay still. Returns the dot and a setter to change it later.
+        /// </summary>
+        public static (FrameworkElement Dot, Action<Brush, bool> Set) LiveDot(Brush fill, bool live, double size = 12)
+        {
+            var grid = new Grid { Width = size * 2.6, Height = size * 2.6, VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false };
+            var ring = new Ellipse { Width = size, Height = size, Fill = fill, Opacity = 0, RenderTransformOrigin = new Point(0.5, 0.5) };
+            var core = new Ellipse { Width = size, Height = size, Fill = fill };
+            grid.Children.Add(ring); grid.Children.Add(core);
+            void Set(Brush b, bool on)
+            {
+                ring.Fill = b; core.Fill = b;
+                var st = new ScaleTransform(1, 1);
+                ring.RenderTransform = st;
+                ring.BeginAnimation(UIElement.OpacityProperty, null);
+                ring.Opacity = 0;
+                if (!on || Reduced) return;
+                var dur = new Duration(TimeSpan.FromMilliseconds(1800));
+                var grow = new DoubleAnimation(1, 2.4, dur) { EasingFunction = Out, RepeatBehavior = RepeatBehavior.Forever };
+                st.BeginAnimation(ScaleTransform.ScaleXProperty, grow);
+                st.BeginAnimation(ScaleTransform.ScaleYProperty, grow);
+                ring.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0.5, 0, dur) { EasingFunction = Out, RepeatBehavior = RepeatBehavior.Forever });
+            }
+            Set(fill, live);
+            return (grid, Set);
+        }
+
+        /// <summary>A small rounded label, as used for model sizes, server versions and format extensions.</summary>
+        public static Border Pill(string text, Brush bg = null, Brush fg = null, bool mono = false, double size = 11.5)
+        {
+            var t = new TextBlock { Text = text, FontSize = size, Foreground = fg ?? Res("B.TextSoft"), FontFamily = Font(mono ? "F.Mono" : "F.Body"), VerticalAlignment = VerticalAlignment.Center };
+            return new Border { Background = bg ?? Res("B.Raised"), CornerRadius = new CornerRadius(8), Padding = new Thickness(9, 3, 9, 4), Margin = new Thickness(0, 0, 6, 4), Child = t, VerticalAlignment = VerticalAlignment.Center };
+        }
+
         public static string Bytes(long b)
         {
             if (b < 1024) return b + " B";

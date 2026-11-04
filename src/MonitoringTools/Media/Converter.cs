@@ -167,7 +167,8 @@ namespace MonitoringTools.Media
             {
                 TargetKind.Video => k == FileKind.Video || (f.Id == "mp4" && k == FileKind.Audio),
                 TargetKind.Audio => k == FileKind.Audio || k == FileKind.Video,
-                TargetKind.Image => k == FileKind.Image || (f.Id == "gif" && k == FileKind.Video),
+                // animations (GIF, APNG) are made from video or images; a folder batch to a still format takes images only
+                TargetKind.Image => k == FileKind.Image || ((f.Id == "gif" || f.Id == "apng") && k == FileKind.Video),
                 _ => false
             };
         }
