@@ -64,6 +64,7 @@ namespace MonitoringTools.UI
                 McManagerView.Draft = null;
                 mc.CloseCreate();
                 await CatalogueAndDiscoveryScenesAsync(cc, mc);
+                await McFilesScenesAsync(cc, mc);
             }
             finally
             {

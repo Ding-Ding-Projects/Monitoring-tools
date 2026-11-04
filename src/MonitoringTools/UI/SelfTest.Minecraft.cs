@@ -304,6 +304,7 @@ namespace MonitoringTools.UI
                 });
 
                 await McWave8ChecksAsync(cc);
+                await McFilesChecksAsync(cc);
             }
             finally
             {

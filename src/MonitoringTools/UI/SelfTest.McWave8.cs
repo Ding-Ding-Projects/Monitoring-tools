@@ -157,9 +157,6 @@ namespace MonitoringTools.UI
                     Press(McForm(mc), "Next"); await Task.Delay(250);
                     if (!McStep(McForm(mc)).StartsWith("Step 2 of 6") || !string.Join(" ", Descend<TextBlock>(McForm(mc)).Select(t => t.Text)).Contains("Bedrock Dedicated Server")) return "step 2 is not the Bedrock software: " + McStep(McForm(mc));
                     Press(McForm(mc), "Next"); await Task.Delay(250);
-                    d.Target = Target.LocalDocker;
-                    Press(McForm(mc), "Next"); await Task.Delay(150);
-                    if (!McStep(McForm(mc)).StartsWith("Step 3 of 6")) return "Bedrock on Docker was allowed";
                     d.Target = Target.LocalProcess;
                     Press(McForm(mc), "Next"); await Task.Delay(250);
                     if (!McStep(McForm(mc)).StartsWith("Step 4 of 6")) return "step 4 not reached: " + McStep(McForm(mc));

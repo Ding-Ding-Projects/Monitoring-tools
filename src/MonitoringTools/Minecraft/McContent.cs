@@ -13,6 +13,8 @@ namespace MonitoringTools.Minecraft
         public string File, Name, Version = "";
         public bool Enabled;
         public long Size;
+        /// <summary>Set for a jar on an SSH host: <see cref="File"/> is then its path inside the server folder and every change goes through this.</summary>
+        public IMcFiles Files;
     }
 
     /// <summary>
@@ -40,6 +42,38 @@ namespace MonitoringTools.Minecraft
                 list.Add(a);
             }
             return list.OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        /// <summary>
+        /// The jars in a folder of an SSH host (or any <see cref="IMcFiles"/>). A host's jars are not downloaded to read their
+        /// metadata, so the name is the file name without its extension and the version is left empty.
+        /// </summary>
+        public static List<McAddon> List(IMcFiles files, string folder)
+        {
+            var list = new List<McAddon>();
+            if (folder == null) return list;
+            foreach (var e in files.List(folder))
+            {
+                if (e.IsDir) continue;
+                bool enabled = e.Name.EndsWith(".jar", StringComparison.OrdinalIgnoreCase);
+                bool disabled = e.Name.EndsWith(".jar" + DisabledSuffix, StringComparison.OrdinalIgnoreCase);
+                if (!enabled && !disabled) continue;
+                var baseName = disabled ? e.Name[..^DisabledSuffix.Length] : e.Name;
+                list.Add(new McAddon { File = folder + "/" + e.Name, Name = Path.GetFileNameWithoutExtension(baseName), Enabled = enabled, Size = e.Size, Files = files });
+            }
+            return list.OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        /// <summary>Copies a jar from this computer into a folder of an SSH host, after the folder has been copied to a dated backup beside it on the host.</summary>
+        public static string Install(IMcFiles files, string folder, string jar)
+        {
+            if (!jar.EndsWith(".jar", StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("Choose a .jar plugin or mod.");
+            using (var z = ZipFile.OpenRead(jar)) { if (z.Entries.Count == 0) throw new InvalidDataException("That jar is empty."); }
+            files.MakeDir(folder);
+            files.BackUpFolder(folder);
+            var to = folder + "/" + Path.GetFileName(jar);
+            files.Upload(jar, to);
+            return to;
         }
 
         /// <summary>Reads the name and version a jar declares for itself (plugin.yml, paper-plugin.yml, fabric.mod.json, mods.toml), falling back to the file name.</summary>
@@ -125,8 +159,18 @@ namespace MonitoringTools.Minecraft
         public static string SetEnabled(McAddon a, bool on)
         {
             if (a.Enabled == on) return a.File;
+            var to0 = on ? a.File[..^DisabledSuffix.Length] : a.File + DisabledSuffix;
+            if (a.Files != null)
+            {
+                var dir = a.File[..a.File.LastIndexOf('/')];
+                if (a.Files.Exists(to0)) throw new IOException($"{to0[(to0.LastIndexOf('/') + 1)..]} already exists in the folder.");
+                a.Files.BackUpFolder(dir);
+                a.Files.Move(a.File, to0);
+                a.File = to0; a.Enabled = on;
+                return to0;
+            }
             BackUpFolder(Path.GetDirectoryName(a.File));
-            var to = on ? a.File[..^DisabledSuffix.Length] : a.File + DisabledSuffix;
+            var to = to0;
             if (File.Exists(to)) throw new IOException($"{Path.GetFileName(to)} already exists in the folder.");
             File.Move(a.File, to);
             a.File = to; a.Enabled = on;
@@ -135,6 +179,12 @@ namespace MonitoringTools.Minecraft
 
         public static void Remove(McAddon a)
         {
+            if (a.Files != null)
+            {
+                a.Files.BackUpFolder(a.File[..a.File.LastIndexOf('/')]);
+                a.Files.Delete(a.File);
+                return;
+            }
             BackUpFolder(Path.GetDirectoryName(a.File));
             File.Delete(a.File);
         }

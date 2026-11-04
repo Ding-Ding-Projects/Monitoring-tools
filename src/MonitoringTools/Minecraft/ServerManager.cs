@@ -193,7 +193,7 @@ namespace MonitoringTools.Minecraft
         {
             try
             {
-                var psi = new ProcessStartInfo(exe, args) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = stdin != null };
+                var psi = new ProcessStartInfo(exe, args) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = stdin != null, StandardOutputEncoding = Encoding.UTF8, StandardErrorEncoding = Encoding.UTF8 };
                 if (!string.IsNullOrEmpty(workingDir)) { Directory.CreateDirectory(workingDir); psi.WorkingDirectory = workingDir; }
                 using var p = Process.Start(psi);
                 if (stdin != null) { p.StandardInput.Write(stdin); p.StandardInput.Close(); }
@@ -278,7 +278,15 @@ namespace MonitoringTools.Minecraft
             if (!s.EulaAccepted) throw new InvalidOperationException("Accept the Minecraft EULA for this server first.");
             var props = new Dictionary<string, string> { ["server-port"] = s.Port.ToString(), ["motd"] = Escape(s.Name) };
             if (initial != null) foreach (var (k, v) in initial) props[k] = Escape(v);
-            if (s.IsBedrock && s.Target != Target.LocalProcess) throw new NotSupportedException("The Bedrock server runs as a process on this computer. Choose This computer.");
+            if (s.IsBedrock && s.Target != Target.LocalProcess)
+            {
+                if (worldSource != null) throw new NotSupportedException("Bedrock worlds are made new here; import an existing world from the Worlds section after the server is made.");
+                await McBedrock.InstallOtherAsync(s, report, initial);
+                Servers.Add(s);
+                Save();
+                Activity.Add(ActivityKind.Service, $"Minecraft server created: {s.Name}", $"Bedrock {s.Version} · {s.Target}");
+                return;
+            }
             switch (s.Target)
             {
                 case Target.LocalProcess when s.IsBedrock:
@@ -460,7 +468,7 @@ namespace MonitoringTools.Minecraft
                 case Target.LocalDocker: Check(Run("docker", $"start {s.ContainerName}", 60000), "start"); break;
                 case Target.SshProcess:
                     Check(Ssh(s, $"cd {Sh(s.RemoteFolder)} && (test -f server.pid && kill -0 $(head -n1 server.pid) 2>/dev/null) || " +
-                                 $"{{ mkfifo -m 600 console.in 2>/dev/null || true; nohup sh -c 'tail -f console.in | java -Xmx{s.MemoryMb}M -jar server.jar nogui' > console.log 2>&1 & echo $! > server.pid; }}", 60000), "start");
+                                 $"{{ mkfifo -m 600 console.in 2>/dev/null || true; nohup sh -c 'tail -f console.in | {(s.IsBedrock ? "env LD_LIBRARY_PATH=. ./bedrock_server" : $"java -Xmx{s.MemoryMb}M -jar server.jar nogui")}' > console.log 2>&1 & echo $! > server.pid; }}", 60000), "start");
                     break;
                 case Target.SshDocker: Check(Ssh(s, $"docker start {s.ContainerName}", 60000), "start"); break;
             }
@@ -519,9 +527,9 @@ namespace MonitoringTools.Minecraft
                         catch (Exception ex) { return "RCON: " + ex.Message; }
                     }
                     return "The server is not running.";
-                case Target.LocalDocker: { var r = Run("docker", $"exec {s.ContainerName} rcon-cli {command}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
+                case Target.LocalDocker: { var r = Run("docker", $"exec {s.ContainerName} {(s.IsBedrock ? "send-command \"" + command.Replace("\"", "\\\"") + "\"" : "rcon-cli " + command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
                 case Target.SshProcess: { var r = Ssh(s, $"cd {Sh(s.RemoteFolder)} && echo {Sh(command)} > console.in", 30000); return r.Code == 0 ? "Sent." : ActionLine(r.Out); }
-                case Target.SshDocker: { var r = Ssh(s, $"docker exec {s.ContainerName} rcon-cli {Sh(command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
+                case Target.SshDocker: { var r = Ssh(s, $"docker exec {s.ContainerName} {(s.IsBedrock ? "send-command" : "rcon-cli")} {Sh(command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
             }
             return "Unknown target.";
         });

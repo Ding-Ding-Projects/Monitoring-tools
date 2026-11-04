@@ -20,17 +20,7 @@ namespace MonitoringTools.UI.Minecraft
         private FrameworkElement BuildPlayers(ServerDef s)
         {
             var root = new StackPanel();
-            if (s.IsBedrock)
-            {
-                var b = new StackPanel();
-                b.Children.Add(McUi.Title("Players"));
-                b.Children.Add(McUi.Body("A Bedrock server keeps its players in allowlist.json and permissions.json, which this section does not edit yet. While the server runs, the console takes allowlist add, allowlist remove, op, deop and kick.", "B.TextSoft", 13));
-                var open = Ui.Button("Open console", () => ShowSection("console"), "Btn.Ghost", Icons.Code);
-                open.HorizontalAlignment = HorizontalAlignment.Left; open.Margin = new Thickness(0, 10, 0, 0);
-                b.Children.Add(open);
-                root.Children.Add(McUi.Card(b));
-                return root;
-            }
+            if (s.IsBedrock) return BuildBedrockPlayers(s);
             var card = new StackPanel();
             var head = new Grid();
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -49,8 +39,8 @@ namespace MonitoringTools.UI.Minecraft
             var nameCol = new StackPanel(); nameCol.Children.Add(new TextBlock { Text = "Add a player by name", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); nameCol.Children.Add(nameBox); addRow.Children.Add(nameCol);
             var result = McUi.Body("", "B.TextMute", 12.5);
             AutomationProperties.SetLiveSetting(result, AutomationLiveSetting.Polite);
-            var list = new StackPanel();
 
+            PlayerBox box = null;
             async Task Apply(McPlayers.Change c, string name, string reason = null)
             {
                 result.Text = "Working…"; result.Foreground = Ui.Res("B.TextMute");
@@ -63,35 +53,49 @@ namespace MonitoringTools.UI.Minecraft
                 catch (Exception ex) { result.Text = ex.Message; result.Foreground = Ui.Res("B.Amber"); }
                 Core.Language.Refresh(result);
                 await Task.Delay(IsUp(s) && !McDemo.IsSample(s) ? 900 : 10);   // a running server saves the files a moment after the command
-                Fill();
+                if (s.IsLocal) Fill(); else await LoadRemote();
+            }
+
+            // A server on an SSH host: its player files are read over SSH, in one round trip, and kept until something changes them.
+            Dictionary<string, string> remoteTexts = null; string remoteError = null;
+            async Task LoadRemote()
+            {
+                try { var files = McFiles.For(s); remoteTexts = await Task.Run(() => files.ReadMany(new[] { "ops.json", "whitelist.json", "banned-players.json", "usercache.json" })); remoteError = null; }
+                catch (Exception ex) { remoteError = ex.Message; }
+                KeepFocus(card, Fill);
             }
             _playerApply = Apply;
 
+            box = MakePlayerBox(s, "minecraft:players", p => PlayerTableRow(s, p, Apply), () => { if (s.IsLocal) Fill(); else _ = LoadRemote(); });
             addRow.Children.Add(Ui.Button("Whitelist", () => _ = Apply(McPlayers.Change.WhitelistAdd, nameBox.Text.Trim()), "Btn.Ghost", Icons.Plus));
             addRow.Children.Add(Ui.Button("Make operator…", () => ConfirmOp(s, nameBox.Text.Trim(), true, ok => { if (ok) _ = Apply(McPlayers.Change.Op, nameBox.Text.Trim()); }), "Btn.Ghost", Icons.Shield));
             card.Children.Add(addRow);
             card.Children.Add(result);
-            card.Children.Add(list);
+            card.Children.Add(box.Root);
             root.Children.Add(McUi.Card(card));
 
             void Fill()
             {
                 bool up = IsUp(s);
                 how.Text = !s.IsLocal && !up
-                    ? "This server keeps its player files on the SSH host. Start it to change players through its console."
+                    ? "The server is stopped, so changes are written to ops.json, whitelist.json and banned-players.json on the SSH host, over SSH. Bans and operator changes ask for the two-key confirmation."
                     : up ? "The server is running, so changes go through its console and it saves them itself. Bans and operator changes ask for the two-key confirmation."
                          : "The server is stopped, so changes are written to ops.json, whitelist.json and banned-players.json. Bans and operator changes ask for the two-key confirmation.";
-                var players = s.IsLocal ? McPlayers.Read(s.Folder, up ? McLive.For(s).PlayerNames : null) : (up ? McLive.For(s).PlayerNames.Select(n => new McPlayer { Name = n, Online = true }).ToList() : new List<McPlayer>());
+                var players = s.IsLocal ? McPlayers.Read(s.Folder, up ? McLive.For(s).PlayerNames : null)
+                    : remoteTexts != null ? McPlayers.Build(remoteTexts, up ? McLive.For(s).PlayerNames : null)
+                    : (up ? McLive.For(s).PlayerNames.Select(n => new McPlayer { Name = n, Online = true }).ToList() : new List<McPlayer>());
                 filters.Children.Clear();
                 foreach (var (id, label, count) in new[] { ("all", "Everyone", players.Count), ("online", "Online", players.Count(p => p.Online)), ("ops", "Operators", players.Count(p => p.Operator)), ("banned", "Banned", players.Count(p => p.Banned)) })
                 {
                     var fid = id;
                     filters.Children.Add(McUi.Chip($"{label} {count}", PlayerFilter == id, () => { PlayerFilter = fid; Fill(); }, $"{label}: {count}"));
                 }
-                list.Children.Clear();
                 var shown = players.Where(p => PlayerFilter switch { "online" => p.Online, "ops" => p.Operator, "banned" => p.Banned, _ => true }).ToList();
-                if (shown.Count == 0) list.Children.Add(McUi.Body(players.Count == 0 ? "No players yet. Add one by name, or they appear once they join." : "No players match this filter.", "B.TextMute", 13));
-                foreach (var p in shown) list.Children.Add(PlayerTableRow(s, p, Apply));
+                string note = null;
+                if (!s.IsLocal && remoteError != null) note = remoteError;
+                else if (!s.IsLocal && remoteTexts == null) note = "Reading the player files on the SSH host…";
+                else if (shown.Count == 0) note = players.Count == 0 ? "No players yet. Add one by name, or they appear once they join." : "No players match this filter.";
+                box.Show(shown, note);
                 Core.Language.Refresh(card);
             }
             // Rebuilt only when the players or the files changed, so a switch keeps keyboard focus between polls.
@@ -104,6 +108,7 @@ namespace MonitoringTools.UI.Minecraft
             _tick = () => { var now = Signature(); if (now != last) { last = now; KeepFocus(card, Fill); } };
             last = Signature();
             Fill();
+            if (!s.IsLocal) _ = LoadRemote();
             return root;
         }
 
@@ -112,7 +117,7 @@ namespace MonitoringTools.UI.Minecraft
         /// <summary>The two-key confirmation for operator changes; <paramref name="done"/> gets true only when it was confirmed.</summary>
         private static void ConfirmOp(ServerDef s, string name, bool make, Action<bool> done)
         {
-            if (!McPlayers.ValidName(name)) { done(false); return; }
+            if (!(s.IsBedrock ? McBedrockPlayers.ValidName(name) : McPlayers.ValidName(name))) { done(false); return; }
             bool ok = false;
             var dlg = new ConfirmWindow(make ? $"Make {name} an operator?" : $"Remove {name} as an operator?",
                 make ? "An operator can run every command on this server, including stopping it and changing other players." : "They lose access to operator commands straight away.",

@@ -14,7 +14,13 @@ as Vanilla writes them). The seed is read from the world's own `level.dat`, or f
 - **Generate a new world, or pre-generate chunks** opens the [world generator](world-generator.md) here, aimed at this
   server when it is on this computer.
 
-SSH servers keep their world on the host, so import, download and reset happen there.
+A server on an **SSH host** lists its world folders from the host (sizes from `du`, the seed from a copy of
+`level.dat`), and **Download ZIP** copies a folder here with scp and zips it. Import, reset and replace for such a server
+are still done on the host. A **Bedrock** server lists the folders in `worlds` with size and `levelname.txt`, and
+**Import a world** takes a `.mcworld` file or a world folder: it must hold `level.dat` and a `db` folder (a Java world is
+refused with that reason), it is copied into the folder named by `level-name` and never moved, a ZIP entry that points
+outside its folder is refused, and replacing an existing world stops the server, takes a backup first and asks for the
+two-key confirmation. Captures `mc-ssh-worlds`, `mc-bedrock-worlds`.
 
 ## Verification
 

@@ -150,10 +150,13 @@ namespace MonitoringTools.Minecraft
             return safety;
         }
 
-        /// <summary>Backs up a server, pausing its saving while it runs. Only servers whose files are on this computer can be backed up from here.</summary>
+        /// <summary>
+        /// Backs up a server, pausing its saving while it runs. A server on an SSH host is copied here with scp first (see
+        /// <see cref="McRemote"/>), so its backup lands in the same list and restores the same way.
+        /// </summary>
         public static async Task<McBackup> BackUpAsync(ServerDef s, bool running, string reason, string note, Action<string> report = null)
         {
-            if (!s.IsLocal) throw new NotSupportedException("This server keeps its world on the SSH host, so back it up on that host.");
+            if (s.IsSsh) return await BackUpSshAsync(s, running, reason, note, report);
             var level = ServerManager.ReadProperties(s).TryGetValue("level-name", out var ln) && ln.Length > 0 ? ln : "world";
             if (running)
             {
@@ -170,6 +173,28 @@ namespace MonitoringTools.Minecraft
             {
                 report?.Invoke("Copying the world…");
                 return await Task.Run(() => Create(s.Folder, level, s.BackupFolder, reason, note, s.KeepBackups));
+            }
+            finally
+            {
+                if (running) await ServerManager.CommandAsync(s, s.IsBedrock ? "save resume" : "save-on");
+            }
+        }
+
+        private static async Task<McBackup> BackUpSshAsync(ServerDef s, bool running, string reason, string note, Action<string> report)
+        {
+            var files = McFiles.For(s);
+            var level = await Task.Run(() => McRemote.LevelName(files, s.IsBedrock));
+            if (running)
+            {
+                report?.Invoke("Pausing saves…");
+                if (s.IsBedrock) await ServerManager.CommandAsync(s, "save hold");
+                else { await ServerManager.CommandAsync(s, "save-off"); await ServerManager.CommandAsync(s, "save-all flush"); }
+                await Task.Delay(3000);
+            }
+            try
+            {
+                report?.Invoke("Copying the world from the SSH host…");
+                return await Task.Run(() => McRemote.PullBackup(s, files, level, reason, note, s.KeepBackups));
             }
             finally
             {
