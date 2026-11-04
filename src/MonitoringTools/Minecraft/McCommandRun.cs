@@ -75,8 +75,12 @@ namespace MonitoringTools.Minecraft
         }
 
         /// <summary>Reads a player's position with data get entity, as numbers; null with the reason when it cannot be read.</summary>
+        /// <summary>Set by the self-test to answer a position without a server: the button path is then driven end to end.</summary>
+        internal static Func<ServerDef, string, Task<(double[] Pos, string Problem)>> PositionHook;
+
         public static async Task<(double[] Pos, string Problem)> PositionAsync(ServerDef s, string player)
         {
+            if (PositionHook != null) return await PositionHook(s, player);
             if (McDemo.IsSample(s)) return (null, "Sample server: positions are not read from a sample.");
             var st = McState.Cached(s).State;
             if (st != McRunState.Running) return (null, "The server is not running, so a player's position cannot be read.");

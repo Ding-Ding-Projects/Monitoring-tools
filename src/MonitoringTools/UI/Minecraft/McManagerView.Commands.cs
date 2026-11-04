@@ -454,7 +454,7 @@ namespace MonitoringTools.UI.Minecraft
                 if (f.IsChoice)
                 {
                     var wrap = new StackPanel { Margin = new Thickness(0, 0, 0, 14) };
-                    wrap.Children.Add(new TextBlock { Text = f.Label + (f.Optional ? " (optional)" : ""), FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 6) });
+                    var choiceLabel = new TextBlock { Text = f.Label + (f.Optional ? " (optional)" : ""), FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 6) }; if (task.Live) Core.Language.SetLiteral(choiceLabel, true); wrap.Children.Add(choiceLabel);
                     values.TryGetValue(f.Id, out var cur);
                     if (string.IsNullOrEmpty(cur) && !f.Optional) cur = f.Options[0];
                     void Set(string v)
@@ -465,14 +465,14 @@ namespace MonitoringTools.UI.Minecraft
                     }
                     FrameworkElement control = f.Id == "rule" || f.Options.Count > 10
                         ? McCommandControls.LongChoice(f.Id, f.Label, f.Options, cur, Set, s.Version)
-                        : McCommandControls.Enum(f.Id, f.Label, f.Options, f.Optional, cur, Set, f.Id == "rule");
+                        : McCommandControls.Enum(f.Id, f.Label, f.Options, f.Optional, cur, Set, f.Id == "rule" || task.Live);
                     wrap.Children.Add(control);
                     _fieldFocus[f.Id] = Logical<Button>(control).FirstOrDefault(b => AutomationProperties.GetItemStatus(b) == "selected") ?? (FrameworkElement)Logical<Button>(control).FirstOrDefault() ?? control;
                     card.Children.Add(wrap);
                     continue;
                 }
                 values.TryGetValue(f.Id, out var val);
-                var view = McCommandControls.For(s, f.Node, f.Label, f.Optional, val ?? "", v => { values[field.Id] = v; _refreshCommand?.Invoke(); }, _registries, p => McCommandRun.PositionAsync(s, p));
+                var view = McCommandControls.For(s, f.Node, f.Label, f.Optional, val ?? "", v => { values[field.Id] = v; _refreshCommand?.Invoke(); }, _registries, p => McCommandRun.PositionAsync(s, p), task.Live);
                 _fieldFocus[f.Id] = view.Focus;
                 card.Children.Add(view.View);
             }

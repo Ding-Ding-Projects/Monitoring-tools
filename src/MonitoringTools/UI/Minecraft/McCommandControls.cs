@@ -67,10 +67,13 @@ namespace MonitoringTools.UI.Minecraft
         private static TextBlock Hint(string text) => new TextBlock { Text = text, FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 2, 0, 0) };
 
         /// <summary>The control for an argument node, chosen by its parser.</summary>
-        internal static McFieldView For(ServerDef s, McCommandNode n, string label, bool optional, string value, Action<string> set, McRegistries reg, PositionReader readPos)
+        internal static McFieldView For(ServerDef s, McCommandNode n, string label, bool optional, string value, Action<string> set, McRegistries reg, PositionReader readPos, bool literalNames = false)
         {
             var sp = new StackPanel { Margin = new Thickness(0, 0, 0, 16) };
-            sp.Children.Add(Label(label, optional));
+            var labelText = Label(label, optional);
+            // a field named by a server (a plugin command) keeps the server's own word
+            if (literalNames) Core.Language.SetLiteral(labelText, true);
+            sp.Children.Add(labelText);
             FrameworkElement body, focus;
             var p = n.Parser ?? "";
             if (p == "brigadier:integer" || p == "brigadier:long") (body, focus) = Whole(n, label, optional, value, set);
@@ -91,6 +94,7 @@ namespace MonitoringTools.UI.Minecraft
                 box.TextChanged += (o, e) => set(box.Text.Replace("\r", "").Replace("\n", " "));
                 body = focus = box;
             }
+            if (literalNames) foreach (var named in Logical<FrameworkElement>(body).Where(e => e is TextBox || e is McNumberBox)) Core.Language.SetLiteral(named, true);
             sp.Children.Add(body);
             var hint = p.StartsWith("brigadier:", StringComparison.Ordinal) || p.Length == 0 ? n.Hint : n.Hint + " · " + p;
             var h = Hint(hint);

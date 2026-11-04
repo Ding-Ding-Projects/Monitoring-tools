@@ -67,7 +67,7 @@ namespace MonitoringTools.Minecraft
                 if (bare.Length == 0) continue;
                 // the plain name wins over a namespaced duplicate
                 if (!byName.TryGetValue(bare, out var c)) byName[bare] = c = new McLiveCommand { Name = bare, Source = source };
-                else if (colon <= 0) c.Source = source == "server" ? c.Source : source;
+                else if (c.Source == "server" || colon <= 0) c.Source = source == "server" ? c.Source : source;
                 if (description.Length > 0 && c.Description.Length == 0) c.Description = description;
                 if (usage.Length > 0 && (c.Usage.Length == 0 || usage.Length > c.Usage.Length)) c.Usage = usage;
             }

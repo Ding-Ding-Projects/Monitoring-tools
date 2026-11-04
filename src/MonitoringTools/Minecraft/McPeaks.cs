@@ -43,7 +43,8 @@ namespace MonitoringTools.Minecraft
                 bool changed = !days.TryGetValue(day, out var old) || online > old;
                 if (!changed) return;
                 days[day] = online;
-                var cutoff = Key((when ?? DateTime.Now).AddDays(-30));
+                var newest = days.Keys.Max(StringComparer.Ordinal);
+                var cutoff = Key(DateTime.ParseExact(newest, "yyyy-MM-dd", CultureInfo.InvariantCulture).AddDays(-30));
                 foreach (var stale in days.Keys.Where(k => string.CompareOrdinal(k, cutoff) < 0).ToList()) days.Remove(stale);
                 try { Directory.CreateDirectory(Path.GetDirectoryName(FilePath)); File.WriteAllText(FilePath, JsonSerializer.Serialize(d)); } catch { /* the history is a convenience; a read-only folder loses it, not the app */ }
             }

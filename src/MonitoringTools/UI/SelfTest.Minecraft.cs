@@ -223,6 +223,7 @@ namespace MonitoringTools.UI
                     return McManagerView.Section == "commands" ? null : "the builder did not open";
                 });
                 await McCommandChecksAsync(cc);
+                await McLaneChecksAsync(cc);
 
                 Check("minecraft: a plugin turns off and on by renaming its jar, after backing the folder up", () =>
                 {

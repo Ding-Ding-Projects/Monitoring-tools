@@ -49,6 +49,7 @@ namespace MonitoringTools.Core
                     return;
                 }
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-commands") { await McCommands(results); return; }   // the command builder on a real server
+                if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-lane") { await McLane(results); return; }   // items, NBT, plugin commands, a bot player, Docker and SSH replies, pre-generation
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-server")   // run only the server manager end to end
                 {
                     await Check(results, "minecraft: a real server is created, started, answers list and stops", MinecraftServer);
@@ -64,6 +65,7 @@ namespace MonitoringTools.Core
                 await Check(results, "minecraft: the real server jar lists its game rules, blocks and biomes", Minecraft);
                 await Check(results, "minecraft: a real server is created, started, answers list and stops", MinecraftServer);
                 await McCommands(results);
+                await McLane(results);
                 await McWave8(results);
             }).GetAwaiter().GetResult();
 
