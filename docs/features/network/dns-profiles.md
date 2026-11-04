@@ -10,7 +10,7 @@ You can switch from three places: the offline dialog, the tray menu and the **Ne
 
 ## Your own profile
 
-On the Network page add a profile with a name and server addresses. It is saved in the settings and listed beside the built-in ones. Remove it any time.
+On the Network page choose **Add a profile…**. A three-step guide asks for a name, then the servers, then shows a review before saving. The primary server is required and the secondary is optional; both must be IPv4 addresses such as 1.1.1.1, a secondary equal to the primary is refused, and a live line under the fields says what is wrong. A profile with the same name is replaced and the review says so. After saving, a notice offers **Use now** (switches this computer to it, with the administrator prompt described below) or **Not now**, which leaves it in the list. Remove it any time.
 
 ## Administrator rights
 

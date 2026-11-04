@@ -587,6 +587,54 @@ namespace MonitoringTools.UI
                 if (ForgeHosts.NormaliseBase("ftp://host.example") != null) return "a non-web scheme was accepted";
                 return ForgeHosts.NormaliseBase("   ") == null ? null : "blank accepted";
             });
+            // ---- bulk selection, scheduled date ranges and guided input
+            Check("bulk select: select all shown skips rows hidden by the search filter", () =>
+            {
+                var hidden = new HashSet<string> { "b", "d" };
+                var bulk = new BulkSelect<string>(() => { }, "items");
+                foreach (var x in new[] { "a", "b", "c", "d", "e" }) { var item = x; bulk.Track(item, () => !hidden.Contains(item)); }
+                bulk.Set("b", true);                       // a hidden row chosen earlier stays chosen until cleared
+                bulk.SelectAllShown();
+                var got = string.Join(",", bulk.Chosen);
+                if (got != "a,b,c,e") return "selected " + got;
+                bulk.SelectNone();
+                if (bulk.Count != 0) return "select none left " + bulk.Count;
+                bulk.SelectAllShown();
+                bulk.Prune(new[] { "a", "c" });
+                return string.Join(",", bulk.Chosen) == "a,c" ? null : "prune kept " + string.Join(",", bulk.Chosen);
+            });
+            Check("scheduled settings: a date range limits the rule to whole calendar days, ends included", () =>
+            {
+                var r = new ScheduleRule { Setting = "sounds", Value = "off", Start = "09:00", End = "17:00", FromDate = "2026-12-01", ToDate = "2026-12-05" };
+                bool M(ScheduleRule x, string t) => Modes.Matches(x, DateTime.Parse(t, System.Globalization.CultureInfo.InvariantCulture));
+                if (!M(r, "2026-12-01 10:00") || !M(r, "2026-12-05 16:59")) return "range ends should match";
+                if (M(r, "2026-11-30 10:00") || M(r, "2026-12-06 10:00")) return "outside the range should not match";
+                var open = new ScheduleRule { Setting = "sounds", Value = "off", Start = "09:00", End = "17:00", FromDate = "2026-12-01" };
+                if (!M(open, "2027-06-01 10:00") || M(open, "2026-11-30 10:00")) return "open-ended range wrong";
+                var night = new ScheduleRule { Setting = "sounds", Value = "off", Start = "22:00", End = "02:00", FromDate = "2026-12-01", ToDate = "2026-12-01" };
+                if (!M(night, "2026-12-01 23:00") || !M(night, "2026-12-02 01:00")) return "a window crossing midnight belongs to the day it starts on";
+                if (M(night, "2026-12-02 23:00")) return "the next evening is outside the range";
+                var bad = new ScheduleRule { Setting = "sounds", Value = "off", Start = "09:00", End = "17:00", FromDate = "2026-12-05", ToDate = "2026-12-01" };
+                if (M(bad, "2026-12-03 10:00") || Modes.ValidDateRange(bad.FromDate, bad.ToDate)) return "an end before the start must not match";
+                if (Modes.TryParseDate("2026-13-40", out _) || !Modes.TryParseDate("", out var none) || none != null) return "date parsing wrong";
+                return Modes.DescribeRule(r).Contains("2026-12-01 to 2026-12-05") ? null : "description missing the range";
+            });
+            Check("guided input: DNS server format, copy names and shortcut export", () =>
+            {
+                if (ListActions.ValidateDnsServers("1.1.1.1", "") != null || ListActions.ValidateDnsServers("1.1.1.1", "1.0.0.1") != null) return "valid servers refused";
+                if (ListActions.ValidateDnsServers("", "") == null || ListActions.ValidateDnsServers("1.1.1", "") == null || ListActions.ValidateDnsServers("1.1.1.1", "nope") == null
+                    || ListActions.ValidateDnsServers("1.1.1.1", "1.1.1.1") == null) return "bad servers accepted";
+                if (ListActions.ValidateDnsName(" ") == null || ListActions.ValidateDnsName("Work") != null) return "name check wrong";
+                var taken = new HashSet<string> { "tool-copy" };
+                if (ListActions.CopyName("tool", n => taken.Contains(n)) != "tool-copy2") return "copy name " + ListActions.CopyName("tool", n => taken.Contains(n));
+                var long32 = new string('a', 32);
+                var cn = ListActions.CopyName(long32, n => false);
+                if (cn == null || cn.Length > 32 || !Shortcuts.IsValidName(cn)) return "long name copy invalid: " + cn;
+                var json = ListActions.ShortcutsJson(new[] { new Shortcut { Name = "demo", Description = "d", Shell = ScriptShell.Batch } }, sc => "echo hi");
+                using var doc = JsonDocument.Parse(json);
+                var first = doc.RootElement.GetProperty("shortcuts")[0];
+                return first.GetProperty("Name").GetString() == "demo" && first.GetProperty("Script").GetString() == "echo hi" ? null : "export shape wrong";
+            });
 
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");

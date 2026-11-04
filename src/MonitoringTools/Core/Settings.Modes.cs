@@ -39,5 +39,9 @@ namespace MonitoringTools.Core
         /// <summary>language, theme, sounds, toasts or gamemode.</summary>
         public string Setting { get; set; } = "sounds";
         public string Value { get; set; } = "off";
+        /// <summary>Optional first date the rule applies, as yyyy-MM-dd. Empty means no start limit.</summary>
+        public string FromDate { get; set; } = "";
+        /// <summary>Optional last date the rule applies (inclusive), as yyyy-MM-dd. Empty means no end limit.</summary>
+        public string ToDate { get; set; } = "";
     }
 }

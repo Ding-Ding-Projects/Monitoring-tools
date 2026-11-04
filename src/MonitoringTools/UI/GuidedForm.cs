@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -44,8 +45,19 @@ namespace MonitoringTools.UI
         /// <summary>Raised after the final action succeeded.</summary>
         public event Action Finished;
 
+        /// <summary>Raised whenever a different step is shown, so a host that rebuilds the page can resume on the same step.</summary>
+        public event Action<int> StepChanged;
+
+        /// <summary>
+        /// Optional asynchronous final action. When set it replaces the synchronous one: the buttons are disabled while it runs
+        /// and it returns null on success or a message to show and stay. Use <see cref="Report"/> from it for progress text.
+        /// </summary>
+        public Func<Task<string>> FinishAsync { get; set; }
+
+        public int StepIndex => _index;
+
         /// <param name="finish">Runs on the last step's button. Return null on success or a message to show and stay.</param>
-        public GuidedForm(string title, IReadOnlyList<GuidedStep> steps, string finishLabel, Func<string> finish, Action cancel)
+        public GuidedForm(string title, IReadOnlyList<GuidedStep> steps, string finishLabel, Func<string> finish, Action cancel, int startStep = 0)
         {
             _steps = steps; _finish = finish; _cancel = cancel;
             _built = new FrameworkElement[steps.Count];
@@ -75,7 +87,7 @@ namespace MonitoringTools.UI
             {
                 if (e.Key == Key.Escape && !(Keyboard.FocusedElement is TextBox tb && tb.AcceptsReturn)) { e.Handled = true; _cancel?.Invoke(); }
             };
-            Show(0);
+            Show(startStep);
         }
 
         private readonly string _finishLabel;
@@ -98,24 +110,43 @@ namespace MonitoringTools.UI
             AutomationProperties.SetItemStatus(this, $"Step {_index + 1} of {_steps.Count}: {step.Title}");
             _back.IsEnabled = _index > 0;
             _next.Content = _index == _steps.Count - 1 ? _finishLabel : "Next";
+            StepChanged?.Invoke(_index);
         }
 
         private void Go(int delta) => Show(_index + delta);
 
-        private void Next()
+        private async void Next()
         {
             var err = _steps[_index].Validate?.Invoke();
             if (err != null) { Fail(err); return; }
             if (_index < _steps.Count - 1) { Show(_index + 1); return; }
             string result;
-            try { result = _finish?.Invoke(); } catch (Exception ex) { result = ex.Message; }
+            if (FinishAsync != null)
+            {
+                _next.IsEnabled = _back.IsEnabled = false;
+                try { result = await FinishAsync(); } catch (Exception ex) { result = ex.Message; }
+                _next.IsEnabled = true; _back.IsEnabled = _index > 0;
+            }
+            else
+            {
+                try { result = _finish?.Invoke(); } catch (Exception ex) { result = ex.Message; }
+            }
             if (result != null) { Fail(result); return; }
             Finished?.Invoke();
+        }
+
+        /// <summary>Shows a progress or result line under the step without blocking it. <paramref name="problem"/> uses the error colour.</summary>
+        public void Report(string message, bool problem = false)
+        {
+            _error.Text = message;
+            _error.Foreground = Ui.Res(problem ? "B.Danger" : "B.TextMute");
+            _error.Visibility = string.IsNullOrEmpty(message) ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void Fail(string message)
         {
             _error.Text = message;
+            _error.Foreground = Ui.Res("B.Danger");
             _error.Visibility = Visibility.Visible;
         }
     }

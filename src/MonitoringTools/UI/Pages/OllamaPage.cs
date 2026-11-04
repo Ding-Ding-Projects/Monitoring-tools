@@ -32,6 +32,9 @@ namespace MonitoringTools.UI
             var notice = Ui.Mono("", Ui.Res("B.TextMute"), 11);
             notice.TextWrapping = TextWrapping.Wrap;
             var modelsHost = new StackPanel();
+            // Models are matched by name, because the list is re-read from the server and its objects are replaced.
+            Action paintModels = null;
+            var bulk = new BulkSelect<OllamaModel>(() => paintModels?.Invoke(), "models", new ModelNameComparer());
             var runningHost = new StackPanel();
             SearchField filter = new SearchField("ollama:models", "Search installed models");
             var chatModelChips = new WrapPanel();
@@ -196,12 +199,28 @@ namespace MonitoringTools.UI
             void PaintModels()
             {
                 modelsHost.Children.Clear();
+                bulk.Begin();
+                bulk.Prune(models);
                 var hits = models.Where(m => filter.State.Matches($"{m.Name} {m.Family} {m.ParameterSize} {m.Quantization}")).ToList();
                 filter.SampleSource = () => models.Select(m => m.Name);
                 if (!st.ServerUp)
                     modelsHost.Children.Add(Ui.Text("The server is not running, so the model list cannot be read. Start it above."));
                 else if (models.Count == 0)
                     modelsHost.Children.Add(Ui.Text("No models are installed yet. Pull one below."));
+                if (models.Count > 0)
+                    modelsHost.Children.Add(bulk.Bar(new[]
+                    {
+                        new BulkAction<OllamaModel>
+                        {
+                            Label = "Delete selected…", Danger = true, Hint = "Delete the chosen models from disk, after a two-key confirmation. You would need to pull them again to use them.",
+                            Run = items =>
+                            {
+                                var chosen = items.ToList();
+                                long total = chosen.Sum(x => x.Size);
+                                bulk.ConfirmThen($"Delete {chosen.Count} {(chosen.Count == 1 ? "model" : "models")}?", $"This removes {string.Join(", ", chosen.Take(5).Select(x => x.Name))}{(chosen.Count > 5 ? " and " + (chosen.Count - 5) + " more" : "")} from disk ({Ollama.Bytes(total)}). You would need to pull them again to use them.", "Delete", () => _ = DeleteChosen(chosen));
+                            }
+                        },
+                    }));
                 foreach (var m in hits)
                 {
                     var g = new Grid { Margin = new Thickness(0, 0, 0, 8) };
@@ -232,7 +251,7 @@ namespace MonitoringTools.UI
                     btnRow.Children.Add(detailBtn); btnRow.Children.Add(del);
                     Grid.SetColumn(btnRow, 1); g.Children.Add(btnRow);
                     SearchScope.SetItem(g, "model " + m.Name + " " + m.Family);
-                    modelsHost.Children.Add(g);
+                    modelsHost.Children.Add(bulk.Wrap(m, g, m.Name));
                 }
                 filter.SetCount(hits.Count, models.Count, "models");
 
@@ -251,6 +270,19 @@ namespace MonitoringTools.UI
                     chatModelChips.Children.Add(b);
                 }
                 chatUi?.ModelChanged?.Invoke();
+            }
+
+            async Task DeleteChosen(List<OllamaModel> chosen)
+            {
+                int ok = 0; string failed = null;
+                foreach (var m in chosen)
+                {
+                    try { await Ollama.DeleteAsync(m.Name); ok++; }
+                    catch (Exception ex) { failed = $"{m.Name}: {ex.Message}"; break; }
+                }
+                if (failed == null) Say($"Deleted {ok} {(ok == 1 ? "model" : "models")}.", "B.Mint");
+                else Say($"Deleted {ok} of {chosen.Count}. Stopped at {failed}", "B.Amber");
+                await RefreshModels();
             }
 
             async Task RefreshModels()
@@ -311,10 +343,17 @@ namespace MonitoringTools.UI
                 await RefreshModels();
             }
 
+            paintModels = () => PaintModels();
             root.Loaded += async (o, e) => await RefreshAll();
             return root;
         }
 
         private sealed class Settings_Ollama_State { public bool Installed, ServerUp; }
+    }
+
+    internal sealed class ModelNameComparer : IEqualityComparer<OllamaModel>
+    {
+        public bool Equals(OllamaModel a, OllamaModel b) => string.Equals(a?.Name, b?.Name, StringComparison.OrdinalIgnoreCase);
+        public int GetHashCode(OllamaModel m) => (m?.Name ?? "").ToLowerInvariant().GetHashCode();
     }
 }

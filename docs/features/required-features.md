@@ -15,7 +15,7 @@ The maintainer's shared app requirements, checked against this app on 2026-11-04
 | School mode | partial | Modes page: renamable, PIN with PBKDF2-SHA256, back-off, shared record. Gaps: PIN only (no passkey or password), Cantonese and humour controls are not hidden yet while it is on. |
 | Narrator | partial | Windows voices, separate English and Cantonese pickers, queue, test button. Gap: not exercised with real voices on this machine. |
 | Action sound effects | done | Existing; now governed by Modes. |
-| Scheduled and external settings | partial | Weekday and time rules, external JSON file with validation and watching. Gaps: no date ranges, no in-place rule editing. |
+| Scheduled and external settings | partial | Weekday and time rules with optional start and end dates, in-place rule editing, external JSON file with validation and watching; the date-range rule evaluation is covered by a self-test check. Built but not yet driven or captured on screen. Date and time are validated text boxes, not native pickers. |
 | App rename | done | Appearance → display name drives the drawer title. |
 | ADHD modes | partial | Five switches and reminders. Gap: Focus spotlight and palette entries. |
 | Dim sum surprise | partial | Modes page; reads the public photo catalogue, with an honest unavailable state. Gap: not exercised against the live catalogue. |
@@ -41,8 +41,8 @@ The maintainer's shared app requirements, checked against this app on 2026-11-04
 | Context menu on every element | partial | Right-click, Shift+F10 or Menu key in the control centre and tray: press, copy, search the page, edit appearance, lock; each menu has its own filter. "Edit appearance…" opens the per-element appearance editor. Windows now carrying the menu: control centre, tray, drawing board, toasts, offline dialog, setup, welcome, file tools, commit message, dim sum and the appearance editor, confirmation and lock cards (see [element menu](app/element-menu.md)). Confirmation and lock windows offer Copy text only, so no entry can step around a gate. Gaps: not yet checked by a capture; the command palette overlay has no menu; toasts take the menu by pointer only. |
 | Menus show working shortcuts | done | Shortcut hints in element menus; Ctrl+C and Ctrl+F work. |
 | Browser-style tabs | done | Tab strip docked left by default and movable to any edge, New tab catalog, pinning, groups with a picker, overflow, four tab searches, bulk close by text, per-tab and per-group appearance, shortcuts, Cantonese, persistence. |
-| Settings explain themselves | partial | New pages state what each control does and its default; older pages mostly do. |
-| Guided forms, info icons, blank-editor presets | partial | Every switch and choice has an info button; New shortcut is a guided form; a blank script offers presets. Gap: other editors have no guided flow. |
+| Settings explain themselves | partial | Every switch and choice on the older Clipboard, Network, Game, Service and Shortcuts pages now carries a visible subtitle with what it does and its default, beside the information button; newer pages already did. Built but not yet captured on screen. |
+| Guided forms, info icons, blank-editor presets | partial | Every switch and choice has an info button; New shortcut, Add a DNS profile and New Minecraft server are guided forms; a blank script offers presets. Gap: the schedule rule form, Appearance edits and Ollama profiles are single forms. See [guided forms](app/guided-forms.md). |
 
 ## Safety and records
 
@@ -54,7 +54,7 @@ The maintainer's shared app requirements, checked against this app on 2026-11-04
 | QR pairing | done | A built-in QR decoder and encoder (versions 1 to 10): read a code from the clipboard or a file, show an account as a code behind the two-key confirmation. Round-trip in the self-test; 320 of 320 rotated and noisy test images decoded. Gaps: versions above 10, mirrored codes, phone photos untested. |
 | Local history | partial | Settings history with restore and diff (Records page). Shortcut scripts and the commit message template also keep up to 50 versions each, with a version list, line comparison and a two-key Restore (see [local history](tools/local-history.md)). Gaps: no encrypted snapshots, no password-protected manager, no retention setting. |
 | Export everything | partial | History, activity, settings, notifications and settings history as JSON, CSV (formula-safe), Markdown, HTML and text. |
-| Bulk actions | partial | Clipboard history select mode: copy, save, remove. Gap: other lists. |
+| Bulk actions | partial | One shared select mode ([bulk actions](app/bulk-actions.md)) on clipboard history, activity, notifications, shortcuts, watched games, the regex Library and installed models. Gap: lists without per-item actions (settings history, changelog, outages); the regex Library has no search of its own. Not yet verified on screen in this task. |
 | Changelog viewer | done | Records page, cached releases rendered as Markdown. |
 | Offline documentation browser | done | Help and docs page: task-led landing, article reader, search with the regex builder. |
 | Notification centre | done | Records page; toasts and offline alerts are logged. |
