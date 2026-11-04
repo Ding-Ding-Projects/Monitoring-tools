@@ -18,7 +18,7 @@ Encode or decode files in a batch. You can also copy a file as Base64 text or as
 
 ![Encrypt tab](../../screenshots/filetools-encrypt.png)
 
-Files are encrypted with AES-256-GCM using your password and saved as `.mtenc` files next to the originals. Without the password the files cannot be opened, so keep it safe.
+Files are encrypted with AES-256-GCM using your password and saved as `.mtenc` files next to the originals. Any password works, however short; the strength meter only advises, and only an empty password is refused. Without the password the files cannot be opened, so keep it safe.
 
 ## Failure modes
 

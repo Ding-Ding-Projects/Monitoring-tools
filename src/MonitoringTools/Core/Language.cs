@@ -40,6 +40,8 @@ namespace MonitoringTools.Core
             }
         }
         public static bool IsEnglish => Mode == LanguageMode.English;
+        /// <summary>English with no personal wording: the layer has nothing to do and leaves text alone.</summary>
+        private static bool Plain => IsEnglish && !PersonalWording.Active;
 
         private static LanguageMode _lastMode;
         private static bool _lastSchool;
@@ -97,11 +99,45 @@ namespace MonitoringTools.Core
             _installed = true;
 
             EventManager.RegisterClassHandler(typeof(TextBlock), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) => Rewrite((TextBlock)e)));
+            // WPF raises Loaded only on elements that have their own Loaded handler, so the class handler above misses most
+            // labels added after a window opened (every page the control centre builds on a tab switch, cards, dialogs).
+            // Each window instead marks itself when its layout changes, and a short coalescing timer re-applies the language
+            // and the personal wording to marked windows. Rewriting is idempotent, so a pass over finished text changes nothing.
+            EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) => Watch((Window)e)));
+            _sweep = new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(250) };
+            _sweep.Tick += (s2, e2) => Sweep();
+            _sweep.Start();
+            PersonalWording.Changed += () => Refresh();
             EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) => Walk((Window)e)));
             Narrator.Attach();
             _lastMode = Mode; _lastSchool = Modes.SchoolActive;
             Modes.Changed += OnModesChanged;
             Refresh();
+        }
+
+        private static System.Windows.Threading.DispatcherTimer _sweep;
+        private static readonly HashSet<Window> _dirty = new HashSet<Window>();
+        private static readonly DependencyProperty WatchedProp = DependencyProperty.RegisterAttached("Watched", typeof(bool), typeof(Language), new PropertyMetadata(false));
+
+        private static void Watch(Window w)
+        {
+            if ((bool)w.GetValue(WatchedProp)) return;
+            w.SetValue(WatchedProp, true);
+            w.LayoutUpdated += (s, e) => _dirty.Add(w);
+            w.Closed += (s, e) => _dirty.Remove(w);
+            _dirty.Add(w);
+        }
+
+        /// <summary>Re-applies the language and wording to every window whose layout changed since the last pass.</summary>
+        internal static void Sweep()
+        {
+            if (_dirty.Count == 0) return;
+            if (Plain) { _dirty.Clear(); return; }   // English without personal wording: nothing to apply (Refresh restores originals)
+            var list = _dirty.ToList();
+            _dirty.Clear();
+            foreach (var w in list)
+                if (w.IsVisible) { try { Walk(w); } catch (Exception ex) { Log.Warn("Language sweep: " + ex.Message); } }
+            _dirty.Clear();   // the rewrite itself caused layout passes; those need no second sweep
         }
 
         /// <summary>Re-applies the language to every open window and tells listeners. Call after changing the mode.</summary>
@@ -337,7 +373,7 @@ namespace MonitoringTools.Core
             {
                 if (run.Parent is Hyperlink || GetLiteral(run)) continue;
                 var en = (string)run.GetValue(EnProp);
-                if (en == null && IsEnglish) continue;   // nothing was ever translated and nothing is wanted: leave it to the wording layer
+                if (en == null && Plain) continue;   // nothing was ever translated and nothing is wanted
                 var cur = run.Text;
                 if (en != null)
                 {
@@ -380,8 +416,8 @@ namespace MonitoringTools.Core
             if (cur == null || GetLiteral(fe)) return;
             var en = (string)fe.GetValue(TipEnProp);
             if (en != null && cur != (string)fe.GetValue(TipFinalProp)) en = null;
-            if (en == null) { if (IsEnglish) return; en = cur; }
-            var next = T(en);
+            if (en == null) { if (Plain) return; en = cur; }
+            var next = WordingOut(T(en));
             fe.SetValue(TipEnProp, en); fe.SetValue(TipFinalProp, next);
             if (!string.Equals(cur, next, StringComparison.Ordinal)) fe.ToolTip = next;
         }
@@ -403,8 +439,8 @@ namespace MonitoringTools.Core
             if (HasLiteralAncestor(d)) return;
             var en = (string)d.GetValue(enProp);
             if (en != null && cur != (string)d.GetValue(finalProp)) en = null;   // the app wrote a new name since
-            if (en == null) { if (IsEnglish) return; en = cur; }
-            var next = T(en);
+            if (en == null) { if (Plain) return; en = cur; }
+            var next = WordingOut(T(en));
             d.SetValue(enProp, en); d.SetValue(finalProp, next);
             if (!string.Equals(cur, next, StringComparison.Ordinal)) d.SetValue(target, next);
         }
@@ -415,8 +451,8 @@ namespace MonitoringTools.Core
             if (string.IsNullOrEmpty(cur)) return;
             var en = (string)w.GetValue(TitleEnProp);
             if (en != null && cur != (string)w.GetValue(TitleFinalProp)) en = null;
-            if (en == null) { if (IsEnglish) return; en = cur; }
-            var next = T(en);
+            if (en == null) { if (Plain) return; en = cur; }
+            var next = WordingOut(T(en));
             w.SetValue(TitleEnProp, en); w.SetValue(TitleFinalProp, next);
             if (!string.Equals(cur, next, StringComparison.Ordinal)) w.Title = next;
         }

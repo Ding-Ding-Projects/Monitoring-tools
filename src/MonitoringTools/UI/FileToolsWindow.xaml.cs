@@ -329,7 +329,8 @@ namespace MonitoringTools.UI
             async void DoEncrypt()
             {
                 if (_busy || plain.Length == 0) return;
-                if (pw.Box.Password.Length < 8) { Warn("Use at least 8 characters."); return; }
+                // Any length is accepted; the strength meter only advises. An empty password would encrypt nothing.
+                if (pw.Box.Password.Length == 0) { Warn("Type a password first."); return; }
                 if (confirm.Box != null && confirm.Box.Password != pw.Box.Password) { Warn("The passwords do not match."); return; }
                 _busy = true;
                 Status.Foreground = Ui.Res("B.TextMute");

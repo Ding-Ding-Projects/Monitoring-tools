@@ -410,8 +410,11 @@ namespace MonitoringTools.UI.Search
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
                 row.ColumnDefinitions.Add(new ColumnDefinition());
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                row.Children.Add(Ui.Mono(g.Name, Ui.Res("B.TextSoft"), 12));
+                var gname = Ui.Mono(g.Name, Ui.Res("B.TextSoft"), 12);
+                Core.Language.SetLiteral(gname, true);   // group names and captured text come from the pattern and the sample
+                row.Children.Add(gname);
                 var v = Ui.Mono(g.Success ? Shorten(g.Value) : "did not take part", Ui.Res(g.Success ? "B.Mint" : "B.TextMute"), 12);
+                if (g.Success) Core.Language.SetLiteral(v, true);
                 Grid.SetColumn(v, 1); row.Children.Add(v);
                 var at = Ui.Mono(g.Success ? $"{g.Index}–{g.Index + g.Length}" : "", Ui.Res("B.TextMute"), 11);
                 Grid.SetColumn(at, 2); row.Children.Add(at);
@@ -502,6 +505,7 @@ namespace MonitoringTools.UI.Search
             sp.Children.Add(Panel(_dbgPattern));
             sp.Children.Add(Eyebrow("Subject (current position highlighted)"));
             _dbgText = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
+            Core.Language.SetLiteral(_dbgPattern, true); Core.Language.SetLiteral(_dbgText, true);   // the pattern and the subject text are the person's own
             sp.Children.Add(Panel(_dbgText));
             _dbgInfo = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 8, 0, 4), Foreground = Ui.Res("B.Text") };
             sp.Children.Add(_dbgInfo);

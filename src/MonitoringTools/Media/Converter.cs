@@ -158,19 +158,25 @@ namespace MonitoringTools.Media
             return job;
         }
 
-        /// <summary>Files a format can be made from: video targets take video, audio targets take audio and video, image targets take images.</summary>
+        /// <summary>Files a format can be made from, as each format declares (video targets take video, audio targets take audio
+        /// and video, pictures take pictures and a video frame). A file never "converts" to the very format it already is.</summary>
         public static bool Compatible(string file, FormatSpec f)
         {
             var k = ClipItem.Classify(file);
-            if (string.Equals(Path.GetExtension(file).TrimStart('.'), f.Extension.TrimStart('.'), StringComparison.OrdinalIgnoreCase)) return false;
-            return f.Kind switch
-            {
-                TargetKind.Video => k == FileKind.Video || (f.Id == "mp4" && k == FileKind.Audio),
-                TargetKind.Audio => k == FileKind.Audio || k == FileKind.Video,
-                // animations (GIF, APNG) are made from video or images; a folder batch to a still format takes images only
-                TargetKind.Image => k == FileKind.Image || ((f.Id == "gif" || f.Id == "apng") && k == FileKind.Video),
-                _ => false
-            };
+            if (!Formats.Sources(f).Contains(k)) return false;
+            var ext = Path.GetExtension(file).TrimStart('.').ToLowerInvariant();
+            if (ext == "jpeg") ext = "jpg";
+            if (ext == "tif") ext = "tiff";
+            return !(ext == f.Id && ext == f.Extension.TrimStart('.'));   // mp4 to H.265 MP4 is a real conversion; mp4 to plain MP4 is not
+        }
+
+        /// <summary>For a folder or a selection, a still picture format takes only the pictures: turning every video in a
+        /// folder into its first frame is rarely what anyone means. Animations (GIF, APNG, animated WebP) still take videos.</summary>
+        public static bool CompatibleInBatch(string file, FormatSpec f)
+        {
+            if (!Compatible(file, f)) return false;
+            bool still = f.Kind == TargetKind.Image && f.Id != "gif" && f.Id != "apng" && f.Id != "webp-anim";
+            return !still || ClipItem.Classify(file) == FileKind.Image;
         }
 
         public static List<string> CompatibleIn(string folder, string formatId)
@@ -179,18 +185,18 @@ namespace MonitoringTools.Media
             if (f == null) return new List<string>();
             try
             {
-                return Directory.EnumerateFiles(folder).Where(p => Compatible(p, f))
+                return Directory.EnumerateFiles(folder).Where(p => CompatibleInBatch(p, f))
                     .OrderBy(p => p, StringComparer.OrdinalIgnoreCase).ToList();
             }
             catch { return new List<string>(); }
         }
 
         /// <summary>Converts several files one after another under a single toast.</summary>
-        public static void StartBatch(IList<string> files, string formatId, string label = null)
+        public static void StartBatch(IList<string> files, string formatId, string label = null, string outputFolder = null)
         {
             var f = Formats.Find(formatId);
             if (f == null) return;
-            var list = files.Where(p => File.Exists(p) && Compatible(p, f)).ToList();
+            var list = files.Where(p => File.Exists(p) && (files.Count == 1 ? Compatible(p, f) : CompatibleInBatch(p, f))).ToList();
             var title = $"Batch to {f.Label}";
             var sub = label != null ? Path.GetFileName(label.TrimEnd('\\')) : $"{list.Count} files";
             if (list.Count == 0)
@@ -205,12 +211,12 @@ namespace MonitoringTools.Media
                 for (int i = 0; i < list.Count; i++)
                 {
                     report($"{i + 1} of {list.Count} · {Path.GetFileName(list[i])}");
-                    var job = new ConversionJob { Source = list[i], Format = f, Output = OutputPathFor(list[i], f), SourceBytes = new FileInfo(list[i]).Length };
+                    var job = new ConversionJob { Source = list[i], Format = f, Output = OutputPathFor(list[i], f, outputFolder), SourceBytes = new FileInfo(list[i]).Length };
                     await RunAsync(job);
                     if (job.Error == "ffmpeg-missing") return (false, "FFmpeg not found", "Install it from the control centre (Conversion), then copy the folder with :" + formatId + " again.");
                     if (job.Failed) errors.Add($"{Path.GetFileName(list[i])}: {UI.ActionProvider.Tail(job.Error, 1)}"); else ok++;
                 }
-                return (errors.Count == 0, $"Converted {ok} of {list.Count} to {f.Label}", errors.Count == 0 ? $"Saved next to the originals in {sub}." : string.Join("\n", errors));
+                return (errors.Count == 0, $"Converted {ok} of {list.Count} to {f.Label}", errors.Count == 0 ? (outputFolder != null ? $"Saved in {Core.PathDisplay.Shown(outputFolder)}." : $"Saved next to the originals in {sub}.") : string.Join("\n", errors));
             });
         }
 
@@ -244,6 +250,7 @@ namespace MonitoringTools.Media
             using (var fs = File.Create(tmp)) png.Save(fs);
             var renamed = Unique(Path.Combine(Path.GetTempPath(), stamp + ".png"));
             File.Move(tmp, renamed);
+            lock (OwnedTemp) OwnedTemp.Add(renamed);
             Start(renamed, formatId, folder);
             return null;
         }
@@ -388,6 +395,8 @@ namespace MonitoringTools.Media
             catch (Exception ex) { Finish(job, ex.Message); }
         }
 
+        private static readonly HashSet<string> OwnedTemp = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         private static void Finish(ConversionJob job, string error)
         {
             job.Done = true;
@@ -397,8 +406,10 @@ namespace MonitoringTools.Media
             {
                 job.Progress = 1;
                 try { job.OutputBytes = new FileInfo(job.Output).Length; } catch { }
-                if (job.Source.StartsWith(Path.GetTempPath(), StringComparison.OrdinalIgnoreCase))
-                    try { File.Delete(job.Source); } catch { }
+                // Only the temporary picture this app wrote from the clipboard is removed. A person's own file is never deleted,
+                // even when it lives in the temp folder (an attachment opened from mail, a browser download).
+                bool owned; lock (OwnedTemp) owned = OwnedTemp.Remove(job.Source);
+                if (owned) try { File.Delete(job.Source); } catch { }
             }
             Activity.Add(ActivityKind.Convert,
                 job.Failed ? $"{Path.GetFileName(job.Source)} to {job.Format.Label} failed" : $"{Path.GetFileName(job.Source)} → {Path.GetFileName(job.Output)}",

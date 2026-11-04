@@ -51,6 +51,8 @@ namespace MonitoringTools.UI
             dir = Path.GetFullPath(dir);
             Directory.CreateDirectory(dir);
             if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "wording") { await WordingChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
 
             // ---- search
             Check("search: plain text needs every word", () =>
@@ -135,14 +137,19 @@ namespace MonitoringTools.UI
                 var cc = new ControlCentreWindow { Width = 1180, Height = 820 };
                 cc.Show();
                 await Task.Delay(900);
+                // The page may still be finishing its first layout; give each switch up to 1.5 s rather than one fixed wait.
+                async Task<string> Settle(Func<string, bool> done)
+                {
+                    string t = "";
+                    for (int i = 0; i < 10; i++) { await Task.Delay(150); t = SearchScope.Text(cc); if (done(t)) break; Core.Language.Refresh(); }
+                    return t;
+                }
                 Settings.Current.LanguageMode = LanguageMode.Cantonese;
                 Core.Language.Refresh();
-                await Task.Delay(300);
-                var text = SearchScope.Text(cc);
+                var text = await Settle(t => t.Contains("斷線次數") && !t.Contains("Outages"));
                 Settings.Current.LanguageMode = LanguageMode.English;
                 Core.Language.Refresh();
-                await Task.Delay(300);
-                var back = SearchScope.Text(cc);
+                var back = await Settle(t => t.Contains("Outages"));
                 cc.Close();
                 return text.Contains("斷線次數") && !text.Contains("Outages") && back.Contains("Outages") ? null : "window text did not switch and restore";
             });
@@ -801,6 +808,8 @@ namespace MonitoringTools.UI
 
             await Wave6ChecksAsync();
             await RunWave6Async();
+            await WordingChecksAsync(dir);
+            await ConvertChecksAsync(dir);
             // ---- the language audit: nothing visible is left in English when Cantonese is on
             await CheckAsync("language: every visible string on every page and window has a Cantonese entry", async () =>
             {

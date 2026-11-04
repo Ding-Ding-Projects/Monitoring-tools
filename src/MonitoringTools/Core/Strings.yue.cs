@@ -213,7 +213,7 @@ namespace MonitoringTools.Core
             Add("Encrypted", "已加密"); Add("Decrypted", "已解密"); Add("Deleted", "已刪除"); Add("Password", "密碼");
             Add("Writes name.ext.b64 next to each file.", "會喺每個檔案旁邊寫入 name.ext.b64。"); Add("Turns .b64 files back into the originals.", "將 .b64 檔案還原成原檔。");
             Add("AES-256-GCM. Writes name.ext.mtenc beside each file. There is no way back without the password.", "AES-256-GCM。會喺每個檔案旁邊寫入 name.ext.mtenc。冇密碼就唔可能還原。");
-            Add("The passwords do not match.", "兩次密碼唔一致。"); Add("Use at least 8 characters.", "最少用 8 個字元。");
+            Add("The passwords do not match.", "兩次密碼唔一致。"); Add("Use at least 8 characters.", "最少用 8 個字元。"); Add("Type a password first.", "請先輸入密碼。");
             Add("Deletes go to the Recycle Bin", "刪除嘅檔案會去資源回收筒"); Add("They go to the Recycle Bin, so you can restore them from there.", "檔案會去資源回收筒，可以喺嗰度還原。");
             Add("Send originals to the Recycle Bin afterwards", "完成後將原檔送去資源回收筒"); Add("Sending to the Recycle Bin…", "送去資源回收筒緊…");
             Add("Copy as Base64 text", "複製做 Base64 文字"); Add("Copy as data URI (for HTML and CSS)", "複製做 data URI（用於 HTML 同 CSS）");

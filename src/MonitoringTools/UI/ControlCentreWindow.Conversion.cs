@@ -26,6 +26,15 @@ namespace MonitoringTools.UI
             var listed = Formats.Listed.ToList();
             var sp = new StackPanel();
             sp.Children.Add(CardTitle("Formats", $"{listed.Count} formats. Copy a path with :format on the end, or pick one here and choose files."));
+            var pickAny = Ui.Button("Choose a file to convert…", () =>
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog { Title = "Choose a video, audio or picture file", Multiselect = true,
+                    Filter = "Video, audio and pictures|" + string.Join(";", MonitoringTools.Clip.ClipItem.VideoExt.Concat(MonitoringTools.Clip.ClipItem.AudioExt).Concat(MonitoringTools.Clip.ClipItem.ImageExt).Select(e => "*" + e)) + "|All files|*.*" };
+                if (dlg.ShowDialog(this) == true) ConvertDialog.Open(dlg.FileNames);
+            }, "Btn.Accent", Icons.Bolt);
+            pickAny.ToolTip = "Opens a list of every format this file can become, with what each one is for.";
+            pickAny.HorizontalAlignment = HorizontalAlignment.Left;
+            sp.Children.Add(pickAny);
 
             var search = new SearchField("conversion:formats", "Search formats, for example webm or lossless") { Margin = new Thickness(0, 0, 0, 10) };
             search.SampleSource = () => listed.Select(f => f.Id);
