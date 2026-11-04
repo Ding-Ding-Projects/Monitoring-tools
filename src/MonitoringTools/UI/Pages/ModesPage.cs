@@ -57,12 +57,12 @@ namespace MonitoringTools.UI
             // A Material 3 filled field with its label above the box, so each PIN or password box says what it is for.
             var p = new PasswordBox
             {
-                Width = 200, MaxLength = maxLength, Margin = new Thickness(0, 0, 12, 8), HorizontalAlignment = HorizontalAlignment.Left,
+                Width = maxLength > 12 ? 280 : 200, MaxLength = maxLength, Margin = new Thickness(0, 0, 12, 8), HorizontalAlignment = HorizontalAlignment.Left,
                 Foreground = Ui.Res("B.Text"), CaretBrush = Ui.Res("B.Mint"), FontSize = 15, Tag = name
             };
             p.Template = (ControlTemplate)System.Windows.Markup.XamlReader.Parse(
                 "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='PasswordBox'>" +
-                "<StackPanel><TextBlock Text='{TemplateBinding Tag}' FontSize='12' Margin='4,0,0,4' Foreground='{DynamicResource B.TextSoft}' FontFamily='{DynamicResource F.Body}'/>" +
+                "<StackPanel><TextBlock Text='{TemplateBinding Tag}' TextWrapping='Wrap' FontSize='12' Margin='4,0,0,4' Foreground='{DynamicResource B.TextSoft}' FontFamily='{DynamicResource F.Body}'/>" +
                 "<Border x:Name='Bd' Height='44' CornerRadius='12' Background='{DynamicResource B.Sunken}' BorderBrush='Transparent' BorderThickness='2' Padding='12,0'>" +
                 "<ScrollViewer x:Name='PART_ContentHost' VerticalAlignment='Center'/></Border></StackPanel>" +
                 "<ControlTemplate.Triggers><Trigger Property='IsKeyboardFocused' Value='True'><Setter TargetName='Bd' Property='BorderBrush' Value='{DynamicResource B.Mint}'/></Trigger></ControlTemplate.Triggers>" +
