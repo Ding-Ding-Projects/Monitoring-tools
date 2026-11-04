@@ -40,6 +40,8 @@ namespace MonitoringTools.Core
             }
         }
         public static bool IsEnglish => Mode == LanguageMode.English;
+        /// <summary>English with no personal wording: the layer has nothing to do and leaves text alone.</summary>
+        private static bool Plain => IsEnglish && !PersonalWording.Active;
 
         private static LanguageMode _lastMode;
         private static bool _lastSchool;
@@ -96,12 +98,47 @@ namespace MonitoringTools.Core
             if (_installed) return;
             _installed = true;
 
-            EventManager.RegisterClassHandler(typeof(TextBlock), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) => Rewrite((TextBlock)e)));
+            EventManager.RegisterClassHandler(typeof(TextBlock), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) => { var tb = (TextBlock)e; Rewrite(tb); Follow(tb); }));
+            EventManager.RegisterClassHandler(typeof(TextBlock), FrameworkElement.UnloadedEvent, new RoutedEventHandler((e, a) => Unfollow((TextBlock)e)));
+            // Tooltips and accessible names on content added after its window loaded (a new page, a new card) need the layer too.
+            EventManager.RegisterClassHandler(typeof(FrameworkElement), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) =>
+            {
+                var fe = (FrameworkElement)e;
+                if (fe.ToolTip is string) Retip(fe);
+                Retext(fe, AutomationProperties.NameProperty, NameEnProp, NameFinalProp);
+                Retext(fe, AutomationProperties.HelpTextProperty, HelpEnProp, HelpFinalProp);
+            }));
+            PersonalWording.Changed += () => Refresh();
             EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((e, a) => Walk((Window)e)));
             Narrator.Attach();
             _lastMode = Mode; _lastSchool = Modes.SchoolActive;
             Modes.Changed += OnModesChanged;
             Refresh();
+        }
+
+        // Text the app writes into a label after it loaded (a tab strip renaming its tabs, a status line) is rewritten
+        // again, so the language and the personal wording never fall back to the original words.
+        private static readonly System.ComponentModel.DependencyPropertyDescriptor TextDescriptor =
+            System.ComponentModel.DependencyPropertyDescriptor.FromProperty(TextBlock.TextProperty, typeof(TextBlock));
+        private static readonly DependencyProperty FollowingProp = DependencyProperty.RegisterAttached("Following", typeof(bool), typeof(Language), new PropertyMetadata(false));
+        private static bool _rewriting;
+        private static void OnTextChanged(object sender, EventArgs e)
+        {
+            if (_rewriting || !(sender is TextBlock tb)) return;
+            _rewriting = true;
+            try { Rewrite(tb); } finally { _rewriting = false; }
+        }
+        private static void Follow(TextBlock tb)
+        {
+            if ((bool)tb.GetValue(FollowingProp)) return;
+            tb.SetValue(FollowingProp, true);
+            TextDescriptor.AddValueChanged(tb, OnTextChanged);
+        }
+        private static void Unfollow(TextBlock tb)
+        {
+            if (!(bool)tb.GetValue(FollowingProp)) return;
+            tb.SetValue(FollowingProp, false);
+            TextDescriptor.RemoveValueChanged(tb, OnTextChanged);
         }
 
         /// <summary>Re-applies the language to every open window and tells listeners. Call after changing the mode.</summary>
@@ -337,7 +374,7 @@ namespace MonitoringTools.Core
             {
                 if (run.Parent is Hyperlink || GetLiteral(run)) continue;
                 var en = (string)run.GetValue(EnProp);
-                if (en == null && IsEnglish) continue;   // nothing was ever translated and nothing is wanted: leave it to the wording layer
+                if (en == null && Plain) continue;   // nothing was ever translated and nothing is wanted
                 var cur = run.Text;
                 if (en != null)
                 {
@@ -380,8 +417,8 @@ namespace MonitoringTools.Core
             if (cur == null || GetLiteral(fe)) return;
             var en = (string)fe.GetValue(TipEnProp);
             if (en != null && cur != (string)fe.GetValue(TipFinalProp)) en = null;
-            if (en == null) { if (IsEnglish) return; en = cur; }
-            var next = T(en);
+            if (en == null) { if (Plain) return; en = cur; }
+            var next = WordingOut(T(en));
             fe.SetValue(TipEnProp, en); fe.SetValue(TipFinalProp, next);
             if (!string.Equals(cur, next, StringComparison.Ordinal)) fe.ToolTip = next;
         }
@@ -403,8 +440,8 @@ namespace MonitoringTools.Core
             if (HasLiteralAncestor(d)) return;
             var en = (string)d.GetValue(enProp);
             if (en != null && cur != (string)d.GetValue(finalProp)) en = null;   // the app wrote a new name since
-            if (en == null) { if (IsEnglish) return; en = cur; }
-            var next = T(en);
+            if (en == null) { if (Plain) return; en = cur; }
+            var next = WordingOut(T(en));
             d.SetValue(enProp, en); d.SetValue(finalProp, next);
             if (!string.Equals(cur, next, StringComparison.Ordinal)) d.SetValue(target, next);
         }
@@ -415,8 +452,8 @@ namespace MonitoringTools.Core
             if (string.IsNullOrEmpty(cur)) return;
             var en = (string)w.GetValue(TitleEnProp);
             if (en != null && cur != (string)w.GetValue(TitleFinalProp)) en = null;
-            if (en == null) { if (IsEnglish) return; en = cur; }
-            var next = T(en);
+            if (en == null) { if (Plain) return; en = cur; }
+            var next = WordingOut(T(en));
             w.SetValue(TitleEnProp, en); w.SetValue(TitleFinalProp, next);
             if (!string.Equals(cur, next, StringComparison.Ordinal)) w.Title = next;
         }

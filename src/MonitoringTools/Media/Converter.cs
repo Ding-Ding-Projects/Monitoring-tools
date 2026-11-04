@@ -158,18 +158,16 @@ namespace MonitoringTools.Media
             return job;
         }
 
-        /// <summary>Files a format can be made from: video targets take video, audio targets take audio and video, image targets take images.</summary>
+        /// <summary>Files a format can be made from, as each format declares (video targets take video, audio targets take audio
+        /// and video, pictures take pictures and a video frame). A file never "converts" to the very format it already is.</summary>
         public static bool Compatible(string file, FormatSpec f)
         {
             var k = ClipItem.Classify(file);
-            if (string.Equals(Path.GetExtension(file).TrimStart('.'), f.Extension.TrimStart('.'), StringComparison.OrdinalIgnoreCase)) return false;
-            return f.Kind switch
-            {
-                TargetKind.Video => k == FileKind.Video || (f.Id == "mp4" && k == FileKind.Audio),
-                TargetKind.Audio => k == FileKind.Audio || k == FileKind.Video,
-                TargetKind.Image => k == FileKind.Image || (f.Id == "gif" && k == FileKind.Video),
-                _ => false
-            };
+            if (!Formats.Sources(f).Contains(k)) return false;
+            var ext = Path.GetExtension(file).TrimStart('.').ToLowerInvariant();
+            if (ext == "jpeg") ext = "jpg";
+            if (ext == "tif") ext = "tiff";
+            return !(ext == f.Id && ext == f.Extension.TrimStart('.'));   // mp4 to H.265 MP4 is a real conversion; mp4 to plain MP4 is not
         }
 
         public static List<string> CompatibleIn(string folder, string formatId)
@@ -185,7 +183,7 @@ namespace MonitoringTools.Media
         }
 
         /// <summary>Converts several files one after another under a single toast.</summary>
-        public static void StartBatch(IList<string> files, string formatId, string label = null)
+        public static void StartBatch(IList<string> files, string formatId, string label = null, string outputFolder = null)
         {
             var f = Formats.Find(formatId);
             if (f == null) return;
@@ -204,12 +202,12 @@ namespace MonitoringTools.Media
                 for (int i = 0; i < list.Count; i++)
                 {
                     report($"{i + 1} of {list.Count} · {Path.GetFileName(list[i])}");
-                    var job = new ConversionJob { Source = list[i], Format = f, Output = OutputPathFor(list[i], f), SourceBytes = new FileInfo(list[i]).Length };
+                    var job = new ConversionJob { Source = list[i], Format = f, Output = OutputPathFor(list[i], f, outputFolder), SourceBytes = new FileInfo(list[i]).Length };
                     await RunAsync(job);
                     if (job.Error == "ffmpeg-missing") return (false, "FFmpeg not found", "Install it from the control centre (Conversion), then copy the folder with :" + formatId + " again.");
                     if (job.Failed) errors.Add($"{Path.GetFileName(list[i])}: {UI.ActionProvider.Tail(job.Error, 1)}"); else ok++;
                 }
-                return (errors.Count == 0, $"Converted {ok} of {list.Count} to {f.Label}", errors.Count == 0 ? $"Saved next to the originals in {sub}." : string.Join("\n", errors));
+                return (errors.Count == 0, $"Converted {ok} of {list.Count} to {f.Label}", errors.Count == 0 ? (outputFolder != null ? $"Saved in {Core.PathDisplay.Shown(outputFolder)}." : $"Saved next to the originals in {sub}.") : string.Join("\n", errors));
             });
         }
 

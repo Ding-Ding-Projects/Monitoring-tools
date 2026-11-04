@@ -238,6 +238,7 @@ namespace MonitoringTools.UI
                 l.Add(A("Show in folder", Icons.Folder, () => Reveal(f), done: "Shown"));
                 l.Add(A("Copy names", null, () => Set(string.Join(Environment.NewLine, files.Select(p => Path.GetFileName(p.TrimEnd('\\'))))), done: "Copied"));
                 l.Add(A(item.IsPathText ? "Add quotes" : "Copy as paths", null, () => Set(string.Join(Environment.NewLine, files.Select(p => $"\"{p}\""))), done: "Copied"));
+                if (ConvertDialog.TargetsFor(files).Count > 0) l.Add(A("Convert…", Icons.Bolt, () => ConvertDialog.Open(files), done: "Opened"));
                 BatchChips(files, l);
                 return;
             }
@@ -290,8 +291,19 @@ namespace MonitoringTools.UI
             if (GitPush.FindRepoRoot(f) != null)
                 l.Add(new ToastAction { Label = ":push", Chip = true, Tip = "Commit everything and push. Same as copying the path with :push on the end.", HandsOff = true, Run = () => App.Toasts.StartPush(f) });
 
-            if (kind == FileKind.Folder) BatchChips(SafeFiles(f), l, f);
+            if (kind == FileKind.Folder)
+            {
+                var inside = SafeFiles(f);
+                if (inside.Any(p => { var k = ClipItem.Classify(p); return k == FileKind.Video || k == FileKind.Audio || k == FileKind.Image; }))
+                    l.Add(A("Convert…", Icons.Bolt, () => ConvertDialog.Open(inside, f), done: "Opened"));
+                BatchChips(inside, l, f);
+            }
             else
+            {
+                if (kind == FileKind.Video || kind == FileKind.Audio || kind == FileKind.Image)
+                    l.Add(A("Convert…", Icons.Bolt, () => ConvertDialog.Open(new[] { f }), done: "Opened"));
+            }
+            if (kind != FileKind.Folder)
                 foreach (var fmt in Formats.SuggestedFor(kind, Path.GetExtension(f)))
                 {
                     var id = fmt;

@@ -890,8 +890,16 @@ namespace MonitoringTools.UI
             root.Children.Add(Card(a, ff == null ? "#FF4A3A22" : null));
 
             var f = new StackPanel();
-            f.Children.Add(CardTitle("Formats"));
-            foreach (var group in Formats.All.Where(x => x.Id != "jpeg").GroupBy(x => x.Kind))
+            f.Children.Add(CardTitle("Formats", "Copy a file, then pick its Convert button, or copy its path with :format on the end. Convert opens a list of every format the file can become."));
+            var pick = Ui.Button("Choose a file to convert…", () =>
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog { Title = "Choose a video, audio or picture file", Multiselect = true,
+                    Filter = "Video, audio and pictures|" + string.Join(";", ClipItem.VideoExt.Concat(ClipItem.AudioExt).Concat(ClipItem.ImageExt).Select(e => "*" + e)) + "|All files|*.*" };
+                if (dlg.ShowDialog(this) == true) ConvertDialog.Open(dlg.FileNames);
+            }, "Btn.Accent", Icons.Bolt);
+            pick.ToolTip = "Opens a list of every format this file can become, with what each one is for.";
+            f.Children.Add(pick);
+            foreach (var group in Formats.Visible.GroupBy(x => x.Kind))
             {
                 f.Children.Add(Ui.Mono(group.Key.ToString().ToUpperInvariant(), Ui.Res("B.TextMute"), 11));
                 var wrap = new WrapPanel { Margin = new Thickness(0, 6, 0, 10) };

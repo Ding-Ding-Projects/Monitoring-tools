@@ -55,7 +55,7 @@ namespace MonitoringTools.UI
             foreach (var e in All<T>(root))
             {
                 if (visibleOnly && !e.IsVisible) continue;
-                if (AutomationProperties.GetName(e) == name) return e;
+                if (AutomationProperties.GetName(e) == name || Core.Language.OriginalName(e) == name) return e;   // a translated name still answers to its English original
                 if (e is ContentControl cc && LabelOf(cc) == name) return e;
             }
             return null;

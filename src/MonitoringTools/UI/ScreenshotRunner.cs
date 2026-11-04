@@ -124,6 +124,7 @@ namespace MonitoringTools.UI
                 await SearchScenes(cc);
                 await LookScenes(cc);
                 await ScaleScenes(cc);
+                await ConvertScenes();
                 await Wave6Scenes(cc);
                 cc.Close();
 
@@ -333,6 +334,33 @@ namespace MonitoringTools.UI
         }
 
         /// <summary>Renders a window's content over the graphite ground at 2x, shadows included.</summary>
+        // The convert dialog for one video and for a mixed folder. The files are empty placeholders in the throwaway
+        // folder: the dialog only reads their names and kinds.
+        private static async Task ConvertScenes()
+        {
+            var tmp = System.IO.Path.Combine(Settings.DataDir, "convert-capture");
+            System.IO.Directory.CreateDirectory(tmp);
+            string Make(string n) { var p = System.IO.Path.Combine(tmp, n); System.IO.File.WriteAllBytes(p, new byte[2048]); return p; }
+            var clip = Make("Holiday clip.mp4");
+            ConvertDialog.Open(new[] { clip });
+            await Task.Delay(500);
+            if (ConvertDialog.Current != null)
+            {
+                await Shot(ConvertDialog.Current, "convert-dialog", "Convert to: every format a video can become, grouped, with what each is for", 400);
+                ConvertDialog.Current.PickForTest("mp4-h265");
+                await Shot(ConvertDialog.Current, "convert-dialog-picked", "Convert to: a format picked, with where the file will be saved", 300);
+                ConvertDialog.Current.Close();
+            }
+            var files = new[] { clip, Make("Voice memo.m4a"), Make("Cover.png"), Make("Notes.txt") };
+            ConvertDialog.Open(files, tmp);
+            await Task.Delay(500);
+            if (ConvertDialog.Current != null)
+            {
+                await Shot(ConvertDialog.Current, "convert-dialog-batch", "Convert to for a folder: each format says how many of the files it can take", 400);
+                ConvertDialog.Current.Close();
+            }
+        }
+
         private static async Task Shot(Window w, string name, string caption, int waitMs)
         {
             await Task.Delay(waitMs);

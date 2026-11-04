@@ -88,6 +88,9 @@ namespace MonitoringTools.Core
             catch { return false; }
         }
 
+        /// <summary>Self-test only: drops the words from memory without touching the saved copy, as a restart does.</summary>
+        internal static void ForgetForTest() { _map = new Dictionary<string, string>(); _matcher = null; }
+
         public static void Clear()
         {
             try { if (File.Exists(CachePath)) File.Delete(CachePath); } catch { }

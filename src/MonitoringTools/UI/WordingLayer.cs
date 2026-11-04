@@ -14,9 +14,9 @@ using MonitoringTools.Core;
 namespace MonitoringTools.UI
 {
     /// <summary>
-    /// Applies personal wording to on-screen text in every window, live, and accepts the wording
-    /// file dropped anywhere on any window. Text in monospace (paths, commands, code, addresses)
-    /// is never touched, and clearing restores every original string.
+    /// Accepts the personal wording file (dropped on any window, chosen in Settings, or copied) and celebrates
+    /// a successful load. The language layer applies the wording itself, to every label, tooltip, accessible
+    /// name and window title, and clearing restores every original string.
     /// </summary>
     public static class WordingLayer
     {
@@ -25,49 +25,9 @@ namespace MonitoringTools.UI
 
         public static void Install()
         {
-            EventManager.RegisterClassHandler(typeof(TextBlock), FrameworkElement.LoadedEvent, new RoutedEventHandler((s, e) => Rewrite((TextBlock)s)));
+            // The language layer applies the wording to every label, tooltip, accessible name and title, and follows text
+            // the app writes later; this layer only accepts the file (drop, copy, choose) and celebrates.
             EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((s, e) => Prepare((Window)s)));
-            PersonalWording.Changed += () => { foreach (Window w in Application.Current.Windows) Walk(w); };
-        }
-
-        // -------------------------------------------------------------- rewriting
-
-        private static void Walk(DependencyObject root)
-        {
-            if (root is TextBlock tb) Rewrite(tb);
-            int n = VisualTreeHelper.GetChildrenCount(root);
-            for (int i = 0; i < n; i++) Walk(VisualTreeHelper.GetChild(root, i));
-        }
-
-        private static bool IsLiteral(TextBlock tb)
-        {
-            var f = tb.FontFamily?.Source ?? "";
-            if (f.IndexOf("Mono", StringComparison.OrdinalIgnoreCase) >= 0 || f.IndexOf("Consolas", StringComparison.OrdinalIgnoreCase) >= 0) return true;
-            for (DependencyObject d = tb; d != null; d = VisualTreeHelper.GetParent(d))
-                if (d is TextBox || d is PasswordBox) return true;
-            return false;
-        }
-
-        private static void Rewrite(TextBlock tb)
-        {
-            if (IsLiteral(tb)) return;
-            foreach (var run in Runs(tb.Inlines))
-            {
-                if (run.Parent is Hyperlink) continue;   // link text often is the address itself
-                var original = (string)run.GetValue(OriginalProperty);
-                if (original == null) { original = run.Text; run.SetValue(OriginalProperty, original); }
-                var next = PersonalWording.Active ? PersonalWording.Apply(original) : original;
-                if (!string.Equals(run.Text, next, StringComparison.Ordinal)) run.Text = next;
-            }
-        }
-
-        private static System.Collections.Generic.IEnumerable<Run> Runs(InlineCollection inlines)
-        {
-            foreach (var i in inlines.ToList())
-            {
-                if (i is Run r) yield return r;
-                else if (i is Span sp) foreach (var x in Runs(sp.Inlines)) yield return x;
-            }
         }
 
         // -------------------------------------------------------------- drop anywhere

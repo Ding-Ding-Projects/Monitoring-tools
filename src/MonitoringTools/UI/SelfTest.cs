@@ -801,6 +801,8 @@ namespace MonitoringTools.UI
 
             await Wave6ChecksAsync();
             await RunWave6Async();
+            await WordingChecksAsync(dir);
+            await ConvertChecksAsync(dir);
             // ---- the language audit: nothing visible is left in English when Cantonese is on
             await CheckAsync("language: every visible string on every page and window has a Cantonese entry", async () =>
             {
