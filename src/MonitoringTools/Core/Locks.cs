@@ -64,7 +64,7 @@ namespace MonitoringTools.Core
         public static event Action Changed;
         public static string LoadError { get; private set; }
 
-        public static string RecoveryLine => "Locked out for good? Delete the file locks.dat in " + System.IO.Path.Combine(Settings.DataDir, "safety") + " (or the whole " + Settings.DataDir + " folder) and every lock is gone.";
+        public static string RecoveryLine => "Locked out for good? Delete the file locks.dat in " + PathDisplay.Shown(System.IO.Path.Combine(Settings.DataDir, "safety")) + " (or the whole " + PathDisplay.Shown(Settings.DataDir) + " folder) and every lock is gone.";
 
         public static void Start()
         {

@@ -401,7 +401,7 @@ namespace MonitoringTools.UI
             }, "Btn.Accent", Icons.Plus));
             box.Children.Add(msg);
 
-            var folder = SafetyLine("The app data folder is: " + Settings.DataDir, "B.TextSoft", 12, 6);
+            var folder = SafetyLine("The app data folder is: " + PathDisplay.Shown(Settings.DataDir), "B.TextSoft", 12, 6);
             folder.FontFamily = Ui.Font("F.Mono");
             box.Children.Add(folder);
             var copyPath = Ui.Button("Copy folder path", () => ClipboardWatcher.SetText(Settings.DataDir), "Btn.Chip", Icons.Clipboard);
@@ -433,7 +433,7 @@ namespace MonitoringTools.UI
                             var err = TicketDesk.OpenFolder(tt);
                             msg.Text = err ?? "Explorer opened the folder. Deleting anything in it is up to you.";
                         }, "Btn.Accent", Icons.Folder);
-                        open.ToolTip = "Opens " + Settings.DataDir + " in Windows Explorer. The app deletes nothing.";
+                        open.ToolTip = "Opens " + PathDisplay.Shown(Settings.DataDir) + " in Windows Explorer. The app deletes nothing.";
                         sp.Children.Add(open);
                     }
                     SearchScope.SetItem(sp, "support ticket " + t.Number);

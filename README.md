@@ -69,6 +69,11 @@ Create your own `:name` commands in the control centre. Each one is a batch or P
 
 ![Two-key confirmation](docs/screenshots/super-confirm-armed.png)
 
+**Tabs, tools and safety**
+- The control centre is a tab strip docked on the left (or any edge), with New tab, pinning, groups, overflow and searches across tabs.
+- Local AI models: manage Ollama on this computer. Tools: draw on pictures, publish a folder to GitHub, open files in your editor. The Minecraft page has a world generator.
+- Safety and locks: playful element locks with an unlock ladder, a Support Tickets desk and a built-in authenticator for one-time codes.
+
 What is finished and what is not: [docs/features/required-features.md](docs/features/required-features.md).
 
 **Internet watch**
