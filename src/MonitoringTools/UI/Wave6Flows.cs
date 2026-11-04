@@ -133,6 +133,17 @@ namespace MonitoringTools.UI
                 }
                 finally { gate.Close(); }
 
+                // the command palette overlay
+                CommandPalette.Open(); await Task.Delay(500);
+                var pal = CommandPalette.Current;
+                try
+                {
+                    if (pal == null) errs.Add("the command palette did not open");
+                    else await Window(pal, "the command palette", "menu-palette", new[] { "Clear the search", "Close the palette" }, false, () => Drive.All<ButtonBase>(pal).FirstOrDefault(b => b.IsVisible));
+                    if (pal != null && !pal.IsLoaded) errs.Add("the command palette closed when its menu opened");
+                }
+                finally { pal?.Close(); }
+
                 // file tools
                 var ft = new FileToolsWindow(new[] { samples["image"], samples["csv"] });
                 try { ft.Show(); await Window(ft, "file tools", "menu-filetools", new[] { "Copy text" }, false, () => First(ft)); }
@@ -786,6 +797,59 @@ namespace MonitoringTools.UI
                 }
             }
             finally { wiz.Close(); Settings.Current.OnboardingStep = 0; }
+
+            // every other window the app can open: the appearance editor (every tab), file tools, the convert dialog, the commit message,
+            // the welcome tour, the tray menu, a lock wizard and the drawing board
+            var perWindow = new List<string>();
+            async Task Other(string name, Window w, Func<Task> steps = null)
+            {
+                int s0 = switches, c0 = choices;
+                try
+                {
+                    if (!w.IsVisible) w.Show();
+                    await Settle(w, 700);
+                    Scan(w, name);
+                    if (steps != null) await steps();
+                }
+                catch (Exception ex) { bad.Add($"{name}: could not be walked ({ex.GetType().Name}: {ex.Message})"); }
+                finally { perWindow.Add($"{name} {switches - s0} switches {choices - c0} choices"); }
+            }
+            var samples = Demo.EnsureSamples();
+            var host = new Window { Width = 560, Height = 320, Title = "Explain walk host", Content = new StackPanel() };
+            var sample = new Button { Content = "Sample action", Style = Ui.Style("Btn.Ghost"), Margin = new Thickness(20) };
+            ((StackPanel)host.Content).Children.Add(sample);
+            try
+            {
+                host.Show(); await Settle(host, 400);
+                AppearanceEditorWindow.Open(host, sample); await Settle(host, 600);
+                var ed = Application.Current.Windows.OfType<AppearanceEditorWindow>().LastOrDefault();
+                if (ed == null) bad.Add("appearance editor: did not open");
+                else
+                {
+                    foreach (var tab in new[] { "Font", "Colour", "Shape", "Library" })
+                    {
+                        Drive.Press(ed, tab + " settings"); await Settle(ed, 350);
+                        int s0 = switches, c0 = choices;
+                        Scan(ed, "appearance editor " + tab);
+                        perWindow.Add($"appearance editor {tab} {switches - s0} switches {choices - c0} choices");
+                    }
+                    ed.Close();
+                }
+                await Other("file tools", new FileToolsWindow(new[] { samples["image"], samples["csv"] }));
+                await Other("commit message", new CommitTemplateWindow(false));
+                await Other("welcome tour", new WelcomeWindow());
+                await Other("tray menu", new TrayMenuWindow());
+                await Other("lock wizard", new LockWizardWindow(sample, "selftest", "explain", "Explain walk", () => { }));
+                await Other("drawing board", DrawingWindow.CreateBlankForTest());
+                ConvertDialog.Open(new[] { samples["image"] }); await Settle(host, 600);
+                if (ConvertDialog.Current != null) { await Other("convert dialog", ConvertDialog.Current); }
+            }
+            finally
+            {
+                foreach (var w in Application.Current.Windows.OfType<Window>().Where(w => w != host && !(w is ControlCentreWindow) && w.IsVisible && (w is FileToolsWindow || w is CommitTemplateWindow || w is WelcomeWindow || w is TrayMenuWindow || w is LockWizardWindow || w is DrawingWindow || w is ConvertDialog || w is AppearanceEditorWindow)).ToList()) { try { w.Close(); } catch { } }
+                host.Close();
+            }
+            SelfTest.NoteForReport("explain-other-windows", string.Join("; ", perWindow));
             if (switches + choices < 20) return $"only {switches} switches and {choices} choices were found, so the walk is not covering the app";
             return bad.Count == 0 ? null : $"{bad.Count} of {switches} switches and {choices} choices have no visible subtitle: " + string.Join("; ", bad.Distinct());
         }

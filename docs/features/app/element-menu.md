@@ -18,6 +18,6 @@ Control centre, tray menu, drawing board, toasts, offline dialog, setup, welcome
 **Pause toasts for 15 minutes** stops new toasts from appearing. They are still written to the notification log, so nothing is lost. The pause lasts 15 minutes or until the app closes, and is not saved to settings.
 
 ## Not done
-- The command palette overlay has no element menu.
+- The command palette overlay now has the menu (Clear the search, Use the full window or card size, Close the palette). No real pointer click was made on it; the check opens the menu through the routine the right-click handler calls.
 - Window-specific extra items exist only for toasts; other windows offer the common items.
 - Not yet captured on screen; compile-checked only.

@@ -33,18 +33,47 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- placement
 
+        private readonly Queue<ToastWindow> _waiting = new Queue<ToastWindow>();
+
+        /// <summary>How many toasts are waiting their turn under One thing at a time. For the self-test.</summary>
+        internal int WaitingCount => _waiting.Count;
+        /// <summary>The toasts on screen. For the self-test.</summary>
+        internal IReadOnlyList<ToastWindow> LiveToasts => _live;
+
         private void Present(ToastWindow w)
         {
-            if (_live.Count >= MaxLive) _live.First(t => !t.IsClosing).CloseAnimated();
             if (ToastWindow.IsPaused) { NotificationLog.AddToast(w.TitleText.Text, w.MetaText.Text); w.Close(); return; }   // paused from a toast's menu: still recorded in the log, not shown
-            _live.Add(w); NotificationLog.AddToast(w.TitleText.Text, w.MetaText.Text);
-            w.Gone += () => { _live.Remove(w); Restack(); };
+            // Focus: a toast that is not urgent goes quietly to the notification history instead of showing.
+            if (Modes.ShouldHoldToast(w.Urgent)) { if (!w.Logged) NotificationLog.AddToast(w.TitleText.Text, w.MetaText.Text); w.Logged = true; w.Close(); return; }
+            // One thing at a time: only one toast on screen; the others wait their turn, in order.
+            if (Modes.OneThing && _live.Any(t => !t.IsClosing))
+            {
+                if (!w.Logged) NotificationLog.AddToast(w.TitleText.Text, w.MetaText.Text);
+                w.Logged = true;
+                _waiting.Enqueue(w);
+                return;
+            }
+            if (_live.Count >= MaxLive) _live.First(t => !t.IsClosing).CloseAnimated();
+            _live.Add(w); if (!w.Logged) NotificationLog.AddToast(w.TitleText.Text, w.MetaText.Text);
+            w.Logged = true;
+            w.Gone += () => { _live.Remove(w); Restack(); ShowNextWaiting(); };
             w.SizeChanged += (s, e) => Restack();
             var area = SystemParameters.WorkArea;
             w.Left = area.Right - w.Width;
             w.Top = area.Bottom - 200 - ReservedBottom;
             w.Show();
             Restack();
+        }
+
+        private void ShowNextWaiting()
+        {
+            if (!Modes.OneThing && _waiting.Count == 0) return;
+            while (_waiting.Count > 0 && !_live.Any(t => !t.IsClosing))
+            {
+                var next = _waiting.Dequeue();
+                if (next.IsClosing) continue;   // its time ran out while it waited
+                Present(next);
+            }
         }
 
         public void Restack()
@@ -311,9 +340,9 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- notices
 
-        public ToastWindow ShowNotice(string title, string body, Color accent, double seconds = 5, IList<ToastAction> actions = null, string icon = Icons.Pulse)
+        public ToastWindow ShowNotice(string title, string body, Color accent, double seconds = 5, IList<ToastAction> actions = null, string icon = Icons.Pulse, bool urgent = false)
         {
-            var w = new ToastWindow();
+            var w = new ToastWindow { Urgent = urgent || accent == Amber };
             w.SetAccent(accent, accent);
             w.SetHeader(icon, Core.Language.NoticeTitle(title), "");
             w.SetBody(Ui.Text(body));
@@ -482,6 +511,16 @@ namespace MonitoringTools.UI
             w.TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty,
                 new DoubleAnimation(0.1, 1, TimeSpan.FromMilliseconds(900)) { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase() });
             Present(w);
+            // Time awareness: a running task shows how long it has been going.
+            var began = DateTime.Now;
+            System.Windows.Threading.DispatcherTimer clock = null;
+            if (Modes.TimeAwareness)
+            {
+                clock = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+                clock.Tick += (a, b) => w.SetWhen(((int)(DateTime.Now - began).TotalSeconds) + " s elapsed");
+                clock.Start();
+                w.SetWhen("0 s elapsed");
+            }
             _ = Finish();
 
             async Task Finish()
@@ -491,6 +530,7 @@ namespace MonitoringTools.UI
                 try { r = await work(report); }
                 catch (Exception ex) { r = (false, "Failed", ex.Message); }
                 w.TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+                if (clock != null) { clock.Stop(); w.SetWhen("Took " + Math.Max(0, (int)Math.Round((DateTime.Now - began).TotalSeconds)) + " s"); }
                 Sounds.Play(r.Ok ? Cue.Complete : Cue.Warning);
                 Activity.Add(title.StartsWith(":") ? ActivityKind.Shortcut : title.StartsWith("Commit") ? ActivityKind.Push : title.StartsWith("docker") ? ActivityKind.Docker : ActivityKind.Service,
                     $"{title} · {r.Summary}", ActionProvider.Tail(r.Detail, 1), r.Ok);

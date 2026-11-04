@@ -15,6 +15,10 @@ namespace MonitoringTools.UI
     {
         public event Action Gone;
         public bool IsClosing { get; private set; }
+        /// <summary>A warning or failure. Focus mode lets these through; every other toast is held back to the notification history.</summary>
+        public bool Urgent { get; set; }
+        /// <summary>True once this toast is in the notification log, so a queued toast is logged once.</summary>
+        internal bool Logged { get; set; }
 
         private double _seconds;
         private DateTime _deadline;

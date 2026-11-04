@@ -575,6 +575,135 @@ namespace MonitoringTools.UI
         [DllImport("user32.dll")] private static extern int ReleaseDC(IntPtr hwnd, IntPtr dc);
         [DllImport("gdi32.dll")] private static extern uint GetPixel(IntPtr dc, int x, int y);
 
+        private Window _eyedropper;
+
+        /// <summary>The full-screen window that takes the eyedropper click, or null when the eyedropper is not open. For the self-test.</summary>
+        internal Window EyedropperForTest => _eyedropper;
+
+        /// <summary>Reads one screen pixel the way the eyedropper does. Null when the point cannot be read.</summary>
+        internal static Color? ReadScreenPixel(int x, int y)
+        {
+            Color? screen = null;
+            var dc = GetDC(IntPtr.Zero);
+            if (dc != IntPtr.Zero)
+            {
+                try
+                {
+                    uint px = GetPixel(dc, x, y);
+                    if (px != 0xFFFFFFFF) screen = Color.FromRgb((byte)(px & 0xFF), (byte)((px >> 8) & 0xFF), (byte)((px >> 16) & 0xFF));
+                }
+                finally { ReleaseDC(IntPtr.Zero, dc); }
+            }
+            // A desktop with no display attached (a hidden one) answers the screen read with black. Black is also a real colour, so ask the window
+            // under the point to paint itself and believe that picture whenever it shows something else.
+            if (screen == null || (screen.Value.R == 0 && screen.Value.G == 0 && screen.Value.B == 0))
+            {
+                var fromWindow = ReadPixelFromWindow(x, y);
+                if (fromWindow != null) return fromWindow;
+            }
+            return screen;
+        }
+
+        [StructLayout(LayoutKind.Sequential)] private struct PointNative { public int X, Y; }
+        [StructLayout(LayoutKind.Sequential)] private struct RectNative { public int Left, Top, Right, Bottom; }
+        [DllImport("user32.dll")] private static extern IntPtr WindowFromPoint(PointNative p);
+        [DllImport("user32.dll")] private static extern IntPtr GetAncestor(IntPtr hwnd, uint flags);
+        [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hwnd, out RectNative r);
+        [DllImport("user32.dll")] private static extern bool PrintWindow(IntPtr hwnd, IntPtr dc, uint flags);
+        [DllImport("gdi32.dll")] private static extern IntPtr CreateCompatibleDC(IntPtr dc);
+        [DllImport("gdi32.dll")] private static extern IntPtr CreateCompatibleBitmap(IntPtr dc, int w, int h);
+        [DllImport("gdi32.dll")] private static extern IntPtr SelectObject(IntPtr dc, IntPtr obj);
+        [DllImport("gdi32.dll")] private static extern bool DeleteObject(IntPtr obj);
+        [DllImport("gdi32.dll")] private static extern bool DeleteDC(IntPtr dc);
+
+        /// <summary>
+        /// Used when the screen itself cannot be read (a desktop with no display attached, such as a hidden one): asks the window under
+        /// the point to paint itself into memory and reads the pixel from that picture.
+        /// </summary>
+        internal static string Diag = "";
+
+        private static Color? ReadPixelFromWindow(int x, int y)
+        {
+            var hit = WindowFromPoint(new PointNative { X = x, Y = y });
+            Diag = "hit=" + hit;
+            if (hit == IntPtr.Zero) return null;
+            var root = GetAncestor(hit, 2);   // GA_ROOT
+            // one of this app's own windows: draw it from its visuals, which needs no display at all
+            if (root != IntPtr.Zero && System.Windows.Interop.HwndSource.FromHwnd(root)?.RootVisual is Window own && own.IsVisible)
+            {
+                try
+                {
+                    var dpi = VisualTreeHelper.GetDpi(own);
+                    int pw = Math.Max(1, (int)Math.Round(own.ActualWidth * dpi.DpiScaleX)), ph = Math.Max(1, (int)Math.Round(own.ActualHeight * dpi.DpiScaleY));
+                    var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap(pw, ph, dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
+                    rtb.Render(own);
+                    var local = own.PointFromScreen(new Point(x, y));
+                    int lx = (int)Math.Round(local.X * dpi.DpiScaleX), ly = (int)Math.Round(local.Y * dpi.DpiScaleY);
+                    if (lx >= 0 && ly >= 0 && lx < pw && ly < ph)
+                    {
+                        var one = new byte[4];
+                        rtb.CopyPixels(new Int32Rect(lx, ly, 1, 1), one, 4, 0);
+                        Diag += " own-window";
+                        return Color.FromRgb(one[2], one[1], one[0]);
+                    }
+                }
+                catch (Exception ex) { Diag += " own-window failed: " + ex.Message; }
+            }
+            if (root == IntPtr.Zero || !GetWindowRect(root, out var r)) return null;
+            int w = r.Right - r.Left, h = r.Bottom - r.Top;
+            Diag += " root=" + root + " rect=" + r.Left + "," + r.Top + "," + r.Right + "," + r.Bottom;
+            if (w <= 0 || h <= 0 || x < r.Left || y < r.Top || x >= r.Right || y >= r.Bottom) return null;
+            var wdc = GetDC(root);
+            IntPtr mem = IntPtr.Zero, bmp = IntPtr.Zero, old = IntPtr.Zero;
+            try
+            {
+                mem = CreateCompatibleDC(wdc);
+                // a 32-bit picture of its own, so the colours do not depend on the display the desktop has (a hidden one has none)
+                var bi = new BitmapInfoHeader { Size = 40, Width = w, Height = -h, Planes = 1, BitCount = 32, Compression = 0 };
+                bmp = CreateDIBSection(mem, ref bi, 0, out var bits, IntPtr.Zero, 0);
+                if (mem == IntPtr.Zero || bmp == IntPtr.Zero || bits == IntPtr.Zero) return null;
+                old = SelectObject(mem, bmp);
+                if (!PrintWindow(root, mem, 2)) { Diag += " printwindow failed"; return null; }   // PW_RENDERFULLCONTENT
+                int at = ((y - r.Top) * w + (x - r.Left)) * 4;
+                var px = new byte[4];
+                Marshal.Copy(bits + at, px, 0, 4);
+                Diag += " px=" + px[2].ToString("X2") + px[1].ToString("X2") + px[0].ToString("X2");
+                return Color.FromRgb(px[2], px[1], px[0]);
+            }
+            finally
+            {
+                if (old != IntPtr.Zero) SelectObject(mem, old);
+                if (bmp != IntPtr.Zero) DeleteObject(bmp);
+                if (mem != IntPtr.Zero) DeleteDC(mem);
+                if (wdc != IntPtr.Zero) ReleaseDC(root, wdc);
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct BitmapInfoHeader { public int Size, Width, Height; public short Planes, BitCount; public int Compression, SizeImage, XPels, YPels, ClrUsed, ClrImportant; }
+        [DllImport("gdi32.dll")] private static extern IntPtr CreateDIBSection(IntPtr dc, ref BitmapInfoHeader bi, uint usage, out IntPtr bits, IntPtr section, uint offset);
+
+        /// <summary>The click itself: hide the overlay so it is not in the picture, read the pixel under the click, close the overlay and take the colour.</summary>
+        private void PickAt(Window w, int screenX, int screenY)
+        {
+            w.Hide();
+            var picked = ReadScreenPixel(screenX, screenY);
+            w.Close();
+            _eyedropper = null;
+            if (picked is Color c) { SetColor(c, true); Commit(); }
+            else _note.Text = "That point could not be read from the screen.";
+        }
+
+        /// <summary>Clicks the open eyedropper at a screen point through the same routine the mouse handler uses. For the self-test.</summary>
+        internal bool ClickEyedropperForTest(int screenX, int screenY)
+        {
+            if (_eyedropper == null) return false;
+            PickAt(_eyedropper, screenX, screenY);
+            return true;
+        }
+
+        internal void StartEyedropperForTest() => StartEyedropper();
+
         private void StartEyedropper()
         {
             // A near-invisible full-screen window takes the click so it never reaches the app underneath.
@@ -594,21 +723,13 @@ namespace MonitoringTools.UI
             w.Content = new Grid { Children = { hint } };
             w.MouseLeftButtonDown += (s, e) =>
             {
-                Native.GetCursorPos(out var p);
-                w.Hide();
-                Color? picked = null;
-                var dc = GetDC(IntPtr.Zero);
-                try
-                {
-                    uint px = GetPixel(dc, p.X, p.Y);
-                    if (px != 0xFFFFFFFF) picked = Color.FromRgb((byte)(px & 0xFF), (byte)((px >> 8) & 0xFF), (byte)((px >> 16) & 0xFF));
-                }
-                finally { ReleaseDC(IntPtr.Zero, dc); }
-                w.Close();
-                if (picked is Color c) { SetColor(c, true); Commit(); }
-                else _note.Text = "That point could not be read from the screen.";
+                // the click's own position, in physical screen pixels
+                var p = w.PointToScreen(e.GetPosition(w));
+                PickAt(w, (int)Math.Round(p.X), (int)Math.Round(p.Y));
             };
+            w.Closed += (s, e) => _eyedropper = null;
             w.KeyDown += (s, e) => { if (e.Key == Key.Escape) w.Close(); };
+            _eyedropper = w;
             w.Show();
             w.Activate();
             w.Focus();

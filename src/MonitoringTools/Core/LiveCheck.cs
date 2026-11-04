@@ -23,7 +23,8 @@ namespace MonitoringTools.Core
     /// default 1.21.4), MT_LIVE_FORGE_URL, MT_LIVE_FORGE_KIND (gitea or gitlab), MT_LIVE_FORGE_OWNER and
     /// MT_LIVE_FORGE_TOKEN for a throwaway test server. The token is used for that one push and is never written out.
     /// MT_LIVE_ONLY=minecraft-wave8 runs only the catalogue, Bedrock, discovery, Docker and SSH checks;
-    /// MT_LIVE_ONLY=minecraft-commands runs only the command builder against a real server.
+    /// MT_LIVE_ONLY=minecraft-commands runs only the command builder against a real server;
+    /// MT_LIVE_ONLY=forge runs only the forge publish.
     /// </summary>
     public static partial class LiveCheck
     {
@@ -50,6 +51,7 @@ namespace MonitoringTools.Core
                 }
                 var onlyFiles = Environment.GetEnvironmentVariable("MT_LIVE_ONLY");
                 if (onlyFiles is "minecraft-ssh-files" or "minecraft-bedrock-files" or "minecraft-bedrock-docker") { await McFilesLive(results, onlyFiles); return; }
+                if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "forge") { await Check(results, "forge: publishing creates the repository and pushes the commit", () => Forge(dir)); return; }   // only the forge publish, against a server named by MT_LIVE_FORGE_*
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-commands") { await McCommands(results); return; }   // the command builder on a real server
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-server")   // run only the server manager end to end
                 {

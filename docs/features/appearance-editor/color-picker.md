@@ -10,7 +10,7 @@ A reusable control (`ColorPicker`) used by the appearance editor.
 - Original and new colour side by side, with a checkerboard under translucent colours.
 - The theme's 17 colour roles as swatches, and the 12 most recent choices (saved in settings).
 - A contrast ratio against the text or background colour, with an explicit pass or fail against 4.5:1. The result is written in words, not only colour.
-- A screen eyedropper: **Pick from screen** covers the screen with an almost invisible window, so the click is taken and never reaches the app underneath. Esc cancels.
+- A screen eyedropper: **Pick from screen** covers the screen with an almost invisible window, so the click is taken and never reaches the app underneath. Esc cancels. The pixel is read at the position of the click. If the screen cannot be read (a desktop with no display answers black) the window under the point is asked to draw itself and that picture is read.
 - A name when the colour exactly matches a standard named colour.
 
 ## CIELAB and LCH

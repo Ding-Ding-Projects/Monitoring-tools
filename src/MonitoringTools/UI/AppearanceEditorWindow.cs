@@ -496,7 +496,7 @@ namespace MonitoringTools.UI
             sp.Children.Add(Section("Weight", () => _style.FontWeight = null, weights, "How heavy the strokes are. A font without the chosen weight draws its nearest one."));
 
             // italic
-            var it = new CheckBox { Style = Ui.Style("Switch"), Tag = Ui.Res("B.Mint"), IsChecked = _style.Italic ?? eff.Italic ?? false, Content = new TextBlock { Text = "Italic", Foreground = Ui.Res("B.Text"), FontSize = 14 } };
+            var it = new CheckBox { Style = Ui.Style("Switch"), Tag = Ui.Res("B.Mint"), IsChecked = _style.Italic ?? eff.Italic ?? false, Content = SwitchLabel("Italic", "Slants the text. Default: as the element normally looks.") };
             AutomationProperties.SetName(it, "Italic");
             it.Checked += (s, e) => { if (!_refreshing) Edit(() => _style.Italic = true); };
             it.Unchecked += (s, e) => { if (!_refreshing) Edit(() => _style.Italic = false); };
@@ -510,12 +510,21 @@ namespace MonitoringTools.UI
                 "Only plain text is spaced; text that comes from data or has mixed styles in it is left alone."));
 
             // underline
-            var ul = new CheckBox { Style = Ui.Style("Switch"), Tag = Ui.Res("B.Mint"), IsChecked = _style.Underline ?? false, Content = new TextBlock { Text = "Underline", Foreground = Ui.Res("B.Text"), FontSize = 14 } };
+            var ul = new CheckBox { Style = Ui.Style("Switch"), Tag = Ui.Res("B.Mint"), IsChecked = _style.Underline ?? false, Content = SwitchLabel("Underline", "Draws a line under the text. Default: off.") };
             AutomationProperties.SetName(ul, "Underline");
             ul.Checked += (s, e) => { if (!_refreshing) Edit(() => _style.Underline = true); };
             ul.Unchecked += (s, e) => { if (!_refreshing) Edit(() => _style.Underline = false); };
             _refreshers.Add(() => ul.IsChecked = _style.Underline ?? false);
-            sp.Children.Add(Section("Underline", () => _style.Underline = null, ul, "Draws a line under the element's text. Default off."));
+            sp.Children.Add(Section("Underline", () => _style.Underline = null, ul));
+            return sp;
+        }
+
+        /// <summary>A switch's label with the sentence that says what it does under it.</summary>
+        private static FrameworkElement SwitchLabel(string label, string sub)
+        {
+            var sp = new StackPanel();
+            sp.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14 });
+            sp.Children.Add(new TextBlock { Text = sub, Foreground = Ui.Res("B.TextMute"), FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
             return sp;
         }
 
@@ -853,13 +862,23 @@ namespace MonitoringTools.UI
             FillLibrary();
         }
 
+        /// <summary>A self-test answers the file dialogs with a path (true asks for a place to save, false for a file to open). Null in the real app.</summary>
+        internal static Func<bool, string> FilePickForTest;
+
         private void ExportLooks()
         {
             try
             {
-                var dlg = new Microsoft.Win32.SaveFileDialog { Title = "Export element looks", Filter = "Element looks (*.json)|*.json", FileName = "element-looks.json", DefaultExt = ".json" };
-                if (dlg.ShowDialog(this) != true) return;
-                System.IO.File.WriteAllText(dlg.FileName, ElementStyles.ExportJson());
+                string path;
+                if (FilePickForTest != null) path = FilePickForTest(true);
+                else
+                {
+                    var dlg = new Microsoft.Win32.SaveFileDialog { Title = "Export element looks", Filter = "Element looks (*.json)|*.json", FileName = "element-looks.json", DefaultExt = ".json" };
+                    if (dlg.ShowDialog(this) != true) return;
+                    path = dlg.FileName;
+                }
+                if (path == null) return;
+                System.IO.File.WriteAllText(path, ElementStyles.ExportJson());
                 Say($"Exported {ElementStyles.Count} looks and {ElementStyles.PresetNames.Count} presets.");
             }
             catch (Exception ex) { Say("Export failed: " + ex.Message); }
@@ -869,11 +888,18 @@ namespace MonitoringTools.UI
         {
             try
             {
-                var dlg = new Microsoft.Win32.OpenFileDialog { Title = "Import element looks", Filter = "Element looks (*.json)|*.json|All files (*.*)|*.*", CheckFileExists = true };
-                if (dlg.ShowDialog(this) != true) return;
-                var fi = new System.IO.FileInfo(dlg.FileName);
+                string path;
+                if (FilePickForTest != null) path = FilePickForTest(false);
+                else
+                {
+                    var dlg = new Microsoft.Win32.OpenFileDialog { Title = "Import element looks", Filter = "Element looks (*.json)|*.json|All files (*.*)|*.*", CheckFileExists = true };
+                    if (dlg.ShowDialog(this) != true) return;
+                    path = dlg.FileName;
+                }
+                if (path == null) return;
+                var fi = new System.IO.FileInfo(path);
                 if (fi.Length > ElementStyles.MaxImportBytes) { Say("That file is larger than " + (ElementStyles.MaxImportBytes / 1000) + " KB, so it was not read."); return; }
-                var err = ElementStyles.ImportJson(System.IO.File.ReadAllText(dlg.FileName), out var styles, out var presets);
+                var err = ElementStyles.ImportJson(System.IO.File.ReadAllText(path), out var styles, out var presets);
                 if (err != null) { Say("Nothing was imported. " + err); return; }
                 _style.CopyFrom(ElementStyles.Get(_key));
                 _last = ElementStyles.Snapshot(_style);

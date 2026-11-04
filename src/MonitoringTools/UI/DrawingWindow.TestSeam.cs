@@ -29,6 +29,28 @@ namespace MonitoringTools.UI
             CommitChange();
         }
 
+        /// <summary>Changes the width the way the [ and ] keys do. Returns the width now in force.</summary>
+        internal double SetWidthForTest(double v) { SetWidth(v); return _width; }
+
+        /// <summary>
+        /// Renders one segment of a stroke in progress through the live renderer (the code that draws while the pen is down) and returns the ink
+        /// thickness found across the segment, in pixels, so a check can compare the segment before and after a width change.
+        /// </summary>
+        internal int LiveSegmentThicknessForTest(double x0, double x1, double y)
+        {
+            var pts = new StylusPointCollection();
+            for (int i = 0; i <= 6; i++) pts.Add(new StylusPoint(x0 + (x1 - x0) * i / 6.0, y));
+            var dv = new System.Windows.Media.DrawingVisual();
+            using (var dc = dv.RenderOpen()) _live.DrawForTest(dc, pts);
+            var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap(200, 120, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+            rtb.Render(dv);
+            var px = new byte[200 * 120 * 4];
+            rtb.CopyPixels(px, 200 * 4, 0);
+            int col = (int)((x0 + x1) / 2), thick = 0;
+            for (int r = 0; r < 120; r++) if (px[(r * 200 + col) * 4 + 3] > 128) thick++;
+            return thick;
+        }
+
         internal void UndoForTest() => Undo();
         internal void RedoForTest() => Redo();
         internal string SvgForTest() => BuildSvg();

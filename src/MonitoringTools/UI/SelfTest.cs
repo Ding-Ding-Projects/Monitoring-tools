@@ -51,6 +51,13 @@ namespace MonitoringTools.UI
             dir = Path.GetFullPath(dir);
             Directory.CreateDirectory(dir);
             if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "lane4")
+            {
+                await Lane4ChecksAsync(dir);
+                await CheckAsync("context menus on every window (lane loop)", () => Wave6Flows.Menus(null));
+                await CheckAsync("settings explain themselves (lane loop)", () => Wave6Flows.Explain());
+                Finish(dir); return;
+            }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "wording") { await WordingChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexexplain") { await RegexExplainChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
@@ -834,6 +841,7 @@ namespace MonitoringTools.UI
             await RegexExplainChecksAsync(dir);
             await RunNumberFieldsAsync();
             await McChecksAsync();
+            await Lane4ChecksAsync(dir);
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>
@@ -857,7 +865,7 @@ namespace MonitoringTools.UI
 
         private static void Finish(string dir)
         {
-            var report = new { at = DateTime.Now.ToString("O"), version = typeof(SelfTest).Assembly.GetName().Version?.ToString(), passed = Results.Count(r => r.Pass), failed = Results.Count(r => !r.Pass), results = Results };
+            var report = new { at = DateTime.Now.ToString("O"), version = typeof(SelfTest).Assembly.GetName().Version?.ToString(), notes = Lane4Notes, passed = Results.Count(r => r.Pass), failed = Results.Count(r => !r.Pass), results = Results };
             File.WriteAllText(Path.Combine(dir, "selftest.json"), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
             App.Current.Shutdown(Results.All(r => r.Pass) ? 0 : 1);
         }

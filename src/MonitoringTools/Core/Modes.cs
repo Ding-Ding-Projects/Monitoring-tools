@@ -62,6 +62,10 @@ namespace MonitoringTools.Core
         public static bool SoundAllowed(bool essential)
             => SoundsOn && (essential || !Settings.Current.AdhdLowStimulation);
 
+        /// <summary>True while the gentle time reminder is scheduled. For the self-test.</summary>
+        internal static bool ReminderRunning => _reminder != null && _reminder.IsEnabled;
+        internal static TimeSpan? ReminderEvery => _reminder?.Interval;
+
         private static void RestartReminder()
         {
             var s = Settings.Current;
@@ -80,7 +84,7 @@ namespace MonitoringTools.Core
                 if (!Settings.Current.AdhdTimeAwareness || App.ShouldSuppress) return;
                 var mins = (int)Math.Round((DateTime.Now - started).TotalMinutes);
                 App.Toasts?.ShowNotice("Time check", $"{mins} minutes since this reminder started. It repeats every {Settings.Current.TimeReminderMinutes} minutes.",
-                    App.Toasts.Violet, 6);
+                    App.Toasts.Violet, 6, urgent: true);
             };
             _reminder.Start();
         }

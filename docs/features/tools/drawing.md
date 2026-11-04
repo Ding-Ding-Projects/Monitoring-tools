@@ -16,7 +16,7 @@ Open it from Tools: a blank board, an image file, or the newest picture in clipb
 Drawesome is a JavaScript package. This app is a native .NET program with no web view and no package download step, so the package is not used. The board is built on the WPF ink canvas instead and offers an equivalent toolset.
 
 Differences to know about:
-- Pencil, Pen and Brush thin with speed, and the Fountain pen follows stroke direction, but the width is applied when you lift the pen. While drawing, the live line is a constant width.
+- Pencil, Pen and Brush thin with speed, and the Fountain pen follows stroke direction, but that shaping is applied when you lift the pen. While drawing, the live line is drawn at the width in force at each moment: the keys [ and ] (Shift for 5) change the width with the pen down, the next segment takes it, and the finished stroke takes the latest width.
 - Speed is estimated from the spacing of input samples, not from timestamps.
 - The toolbar cannot be dragged freely; use the Dock button to move it to an edge.
 - SVG strokes are filled outlines of exactly what is drawn, so erased parts are gone; text is exported as text.
@@ -26,4 +26,4 @@ Differences to know about:
 Strokes and text are saved in the app's data folder (`drawings`) after each change and restored when you open the same image or the blank board again. Nothing is uploaded.
 
 ## Status
-Compile-checked only. Not yet exercised with a pen or touch device, and not compared against Drawesome side by side.
+A self-test check renders segments of one stroke before and after a width change and measures them. Not yet exercised with a pen or touch device (the segments are fed to the renderer directly), and not compared against Drawesome side by side.

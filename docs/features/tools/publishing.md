@@ -29,7 +29,7 @@ A failure stays at the Publish button with Retry, Copy details and, where releva
 ## Not done
 - Forking is not offered; this copies your own folder into your own repository.
 - Other hosts (Bitbucket, Azure DevOps and so on) are not offered.
-- The GitLab and Gitea routes, and the `glab` and `tea` command lines, have not been run against real servers or accounts; they are compile-checked, and the address parsing is covered by the self-test. `tea`'s account name is read from `tea login list -o csv`, whose columns can differ between versions; when it cannot be read the step says so and asks for the repository address instead.
+- The GitLab and Gitea routes with a one-time token were run against real servers (GitLab CE 19.5.3 and Gitea 1.22.6 in throwaway containers; see the live check). The `glab` and `tea` command lines have not been run against real servers or accounts; they are compile-checked, and the address parsing is covered by the self-test. `tea`'s account name is read from `tea login list -o csv`, whose columns can differ between versions; when it cannot be read the step says so and asks for the repository address instead.
 - The accounts list and the Sign in again recovery belong to GitHub only.
 - Account listing relies on parsing `gh auth status` output, which can change between GitHub CLI versions.
 - Not yet run against real GitHub accounts; compile-checked only.

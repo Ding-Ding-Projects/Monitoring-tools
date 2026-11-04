@@ -13,10 +13,10 @@ namespace MonitoringTools.Core
     /// </summary>
     public static class QrEncoder
     {
-        /// <summary>The largest text that fits, in UTF-8 bytes, at level M in version 10.</summary>
+        /// <summary>The largest text that fits, in UTF-8 bytes, at level M in version 40.</summary>
         public static int MaxBytes => (QrCommon.DataCodewords(QrCommon.MaxVersion, QrLevel.M) * 8 - 4 - 16) / 8;
 
-        /// <summary>Encodes text. Returns false with a plain explanation when the text is too long for version 10.</summary>
+        /// <summary>Encodes text. Returns false with a plain explanation when the text is too long for version 40.</summary>
         public static bool TryEncode(string text, out bool[,] modules, out int version, out string error) =>
             TryEncode(text, QrLevel.M, out modules, out version, out error);
 
@@ -34,7 +34,7 @@ namespace MonitoringTools.Core
                 modules = Build(data, v, level);
                 return true;
             }
-            error = "That text is " + data.Length + " bytes, which is more than a version 10 QR code can hold (" + MaxBytes + " bytes at level M).";
+            error = "That text is " + data.Length + " bytes, which is more than a version 40 QR code can hold (" + MaxBytes + " bytes at level M).";
             return false;
         }
 

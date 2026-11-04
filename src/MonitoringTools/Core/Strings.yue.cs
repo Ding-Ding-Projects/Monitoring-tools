@@ -437,6 +437,7 @@ namespace MonitoringTools.Core
             AddMcCommands(t);
             AddRegexExplain(t);
             AddMcFiles(t);
+            AddLane4(t);
             return t;
         }
 
@@ -452,6 +453,7 @@ namespace MonitoringTools.Core
             AddMinecraftPatterns(p);
             AddMcCommandsPatterns(p);
             AddMcFilesPatterns(p);
+            AddLane4Patterns(p);
             AddMorePatterns(p);
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), fn));

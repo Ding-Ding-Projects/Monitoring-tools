@@ -66,8 +66,8 @@ namespace MonitoringTools.UI
             Rows.Children.Add(Rule());
 
             // switches
-            Rows.Children.Add(Toggle("Clipboard toasts", null, s.ClipboardEnabled, v => { s.ClipboardEnabled = v; Settings.Save(); App.Tray.Refresh(); }));
-            Rows.Children.Add(Toggle("Network alerts", null, s.NetworkEnabled, v => { s.NetworkEnabled = v; Settings.Save(); App.Tray.Refresh(); }));
+            Rows.Children.Add(Toggle("Clipboard toasts", "popup when you copy", s.ClipboardEnabled, v => { s.ClipboardEnabled = v; Settings.Save(); App.Tray.Refresh(); }));
+            Rows.Children.Add(Toggle("Network alerts", "popup when the link drops", s.NetworkEnabled, v => { s.NetworkEnabled = v; Settings.Save(); App.Tray.Refresh(); }));
             var gameNote = s.GameModeEnabled ? (App.Games.IsGaming ? App.Games.ActiveGame + " running" : "auto") : "off";
             Rows.Children.Add(Toggle("Game mode", gameNote, s.GameModeEnabled, v => { s.GameModeEnabled = v; Settings.Save(); App.Tray.Refresh(); }, "B.Violet"));
 
