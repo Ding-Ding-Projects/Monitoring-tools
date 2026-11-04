@@ -6,8 +6,30 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.13, up to `9a6f56f`.
+Commits after v1.0.15, up to `fcdb1ff`.
 
+- Refresh screenshots for v1.0.15 ([`fcdb1ff`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/fcdb1ff97817d78722ec9b98ad03c193e7a49213))
+
+## 1.0.15 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.15)
+
+- Retry the final release-notes edit on a server error ([`e35669c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e35669ce21f992a05a6bd7b8a7dc8865ae6abff3))
+- Apply a personal wording file as soon as its path is copied ([`6914bed`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/6914bedea5b9432f7894a627ae128c300d7e7b77))
+- Refresh screenshots for v1.0.14 ([`4012383`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/4012383fe0b670a3b2f30d8a09ba9bf7e43cb07d))
+
+## 1.0.14 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.14)
+
+- Give School mode password fields room for their labels ([`07e80ae`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/07e80ae202d9d8789f36ccaac3a3a6752842fb79))
+- Use a documentation-range address in the forge self-test ([`4a4a6bb`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/4a4a6bbec45eaa3fba44186d939be1a48e27e5c6))
+- Find language choices by walking the tree in the School mode check ([`3acfeb4`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/3acfeb4820335ad00464b0d884ca404d1b6f0e3e))
+- Route every headline through the humour keys, translate accessible names, finish School mode and ADHD aids ([`99ac504`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/99ac5043012b203449aa738f1238a7569590093f))
+- Add shared bulk selection, scheduled date ranges and guided DNS and server forms ([`9d74f02`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9d74f02b75e6469e9edf1111eba25d8643eb7e6a))
+- Add element menus to remaining windows, GitLab/Gitea publishing and local history ([`ab094b7`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ab094b7ff776d2224239781325a931bea4c5d017))
+- Capture the 200% scale matrix and mask profile paths in history ([`8ee8409`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8ee8409c3495a33b402cf8e16b65eec628984058))
+- Record v1.0.13 figures and changelog ([`3079d97`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/3079d975a28faba75f469e6f3a6ee1caf9fc7834))
 - Refresh screenshots for v1.0.13 ([`9a6f56f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9a6f56f370e0515b92554a7c5e8d97ad88e7ed73))
 
 ## 1.0.13 (2026-11-04)
