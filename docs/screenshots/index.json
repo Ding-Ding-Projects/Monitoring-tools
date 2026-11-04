@@ -342,6 +342,66 @@
     "height": 1576
   },
   {
+    "file": "scale200-en-overview.png",
+    "caption": "overview at 960 x 540 (200 % on 1080p), en",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "file": "scale200-en-history.png",
+    "caption": "history at 960 x 540 (200 % on 1080p), en",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "file": "scale200-en-appearance.png",
+    "caption": "appearance at 960 x 540 (200 % on 1080p), en",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "file": "scale200-en-safety.png",
+    "caption": "safety at 960 x 540 (200 % on 1080p), en",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "file": "scale200-en-ollama.png",
+    "caption": "ollama at 960 x 540 (200 % on 1080p), en",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "file": "scale200-bilingual-overview.png",
+    "caption": "overview at 960 x 540 (200 % on 1080p), bilingual",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "file": "scale200-bilingual-history.png",
+    "caption": "history at 960 x 540 (200 % on 1080p), bilingual",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "file": "scale200-bilingual-appearance.png",
+    "caption": "appearance at 960 x 540 (200 % on 1080p), bilingual",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "file": "scale200-bilingual-safety.png",
+    "caption": "safety at 960 x 540 (200 % on 1080p), bilingual",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "file": "scale200-bilingual-ollama.png",
+    "caption": "ollama at 960 x 540 (200 % on 1080p), bilingual",
+    "width": 1920,
+    "height": 1080
+  },
+  {
     "file": "super-confirm-start.png",
     "caption": "Destructive actions need two keys and a full slide",
     "width": 960,
