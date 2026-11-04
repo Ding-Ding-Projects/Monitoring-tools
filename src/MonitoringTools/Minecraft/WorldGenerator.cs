@@ -33,6 +33,37 @@ namespace MonitoringTools.Minecraft
         public bool AsZip;
         public string Destination = "";
         public string WorldName = "world";
+        /// <summary>Also pre-generate the same number of chunks in the Nether and the End (runs the same bounded forceload procedure through execute in).</summary>
+        public bool PreGenNether, PreGenEnd;
+        /// <summary>Game rules to set after the server starts: only the rules the user changed, name to value text. Everything else keeps the server default.</summary>
+        public Dictionary<string, string> GameRules = new Dictionary<string, string>();
+        /// <summary>Custom superflat layers, bottom to top. Empty means the version's own default layers. Used only for the Flat type on Java 1.19 and newer.</summary>
+        public List<FlatLayer> FlatLayers = new List<FlatLayer>();
+        public string FlatBiome = "minecraft:plains";
+    }
+
+    public sealed class FlatLayer
+    {
+        public string Block = "minecraft:stone";
+        public int Height = 1;
+    }
+
+    public enum RuleKind { Bool, Integer, Other }
+
+    public sealed class GameRuleDef
+    {
+        public string Name, ParserType;
+        public RuleKind Kind;
+    }
+
+    /// <summary>What a specific server jar says about itself, read from its own data generator reports. Cached per version.</summary>
+    public sealed class JarFacts
+    {
+        public bool Available;
+        public string Reason;
+        public bool HasLoadedTest, HasExecuteIn, HasGamerule;
+        public List<GameRuleDef> GameRules = new List<GameRuleDef>();
+        public HashSet<string> Blocks = new HashSet<string>(StringComparer.Ordinal);
     }
 
     /// <summary>
@@ -81,6 +112,11 @@ namespace MonitoringTools.Minecraft
             WorldType.SingleBiome => "materialbrowser:generated",
             _ => dataDriven ? "minecraft:normal" : "default"
         };
+
+        /// <summary>True when the options ask for custom superflat layers that need the data pack route.</summary>
+        public static bool UsesFlatPack(WorldGenOptions o, bool dataDriven) => o.Type == WorldType.Flat && o.FlatLayers != null && o.FlatLayers.Count > 0 && dataDriven;
+
+        public static string LevelType(WorldGenOptions o, bool dataDriven) => UsesFlatPack(o, dataDriven) ? "materialbrowser:generated" : LevelType(o.Type, dataDriven);
 
         public static int BatchCount(int radius)
         {
@@ -179,6 +215,157 @@ namespace MonitoringTools.Minecraft
             File.WriteAllText(Path.Combine(presetDir, "generated.json"), node.ToJsonString());
         }
 
+        // -------------------------------------------------------------- what the jar says about itself
+
+        private static bool IsBundler(string jar)
+        {
+            using var z = new ZipArchive(File.OpenRead(jar), ZipArchiveMode.Read);
+            return z.Entries.Any(e => e.FullName.StartsWith("META-INF/versions/", StringComparison.Ordinal));
+        }
+
+        /// <summary>
+        /// Runs the jar's own data generator (no server start, no EULA needed) once per version and reads the command list and block registry.
+        /// Results are cached next to the jar. An unreadable jar returns facts with Available false and the reason instead of throwing.
+        /// </summary>
+        public static async Task<JarFacts> JarFactsAsync(string version, Action<string> report)
+        {
+            var (jar, javaMajor) = await EnsureJarAsync(version, report);
+            var gen = Path.Combine(CacheRoot, version, "gen");
+            var commands = Path.Combine(gen, "reports", "commands.json");
+            var registries = Path.Combine(gen, "reports", "registries.json");
+            if (!File.Exists(commands) || !File.Exists(registries))
+            {
+                var java = await ServerManager.JavaAsync(javaMajor, report);
+                report?.Invoke("Asking the jar for its command and block lists…");
+                var args = IsBundler(jar)
+                    ? $"-DbundlerMainClass=net.minecraft.data.Main -jar \"{jar}\" --reports --output \"{gen}\""
+                    : $"-cp \"{jar}\" net.minecraft.data.Main --reports --output \"{gen}\"";
+                var r = await Task.Run(() => ServerManager.Run(java, args, 240000));
+                if (r.Code != 0 || !File.Exists(commands))
+                    return new JarFacts { Reason = "This jar's data generator could not list its commands, so jar-driven options are unavailable for this version." };
+            }
+            return await Task.Run(() => ParseFacts(commands, registries));
+        }
+
+        private static JarFacts ParseFacts(string commandsFile, string registriesFile)
+        {
+            var f = new JarFacts();
+            try
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(commandsFile));
+                var kids = doc.RootElement.GetProperty("children");
+                if (kids.TryGetProperty("execute", out var ex) && ex.TryGetProperty("children", out var ek))
+                {
+                    f.HasExecuteIn = ek.TryGetProperty("in", out _);
+                    f.HasLoadedTest = ek.TryGetProperty("if", out var iff) && iff.TryGetProperty("children", out var ik) && ik.TryGetProperty("loaded", out _);
+                }
+                if (kids.TryGetProperty("gamerule", out var gr) && gr.TryGetProperty("children", out var gk))
+                {
+                    foreach (var rule in gk.EnumerateObject())
+                    {
+                        string parser = null;
+                        if (rule.Value.TryGetProperty("children", out var rc) && rc.TryGetProperty("value", out var val) && val.TryGetProperty("parser", out var pa)) parser = pa.GetString();
+                        f.GameRules.Add(new GameRuleDef { Name = rule.Name, ParserType = parser ?? "unknown", Kind = parser == "brigadier:bool" ? RuleKind.Bool : parser == "brigadier:integer" ? RuleKind.Integer : RuleKind.Other });
+                    }
+                    f.HasGamerule = f.GameRules.Count > 0;
+                }
+                f.GameRules = f.GameRules.OrderBy(r => r.Name, StringComparer.Ordinal).ToList();
+                if (File.Exists(registriesFile))
+                {
+                    using var reg = JsonDocument.Parse(File.ReadAllText(registriesFile));
+                    if (reg.RootElement.TryGetProperty("minecraft:block", out var blk) && blk.TryGetProperty("entries", out var entries))
+                        foreach (var b in entries.EnumerateObject()) f.Blocks.Add(b.Name);
+                }
+                f.Available = true;
+            }
+            catch (Exception ex) { f.Reason = "The jar's command list had an unexpected shape (" + ex.Message + "), so jar-driven options are unavailable for this version."; }
+            return f;
+        }
+
+        // -------------------------------------------------------------- superflat layers
+
+        private static readonly System.Text.RegularExpressions.Regex IdPattern = new System.Text.RegularExpressions.Regex(@"^[a-z0-9_.\-]+:[a-z0-9_./\-]+$");
+        public const int OverworldHeight = 384;   // total height of the vanilla overworld; layers above it are cut off
+
+        /// <summary>Checks superflat layers and returns a plain-language list of problems. Block names are checked against the jar only when its block list is known.</summary>
+        public static List<string> ValidateFlat(IReadOnlyList<FlatLayer> layers, string biome, HashSet<string> knownBlocks)
+        {
+            var problems = new List<string>();
+            if (layers == null || layers.Count == 0) return problems;
+            int total = 0, i = 0;
+            foreach (var l in layers)
+            {
+                i++;
+                var id = (l.Block ?? "").Trim();
+                if (!IdPattern.IsMatch(id)) problems.Add($"Layer {i}: \"{id}\" is not a block id such as minecraft:stone.");
+                else if (knownBlocks != null && knownBlocks.Count > 0 && !knownBlocks.Contains(id)) problems.Add($"Layer {i}: {id} is not a block in this version's jar.");
+                if (l.Height < 1 || l.Height > OverworldHeight) problems.Add($"Layer {i}: height must be 1 to {OverworldHeight}.");
+                total += Math.Max(0, l.Height);
+            }
+            if (total > OverworldHeight) problems.Add($"The layers add up to {total} blocks, more than the overworld's height of {OverworldHeight}.");
+            if (!IdPattern.IsMatch((biome ?? "").Trim())) problems.Add($"The biome \"{biome}\" is not a biome id such as minecraft:plains.");
+            return problems;
+        }
+
+        /// <summary>Reads a superflat preset string such as "minecraft:bedrock,2*minecraft:dirt,minecraft:grass_block;minecraft:plains". Structure and feature options in the string are not applied.</summary>
+        public static (List<FlatLayer> Layers, string Biome, string Note) ParseFlatPreset(string text)
+        {
+            var parts = (text ?? "").Trim().Split(';');
+            int at = 0;
+            if (parts.Length > 1 && parts[0].Trim().Length > 0 && parts[0].Trim().All(char.IsDigit)) at = 1;
+            var layerText = parts[at].Trim();
+            if (layerText.Length == 0) throw new FormatException("The preset has no layers.");
+            var layers = new List<FlatLayer>();
+            foreach (var raw in layerText.Split(','))
+            {
+                var item = raw.Trim();
+                int height = 1;
+                var star = item.IndexOf('*');
+                if (star > 0)
+                {
+                    if (!int.TryParse(item[..star], out height) || height < 1) throw new FormatException($"\"{item}\" does not start with a valid height.");
+                    item = item[(star + 1)..];
+                }
+                if (item.Count(c => c == ':') > 1 || item.Contains('[')) throw new FormatException($"\"{item}\" uses block data values or states, which this editor does not support.");
+                if (!item.Contains(':')) item = "minecraft:" + item;
+                layers.Add(new FlatLayer { Block = item, Height = height });
+            }
+            string biome = "minecraft:plains", note = null;
+            if (parts.Length > at + 1 && parts[at + 1].Trim().Length > 0)
+            {
+                var b = parts[at + 1].Trim();
+                if (b.All(char.IsDigit)) note = "The preset names its biome by an old numeric id, which cannot be mapped reliably; minecraft:plains was kept.";
+                else biome = b.Contains(':') ? b : "minecraft:" + b;
+            }
+            if (parts.Length > at + 2 && parts[at + 2].Trim().Length > 0)
+                note = (note == null ? "" : note + " ") + "Structure and feature options in the preset were ignored.";
+            return (layers, biome, note);
+        }
+
+        public static string ExportFlatPreset(IEnumerable<FlatLayer> layers, string biome) =>
+            string.Join(",", layers.Select(l => (l.Height > 1 ? l.Height + "*" : "") + l.Block)) + ";" + biome;
+
+        /// <summary>Writes pack.mcmeta and a world preset whose overworld uses the jar's own flat preset with the chosen layers and biome swapped in.</summary>
+        private static void WriteFlatPack(string jar, string datapacksDir, IEnumerable<FlatLayer> layers, string biome)
+        {
+            var fmt = DataPackFormat(jar);
+            if (fmt < 0) throw new InvalidOperationException("Could not read the data pack format from the server jar.");
+            if (!Biomes(jar).Contains(biome.Trim())) throw new InvalidOperationException($"{biome} is not a biome in this version's jar.");
+            var preset = ReadEntry(jar, "data/minecraft/worldgen/world_preset/flat.json") ?? throw new NotSupportedException("This server jar has no flat world preset to start from.");
+            var node = JsonNode.Parse(preset);
+            var settings = node?["dimensions"]?["minecraft:overworld"]?["generator"]?["settings"];
+            if (settings == null) throw new InvalidDataException("The jar's flat preset has an unexpected layout.");
+            var arr = new JsonArray();
+            foreach (var l in layers) arr.Add(new JsonObject { ["block"] = l.Block.Trim(), ["height"] = l.Height });
+            settings["layers"] = arr;
+            settings["biome"] = biome.Trim();
+            var pack = Path.Combine(datapacksDir, "materialbrowser-worldgen");
+            var presetDir = Path.Combine(pack, "data", "materialbrowser", "worldgen", "world_preset");
+            Directory.CreateDirectory(presetDir);
+            File.WriteAllText(Path.Combine(pack, "pack.mcmeta"), new JsonObject { ["pack"] = new JsonObject { ["pack_format"] = fmt, ["description"] = "World preset written by Monitoring Tools" } }.ToJsonString());
+            File.WriteAllText(Path.Combine(presetDir, "generated.json"), node.ToJsonString());
+        }
+
         // -------------------------------------------------------------- apply to an existing server
 
         /// <summary>
@@ -192,6 +379,11 @@ namespace MonitoringTools.Minecraft
             var sup = await SupportAsync(s.Version);
             if (o.Type == WorldType.SingleBiome && (s.Target != Target.LocalProcess || !sup.DataDriven))
                 throw new NotSupportedException(sup.SingleBiomeReason ?? "A single biome world needs a local process server, so the tool can read the real jar.");
+            bool flatPack = UsesFlatPack(o, sup.DataDriven);
+            if (o.Type == WorldType.Flat && o.FlatLayers.Count > 0 && !sup.DataDriven)
+                throw new NotSupportedException("Custom superflat layers need data-driven world presets, which arrived with Java 1.19. This version predates them.");
+            if (flatPack && s.Target != Target.LocalProcess)
+                throw new NotSupportedException("Custom superflat layers need a local process server, so the tool can read the real jar.");
             var props = ServerManager.ReadProperties(s);
             var level = props.TryGetValue("level-name", out var ln) && ln.Length > 0 ? ln : "world";
             var existing = File.Exists(Path.Combine(s.Folder, level, "level.dat"));
@@ -201,10 +393,18 @@ namespace MonitoringTools.Minecraft
                 if (!File.Exists(jar)) throw new FileNotFoundException("The server jar is not in the server folder yet.");
                 WriteSingleBiomePack(jar, Path.Combine(s.Folder, level, "datapacks"), o.Biome);
             }
+            if (flatPack)
+            {
+                var jar = Path.Combine(s.Folder, "server.jar");
+                if (!File.Exists(jar)) throw new FileNotFoundException("The server jar is not in the server folder yet.");
+                var bad = ValidateFlat(o.FlatLayers, o.FlatBiome, null);
+                if (bad.Count > 0) throw new InvalidOperationException(bad[0]);
+                WriteFlatPack(jar, Path.Combine(s.Folder, level, "datapacks"), o.FlatLayers, o.FlatBiome);
+            }
             ServerManager.WriteProperties(s, new Dictionary<string, string>
             {
                 ["level-seed"] = o.Seed ?? "",
-                ["level-type"] = LevelType(o.Type, sup.DataDriven),
+                ["level-type"] = LevelType(o, sup.DataDriven),
                 ["generate-structures"] = o.Structures ? "true" : "false"
             });
             return existing
@@ -262,6 +462,9 @@ namespace MonitoringTools.Minecraft
             o.RadiusChunks = Math.Clamp(o.RadiusChunks, 0, MaxRadiusChunks);
             var sup = await SupportAsync(o.Version);
             if (o.Type == WorldType.SingleBiome && !sup.DataDriven) throw new NotSupportedException(sup.SingleBiomeReason);
+            if (o.Type == WorldType.Flat && o.FlatLayers.Count > 0 && !sup.DataDriven)
+                throw new NotSupportedException("Custom superflat layers need data-driven world presets, which arrived with Java 1.19. This version predates them.");
+            bool flatPack = UsesFlatPack(o, sup.DataDriven);
 
             progress("Preparing the server jar…", 0.02);
             var (jar, javaMajor) = await EnsureJarAsync(o.Version, t => progress(t, 0.05));
@@ -278,24 +481,42 @@ namespace MonitoringTools.Minecraft
                 bool preGen = o.RadiusChunks > 0;
                 string preGenNote = null;
                 if (preGen && !sup.Forceload) { preGen = false; preGenNote = sup.ForceloadReason; }
-                if (preGen)
+                JarFacts facts = null;
+                if (preGen || o.GameRules.Count > 0 || flatPack)
                 {
-                    progress("Asking the jar which commands it has…", 0.09);
-                    var (ok, why) = await Task.Run(() => HasLoadedTest(java, Path.Combine(stage, "server.jar"), Path.Combine(stage, "reports")));
-                    if (!ok) { preGen = false; preGenNote = why; }
+                    progress("Asking the jar which commands and blocks it has…", 0.09);
+                    facts = await JarFactsAsync(o.Version, t => progress(t, 0.09));
                 }
+                if (flatPack)
+                {
+                    var bad = ValidateFlat(o.FlatLayers, o.FlatBiome, facts?.Available == true ? facts.Blocks : null);
+                    if (bad.Count > 0) throw new InvalidOperationException("The superflat layers are not valid: " + string.Join(" ", bad));
+                }
+                if (preGen && !(facts.Available && facts.HasLoadedTest))
+                {
+                    preGen = false;
+                    preGenNote = facts.Available ? "This version has no command that reports whether a chunk is loaded (execute if loaded), so pre-generation was skipped to avoid guessing. The world still generates as it is explored." : facts.Reason;
+                }
+                var dims = new List<(string Id, string Label)> { (null, "Overworld") };
+                var skipped = new List<string>();
+                if (preGen && o.PreGenNether) { if (facts.HasExecuteIn) dims.Add(("minecraft:the_nether", "Nether")); else skipped.Add("the Nether"); }
+                if (preGen && o.PreGenEnd) { if (facts.HasExecuteIn) dims.Add(("minecraft:the_end", "End")); else skipped.Add("the End"); }
+                if (!preGen && (o.PreGenNether || o.PreGenEnd) && o.RadiusChunks > 0) skipped.Add("the Nether and the End");
+                if (skipped.Count > 0) preGenNote = (preGenNote == null ? "" : preGenNote + " ") + "Not pre-generated: " + string.Join(" and ", skipped) + (preGen ? " (this jar has no execute in command)." : " (pre-generation itself was skipped).");
 
                 var port = FreeLoopbackPort();
                 var props = new Dictionary<string, string>
                 {
                     ["server-ip"] = "127.0.0.1", ["server-port"] = port.ToString(), ["online-mode"] = "false",
-                    ["level-name"] = "world", ["level-seed"] = o.Seed ?? "", ["level-type"] = LevelType(o.Type, sup.DataDriven),
+                    ["level-name"] = "world", ["level-seed"] = o.Seed ?? "", ["level-type"] = LevelType(o, sup.DataDriven),
                     ["generate-structures"] = o.Structures ? "true" : "false", ["max-tick-time"] = "-1",
                     ["view-distance"] = "3", ["simulation-distance"] = "3", ["enable-rcon"] = "false", ["spawn-protection"] = "0"
                 };
                 File.WriteAllLines(Path.Combine(stage, "server.properties"), props.Select(kv => kv.Key + "=" + kv.Value));
                 if (o.Type == WorldType.SingleBiome)
                     WriteSingleBiomePack(jar, Path.Combine(stage, "world", "datapacks"), o.Biome);
+                if (flatPack)
+                    WriteFlatPack(jar, Path.Combine(stage, "world", "datapacks"), o.FlatLayers, o.FlatBiome);
 
                 progress("Starting a private server to build the world…", 0.12);
                 var psi = new ProcessStartInfo(java, "-Xmx2G -jar server.jar nogui")
@@ -307,7 +528,9 @@ namespace MonitoringTools.Minecraft
                     throw new InvalidOperationException("The server did not finish starting. Last output:\n" + con.TailText());
 
                 string note = preGenNote;
-                if (preGen) note = await PreGenerateAsync(con, o.RadiusChunks, progress, ct);
+                var ruleNote = ApplyGameRules(con, o.GameRules, facts, ct);
+                if (ruleNote != null) note = (note == null ? "" : note + " ") + ruleNote;
+                if (preGen) await PreGenerateAsync(con, o.RadiusChunks, dims, progress, ct);
                 if (o.BorderToSize)
                 {
                     con.Send("worldborder center 0 0");
@@ -334,54 +557,65 @@ namespace MonitoringTools.Minecraft
             }
         }
 
-        /// <summary>The data generator lists the jar's commands; pre-generation only proceeds when `execute if loaded` exists, because that is the only honest way to know a chunk is done.</summary>
-        private static (bool Ok, string Reason) HasLoadedTest(string java, string jar, string outDir)
+        /// <summary>Sets only the rules the user changed, after checking each against the jar's own rule list and type. Returns a note about anything skipped, or null.</summary>
+        private static string ApplyGameRules(Console2 con, Dictionary<string, string> rules, JarFacts facts, CancellationToken ct)
         {
-            var r = ServerManager.Run(java, $"-DbundlerMainClass=net.minecraft.data.Main -jar \"{jar}\" --reports --output \"{outDir}\"", 240000);
-            var f = Path.Combine(outDir, "reports", "commands.json");
-            if (r.Code != 0 || !File.Exists(f))
-                return (false, "This jar's data generator could not list its commands, so pre-generation was skipped. The world still generates as it is explored.");
-            using var doc = JsonDocument.Parse(File.ReadAllText(f));
-            try
+            if (rules == null || rules.Count == 0) return null;
+            if (facts == null || !facts.Available || !facts.HasGamerule)
+                return "Game rules were not set: " + (facts?.Reason ?? "this jar's gamerule command could not be read.");
+            var skipped = new List<string>();
+            foreach (var kv in rules.OrderBy(k => k.Key, StringComparer.Ordinal))
             {
-                var ok = doc.RootElement.GetProperty("children").GetProperty("execute").GetProperty("children").GetProperty("if").GetProperty("children").TryGetProperty("loaded", out _);
-                return ok ? (true, null) : (false, "This version has no command that reports whether a chunk is loaded (execute if loaded), so pre-generation was skipped to avoid guessing. The world still generates as it is explored.");
+                var def = facts.GameRules.FirstOrDefault(r => r.Name == kv.Key);
+                var v = (kv.Value ?? "").Trim();
+                bool ok = def != null && ((def.Kind == RuleKind.Bool && (v == "true" || v == "false")) || (def.Kind == RuleKind.Integer && int.TryParse(v, out _)));
+                if (!ok) { skipped.Add(kv.Key + " (not a valid rule or value for this jar)"); continue; }
+                con.Send($"gamerule {kv.Key} {v}");
+                var reply = con.WaitFor(l => l.Contains("is now set to") || l.Contains("Incorrect argument") || l.Contains("Unknown or incomplete"), TimeSpan.FromSeconds(15), ct);
+                if (reply == null || !reply.Contains("is now set to")) skipped.Add(kv.Key + " (the server did not confirm it)");
             }
-            catch (KeyNotFoundException) { return (false, "The command list had an unexpected shape, so pre-generation was skipped."); }
+            return skipped.Count == 0 ? null : "Some game rules were not set: " + string.Join(", ", skipped) + ".";
         }
 
-        private static async Task<string> PreGenerateAsync(Console2 con, int radius, Action<string, double> progress, CancellationToken ct)
+        /// <summary>Force-loads rectangles of at most 256 chunks in each requested dimension, confirming every chunk loaded before moving on. A null dimension id means the overworld.</summary>
+        private static async Task PreGenerateAsync(Console2 con, int radius, List<(string Id, string Label)> dims, Action<string, double> progress, CancellationToken ct)
         {
-            int total = BatchCount(radius), n = 0;
-            for (int cx = -radius; cx < radius; cx += ChunksPerBatchSide)
-                for (int cz = -radius; cz < radius; cz += ChunksPerBatchSide)
-                {
-                    ct.ThrowIfCancellationRequested();
-                    int cx2 = Math.Min(cx + ChunksPerBatchSide - 1, radius - 1), cz2 = Math.Min(cz + ChunksPerBatchSide - 1, radius - 1);
-                    con.Send($"forceload add {cx * 16} {cz * 16} {cx2 * 16 + 15} {cz2 * 16 + 15}");
-                    var pending = new List<(int X, int Z)>();
-                    for (int x = cx; x <= cx2; x++) for (int z = cz; z <= cz2; z++) pending.Add((x, z));
-                    var deadline = DateTime.UtcNow.AddMinutes(5);
-                    while (pending.Count > 0)
+            int perDim = BatchCount(radius), total = perDim * dims.Count, n = 0;
+            for (int d = 0; d < dims.Count; d++)
+            {
+                var dim = dims[d];
+                string run = dim.Id == null ? "" : $"execute in {dim.Id} run ";
+                string inDim = dim.Id == null ? "execute" : $"execute in {dim.Id}";
+                int inThis = 0;
+                for (int cx = -radius; cx < radius; cx += ChunksPerBatchSide)
+                    for (int cz = -radius; cz < radius; cz += ChunksPerBatchSide)
                     {
                         ct.ThrowIfCancellationRequested();
-                        if (DateTime.UtcNow > deadline) throw new TimeoutException($"Batch {n + 1} of {total} did not finish loading in 5 minutes. Last output:\n" + con.TailText());
-                        var still = new List<(int X, int Z)>();
-                        foreach (var c in pending)
+                        int cx2 = Math.Min(cx + ChunksPerBatchSide - 1, radius - 1), cz2 = Math.Min(cz + ChunksPerBatchSide - 1, radius - 1);
+                        con.Send($"{run}forceload add {cx * 16} {cz * 16} {cx2 * 16 + 15} {cz2 * 16 + 15}");
+                        var pending = new List<(int X, int Z)>();
+                        for (int x = cx; x <= cx2; x++) for (int z = cz; z <= cz2; z++) pending.Add((x, z));
+                        var deadline = DateTime.UtcNow.AddMinutes(5);
+                        while (pending.Count > 0)
                         {
-                            con.Send($"execute if loaded {c.X * 16 + 8} 0 {c.Z * 16 + 8}");
-                            var reply = con.WaitFor(l => l.Contains("Test passed") || l.Contains("Test failed"), TimeSpan.FromSeconds(20), ct);
-                            if (reply == null) throw new InvalidOperationException("The server stopped answering during pre-generation. Last output:\n" + con.TailText());
-                            if (reply.Contains("Test failed")) still.Add(c);
+                            ct.ThrowIfCancellationRequested();
+                            if (DateTime.UtcNow > deadline) throw new TimeoutException($"{dim.Label} batch {inThis + 1} of {perDim} did not finish loading in 5 minutes. Last output:\n" + con.TailText());
+                            var still = new List<(int X, int Z)>();
+                            foreach (var c in pending)
+                            {
+                                con.Send($"{inDim} if loaded {c.X * 16 + 8} 0 {c.Z * 16 + 8}");
+                                var reply = con.WaitFor(l => l.Contains("Test passed") || l.Contains("Test failed"), TimeSpan.FromSeconds(20), ct);
+                                if (reply == null) throw new InvalidOperationException("The server stopped answering during pre-generation. Last output:\n" + con.TailText());
+                                if (reply.Contains("Test failed")) still.Add(c);
+                            }
+                            pending = still;
+                            if (pending.Count > 0) await Task.Delay(400, ct);
                         }
-                        pending = still;
-                        if (pending.Count > 0) await Task.Delay(400, ct);
+                        con.Send($"{run}forceload remove all");
+                        n++; inThis++;
+                        progress($"Pre-generating the {dim.Label}: batch {inThis} of {perDim}" + (dims.Count > 1 ? $" (area {d + 1} of {dims.Count})" : ""), 0.15 + 0.7 * n / total);
                     }
-                    con.Send("forceload remove all");
-                    n++;
-                    progress($"Pre-generating: batch {n} of {total}", 0.15 + 0.7 * n / total);
-                }
-            return null;
+            }
         }
 
         // -------------------------------------------------------------- output
