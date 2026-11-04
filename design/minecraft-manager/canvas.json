@@ -9,9 +9,10 @@
     "Console.dc.html": { "x": 1520, "y": 0, "w": 1440, "h": 1000, "title": "2 · Console and players", "expand": "fill", "is_interactive": true },
     "Settings.dc.html": { "x": 0, "y": 1120, "w": 1440, "h": 1180, "title": "3 · Settings (server.properties and game rules)", "expand": "fill", "is_interactive": true },
     "Content.dc.html": { "x": 1520, "y": 1120, "w": 1440, "h": 1180, "title": "4 · Worlds, plugins, backups and schedules", "expand": "fill", "is_interactive": true },
-    "Create.dc.html": { "x": 0, "y": 2420, "w": 1440, "h": 1000, "title": "5 · New server, step by step", "expand": "fill", "is_interactive": true }
+    "Create.dc.html": { "x": 0, "y": 2420, "w": 1440, "h": 1000, "title": "5 · New server, step by step", "expand": "fill", "is_interactive": true },
+    "Commands.dc.html": { "x": 1520, "y": 2420, "w": 1440, "h": 1100, "title": "6 · Command builder", "expand": "fill", "is_interactive": true }
   },
-  "order": ["Main.dc.html", "Console.dc.html", "Settings.dc.html", "Content.dc.html", "Create.dc.html"],
+  "order": ["Main.dc.html", "Console.dc.html", "Settings.dc.html", "Content.dc.html", "Create.dc.html", "Commands.dc.html"],
   "notes": {
     "t1": { "x": 0, "y": -300, "text": "Minecraft server manager: remake", "kind": "title1", "maxW": 2960 }
   },

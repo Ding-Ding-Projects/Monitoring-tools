@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Minecraft server · command builder</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0F0D}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+input,select{font:inherit;color:inherit}
+a{color:#6FDBB4;text-decoration:none}
+.ms{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;font-size:22px;line-height:1;display:inline-block;white-space:nowrap}
+.fill{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
+.st{position:relative;overflow:hidden;isolation:isolate;transition:border-radius .35s cubic-bezier(.34,1.56,.64,1),background-color .25s cubic-bezier(.2,0,0,1)}
+.st::before{content:"";position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .2s;z-index:-1;pointer-events:none}
+.st:hover::before{opacity:.08}.st:active::before{opacity:.12}
+.st:focus-visible{outline:3px solid #6FDBB4;outline-offset:2px}
+.btn{height:40px;padding:0 20px;border-radius:20px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn:active{border-radius:12px}
+.filled{background:#6FDBB4;color:#003827}
+.tonal{background:#354B41;color:#CFE9DB}
+.outlined{border:1px solid #89938C;color:#6FDBB4}
+.card{background:#1B211E;border-radius:24px;padding:20px}
+.chip{height:36px;padding:0 14px;border-radius:10px;display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:500;border:1px solid #404943;color:#BFC9C2}
+.chip[aria-pressed="true"]{background:#354B41;border-color:transparent;color:#CFE9DB;border-radius:18px}
+.mono{font-family:'Roboto Mono',ui-monospace,monospace}
+.lbl{font-size:12.5px;color:#BFC9C2;display:flex;align-items:center;gap:6px}
+.input{height:48px;border-radius:12px;border:0;background:#303633;padding:0 14px;font-size:15px;color:#DEE4DF;outline:none}
+.input:focus{box-shadow:0 0 0 2px #6FDBB4}
+.num{display:inline-flex;align-items:center;height:48px;border-radius:12px;background:#303633;overflow:hidden}
+.num input{width:72px;height:48px;border:0;background:none;text-align:right;font-size:15px;outline:none}
+.num button{width:40px;height:48px;display:flex;align-items:center;justify-content:center;color:#BFC9C2}
+.task{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 14px;border-radius:16px;text-align:left;font-size:14px}
+.tok{padding:2px 6px;border-radius:6px}
+.rise{animation:rise .4s cubic-bezier(.05,.7,.1,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.rise{animation:none}.st{transition:none}}
+</style>
+</helmet>
+<div style="min-height: 1100px; background: #0F1512; color: #DEE4DF; font-family: 'Roboto Flex','Segoe UI Variable Text',system-ui,sans-serif; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 18px;">
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px;">
+    <a class="st" href="Console.dc.html" aria-label="Back to the console" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #DEE4DF;"><span class="ms" aria-hidden="true">arrow_back</span></a>
+    <div style="flex: 1 1 300px;">
+      <h2 style="margin: 0; font-size: 28px; font-weight: 400;">Command builder</h2>
+      <p style="margin: 2px 0 0; font-size: 13.5px; color: #BFC9C2;">Friends survival · Paper 1.21.4 · running. Every field comes from this server's own command list, players and registries.</p>
+    </div>
+    <div role="tablist" aria-label="Builder mode" style="display: flex; gap: 6px;">
+      <button role="tab" aria-selected="{{guidedSel}}" onClick="{{toGuided}}" class="chip st" aria-pressed="{{guidedSel}}"><span class="ms" style="font-size: 18px;" aria-hidden="true">auto_awesome</span>Tasks</button>
+      <button role="tab" aria-selected="{{treeSel}}" onClick="{{toTree}}" class="chip st" aria-pressed="{{treeSel}}"><span class="ms" style="font-size: 18px;" aria-hidden="true">account_tree</span>Every command</button>
+    </div>
+  </header>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+    <!-- task gallery -->
+    <nav aria-label="Tasks" class="card" style="flex: 1 1 280px; max-width: 340px; padding: 14px; display: flex; flex-direction: column; gap: 4px;">
+      <label style="display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px; border-radius: 23px; background: #262B28; color: #BFC9C2; margin-bottom: 6px;">
+        <span class="ms" aria-hidden="true">search</span>
+        <input type="search" placeholder="Search tasks and commands" aria-label="Search tasks and commands" style="flex: 1; min-width: 0; border: 0; background: none; outline: none;">
+        <span class="mono" style="font-size: 12px;">.*</span>
+      </label>
+      <sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
+        <div style="font-size: 12px; font-weight: 500; color: #6FDBB4; margin: 10px 8px 2px;">{{g.title}}</div>
+        <sc-for list="{{g.tasks}}" as="t" hint-placeholder-count="3">
+          <button onClick="{{t.pick}}" class="task st" style="{{t.style}}"><span class="ms" aria-hidden="true">{{t.icon}}</span><span style="flex: 1;">{{t.label}}</span><span class="mono" style="font-size: 11.5px; opacity: .7;">{{t.cmd}}</span></button>
+        </sc-for>
+      </sc-for>
+    </nav>
+
+    <!-- form -->
+    <section style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+      <div class="card rise" style="display: flex; flex-direction: column; gap: 18px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="width: 44px; height: 44px; border-radius: 14px; background: #00513A; color: #8CF8CF; display: flex; align-items: center; justify-content: center;"><span class="ms fill" aria-hidden="true">{{form.icon}}</span></span>
+          <div><h3 style="margin: 0; font-size: 20px; font-weight: 500;">{{form.title}}</h3><p style="margin: 2px 0 0; font-size: 13px; color: #BFC9C2;">{{form.help}}</p></div>
+        </div>
+
+        <!-- who -->
+        <sc-if value="{{form.hasWho}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <span class="lbl"><span class="ms" style="font-size: 18px;" aria-hidden="true">group</span>Who</span>
+            <div role="group" aria-label="Who" style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <sc-for list="{{who}}" as="w" hint-placeholder-count="7">
+                <button class="chip st" aria-pressed="{{w.on}}" onClick="{{w.pick}}" title="{{w.tip}}"><span class="ms" style="font-size: 18px;" aria-hidden="true">{{w.icon}}</span>{{w.label}}</button>
+              </sc-for>
+            </div>
+            <span style="font-size: 12px; color: #89938C;">{{whoHint}}</span>
+          </div>
+        </sc-if>
+
+        <!-- item -->
+        <sc-if value="{{form.hasItem}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <span class="lbl"><span class="ms" style="font-size: 18px;" aria-hidden="true">inventory_2</span>Item · 1,384 items in 1.21.4</span>
+            <label style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 12px; background: #303633;"><span class="ms" aria-hidden="true">search</span><input value="diamond" aria-label="Search items" style="flex: 1; border: 0; background: none; outline: none; font-size: 15px;"></label>
+            <div role="listbox" aria-label="Items" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px;">
+              <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+                <button role="option" aria-selected="{{it.on}}" onClick="{{it.pick}}" class="st" style="{{it.style}}"><span class="ms" style="font-size: 18px;" aria-hidden="true">diamond</span><span style="display: flex; flex-direction: column; align-items: flex-start;"><span style="font-size: 13.5px;">{{it.name}}</span><span class="mono" style="font-size: 11px; opacity: .7;">{{it.id}}</span></span></button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- numbers and options -->
+        <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end;">
+          <sc-if value="{{form.hasCount}}" hint-placeholder-val="{{true}}">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span class="lbl">{{form.countLabel}}</span>
+              <span class="num"><button class="st" aria-label="Decrease" onClick="{{dec}}"><span class="ms" aria-hidden="true">remove</span></button><input inputmode="numeric" value="{{count}}" aria-label="{{form.countLabel}}"><button class="st" aria-label="Increase" onClick="{{inc}}"><span class="ms" aria-hidden="true">add</span></button></span>
+              <span style="font-size: 11.5px; color: #89938C;">{{form.countRange}}</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{form.hasPos}}" hint-placeholder-val="{{false}}">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span class="lbl"><span class="ms" style="font-size: 18px;" aria-hidden="true">my_location</span>Where · relative to the target (~) or exact</span>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <sc-for list="{{axes}}" as="a" hint-placeholder-count="3">
+                  <label style="display: flex; align-items: center; gap: 6px;"><span class="mono" style="font-size: 13px; color: #BFC9C2;">{{a.n}}</span><button class="chip st" aria-pressed="{{a.rel}}" onClick="{{a.toggle}}" aria-label="Relative">~</button><input class="input mono" style="width: 92px;" value="{{a.v}}" aria-label="{{a.n}}"></label>
+                </sc-for>
+                <button class="btn tonal st" style="height: 48px; border-radius: 12px;"><span class="ms" aria-hidden="true">person_pin_circle</span>Use Ava's position</button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{form.hasEnum}}" hint-placeholder-val="{{false}}">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span class="lbl">{{form.enumLabel}}</span>
+              <div role="radiogroup" aria-label="{{form.enumLabel}}" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <sc-for list="{{opts}}" as="o" hint-placeholder-count="4"><button role="radio" class="chip st" aria-checked="{{o.on}}" aria-pressed="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <!-- preview -->
+      <div class="card" style="display: flex; flex-direction: column; gap: 12px; background: #262B28;">
+        <div style="display: flex; align-items: center; gap: 8px;"><span class="ms" style="color: #6FDBB4;" aria-hidden="true">terminal</span><strong style="font-weight: 500;">The command</strong><span style="font-size: 12px; color: #89938C;">Each part is coloured by what it is. Click a part to jump to its field.</span></div>
+        <div class="mono" role="status" aria-live="polite" style="font-size: 17px; line-height: 1.6; background: #0A0F0D; border-radius: 14px; padding: 14px 16px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <sc-for list="{{tokens}}" as="k" hint-placeholder-count="4"><span class="tok" style="{{k.style}}" title="{{k.tip}}">{{k.text}}</span></sc-for>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; color: #8CF8CF; font-size: 13.5px;"><span class="ms" aria-hidden="true">check_circle</span>{{status}}</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn filled st"><span class="ms fill" aria-hidden="true">play_arrow</span>Run on Friends survival</button>
+          <button class="btn tonal st"><span class="ms" aria-hidden="true">content_copy</span>Copy</button>
+          <button class="btn tonal st"><span class="ms" aria-hidden="true">star</span>Save as a favourite</button>
+          <button class="btn outlined st"><span class="ms" aria-hidden="true">schedule</span>Schedule it</button>
+        </div>
+      </div>
+
+      <!-- tree mode explanation -->
+      <sc-if value="{{treeMode}}" hint-placeholder-val="{{false}}">
+        <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+          <strong style="font-weight: 500;">Every command</strong>
+          <span style="font-size: 13.5px; color: #BFC9C2; line-height: 1.5;">All 94 commands of this server, walked step by step from its own command tree. Each argument gets the control its type needs: whole numbers with their limits, true or false as a switch, a player or selector picker, block positions as three axes, items, blocks, effects, enchantments and entities as searchable lists from the game's registries, and text as a text box. Commands added by plugins appear when the server reports them.</span>
+        </div>
+      </sc-if>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { task: 'give', who: 'Ava', item: 'minecraft:diamond', count: 5, rel: { X: true, Y: true, Z: true }, opt: 0, mode: 'guided' }; }
+  renderVals() {
+    const st = this.state;
+    const T = {
+      give: { icon: 'redeem', title: 'Give an item', help: 'Puts items straight into a player’s inventory.', hasWho: true, hasItem: true, hasCount: true, countLabel: 'How many', countRange: '1 to 6,400 (up to 100 stacks)' },
+      tp: { icon: 'near_me', title: 'Teleport', help: 'Moves players to a place or to another player.', hasWho: true, hasPos: true },
+      effect: { icon: 'science', title: 'Give an effect', help: 'Speed, night vision, regeneration and the rest, for a time you choose.', hasWho: true, hasCount: true, countLabel: 'Seconds', countRange: '1 to 1,000,000', hasEnum: true, enumLabel: 'Effect', opts: ['Speed', 'Night vision', 'Regeneration', 'Fire resistance'] },
+      time: { icon: 'wb_sunny', title: 'Set the time', help: 'Day, noon, night or an exact tick.', hasEnum: true, enumLabel: 'Time', opts: ['Day', 'Noon', 'Night', 'Midnight'] },
+      weather: { icon: 'thunderstorm', title: 'Change the weather', help: 'Clear, rain or thunder, for a while or until it changes on its own.', hasEnum: true, enumLabel: 'Weather', opts: ['Clear', 'Rain', 'Thunder'] },
+      gamemode: { icon: 'sports_esports', title: 'Change game mode', help: 'Survival, creative, adventure or spectator for chosen players.', hasWho: true, hasEnum: true, enumLabel: 'Mode', opts: ['Survival', 'Creative', 'Adventure', 'Spectator'] },
+      summon: { icon: 'pets', title: 'Summon a mob', help: 'Spawns any entity at a position.', hasPos: true, hasEnum: true, enumLabel: 'Entity', opts: ['Cow', 'Villager', 'Iron golem', 'Horse'] },
+      gamerule: { icon: 'rule', title: 'Set a game rule', help: 'Keep inventory, mob griefing, daylight cycle and every other rule.', hasEnum: true, enumLabel: 'keepInventory', opts: ['true', 'false'] },
+      kick: { icon: 'logout', title: 'Kick a player', help: 'Removes a player with an optional reason. Bans live on the Players tab.', hasWho: true }
+    };
+    const G = [['Players', [['give', 'Give an item', 'redeem', '/give'], ['tp', 'Teleport', 'near_me', '/tp'], ['effect', 'Give an effect', 'science', '/effect'], ['gamemode', 'Change game mode', 'sports_esports', '/gamemode'], ['kick', 'Kick a player', 'logout', '/kick']]],
+      ['World', [['time', 'Set the time', 'wb_sunny', '/time'], ['weather', 'Change the weather', 'thunderstorm', '/weather'], ['summon', 'Summon a mob', 'pets', '/summon']]],
+      ['Rules', [['gamerule', 'Set a game rule', 'rule', '/gamerule']]]];
+    const groups = G.map(([title, list]) => ({ title, tasks: list.map(([id, label, icon, cmd]) => ({ label, icon, cmd, pick: () => this.setState({ task: id, opt: 0 }),
+      style: 'background:' + (st.task === id ? '#354B41' : 'transparent') + ';color:' + (st.task === id ? '#CFE9DB' : '#DEE4DF') + ';border-radius:' + (st.task === id ? '26px' : '16px') })) }));
+    const form = T[st.task];
+    const W = [['Ava', 'person', 'online'], ['Ben', 'person', 'online'], ['Chloe', 'person', 'online'], ['@p', 'my_location', 'nearest player'], ['@a', 'groups', 'every player'], ['@r', 'casino', 'a random player'], ['@s', 'record_voice_over', 'whoever runs it']];
+    const who = W.map(([label, icon, tip]) => ({ label, icon, tip, on: String(st.who === label), pick: () => this.setState({ who: label }) }));
+    const whoHint = st.who.startsWith('@') ? ({ '@p': 'The player nearest to where the command runs.', '@a': 'Every player online.', '@r': 'One random player.', '@s': 'Whoever runs it; from the console that is no one.' })[st.who] : st.who + ' is online now.';
+    const I = [['Diamond', 'minecraft:diamond'], ['Diamond sword', 'minecraft:diamond_sword'], ['Diamond pickaxe', 'minecraft:diamond_pickaxe'], ['Diamond block', 'minecraft:diamond_block'], ['Diamond ore', 'minecraft:diamond_ore'], ['Diamond horse armor', 'minecraft:diamond_horse_armor']];
+    const items = I.map(([name, id]) => ({ name, id, on: String(st.item === id), pick: () => this.setState({ item: id }),
+      style: 'display:flex;align-items:center;gap:10px;min-height:52px;padding:6px 12px;border-radius:' + (st.item === id ? '20px' : '12px') + ';text-align:left;background:' + (st.item === id ? '#354B41' : '#262B28') + ';color:' + (st.item === id ? '#CFE9DB' : '#DEE4DF') }));
+    const axes = ['X', 'Y', 'Z'].map(n => ({ n, rel: String(st.rel[n]), v: st.rel[n] ? (n === 'Y' ? '5' : '0') : (n === 'X' ? '120' : n === 'Y' ? '64' : '-340'), toggle: () => this.setState({ rel: { ...st.rel, [n]: !st.rel[n] } }) }));
+    const opts = (form.opts || []).map((label, i) => ({ label, on: String(i === st.opt), pick: () => this.setState({ opt: i }) }));
+    const C = { cmd: 'color:#6FDBB4;background:#00513A', who: 'color:#C2E8FD;background:#244C5D', val: 'color:#FFDDB3;background:#3B2A12', num: 'color:#CFBCFF;background:#2B2640' };
+    const tk = (text, kind, tip) => ({ text, style: C[kind], tip });
+    const o = (form.opts || [])[st.opt] || '';
+    let tokens;
+    switch (st.task) {
+      case 'give': tokens = [tk('/give', 'cmd', 'command'), tk(st.who, 'who', 'who'), tk(st.item, 'val', 'item'), tk(String(st.count), 'num', 'how many')]; break;
+      case 'tp': tokens = [tk('/tp', 'cmd'), tk(st.who, 'who'), ...axes.map(a => tk((st.rel[a.n] ? '~' : '') + (st.rel[a.n] && a.v === '0' ? '' : a.v), 'num'))]; break;
+      case 'effect': tokens = [tk('/effect give', 'cmd'), tk(st.who, 'who'), tk('minecraft:' + o.toLowerCase().replace(' ', '_'), 'val'), tk(String(st.count), 'num')]; break;
+      case 'time': tokens = [tk('/time set', 'cmd'), tk(o.toLowerCase(), 'val')]; break;
+      case 'weather': tokens = [tk('/weather', 'cmd'), tk(o.toLowerCase(), 'val')]; break;
+      case 'gamemode': tokens = [tk('/gamemode', 'cmd'), tk(o.toLowerCase(), 'val'), tk(st.who, 'who')]; break;
+      case 'summon': tokens = [tk('/summon', 'cmd'), tk('minecraft:' + o.toLowerCase().replace(' ', '_'), 'val'), ...axes.map(a => tk((st.rel[a.n] ? '~' : '') + (st.rel[a.n] && a.v === '0' ? '' : a.v), 'num'))]; break;
+      case 'gamerule': tokens = [tk('/gamerule', 'cmd'), tk('keepInventory', 'val'), tk(o, 'num')]; break;
+      default: tokens = [tk('/kick', 'cmd'), tk(st.who, 'who')];
+    }
+    return { groups, form, who, whoHint, items, axes, opts, tokens, count: String(st.count), status: 'Complete and valid for 1.21.4. Ready to run.',
+      inc: () => this.setState({ count: Math.min(6400, st.count + 1) }), dec: () => this.setState({ count: Math.max(1, st.count - 1) }),
+      guidedSel: String(st.mode === 'guided'), treeSel: String(st.mode === 'tree'), treeMode: st.mode === 'tree',
+      toGuided: () => this.setState({ mode: 'guided' }), toTree: () => this.setState({ mode: 'tree' }) };
+  }
+}
+</script>
+</body>
+</html>

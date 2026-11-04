@@ -71,3 +71,27 @@ the EULA consent.
 - Narrow widths: the list pane stacks above the workspace.
 - Nothing destructive happens without the two-key confirmation, and nothing outside the app's own servers is ever
   stopped.
+
+## Command builder (Commands)
+
+The console's chip-only builder is replaced by a real form, opened from the Console section (and from a Commands
+button in the header). Two modes:
+
+- **Tasks**: a searchable gallery grouped by what people want to do (Players: give an item, teleport, give an effect,
+  change game mode, kick; World: set the time, change the weather, summon a mob; Rules: set a game rule; more from the
+  same pattern). Each task is a form with the controls its arguments need:
+  - **Who**: online players as chips (from `list`), plus the target selectors `@p @a @r @s` with a plain explanation of
+    each; a selector builder for `@a[distance=..10]` style filters is a follow-up.
+  - **Item, block, effect, enchantment, entity**: searchable lists from the selected version's own registries
+    (the jar's `reports/registries.json`), showing the readable name and the id.
+  - **Numbers**: typed number fields with the argument's real bounds (from `commands.json` parser properties).
+  - **Positions**: three axes, each with a `~` relative toggle, plus "use a player's position" (from `data get entity`).
+  - **Enumerations and booleans**: chips or a switch.
+- **Every command**: walks the server's command tree node by node; each argument type gets the matching control
+  (`brigadier:integer`/`double` with min and max, `brigadier:bool`, `minecraft:entity`/`game_profile`,
+  `minecraft:block_pos`/`vec3`, `minecraft:item_stack`, `minecraft:block_state`, `minecraft:resource`/`resource_key`
+  with its registry, `brigadier:string` and `minecraft:message`).
+
+Below the form, the command preview colours each part by kind (command, target, value, number); clicking a part focuses
+its field. A status line says whether the command is complete and valid for the server's version. Actions: Run on this
+server, Copy, Save as a favourite (favourites list per server), Schedule it (opens a schedule with this command).
