@@ -153,7 +153,7 @@ namespace MonitoringTools.UI
 
         public static string KeyOfText(string s)
         {
-            s = string.Join(" ", (s ?? "").Split((char[])null, StringSplitOptions.RemoveEmptyEntries)).Trim();
+            s = string.Join(" ", (s ?? "").Replace(ElementStyles.Hair.ToString(), "").Split((char[])null, StringSplitOptions.RemoveEmptyEntries)).Trim();
             if (s.Length == 0) return null;
             return s.Length > 120 ? s[..120] : s;
         }

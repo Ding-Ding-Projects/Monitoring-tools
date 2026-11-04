@@ -82,7 +82,7 @@ namespace MonitoringTools.UI
                     {
                         App.Toasts.ShowClip(MonitoringTools.Clip.ClipItem.FromText(Demo.SampleUrl));
                         result.Text = "✓ A link toast appeared in the corner. Hover it to see its actions.";
-                        result.Foreground = Ui.Res("B.Mint");
+                        ThemeLive.Set(result, TextBlock.ForegroundProperty, "B.Mint");
                     }, "Btn.Ghost", Icons.Play));
                     sp.Children.Add(result);
                     return sp;
@@ -104,13 +104,13 @@ namespace MonitoringTools.UI
                     {
                         check.IsEnabled = false;
                         result.Text = "Checking adapter, gateway, DNS and the internet…";
-                        result.Foreground = Ui.Res("B.TextMute");
+                        ThemeLive.Set(result, TextBlock.ForegroundProperty, "B.TextMute");
                         var st = await App.Net.Probe();
                         var ladder = string.Join("  ·  ", st.Stages.Select(x => $"{x.Name} {x.Value}"));
                         string ip = null;
                         try { await App.PublicIp.CheckAsync(); ip = App.PublicIp.History.Current; } catch { }
                         result.Text = (st.Online ? "✓ Online. " : $"Offline: {st.Headline}. ") + ladder + (ip != null ? $"\nPublic IP {ip}" : "");
-                        result.Foreground = Ui.Res(st.Online ? "B.Mint" : "B.Amber");
+                        ThemeLive.Set(result, TextBlock.ForegroundProperty, st.Online ? "B.Mint" : "B.Amber");
                         check.IsEnabled = true;
                     };
                     sp.Children.Add(check);
@@ -140,7 +140,7 @@ namespace MonitoringTools.UI
                             result.Text = $"Switching to {prof.Name}…";
                             var rc = await DnsSwitcher.ApplyAsync(prof);
                             result.Text = rc == 0 ? $"✓ DNS is now {prof.Name} ({prof})" : rc == -2 ? "Cancelled at the approval prompt. Nothing changed." : $"netsh finished with code {rc}.";
-                            result.Foreground = Ui.Res(rc == 0 ? "B.Mint" : "B.Amber");
+                            ThemeLive.Set(result, TextBlock.ForegroundProperty, rc == 0 ? "B.Mint" : "B.Amber");
                             if (rc == 0) _results[_index] = $"DNS set to {prof.Name}";
                         };
                         wrap.Children.Add(b);
@@ -199,7 +199,7 @@ namespace MonitoringTools.UI
                         var ff = Converter.FindFfmpeg();
                         Demo.TryQuickCommand();
                         result.Text = $"✓ Converting a sample picture to JPG. FFmpeg: {(ff == null ? "not needed for this one" : Converter.FfmpegOrigin)}.";
-                        result.Foreground = Ui.Res("B.Mint");
+                        ThemeLive.Set(result, TextBlock.ForegroundProperty, "B.Mint");
                         _results[_index] = "Conversion tried";
                     }, "Btn.Ghost", Icons.Bolt);
                     conv.Margin = new Thickness(0, 14, 0, 0);
@@ -248,6 +248,7 @@ namespace MonitoringTools.UI
             StepTitle.Text = st.Title;
             StepIntro.Text = st.Intro;
             var body = st.Build();
+            ThemeLive.Bind(body);
             StepBody.Content = body;
             BackBtn.Visibility = idx == 0 ? Visibility.Hidden : Visibility.Visible;
             SkipBtn.Visibility = st.Optional ? Visibility.Visible : Visibility.Collapsed;
@@ -297,6 +298,7 @@ namespace MonitoringTools.UI
                 b.Click += (o, e) => { if (idx != _index) Show(idx, idx > _index ? 1 : -1); };
                 Rail.Children.Add(b);
             }
+            ThemeLive.Bind(Rail);
         }
 
         /// <summary>Used by the screenshot run to show a given step.</summary>
@@ -314,7 +316,7 @@ namespace MonitoringTools.UI
             {
                 _results.Remove(_index);
                 StepIntro.Text = "That step did not finish: " + ex.Message;
-                StepIntro.Foreground = Ui.Res("B.Amber");
+                ThemeLive.Set(StepIntro, TextBlock.ForegroundProperty, "B.Amber");
                 return;
             }
             if (_index == _steps.Count - 1) { Finish(); return; }
@@ -374,7 +376,7 @@ namespace MonitoringTools.UI
             sp.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 8) });
             var wrap = new WrapPanel();
             var all = new List<(Button, T)>();
-            void Paint() { foreach (var (b, v) in all) { bool on = EqualityComparer<T>.Default.Equals(v, current); b.Background = Ui.Res(on ? "B.Mint" : "B.Raised"); b.Foreground = Ui.Res(on ? "B.MintInk" : "B.TextSoft"); b.BorderBrush = Ui.Res(on ? "B.Mint" : "B.LineStrong"); } }
+            void Paint() { foreach (var (b, v) in all) { bool on = EqualityComparer<T>.Default.Equals(v, current); ThemeLive.Set(b, Control.BackgroundProperty, on ? "B.Mint" : "B.Raised"); ThemeLive.Set(b, Control.ForegroundProperty, on ? "B.MintInk" : "B.TextSoft"); ThemeLive.Set(b, Control.BorderBrushProperty, on ? "B.Mint" : "B.LineStrong"); } }
             foreach (var (l, v) in options)
             {
                 var val = v;

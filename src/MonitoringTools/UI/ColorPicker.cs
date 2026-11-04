@@ -125,6 +125,47 @@ namespace MonitoringTools.UI
             return FromOklab(L, C * Math.Cos(rad), C * Math.Sin(rad), out clipped);
         }
 
+        // CIELAB with the D65 white point (the sRGB white), the same space CSS lab() and lch() use.
+        private const double Xn = 0.95047, Yn = 1.0, Zn = 1.08883, LabEps = 216.0 / 24389.0, LabKappa = 24389.0 / 27.0;
+        private static double LabF(double t) => t > LabEps ? Math.Cbrt(t) : (LabKappa * t + 16) / 116;
+        private static double LabFInv(double f) { double c = f * f * f; return c > LabEps ? c : (116 * f - 16) / LabKappa; }
+
+        public static (double L, double A, double B) ToLab(double r, double g, double b)
+        {
+            double lr = Lin(r), lg = Lin(g), lb = Lin(b);
+            double x = 0.4124564 * lr + 0.3575761 * lg + 0.1804375 * lb;
+            double y = 0.2126729 * lr + 0.7151522 * lg + 0.0721750 * lb;
+            double z = 0.0193339 * lr + 0.1191920 * lg + 0.9503041 * lb;
+            double fx = LabF(x / Xn), fy = LabF(y / Yn), fz = LabF(z / Zn);
+            return (116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz));
+        }
+
+        /// <summary>Converts CIELAB to sRGB. <paramref name="clipped"/> is true when the colour lay outside the sRGB gamut and was clamped.</summary>
+        public static (double R, double G, double B) FromLab(double L, double a, double b, out bool clipped)
+        {
+            double fy = (L + 16) / 116, fx = fy + a / 500, fz = fy - b / 200;
+            double x = Xn * LabFInv(fx), y = Yn * LabFInv(fy), z = Zn * LabFInv(fz);
+            double r = 3.2404542 * x - 1.5371385 * y - 0.4985314 * z;
+            double g = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z;
+            double bl = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z;
+            clipped = r < -0.0005 || r > 1.0005 || g < -0.0005 || g > 1.0005 || bl < -0.0005 || bl > 1.0005;
+            return (Gam(Math.Clamp(r, 0, 1)), Gam(Math.Clamp(g, 0, 1)), Gam(Math.Clamp(bl, 0, 1)));
+        }
+
+        public static (double L, double C, double H) ToLch(double r, double g, double b)
+        {
+            var (L, A, B) = ToLab(r, g, b);
+            double c = Math.Sqrt(A * A + B * B), h = Math.Atan2(B, A) * 180 / Math.PI;
+            if (h < 0) h += 360;
+            return (L, c, c < 1e-3 ? 0 : h);
+        }
+
+        public static (double R, double G, double B) FromLch(double L, double C, double H, out bool clipped)
+        {
+            double rad = H * Math.PI / 180;
+            return FromLab(L, C * Math.Cos(rad), C * Math.Sin(rad), out clipped);
+        }
+
         /// <summary>WCAG relative luminance of an sRGB colour.</summary>
         public static double Luminance(Color c) => 0.2126 * Lin(c.R / 255.0) + 0.7152 * Lin(c.G / 255.0) + 0.0722 * Lin(c.B / 255.0);
 
@@ -169,6 +210,7 @@ namespace MonitoringTools.UI
             public Func<double, double, double, double, string> Format;
             public Func<string, (double R, double G, double B, double A)?> Parse;
             public TextBox Box;
+            public string Shown;
         }
 
         public ColorPicker(Color start)
@@ -393,6 +435,12 @@ namespace MonitoringTools.UI
             _fields.Add(Numeric("OKLCH", "Lightness 0 to 1, chroma about 0 to 0.4, hue 0 to 360. Values outside sRGB are clipped and the picker says so.", 3, 4,
                 (r, g, b, a) => { var (l, c, h) = ColorMath.ToOklch(r, g, b); return $"oklch({N(l, 3)} {N(c, 3)} {N(h, 1)})"; },
                 n => { var rgb = ColorMath.FromOklch(n[0], n[1], n[2], out var clip); _clipNote = clip; return rgb; }));
+            _fields.Add(Numeric("LAB", "CIELAB (D65): lightness 0 to 100, then a and b, about -128 to 128. Values outside sRGB are clipped and the picker says so.", 3, 4,
+                (r, g, b, a) => { var (l, aa, bb) = ColorMath.ToLab(r, g, b); return $"lab({N(l, 1)} {N(aa, 1)} {N(bb, 1)})"; },
+                n => { var rgb = ColorMath.FromLab(n[0], n[1], n[2], out var clip); _clipNote = clip; return rgb; }));
+            _fields.Add(Numeric("LCH", "CIELAB lightness 0 to 100, chroma about 0 to 150, hue 0 to 360 (D65). Values outside sRGB are clipped and the picker says so.", 3, 4,
+                (r, g, b, a) => { var (l, c, h) = ColorMath.ToLch(r, g, b); return $"lch({N(l, 1)} {N(c, 1)} {N(h, 1)})"; },
+                n => { var rgb = ColorMath.FromLch(n[0], n[1], n[2], out var clip); _clipNote = clip; return rgb; }));
         }
 
         private bool _clipNote;
@@ -422,7 +470,7 @@ namespace MonitoringTools.UI
             foreach (var f in _fields)
             {
                 if (f == except) { f.Box.ClearValue(Control.BorderBrushProperty); continue; }
-                f.Box.Text = f.Format(r, g, b, _a);
+                f.Box.Text = f.Shown = f.Format(r, g, b, _a);
                 f.Box.ClearValue(Control.BorderBrushProperty);
             }
             _syncing = false;
@@ -432,7 +480,7 @@ namespace MonitoringTools.UI
 
         private void ApplyField(Field f)
         {
-            if (_syncing) return;
+            if (_syncing || f.Box.Text == f.Shown) return;
             _clipNote = false;
             var parsed = f.Parse(f.Box.Text);
             if (parsed == null)
@@ -447,7 +495,7 @@ namespace MonitoringTools.UI
             _s = s; _v = v; _a = a;
             Refresh(true);
             SyncFields(null);
-            if (_clipNote) _note.Text = "That OKLCH value is outside the sRGB range, so it was clipped to the nearest displayable colour.";
+            if (_clipNote) _note.Text = "That value is outside the sRGB range, so it was clipped to the nearest displayable colour.";
             Commit();
         }
 

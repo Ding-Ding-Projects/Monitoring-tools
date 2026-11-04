@@ -306,6 +306,101 @@ namespace MonitoringTools.UI
                 return bad.SequenceEqual(new[] { "$3", "${zz}" }) && t.Any(x => x.Text == "$$" && !x.Problem) ? null : "flagged: " + string.Join(" ", bad);
             });
 
+            // ---- appearance: presets, import and export, colour spaces, locks
+            Check("appearance: a preset applies its look to another element, letter spacing and underline included", () =>
+            {
+                var src = new ElementStyle { Background = "#FFAA0000", CornerRadius = 10, LetterSpacing = 4, Underline = true, Hover = new StateLook { Background = "#FF00AA00" } };
+                var err = ElementStyles.SavePreset("Selftest red", src);
+                if (err != null) return "preset not saved: " + err;
+                try
+                {
+                    var p = ElementStyles.Preset("Selftest red");
+                    if (p == null || !ElementStyles.Same(p, src)) return "preset did not round-trip";
+                    var target = new Border { Child = new TextBlock { Text = "Save now" } };
+                    ElementStyles.Apply(target, p);
+                    var tb = (TextBlock)target.Child;
+                    if (!(target.Background is SolidColorBrush bg) || bg.Color != Color.FromRgb(0xAA, 0, 0)) return "background not applied";
+                    if (target.CornerRadius.TopLeft != 10) return "corner radius not applied";
+                    if (!tb.Text.Contains(ElementStyles.Hair) || tb.Text.Replace(ElementStyles.Hair.ToString(), "") != "Save now") return "letter spacing not applied: " + tb.Text.Length;
+                    if (tb.TextDecorations == null || tb.TextDecorations.Count == 0) return "underline not applied";
+                    var hover = ElementStyles.ResolveState(p, "hover");
+                    if (hover.Background != "#FF00AA00" || ElementStyles.ResolveState(p, "pressed").Background != "#FFAA0000") return "state looks do not resolve";
+                    ElementStyles.Apply(target, new ElementStyle());
+                    if (tb.Text != "Save now" || tb.TextDecorations.Count != 0) return "text not restored";
+                    return ElementStyles.DeletePreset("Selftest red") ? null : "preset not deleted";
+                }
+                finally { ElementStyles.DeletePreset("Selftest red"); }
+            });
+            Check("appearance: export then import round-trips, and a bad file changes nothing", () =>
+            {
+                const string key = "selftest|Round trip";
+                var original = new ElementStyle { Foreground = "#FF112233", FontSize = 17, Italic = true, Pressed = new StateLook { Foreground = "#FF445566" } };
+                ElementStyles.Store(key, original.Clone(), false);
+                try
+                {
+                    var json = ElementStyles.ExportJson();
+                    ElementStyles.Store(key, null, false);
+                    if (ElementStyles.Get(key) != null) return "style not removed before import";
+                    var err = ElementStyles.ImportJson(json, out var n, out _);
+                    if (err != null) return "import refused: " + err;
+                    if (n < 1 || !ElementStyles.Same(ElementStyles.Get(key), original)) return "imported look differs";
+
+                    var bad = json.Replace("#FF112233", "not-a-colour");
+                    ElementStyles.Store(key, null, false);
+                    var badErr = ElementStyles.ImportJson(bad, out _, out _);
+                    if (badErr == null || ElementStyles.Get(key) != null) return "a file with a bad colour was applied";
+                    if (ElementStyles.ImportJson(new string(' ', ElementStyles.MaxImportBytes + 1), out _, out _) == null) return "an oversized file was accepted";
+                    if (ElementStyles.ImportJson("{\"format\":\"other\"}", out _, out _) == null) return "a wrong format was accepted";
+                    return null;
+                }
+                finally { ElementStyles.Store(key, null, false); }
+            });
+            Check("colour picker: CIELAB and LCH convert both ways and match known values", () =>
+            {
+                var (L, a, b) = ColorMath.ToLab(1, 0, 0);
+                if (Math.Abs(L - 53.24) > 0.1 || Math.Abs(a - 80.09) > 0.15 || Math.Abs(b - 67.20) > 0.15) return $"red is lab({L:0.00} {a:0.00} {b:0.00})";
+                var (wl, wa, wb) = ColorMath.ToLab(1, 1, 1);
+                if (Math.Abs(wl - 100) > 0.05 || Math.Abs(wa) > 0.05 || Math.Abs(wb) > 0.05) return $"white is lab({wl:0.00} {wa:0.00} {wb:0.00})";
+                foreach (var (r, g, bl) in new[] { (0.2, 0.5, 0.8), (0.9, 0.1, 0.4), (0.0, 0.0, 0.0), (0.33, 0.33, 0.33), (0.1, 0.9, 0.3) })
+                {
+                    var (l2, a2, b2) = ColorMath.ToLab(r, g, bl);
+                    var (r2, g2, b3) = ColorMath.FromLab(l2, a2, b2, out var clip);
+                    if (clip || Math.Abs(r2 - r) > 0.002 || Math.Abs(g2 - g) > 0.002 || Math.Abs(b3 - bl) > 0.002) return $"lab round trip off for {r},{g},{bl}";
+                    var (lc, c, h) = ColorMath.ToLch(r, g, bl);
+                    var (r4, g4, b4) = ColorMath.FromLch(lc, c, h, out _);
+                    if (Math.Abs(r4 - r) > 0.002 || Math.Abs(g4 - g) > 0.002 || Math.Abs(b4 - bl) > 0.002) return $"lch round trip off for {r},{g},{bl}";
+                }
+                ColorMath.FromLab(60, 120, 100, out var outside);
+                return outside ? null : "an out-of-gamut value was not reported as clipped";
+            });
+            Check("locks: an appearance lock freezes a look until it is opened with its PIN", () =>
+            {
+                const string key = "selftest|Frozen look";
+                var look = new ElementStyle { Background = "#FF0000FF" };
+                ElementStyles.Store(key, look, false);
+                var err = Locks.Create(Locks.AppearancePage, key, "Frozen look", LockPolicy.Pin, 5, "4826", null, null);
+                if (err != null) return "lock not created: " + err;
+                try
+                {
+                    var e = Locks.FindAppearance(key);
+                    if (e == null || !ElementStyles.IsLocked(key)) return "look not reported as locked";
+                    if (ElementStyles.Store(key, new ElementStyle { Background = "#FFFF0000" }, false)) return "a locked look was overwritten";
+                    if (ElementStyles.Reset(key, null)) return "a locked look was reset";
+                    if (ElementStyles.ImportJson(ElementStyles.ExportJson(), out _, out _) == null) return "an import over a locked look was accepted";
+                    if (ElementStyles.Get(key)?.Background != "#FF0000FF") return "the locked look changed";
+                    new Locks.Session(e).Submit("4826");
+                    if (ElementStyles.IsLocked(key)) return "the PIN did not open the lock";
+                    if (!ElementStyles.Store(key, new ElementStyle { Background = "#FFFF0000" }, false)) return "an open lock still refused a change";
+                    return Locks.Remove(e.Id) == null ? null : "lock not removed";
+                }
+                finally
+                {
+                    var e = Locks.FindAppearance(key);
+                    if (e != null) { new Locks.Session(e).Submit("4826"); Locks.Remove(e.Id); }
+                    ElementStyles.Store(key, null, false);
+                }
+            });
+
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>
