@@ -4,6 +4,15 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.27 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.27)
+
+- Record v1.0.26 figures and changelog ([`db83b75`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/db83b75c525d9af5b15f7e756cbf0edeba2f714f))
+- Cantonese strings, forge-only live check, docs and rows for the lane ([`6ca086b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/6ca086b5451922db7cc750481425d27da1c573b6))
+- Encrypted local history, real ADHD effects, eyedropper, palette menu and more ([`8be70c6`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8be70c6e61cdad1c72ad3dbc2b6d50051b5b4838))
+- QR: versions 11 to 40, mirrored codes, simulated phone photos ([`6a37d08`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/6a37d08f7c06da306009af0de5d4c83a6d243ec2))
+
 ## 1.0.26 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.26)
