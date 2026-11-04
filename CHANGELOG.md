@@ -4,10 +4,12 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
-## Unreleased
+## 1.0.24 (2026-11-04)
 
-Commits after v1.0.23, up to `45a26a9`.
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.24)
 
+- Re-render stored notification titles on language change; add language and humour self-tests ([`1bbf3f7`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/1bbf3f7a6c555a8b86b53e7b75419e84bae3d03d))
+- Record v1.0.23 figures and changelog ([`8794fe2`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8794fe2774cae79c0b89fa886dffdd8a13618c82))
 - Refresh screenshots for v1.0.23 ([`45a26a9`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/45a26a965346e2fc5edfbb3f43b9f8239fa3d592))
 
 ## 1.0.23 (2026-11-04)
