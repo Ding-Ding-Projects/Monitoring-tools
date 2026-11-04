@@ -18,7 +18,7 @@ namespace MonitoringTools.UI
     /// writes an index.json, then exits. CI runs this on a Windows runner after the build.
     /// Nothing is installed and settings are never saved.
     /// </summary>
-    public static class ScreenshotRunner
+    public static partial class ScreenshotRunner
     {
         private static string _dir;
         private static readonly List<object> Index = new List<object>();
@@ -34,6 +34,13 @@ namespace MonitoringTools.UI
                 SetCursorPos(0, 0);
                 Demo.SeedLivedIn();
                 var s = Demo.EnsureSamples();
+                if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1")   // quick loop while developing these scenes
+                {
+                    await Wave6ScenesAsync();
+                    File.WriteAllText(Path.Combine(_dir, "index.json"), JsonSerializer.Serialize(Index, new JsonSerializerOptions { WriteIndented = true }));
+                    App.Current.Shutdown(0);
+                    return;
+                }
 
                 // clipboard toasts, hovered so the actions show
                 await Toast("toast-markdown", "Markdown copied, hovered", App.Toasts.ShowClip(ClipItem.FromText(Demo.SampleMarkdown)));
@@ -159,6 +166,8 @@ namespace MonitoringTools.UI
                 confirm.Show();
                 await Shot(confirm, "uninstall-confirm", "Uninstall confirmation", 1100);
                 confirm.Close();
+
+                await Wave6ScenesAsync();
 
                 File.WriteAllText(Path.Combine(_dir, "index.json"), JsonSerializer.Serialize(Index, new JsonSerializerOptions { WriteIndented = true }));
             }

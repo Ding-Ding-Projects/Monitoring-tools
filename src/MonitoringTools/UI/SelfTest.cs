@@ -21,7 +21,7 @@ namespace MonitoringTools.UI
     /// and writes selftest.json with one pass or fail per check. Exit code 0 only when every check passes.
     /// It proves behaviour through the app's own code paths; it does not move the mouse.
     /// </summary>
-    public static class SelfTest
+    public static partial class SelfTest
     {
         private sealed record Result(string Name, bool Pass, string Detail);
         private static readonly List<Result> Results = new List<Result>();
@@ -50,6 +50,7 @@ namespace MonitoringTools.UI
         {
             dir = Path.GetFullPath(dir);
             Directory.CreateDirectory(dir);
+            if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
 
             // ---- search
             Check("search: plain text needs every word", () =>
@@ -798,6 +799,8 @@ namespace MonitoringTools.UI
                 finally { Settings.Current.ApplyCopiedWordingFile = saved; PersonalWording.Clear(); }
             });
 
+            await RunWave6Async();
+
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>
@@ -816,6 +819,11 @@ namespace MonitoringTools.UI
                 return bad.Count == 0 ? null : "no search on: " + string.Join(", ", bad);
             });
 
+            Finish(dir);
+        }
+
+        private static void Finish(string dir)
+        {
             var report = new { at = DateTime.Now.ToString("O"), version = typeof(SelfTest).Assembly.GetName().Version?.ToString(), passed = Results.Count(r => r.Pass), failed = Results.Count(r => !r.Pass), results = Results };
             File.WriteAllText(Path.Combine(dir, "selftest.json"), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
             App.Current.Shutdown(Results.All(r => r.Pass) ? 0 : 1);

@@ -61,10 +61,12 @@ namespace MonitoringTools.UI
             sp.Children.Add(result);
 
             sp.Children.Add(Choice("Toolbar position (default top)",
-                new[] { ("Top", "top"), ("Right", "right"), ("Bottom", "bottom"), ("Left", "left") }, s.DrawDock, v => s.DrawDock = v));
+                new[] { ("Top", "top"), ("Right", "right"), ("Bottom", "bottom"), ("Left", "left") }, s.DrawDock, v => s.DrawDock = v,
+                "The screen edge the drawing toolbar sits on when the board opens. Default: top."));
             sp.Children.Add(Switch("Start with the toolbar minimised", "Off by default. The toolbar starts as a small disc that still shows the active tool. Click it to expand.",
                 s.DrawToolbarMinimised, v => s.DrawToolbarMinimised = v));
-            sp.Children.Add(Choice("PNG export size (default 1x)", new[] { ("1x", 1), ("2x", 2), ("3x", 3) }, Math.Max(1, Math.Min(3, s.DrawExportScale)), v => s.DrawExportScale = v));
+            sp.Children.Add(Choice("PNG export size (default 1x)", new[] { ("1x", 1), ("2x", 2), ("3x", 3) }, Math.Max(1, Math.Min(3, s.DrawExportScale)), v => s.DrawExportScale = v,
+                "How many times larger the exported PNG is than the board on screen. 2x and 3x are sharper and make bigger files. Default: 1x."));
 
             sp.Children.Add(ToolsNote("Pens: Pencil P, Pen N, Fineliner F, Marker M, Highlighter H, Brush B, Fountain pen U. Eraser E, Select S, Line L, Arrow A, Rectangle R, Ellipse O, Text T. " +
                 "Colour C and size Z turn the toolbar into a palette or sliders. Ctrl+Z undo, Ctrl+Y redo, Ctrl+S save a PNG, Ctrl+Shift+C copy, Esc minimise. Hold Shift to lock a stroke to the nearest of eight directions."));
@@ -86,7 +88,8 @@ namespace MonitoringTools.UI
             Action applyKind = null;
             sp.Children.Add(Choice("Where to publish (default GitHub)",
                 new[] { ("GitHub", ForgeKind.GitHub), ("GitLab", ForgeKind.GitLab), ("Gitea or Forgejo", ForgeKind.Gitea) }, _forgeKind,
-                v => { _forgeKind = v; applyKind?.Invoke(); }));
+                v => { _forgeKind = v; applyKind?.Invoke(); },
+                "Which kind of site the folder is published to. Each one has its own sign-in and options below. Default: GitHub."));
 
             var gh = ForgePublish.GhPath();
             var ghNote = ToolsNote(gh != null
@@ -172,7 +175,8 @@ namespace MonitoringTools.UI
                 var owners = await ForgePublish.OwnersAsync();
                 if (owners.Count == 0) { ownerHost.Children.Add(ToolsNote("Owners could not be listed because no account is signed in. A new repository needs one.", "B.Amber")); return; }
                 if (_forgeOwner == null || !owners.Contains(_forgeOwner, StringComparer.OrdinalIgnoreCase)) _forgeOwner = owners[0];
-                ownerHost.Children.Add(Choice("Owner of the new repository (default: your own account)", owners.Select(o => (o, o)), _forgeOwner, v => _forgeOwner = v));
+                ownerHost.Children.Add(Choice("Owner of the new repository (default: your own account)", owners.Select(o => (o, o)), _forgeOwner, v => _forgeOwner = v,
+                "The account or organisation that will own the new repository."));
             }
 
             if (gh != null)
@@ -249,7 +253,8 @@ namespace MonitoringTools.UI
             sp.Children.Add(ownerHost);
             sp.Children.Add(ToolsLabel("Repository name"));
             sp.Children.Add(nameBox);
-            sp.Children.Add(Choice("Visibility of a new repository (default private)", new[] { ("Private", true), ("Public", false) }, s.ForgePrivate, v => s.ForgePrivate = v));
+            sp.Children.Add(Choice("Visibility of a new repository (default private)", new[] { ("Private", true), ("Public", false) }, s.ForgePrivate, v => s.ForgePrivate = v,
+                "Private means only you and people you invite can see it; public means anyone can. Default: private."));
 
             var createSwitch = false;
             sp.Children.Add(Switch("Create a new repository on GitHub", "Off by default, and you are asked to confirm before anything is created. Needs the GitHub CLI and a signed-in account. If the folder already has an origin remote, nothing new is created.",
@@ -402,7 +407,8 @@ namespace MonitoringTools.UI
 
             sp.Children.Add(Choice("Preferred editor (default automatic: VS Code, then Notepad++, then the system default)",
                 new[] { ("Automatic", "auto"), ("Visual Studio Code", "vscode"), ("Notepad++", "notepadpp"), ("System default", "default"), ("Custom program", "custom") },
-                s.PreferredEditor ?? "auto", v => s.PreferredEditor = v));
+                s.PreferredEditor ?? "auto", v => s.PreferredEditor = v,
+                "The program that opens a shortcut's script when you choose Open in editor. Automatic tries VS Code, then Notepad++, then the system default."));
 
             var customBox = Input(s.CustomEditorPath, 440, "The full path of the program to use when \"Custom program\" is chosen.");
             AutomationProperties.SetName(customBox, "Custom editor program");

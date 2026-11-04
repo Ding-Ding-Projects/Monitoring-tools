@@ -41,6 +41,7 @@ namespace MonitoringTools.UI
         private readonly TextBlock _error = new TextBlock { Foreground = Ui.Res("B.Danger"), FontSize = 13, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
         private readonly Button _back, _next, _cancelBtn;
         private int _index;
+        private bool _errorIsProblem;
 
         /// <summary>Raised after the final action succeeded.</summary>
         public event Action Finished;
@@ -83,6 +84,10 @@ namespace MonitoringTools.UI
             root.Children.Add(bar);
             Child = root;
 
+            // A validation message describes what was entered when Next was pressed; once the person edits a field or flips a switch it is stale, so it goes.
+            AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new TextChangedEventHandler((s, e) => ClearStaleError()));
+            AddHandler(System.Windows.Controls.Primitives.ToggleButton.CheckedEvent, new RoutedEventHandler((s, e) => ClearStaleError()));
+            AddHandler(System.Windows.Controls.Primitives.ToggleButton.UncheckedEvent, new RoutedEventHandler((s, e) => ClearStaleError()));
             PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == Key.Escape && !(Keyboard.FocusedElement is TextBox tb && tb.AcceptsReturn)) { e.Handled = true; _cancel?.Invoke(); }
@@ -136,8 +141,14 @@ namespace MonitoringTools.UI
         }
 
         /// <summary>Shows a progress or result line under the step without blocking it. <paramref name="problem"/> uses the error colour.</summary>
+        private void ClearStaleError()
+        {
+            if (_errorIsProblem) { _errorIsProblem = false; _error.Visibility = Visibility.Collapsed; }
+        }
+
         public void Report(string message, bool problem = false)
         {
+            _errorIsProblem = false;
             _error.Text = message;
             _error.Foreground = Ui.Res(problem ? "B.Danger" : "B.TextMute");
             _error.Visibility = string.IsNullOrEmpty(message) ? Visibility.Collapsed : Visibility.Visible;
@@ -145,6 +156,7 @@ namespace MonitoringTools.UI
 
         private void Fail(string message)
         {
+            _errorIsProblem = true;
             _error.Text = message;
             _error.Foreground = Ui.Res("B.Danger");
             _error.Visibility = Visibility.Visible;

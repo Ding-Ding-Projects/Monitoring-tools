@@ -209,7 +209,7 @@ namespace MonitoringTools.UI
                 {
                     kind = v; selectedId = null; defaultJson = null; leaves = new List<WorldgenLeaf>();
                     status.Text = ""; PaintIds(); PaintRows(); Recheck();
-                }));
+                }, "Which kind of world-generation file the editor below changes. Default: noise settings."));
             }
 
             var read = Ui.Button("Read this version's worldgen files", null, "Btn.Ghost", Icons.Folder);

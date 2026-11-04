@@ -16,6 +16,8 @@ namespace MonitoringTools.UI
     public partial class ControlCentreWindow
     {
         private ServerDef _draft;
+        /// <summary>The new-server draft, so the self-test can choose a version without the network.</summary>
+        internal ServerDef DraftForTest => _draft;
         private string _versionType = "release";
         private string _openConsole;
         private TextBlock _console;
@@ -335,7 +337,7 @@ namespace MonitoringTools.UI
                 eulaText.Inlines.Add(new System.Windows.Documents.Run("I accept the "));
                 eulaText.Inlines.Add(Markdown.MakeLink("Minecraft EULA", "https://aka.ms/MinecraftEULA"));
                 eulaText.Inlines.Add(new System.Windows.Documents.Run(" for this server"));
-                eula.Content = eulaText;
+                eula.Content = new StackPanel { Children = { eulaText, new TextBlock { Text = "Required: the server will not run without it. Off until you accept.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) } } };
                 eula.Checked += (o, e) => d.EulaAccepted = true;
                 eula.Unchecked += (o, e) => d.EulaAccepted = false;
                 sp.Children.Add(eula);

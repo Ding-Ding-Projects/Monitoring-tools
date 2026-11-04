@@ -74,8 +74,8 @@ namespace MonitoringTools.UI
                 Build = () =>
                 {
                     var sp = new StackPanel();
-                    sp.Children.Add(Switch("Show clipboard toasts", null, s.ClipboardEnabled, v => s.ClipboardEnabled = v));
-                    sp.Children.Add(Switch("Keep open while hovered", null, s.KeepOpenOnHover, v => s.KeepOpenOnHover = v));
+                    sp.Children.Add(Switch("Show clipboard toasts", "A small card with actions pops up each time you copy something.", s.ClipboardEnabled, v => s.ClipboardEnabled = v));
+                    sp.Children.Add(Switch("Keep open while hovered", "A toast stays on screen while the pointer is over it, so you can reach its buttons.", s.KeepOpenOnHover, v => s.KeepOpenOnHover = v));
                     sp.Children.Add(Switch("Skip copies from password managers", "Private copies never pop up or reach history.", s.IgnoreSensitiveSources, v => s.IgnoreSensitiveSources = v));
                     sp.Children.Add(Chips("Toast duration", new[] { ("2 s", 2.0), ("3 s", 3.0), ("5 s", 5.0), ("8 s", 8.0) }, s.ToastSeconds, v => s.ToastSeconds = v));
                     var result = Note("");
@@ -97,7 +97,7 @@ namespace MonitoringTools.UI
                 Build = () =>
                 {
                     var sp = new StackPanel();
-                    sp.Children.Add(Switch("Alert me when the internet drops", null, s.NetworkEnabled, v => s.NetworkEnabled = v));
+                    sp.Children.Add(Switch("Alert me when the internet drops", "A dialog appears when the connection is lost and stays until the line returns or you dismiss it.", s.NetworkEnabled, v => s.NetworkEnabled = v));
                     sp.Children.Add(Switch("Watch my public IP address", "A dialog on every change, and a history with first and last seen times.", s.PublicIpEnabled, v => s.PublicIpEnabled = v, "B.Violet"));
                     var result = Note("");
                     var check = Ui.Button("Check my connection now", null, "Btn.Ghost", Icons.Wifi);
@@ -159,7 +159,7 @@ namespace MonitoringTools.UI
                 Build = () =>
                 {
                     var sp = new StackPanel();
-                    sp.Children.Add(Switch("Hold popups while a game runs", null, s.GameModeEnabled, v => s.GameModeEnabled = v, "B.Violet"));
+                    sp.Children.Add(Switch("Hold popups while a game runs", "While a watched game is running, popups wait until you stop playing.", s.GameModeEnabled, v => s.GameModeEnabled = v, "B.Violet"));
                     sp.Children.Add(Switch("Any fullscreen app counts", "Fullscreen games, video and presentations.", s.GameModeFullscreen, v => s.GameModeFullscreen = v, "B.Violet"));
                     sp.Children.Add(Note("Watching: " + string.Join(", ", s.GameProcesses.Select(g => Game.GameDetector.Friendly(g.Split(':')[0])).Distinct().Take(10)) + ". Edit the list in the control centre."));
                     return sp;

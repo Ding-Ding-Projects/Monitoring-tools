@@ -109,7 +109,7 @@ namespace MonitoringTools.Core
 
         /// <summary>The shared record every Ding-Ding app reads. Deleting it resets School mode.</summary>
         public static string SchoolRecordPath => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DingDingShared", "school-mode.json");
+            Settings.DataDirOverride ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DingDingShared", "school-mode.json");   // a throwaway-data run (self-test, captures) never touches the real shared record
 
         /// <summary>Null when the record is readable (or absent); otherwise why it could not be read.</summary>
         public static string SchoolRecordError { get; private set; }

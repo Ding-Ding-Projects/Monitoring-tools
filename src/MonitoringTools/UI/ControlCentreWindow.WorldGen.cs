@@ -325,7 +325,8 @@ namespace MonitoringTools.UI
                 var opts = new List<(string, WorldType)> { ("Normal", WorldType.Normal), ("Flat", WorldType.Flat), ("Large biomes", WorldType.LargeBiomes), ("Amplified", WorldType.Amplified) };
                 if (singleOk) opts.Add(("Single biome", WorldType.SingleBiome));
                 if (!singleOk && o.Type == WorldType.SingleBiome) o.Type = WorldType.Normal;
-                typePanel.Children.Add(Choice("World type (default Normal)", opts, o.Type, v => { o.Type = v; PaintType(); }));
+                typePanel.Children.Add(Choice("World type (default Normal)", opts, o.Type, v => { o.Type = v; PaintType(); },
+                    "The kind of terrain generated. Single biome appears only for versions that support it. Default: Normal."));
                 biomePanel.Children.Clear();
                 if (o.Type == WorldType.SingleBiome) BuildBiomePicker();
                 supportNote.Text = (current?.SingleBiomeReason != null ? "Single biome is hidden: " + current.SingleBiomeReason + "\n" : "") +
@@ -451,8 +452,8 @@ namespace MonitoringTools.UI
             estimate.TextWrapping = TextWrapping.Wrap; estimate.Margin = new Thickness(0, 0, 0, 8);
             sp.Children.Add(estimate);
             Estimate();
-            dimNether = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.PreGenNether, Margin = new Thickness(0, 4, 0, 2), Content = new TextBlock { Text = "Also pre-generate the Nether (default off)", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") } };
-            dimEnd = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.PreGenEnd, Margin = new Thickness(0, 2, 0, 2), Content = new TextBlock { Text = "Also pre-generate the End (default off)", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") } };
+            dimNether = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.PreGenNether, Margin = new Thickness(0, 4, 0, 2), Content = new StackPanel { Children = { new TextBlock { Text = "Also pre-generate the Nether (default off)", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") }, new TextBlock { Text = "Runs the same bounded procedure in the Nether when the jar supports it. Off by default.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) } } } };
+            dimEnd = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.PreGenEnd, Margin = new Thickness(0, 2, 0, 2), Content = new StackPanel { Children = { new TextBlock { Text = "Also pre-generate the End (default off)", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") }, new TextBlock { Text = "Runs the same bounded procedure in the End when the jar supports it. Off by default.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) } } } };
             dimNether.ToolTip = "Runs the same bounded forceload procedure in the Nether with execute in minecraft:the_nether, when the jar supports it.";
             dimEnd.ToolTip = "Runs the same bounded forceload procedure in the End with execute in minecraft:the_end, when the jar supports it.";
             dimNether.Checked += (a, b) => o.PreGenNether = true; dimNether.Unchecked += (a, b) => o.PreGenNether = false;
@@ -462,7 +463,8 @@ namespace MonitoringTools.UI
             sp.Children.Add(Switch("Set the world border to this size", "Runs worldborder set after generation. Default off.", o.BorderToSize, v => o.BorderToSize = v));
 
             // ---- output
-            sp.Children.Add(Choice("Save the world as (default folder)", new[] { ("Folder", false), ("ZIP file", true) }, o.AsZip, v => o.AsZip = v));
+            sp.Children.Add(Choice("Save the world as (default folder)", new[] { ("Folder", false), ("ZIP file", true) }, o.AsZip, v => o.AsZip = v,
+                "Write the finished world as a plain folder, or pack it into one ZIP file you can share. Default: folder."));
             var dest = Input(o.Destination, 420, "Where to put the new folder or ZIP. Existing files are never replaced; a numbered name is used instead.");
             dest.TextChanged += (a, b) => o.Destination = dest.Text.Trim();
             AutomationProperties.SetName(dest, "Output location");
@@ -482,7 +484,7 @@ namespace MonitoringTools.UI
             eulaText.Inlines.Add(new System.Windows.Documents.Run("I accept the "));
             eulaText.Inlines.Add(Markdown.MakeLink("Minecraft EULA", "https://aka.ms/MinecraftEULA"));
             eulaText.Inlines.Add(new System.Windows.Documents.Run(" so a private server may run once to build this world"));
-            eula.Content = eulaText;
+            eula.Content = new StackPanel { Children = { eulaText, new TextBlock { Text = "Required: the server that builds the world will not run without it. Off until you accept.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) } } };
             eula.Checked += (a, b) => o.EulaAccepted = true;
             eula.Unchecked += (a, b) => o.EulaAccepted = false;
             sp.Children.Add(eula);

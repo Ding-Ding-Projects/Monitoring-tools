@@ -228,7 +228,8 @@ namespace MonitoringTools.UI
 
             box.Children.Add(Choice("Default keep-alive when a chat sets none (default 5 minutes)",
                 new[] { ("5 minutes", "5m"), ("30 minutes", "30m"), ("1 hour", "1h"), ("Unload at once", "0") }, Settings.Current.OllamaKeepAlive ?? "5m",
-                v => Settings.Current.OllamaKeepAlive = v));
+                v => Settings.Current.OllamaKeepAlive = v,
+                "How long a model stays loaded in memory after a reply when the chat does not set its own time. A shorter time frees memory sooner but the next reply starts slower. Default: 5 minutes."));
 
             // ---------------------------------------------------------------- transcript
             var chatOut = new TextBlock { Style = Ui.Style("T.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap };
