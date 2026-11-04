@@ -14,6 +14,19 @@ namespace MonitoringTools.Core
             void Add(string en, string yue) => t.TryAdd(en, yue);
 
             // ---- file converter formats and the convert dialog
+            Add("VID", "影片");
+            Add("AUD", "音訊");
+            Add("IMG", "圖片");
+            Add("About half the size of H.264 at the same quality", "同樣畫質大約得 H.264 一半大");
+            Add("Animations much smaller than GIF", "比 GIF 細好多嘅動畫");
+            Add("Broadcast and old radio software", "廣播同舊電台軟件用");
+            Add("For editing; large but smooth to scrub", "剪片用；檔案大但拉得順");
+            Add("Fully open video for wikis and Linux", "完全開放嘅影片，啱維基同 Linux");
+            Add("Lossless with good compression", "無損兼壓縮得好");
+            Add("Very old paint software", "好舊嘅畫圖軟件用");
+            Add("Voice for old phones", "舊手機嘅人聲");
+            Add("Smallest files; newer players only", "檔案最細；只限較新嘅播放器");
+            Add("Same as :jpg", "同 :jpg 一樣");
             Add("In effect now", "而家生效緊");
             Add("Choose a file to convert…", "揀個檔案嚟轉換…");
             Add("Copy a file, then pick its Convert button, or copy its path with :format on the end. Convert opens a list of every format the file can become.", "複製一個檔案，再撳佢嘅「轉換」掣，或者喺路徑後面加 :格式 再複製。「轉換」會打開一個清單，列出個檔案可以變成嘅所有格式。");

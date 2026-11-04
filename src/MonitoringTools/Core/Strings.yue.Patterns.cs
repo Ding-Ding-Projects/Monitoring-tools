@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace MonitoringTools.Core
@@ -19,6 +20,19 @@ namespace MonitoringTools.Core
             string Inner(string s) => Language.Yue(s) ?? s;
             // The Cantonese of an inner phrase, or null when it has none, so the whole pattern steps aside.
             string Known(string s) => Language.Yue(s);
+
+            // ---- the Conversion page's format list (before "About ..." so a note that starts with "About" is not read as a title)
+            AddFn(@"^(.+) · from ((?:video|audio|image)(?:, (?:video|audio|image))*)$", m =>
+            {
+                var kinds = string.Join("、", m.Groups[2].Value.Split(", ").Select(k => k == "video" ? "影片" : k == "audio" ? "音訊" : "圖片"));
+                return Inner(m.Groups[1].Value) + " · 可以由" + kinds + "轉換";
+            });
+            Add(@"^(\d+) formats$", "$1 種格式");
+            Add(@"^(\d+) formats\. Copy a path with :format on the end, or pick one here and choose files\.$", "$1 種格式。喺路徑後面加 :格式 再複製，或者喺度揀一種，再揀檔案。");
+            AddFn(@"^(All|Video|Audio|Image) (\d+)$", m => (m.Groups[1].Value switch { "All" => "全部", "Video" => "影片", "Audio" => "音訊", _ => "圖片" }) + " " + m.Groups[2].Value);
+            AddFn(@"^Show (all|video|audio|image) formats$", m => "顯示" + (m.Groups[1].Value switch { "all" => "所有", "video" => "影片", "audio" => "音訊", _ => "圖片" }) + "格式");
+            AddFn(@"^Choose files to convert to (.+)\. Each one is saved next to its original\.$", m => "揀要轉換成「" + Inner(m.Groups[1].Value) + "」嘅檔案。每個都會存喺原檔隔籬。");
+            AddFn(@"^Convert files to (.+)$", m => "將檔案轉換成「" + Inner(m.Groups[1].Value) + "」");
 
             // ---- counts and labels
             AddFn(@"^About (.+)$", m => "關於「" + Inner(m.Groups[1].Value) + "」");
