@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using MonitoringTools.Clip;
@@ -100,6 +102,7 @@ namespace MonitoringTools.UI
             box.Children.Add(SafetyChips("New locks stay unlocked for (default 5 minutes)",
                 new[] { ("Until the app closes", 0), ("5 minutes", 5), ("15 minutes", 15), ("1 hour", 60) }, s.LockUnlockMinutes,
                 v => { s.LockUnlockMinutes = v; Settings.Save(); }, "Default unlock time for the next lock you make"));
+            box.Children.Add(Switch("Offer Windows Hello", "Adds \"Unlock with Windows Hello\" to lock prompts and the unlock ladder, and \"Show as QR (Windows Hello)\" to authenticator accounts, when Windows Hello is set up on this computer. It is an extra route and never replaces a lock's PIN or password. Default: on.", s.LockOfferWindowsHello, v => s.LockOfferWindowsHello = v));
             box.Children.Add(Switch("Hide locked elements from page search", "Off by default, so locked items are shown and marked as locked instead of quietly disappearing.", s.LocksHiddenInSearch, v => s.LocksHiddenInSearch = v));
 
             var search = new SearchField("safety:locks", "Search locks") { Margin = new Thickness(0, 10, 0, 10) };
@@ -213,17 +216,39 @@ namespace MonitoringTools.UI
                 try
                 {
                     if (System.Windows.Clipboard.ContainsText()) { secretIn.Text = System.Windows.Clipboard.GetText().Trim(); addMsg.Text = "Pasted. Check it, then press Add account."; }
-                    else if (System.Windows.Clipboard.ContainsImage()) addMsg.Text = "There is a picture on the clipboard, but this build cannot read QR codes from pictures. See the note below.";
+                    else if (System.Windows.Clipboard.ContainsImage()) addMsg.Text = "The clipboard holds a picture, not text. Use Read a QR from the clipboard for a picture of a QR code.";
                     else addMsg.Text = "The clipboard has nothing to paste.";
                 }
                 catch (Exception ex) { addMsg.Text = "The clipboard could not be read: " + ex.Message; }
             }, "Btn.Ghost", Icons.Clipboard));
-            var qr = Ui.Button("Read a QR image", () =>
+            var qrClip = Ui.Button("Read a QR from the clipboard", () =>
             {
-                addMsg.Text = "QR image reading is not available in this build. Windows has no built-in QR decoder and no decoder library is included. Use the otpauth link instead: most sign-in pages show it under a link such as \"Can't scan?\", or a phone's QR scanner shows it as text you can copy.";
+                try
+                {
+                    if (System.Windows.Clipboard.ContainsImage()) SafetyReadQr(System.Windows.Clipboard.GetImage(), secretIn, addMsg);
+                    else if (System.Windows.Clipboard.ContainsText()) addMsg.Text = "The clipboard holds text, not a picture. Use Paste from clipboard for a link or secret.";
+                    else addMsg.Text = "The clipboard has no picture. Copy or screenshot the QR code first (Win+Shift+S copies a region of the screen), then press this again.";
+                }
+                catch (Exception ex) { addMsg.Text = "The clipboard could not be read: " + ex.Message; }
             }, "Btn.Ghost", Icons.Image);
-            qr.ToolTip = "Not available: this build has no QR decoder. Shows what to do instead.";
-            addRow.Children.Add(qr);
+            qrClip.ToolTip = "Decodes a QR code from a picture on the clipboard, here on this computer, and fills the box above with its otpauth link. Nothing is sent anywhere.";
+            addRow.Children.Add(qrClip);
+            var qrFile = Ui.Button("Read a QR from a file…", () =>
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog { Title = "Choose a picture of a QR code", Filter = "Pictures (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff" };
+                if (dlg.ShowDialog() != true) return;
+                try
+                {
+                    var fi = new FileInfo(dlg.FileName);
+                    if (fi.Length > 30L * 1024 * 1024) { addMsg.Text = "That file is larger than 30 MB, which is too big to be a QR screenshot."; return; }
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit(); bmp.CacheOption = BitmapCacheOption.OnLoad; bmp.UriSource = new Uri(dlg.FileName); bmp.EndInit(); bmp.Freeze();
+                    SafetyReadQr(bmp, secretIn, addMsg);
+                }
+                catch (Exception ex) { addMsg.Text = "That file could not be opened as a picture: " + ex.Message; }
+            }, "Btn.Ghost", Icons.Image);
+            qrFile.ToolTip = "Decodes a QR code from a picture file, here on this computer, and fills the box above with its otpauth link. Nothing is sent anywhere.";
+            addRow.Children.Add(qrFile);
             addBox.Children.Add(addRow);
             addBox.Children.Add(addMsg);
             box.Children.Add(addBox);
@@ -237,6 +262,7 @@ namespace MonitoringTools.UI
             var list = new StackPanel();
             box.Children.Add(list);
             var tickers = new List<Action>();
+            bool helloOk = _helloKnown && _helloOk;
 
             void Rebuild()
             {
@@ -244,7 +270,7 @@ namespace MonitoringTools.UI
                 var hits = all.Where(a => search.State.Matches(a.Issuer + " " + a.Account)).ToList();
                 list.Children.Clear(); tickers.Clear();
                 if (all.Count == 0) list.Children.Add(SafetyLine("No accounts yet. Add one above.", "B.TextMute", 13));
-                foreach (var a in hits) list.Children.Add(SafetyAccountRow(a, tickers));
+                foreach (var a in hits) list.Children.Add(SafetyAccountRow(a, tickers, helloOk && Settings.Current.LockOfferWindowsHello));
                 search.SetCount(hits.Count, all.Count, "accounts");
             }
             search.Filter += Rebuild;
@@ -268,10 +294,41 @@ namespace MonitoringTools.UI
             box.Unloaded += (s, e) => timer.Stop();
             SafetyLive(box, a => Authenticator.Changed += a, a => Authenticator.Changed -= a, Rebuild);
             Rebuild();
-            return SearchScope.SetItem(Card(box), "authenticator totp one-time codes qr otpauth");
+            if (!_helloKnown)
+                _ = WindowsHello.CheckAsync().ContinueWith(t =>
+                {
+                    _helloKnown = true; _helloOk = t.Status == TaskStatus.RanToCompletion && t.Result.Available;
+                    RunOnUi(() => { helloOk = _helloOk; Rebuild(); });
+                });
+            return SearchScope.SetItem(Card(box), "authenticator totp one-time codes qr otpauth windows hello");
         }
 
-        private FrameworkElement SafetyAccountRow(AuthAccount a, List<Action> tickers)
+        /// <summary>Decodes a QR picture off the UI thread and, when it holds an authenticator link, puts the link in the add box. Failures say why.</summary>
+        private static async void SafetyReadQr(BitmapSource picture, TextBox target, TextBlock msg)
+        {
+            byte[] gray; int w, h;
+            try { gray = QrDecoder.ToGray(picture, out w, out h); }
+            catch (Exception ex) { msg.Text = "That picture could not be read: " + ex.Message; return; }
+            msg.Text = "Reading the QR code…";
+            string text = null, err = null;
+            bool ok = await Task.Run(() => QrDecoder.TryDecode(gray, w, h, out text, out err));
+            if (!ok) { msg.Text = "No account was read. " + err; return; }
+            text = (text ?? "").Trim();
+            if (text.StartsWith("otpauth-migration://", StringComparison.OrdinalIgnoreCase))
+            { msg.Text = "That QR code is a bulk export (otpauth-migration), which packs several accounts in a format this build does not read. Use the setup QR or the otpauth link of a single account instead."; return; }
+            if (text.StartsWith("otpauth://", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!Totp.TryParseUri(text, out var p, out var perr)) { msg.Text = "The QR code was read, but its link cannot be used: " + perr; return; }
+                target.Text = text;
+                msg.Text = "Read a QR code for " + (string.IsNullOrEmpty(p.Issuer) ? p.Account : p.Issuer + (string.IsNullOrEmpty(p.Account) ? "" : " · " + p.Account)) + ". Check the name, then press Add account.";
+                return;
+            }
+            msg.Text = "The QR code was read, but it is not an authenticator link (it holds " + (text.Length == 0 ? "nothing" : text.Length + " characters of other text") + "). Nothing was filled in.";
+        }
+
+        private static bool _helloKnown, _helloOk;
+
+        private FrameworkElement SafetyAccountRow(AuthAccount a, List<Action> tickers, bool hello)
         {
             var g = new Grid { Margin = new Thickness(0, 0, 0, 12) };
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -331,6 +388,29 @@ namespace MonitoringTools.UI
             var dn = Ui.Button("↓", () => Authenticator.Move(a.Id, 1), "Btn.Icon"); dn.ToolTip = "Move down"; AutomationProperties.SetName(dn, "Move " + a.Title + " down");
             btns.Children.Add(up); btns.Children.Add(dn);
             btns.Children.Add(Ui.Button("Edit label", () => SafetyEditLabel(a), "Btn.Ghost"));
+            var showQr = Ui.Button("Show as QR", null, "Btn.Ghost", Icons.Image);
+            showQr.ToolTip = "Draws this account as a QR code to scan into a phone. This reveals the secret, so it asks for the two-key confirmation first.";
+            showQr.Click += (x, y) =>
+            {
+                var dlg = new ConfirmWindow("Show the secret as a QR code?", "The QR code for " + a.Title + " contains its secret. Anyone who can see or photograph it can generate the account's codes. Show it only where nobody else can see your screen.", "Show QR", danger: true);
+                dlg.Confirmed += _ => new QrShowWindow(a, showQr).Show();
+                dlg.Show();
+            };
+            btns.Children.Add(showQr);
+            if (hello)
+            {
+                var showHello = Ui.Button("Show as QR (Windows Hello)", null, "Btn.Ghost", Icons.Shield);
+                showHello.ToolTip = "Reveals the same QR code after Windows Hello confirms it is you, instead of the two-key confirmation. " + WindowsHello.Disclosure;
+                showHello.Click += async (x, y) =>
+                {
+                    showHello.IsEnabled = false;
+                    var r = await WindowsHello.VerifyAsync("Show the QR code for " + a.Title);
+                    showHello.IsEnabled = true;
+                    if (r.Verified) { SafetyHistory.Record("Authenticator secret shown as QR (Windows Hello)", a.Title); new QrShowWindow(a, showHello).Show(); }
+                    else SafetyToast("Windows Hello", r.Message);
+                };
+                btns.Children.Add(showHello);
+            }
             var rm = Ui.Button("Remove", () =>
             {
                 var dlg = new ConfirmWindow("Remove this account?", "Its secret is deleted from this computer. Make sure you can still sign in to " + a.Title + " another way first.", "Remove", danger: true);

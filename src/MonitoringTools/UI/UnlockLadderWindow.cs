@@ -52,6 +52,41 @@ namespace MonitoringTools.UI
         }
 
         public static string Clock(int seconds) => $"{seconds / 60}:{seconds % 60:00}";
+
+        /// <summary>
+        /// The Windows Hello route as a small block: a button when Windows Hello is available, otherwise the exact availability state.
+        /// It stays hidden when the person turned the route off in Settings. The Hello dialog can hide behind a topmost window, so the
+        /// host drops its topmost flag while the dialog is open.
+        /// </summary>
+        public static StackPanel HelloRow(Window host, string label, string reason, Action onVerified, TextBlock msg)
+        {
+            var panel = new StackPanel { Margin = new Thickness(0, 6, 0, 0), Visibility = Visibility.Collapsed };
+            var btn = Ui.Button(label, null, "Btn.Ghost", Icons.Shield);
+            btn.ToolTip = "Asks Windows Hello to confirm that it is you. " + WindowsHello.Disclosure;
+            var note = Text("", 12, "B.TextMute", null, 4);
+            panel.Children.Add(btn); panel.Children.Add(note);
+            async void Check()
+            {
+                if (!Settings.Current.LockOfferWindowsHello) { panel.Visibility = Visibility.Collapsed; return; }
+                var (ok, state) = await WindowsHello.CheckAsync();
+                if (!host.IsLoaded) return;
+                panel.Visibility = Visibility.Visible;
+                btn.Visibility = ok ? Visibility.Visible : Visibility.Collapsed;
+                note.Text = ok ? WindowsHello.Disclosure : state;
+            }
+            btn.Click += async (s, e) =>
+            {
+                btn.IsEnabled = false;
+                bool top = host.Topmost; host.Topmost = false;
+                var r = await WindowsHello.VerifyAsync(reason);
+                if (!host.IsLoaded) return;
+                host.Topmost = top; btn.IsEnabled = true;
+                if (r.Verified) onVerified();
+                else { msg.Text = r.Message; msg.Foreground = Ui.Res("B.Amber"); }
+            };
+            host.Loaded += (s, e) => Check();
+            return panel;
+        }
     }
 
     /// <summary>A non-modal card that opens beside the element it belongs to and hands focus back when it closes.</summary>
@@ -143,6 +178,7 @@ namespace MonitoringTools.UI
             var row = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
             row.Children.Add(_verify); row.Children.Add(cancel);
             body.Children.Add(row);
+            body.Children.Add(SafetyUi.HelloRow(this, "Unlock with Windows Hello", "Unlock " + entry.Label, () => { Locks.OpenWithHello(_e.Id); Close(); _done?.Invoke(); }, _msg));
 
             _wait.Children.Add(_waitText);
             _ladderBtn = Ui.Button("Play your way out", () => OpenLadder(), "Btn.Ghost", Icons.Game);
@@ -232,7 +268,12 @@ namespace MonitoringTools.UI
 
         private void OpenLadder()
         {
-            var w = new UnlockLadderWindow(_e, _ladderBtn, () => RefreshWait());
+            // The ladder can also end with Windows Hello opening the lock outright, in which case this prompt is finished too.
+            var w = new UnlockLadderWindow(_e, _ladderBtn, () =>
+            {
+                if (Locks.IsOpen(_e)) { Close(); _done?.Invoke(); }
+                else RefreshWait();
+            });
             w.Show();
         }
     }
@@ -276,6 +317,12 @@ namespace MonitoringTools.UI
             var wait = Ui.Button("Skip the games and just wait", Close, "Btn.Chip", Icons.Clock);
             wait.Margin = new Thickness(0, 8, 0, 0);
             body.Children.Add(wait);
+            body.Children.Add(SafetyUi.HelloRow(this, "Unlock with Windows Hello instead", "Unlock " + entry.Label, () =>
+            {
+                Locks.OpenWithHello(_e.Id);
+                Close();
+                _changed?.Invoke();
+            }, _msg));
             SetBody(body);
             _tick.Tick += (s, e) => UpdateClock();
             Closed += (s, e) => { _tick.Stop(); _moleTimer?.Stop(); };

@@ -20,6 +20,17 @@ Right-click (or press Shift+F10 or the Menu key on) a button, a setting row or a
 
 Ordered steps, one factor at a time. The PIN step has an on-screen keypad (Backspace, Clear, optional shuffled layout) and a typed field that feed the same checker and the same attempt budget. A wrong answer at any step starts the attempt over. Five wrong tries cause a wait of 30 seconds, doubling on each consecutive lockout up to 15 minutes. The prompt offers the [unlock ladder](unlock-ladder.md) during a wait, a **Forgotten your password?** link to [Support Tickets](support-tickets.md), the for-fun disclosure, and the exact recovery line naming `locks.dat` and the app data folder.
 
+## Unlock with Windows Hello
+
+When Windows Hello (face, fingerprint or Windows PIN) is set up for your Windows account, the unlock prompt and the [unlock ladder](unlock-ladder.md) show **Unlock with Windows Hello**. It asks Windows to confirm it is you and, if Windows says yes, opens the lock for the usual unlock time. It also clears the failed-try count and any wait, as a correct PIN would.
+
+- It is an extra route. The lock's PIN or password stays stored and still works, and Hello can never be the only credential.
+- The app only receives yes or no. It never sees or stores a face, fingerprint or Windows PIN.
+- If Windows Hello cannot be used, the prompt shows the exact reason instead of a button (no Hello-capable device, not set up for this account, turned off by policy, busy, or an unexpected error).
+- A **Offer Windows Hello** switch on the Safety page turns the route off. Default: on. The route is recorded in the change history as "Lock opened (Windows Hello)".
+- It is still a toy lock: someone already signed in to your Windows account can pass Windows Hello as easily as you can, and the Hello dialog is Windows' own.
+- The Hello dialog is shown by Windows without a window handle for this app, so on some systems it may open behind other windows; the prompt drops its always-on-top flag while the dialog is open to reduce this.
+
 ## Managing locks
 
 The Safety page lists every lock, searchable, with its policy, state, and buttons to unlock, lock again or remove. Removing a lock needs it to be unlocked first.

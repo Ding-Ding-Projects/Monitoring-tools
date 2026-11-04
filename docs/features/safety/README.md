@@ -8,7 +8,8 @@ Toy locks, the unlock ladder, a local recovery desk, a built-in authenticator an
 | [Unlock ladder](unlock-ladder.md) | Three small games that can end a wait early | Implemented |
 | [Support Tickets](support-tickets.md) | A local make-believe support desk that leads to the app data folder | Implemented |
 | [Authenticator](authenticator.md) | Live one-time codes, RFC 6238 | Implemented |
-| [QR pairing](qr-pairing.md) | Reading a QR image or drawing one | Not available in this build |
+| [QR pairing](qr-pairing.md) | Reading a QR picture into the add form, and drawing an account as a QR for a phone | Implemented (built-in decoder and encoder, versions 1 to 10) |
+| Windows Hello route | Unlock a toy lock, or reveal an authenticator secret, with Windows Hello | Implemented where Windows Hello is set up; see [Element locks](element-locks.md) |
 | [Change history](history.md) | What changed in locks, accounts and the display name | Implemented, simpler than the full requirement |
 
 ## One thing to know first
