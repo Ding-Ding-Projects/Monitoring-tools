@@ -582,7 +582,7 @@ namespace MonitoringTools.UI
             Check("forges: server addresses are normalised and unsafe ones refused", () =>
             {
                 if (ForgeHosts.NormaliseBase("git.example.org/") != "https://git.example.org") return "no scheme: " + ForgeHosts.NormaliseBase("git.example.org/");
-                if (ForgeHosts.NormaliseBase("http://10.0.0.5:3000") != "http://10.0.0.5:3000") return "port kept: " + ForgeHosts.NormaliseBase("http://10.0.0.5:3000");
+                if (ForgeHosts.NormaliseBase("http://203.0.113.5:3000") != "http://203.0.113.5:3000") return "port kept: " + ForgeHosts.NormaliseBase("http://203.0.113.5:3000");
                 if (ForgeHosts.NormaliseBase("https://user:pw@host.example") != null) return "an address carrying a password was accepted";
                 if (ForgeHosts.NormaliseBase("ftp://host.example") != null) return "a non-web scheme was accepted";
                 return ForgeHosts.NormaliseBase("   ") == null ? null : "blank accepted";
