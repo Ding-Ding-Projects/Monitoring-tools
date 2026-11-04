@@ -2,6 +2,9 @@
 
 A rule says: between two times on chosen days, set one value. Rules are checked every minute by a dispatcher timer and immediately after any edit.
 
+## The editor
+Times are chosen with a time picker: an hour field (0 to 23) and a minute field (0 to 59), each a typed number with steppers, so a time that is not a time cannot be entered. WPF has no time picker of its own, so this one is built from the app's number fields. Dates are chosen with the system date picker and its calendar, and cleared by emptying its box. Both pickers read and write the same `HH:mm` and `yyyy-MM-dd` text the rules store.
+
 ## Rule fields
 
 `id` (short stable id), `label` (optional), `enabled`, `start` and `end` (24-hour `HH:mm`), `days` (list of weekday numbers, 0 = Sunday; empty = every day), `fromDate` and `toDate` (optional `yyyy-MM-dd`; empty = no limit on that side), `setting`, `value`.
@@ -34,4 +37,4 @@ A rule never changes your saved choice. The effective value is an overlay, so wh
 
 ## Not implemented
 
-Native date and time pickers (the editor uses validated text boxes; WPF has none built in), rules whose value comes from an HTTPS API or Home Assistant, and recording schedule edits in local history (this app has no local history).
+Rules whose value comes from an HTTPS API or Home Assistant, and recording schedule edits in local history (this app has no local history).

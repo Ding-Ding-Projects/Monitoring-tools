@@ -17,7 +17,7 @@ namespace MonitoringTools.Core
     }
 
     /// <summary>
-    /// Encryption for the local history of scripts and templates. Two modes, both authenticated AES-256-GCM:
+    /// Encryption for the local history of scripts and templates, and for the settings snapshots. Two modes, both authenticated AES-256-GCM:
     /// "windows" keeps a random data key protected by the Windows data-protection API for this user (another Windows account or
     /// another computer cannot read it, malware running as this user can), and "password" derives the key from a password the person
     /// chooses with PBKDF2-SHA256 (600,000 rounds, random salt). The password is never stored; a small encrypted check value proves it.
@@ -154,6 +154,13 @@ namespace MonitoringTools.Core
                         if (text == null) return "A saved version could not be read, so nothing was changed.";
                         plain.Add((f, text));
                     }
+                // the settings snapshots move with them
+                foreach (var f in SettingsHistory.SnapFiles().ToList())
+                {
+                    var text = ScriptHistory.ReadFile(f);
+                    if (text == null) return "A saved version could not be read, so nothing was changed.";
+                    plain.Add((f, text));
+                }
 
                 // set up the new key
                 byte[] key = null;
@@ -175,7 +182,8 @@ namespace MonitoringTools.Core
                 var written = new List<(string Old, string New)>();
                 foreach (var (path, text) in plain)
                 {
-                    var target = Path.ChangeExtension(path, newMode == HistoryProtection.None ? ".txt" : ".enc");
+                    bool snap = path.EndsWith(".json") || path.EndsWith(".jsonenc");
+                    var target = Path.ChangeExtension(path, snap ? (newMode == HistoryProtection.None ? ".json" : ".jsonenc") : (newMode == HistoryProtection.None ? ".txt" : ".enc"));
                     if (newMode == HistoryProtection.None) File.WriteAllText(target + ".new", text, new UTF8Encoding(false));
                     else File.WriteAllBytes(target + ".new", Seal(key, new UTF8Encoding(false).GetBytes(text)));
                     written.Add((path, target));

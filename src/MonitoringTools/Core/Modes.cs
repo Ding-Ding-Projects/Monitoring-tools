@@ -64,6 +64,8 @@ namespace MonitoringTools.Core
 
         /// <summary>True while the gentle time reminder is scheduled. For the self-test.</summary>
         internal static bool ReminderRunning => _reminder != null && _reminder.IsEnabled;
+        /// <summary>A short interval a self-test sets so the reminder can be waited for. Null in the real app.</summary>
+        internal static TimeSpan? ReminderIntervalForTest { get; set; }
         internal static TimeSpan? ReminderEvery => _reminder?.Interval;
 
         private static void RestartReminder()
@@ -74,7 +76,7 @@ namespace MonitoringTools.Core
                 if (_reminder != null) { _reminder.Stop(); _reminder = null; }
                 return;
             }
-            var every = TimeSpan.FromMinutes(Math.Max(5, s.TimeReminderMinutes));
+            var every = ReminderIntervalForTest ?? TimeSpan.FromMinutes(Math.Max(5, s.TimeReminderMinutes));
             if (_reminder != null && _reminder.Interval == every) return;
             _reminder?.Stop();
             var started = DateTime.Now;

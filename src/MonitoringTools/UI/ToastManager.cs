@@ -541,7 +541,10 @@ namespace MonitoringTools.UI
                 body.MaxHeight = 120;
                 w.SetBody(body);
                 var detailText = r.Detail ?? "";
-                w.SetActions(new List<ToastAction> { new ToastAction { Label = "Copy output", Run = () => ClipboardWatcher.SetText(detailText), Done = "Copied" } });
+                var chips = new List<ToastAction> { new ToastAction { Label = "Copy output", Run = () => ClipboardWatcher.SetText(detailText), Done = "Copied" } };
+                // Momentum: name the next step, so a finished task does not leave a gap
+                if (Modes.Momentum) chips.Add(new ToastAction { Label = "Next: open Activity", Run = () => App.Current.OpenControlCentre("activity"), Done = "Opened" });
+                w.SetActions(chips);
                 w.StartTimer(r.Ok ? 5 : 0);
             }
         }

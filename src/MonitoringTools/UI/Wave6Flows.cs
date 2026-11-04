@@ -167,10 +167,15 @@ namespace MonitoringTools.UI
                 cc.Navigate("modes", animate: false);
                 await Settle(cc, 500);
                 Drive.Type(Drive.Need<TextBox>(cc, "Rule name"), "Selftest holiday");
-                Drive.Type(Drive.Need<TextBox>(cc, "Start time"), "08:30");
-                Drive.Type(Drive.Need<TextBox>(cc, "End time"), "12:00");
-                Drive.Type(Drive.Need<TextBox>(cc, "Start date (optional)"), "2026-12-24");
-                Drive.Type(Drive.Need<TextBox>(cc, "End date (optional)"), "2026-12-26");
+                // the time pickers (hour and minute fields with steppers) and the date pickers (with calendars)
+                void Time(string name, int h, int m)
+                {
+                    Drive.Type(Drive.Need<TextBox>(cc, name + " hour"), h.ToString(), enter: true);
+                    Drive.Type(Drive.Need<TextBox>(cc, name + " minute"), m.ToString(), enter: true);
+                }
+                void Date(string name, string iso) => Drive.Need<DatePicker>(cc, name).SelectedDate = DateTime.ParseExact(iso, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+                Time("Start time", 8, 30); Time("End time", 12, 0);
+                Date("Start date (optional)", "2026-12-24"); Date("End date (optional)", "2026-12-26");
                 Drive.Press(cc, "Monday"); Drive.Press(cc, "Friday");
                 Drive.Press(cc, "Theme"); await Settle(cc, 150);
                 Drive.Press(cc, "Dark"); await Settle(cc, 150);
@@ -184,8 +189,8 @@ namespace MonitoringTools.UI
                 var id = rule.Id;
 
                 // a bad end date is refused with a message and stores nothing
-                Drive.Type(Drive.Need<TextBox>(cc, "Start date (optional)"), "2026-12-30");
-                Drive.Type(Drive.Need<TextBox>(cc, "End date (optional)"), "2026-12-01");
+                Date("Start date (optional)", "2026-12-30");
+                Date("End date (optional)", "2026-12-01");
                 Drive.Press(cc, "Add rule"); await Settle(cc, 250);
                 if (rules.Count != baseline + 1) return "a range ending before it starts was stored";
                 if (!Drive.TextOf(cc).Contains("The end date is before the start date")) return "no message for a reversed date range";
@@ -193,10 +198,11 @@ namespace MonitoringTools.UI
                 // edit in place
                 var edit = Drive.All<ButtonBase>(cc).Last(b => b.IsVisible && (Drive.LabelOf(b) == "Edit" || Drive.OriginalLabelOf(b) == "Edit"));   // the new rule is the last one listed
                 Drive.Click(edit); await Settle(cc, 350);
-                if (Drive.Need<TextBox>(cc, "Start date (optional)").Text != "2026-12-24") return "Edit did not load the rule's start date";
+                if (Drive.Need<DatePicker>(cc, "Start date (optional)").SelectedDate != new DateTime(2026, 12, 24)) return "Edit did not load the rule's start date";
+                if (Drive.Need<TextBox>(cc, "Start time hour").Text != "8" || Drive.Need<TextBox>(cc, "Start time minute").Text != "30") return "Edit did not load the rule's start time";
                 if (Drive.Find<ButtonBase>(cc, "Save changes") == null) return "the form did not switch to Save changes";
-                Drive.Type(Drive.Need<TextBox>(cc, "End time"), "13:15");
-                Drive.Type(Drive.Need<TextBox>(cc, "End date (optional)"), "2026-12-31");
+                Time("End time", 13, 15);
+                Date("End date (optional)", "2026-12-31");
                 await Reveal(cc, Drive.Need<ButtonBase>(cc, "Save changes"));
                 await Snap(snap, cc, "modes-schedule-edit", "Scheduled settings: editing a rule with a date range in place");
                 Drive.Press(cc, "Save changes"); await Settle(cc, 400);

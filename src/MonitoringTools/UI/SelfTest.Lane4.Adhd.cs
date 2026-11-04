@@ -137,6 +137,41 @@ namespace MonitoringTools.UI
                 finally { Restore(); }
             });
 
+            await CheckAsync("adhd time awareness: the Time check reminder toast appears on its interval (a test-only short interval) and is not held by Focus", async () =>
+            {
+                try
+                {
+                    CloseToasts(); s.AdhdFocus = true; s.AdhdOneThing = false; s.AdhdTimeAwareness = false; Modes.NotifyChanged(); Settings.Save();
+                    Modes.ReminderIntervalForTest = TimeSpan.FromSeconds(1);
+                    s.AdhdTimeAwareness = true; Modes.NotifyChanged(); Settings.Save();
+                    bool shown = await WaitFor(() => App.Toasts.LiveToasts.Any(t => t.TitleText.Text.Contains("time check", StringComparison.OrdinalIgnoreCase)), 6000);
+                    var body = App.Toasts.LiveToasts.FirstOrDefault(t => t.TitleText.Text.Contains("time check", StringComparison.OrdinalIgnoreCase));
+                    if (!shown) return $"no Time check toast within 6 seconds (reminder running {Modes.ReminderRunning} every {Modes.ReminderEvery}, suppress {App.ShouldSuppress}, live: {string.Join('|', App.Toasts.LiveToasts.Select(t => t.TitleText.Text))}, waiting {App.Toasts.WaitingCount})";
+                    return null;
+                }
+                finally { Modes.ReminderIntervalForTest = null; Restore(); Settings.Save(); }
+            });
+
+            await CheckAsync("adhd momentum: a finished task toast names the next step with the mode on and not with it off", async () =>
+            {
+                try
+                {
+                    s.AdhdFocus = false; s.AdhdOneThing = false;
+                    async Task<bool> HasChip(bool momentum)
+                    {
+                        CloseToasts(); s.AdhdMomentum = momentum; Modes.NotifyChanged();
+                        App.Toasts.ShowTask("Quick job " + momentum, "momentum chip", () => Task.FromResult((true, "done", "ok")));
+                        await Task.Delay(1200);
+                        var t = App.Toasts.LiveToasts.FirstOrDefault();
+                        if (t == null) throw new Exception("the task toast did not show");
+                        return Descend<System.Windows.Controls.Primitives.ButtonBase>(t).Any(b => ButtonLabel(b) == "Next: open Activity" || Descend<System.Windows.Controls.TextBlock>(b).Any(x => x.Text == "Next: open Activity"));
+                    }
+                    if (!await HasChip(true)) return "Momentum is on but the finished task toast names no next step";
+                    return await HasChip(false) ? "the next step shows with Momentum off" : null;
+                }
+                finally { Restore(); }
+            });
+
             await CheckAsync("adhd momentum: the control centre reopens on the page left open, and not with the mode off", async () =>
             {
                 try

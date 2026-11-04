@@ -38,6 +38,8 @@ namespace MonitoringTools.UI
             Settings.Current.HistoryProtection = HistoryProtection.None;
             Settings.Current.HistoryKeepCount = 50; Settings.Current.HistoryKeepDays = 0;
             if (Directory.Exists(HistoryFolder)) Directory.Delete(HistoryFolder, true);
+            var snaps = Path.Combine(Settings.DataDir, "settings-history");
+            if (Directory.Exists(snaps)) foreach (var f in Directory.GetFiles(snaps, "*.jsonenc")) File.Delete(f);   // their key went with the folder above
         }
 
         private static async Task HistoryLane4ChecksAsync()
@@ -90,6 +92,48 @@ namespace MonitoringTools.UI
                 return FilesContain(HistoryFolder, secret) && !Directory.GetFiles(HistoryFolder, "*.enc", SearchOption.AllDirectories).Any() && !File.Exists(Path.Combine(HistoryFolder, "protection.json")) ? null : "converting back left encrypted files or the check file";
             });
 
+            Check("history: settings snapshots are encrypted with the history, unreadable and not kept while it is locked, and readable again after", () =>
+            {
+                ResetHistory();
+                var sn = Settings.Current; var saved = sn.CommitTemplate;
+                string snapDir = Path.Combine(Settings.DataDir, "settings-history");
+                bool Has(string needle)
+                {
+                    var bytes = Encoding.UTF8.GetBytes(needle);
+                    foreach (var f in Directory.GetFiles(snapDir).Where(f => f.EndsWith(".json") || f.EndsWith(".jsonenc")))
+                    {
+                        var d = File.ReadAllBytes(f);
+                        for (int i = 0; i + bytes.Length <= d.Length; i++) { int j = 0; while (j < bytes.Length && d[i + j] == bytes[j]) j++; if (j == bytes.Length) return true; }
+                    }
+                    return false;
+                }
+                try
+                {
+                    sn.CommitTemplate = "SNAP-SECRET-DELTA one"; Settings.Save();
+                    if (!Has("SNAP-SECRET-DELTA")) return "the plain snapshot was not on disk before encrypting";
+                    var err = HistoryVault.Change(HistoryProtection.Password, "snapshot pw 12345");
+                    if (err != null) return "change refused: " + err;
+                    if (Has("SNAP-SECRET-DELTA")) return "a snapshot is still readable on disk after encrypting";
+                    if (Directory.GetFiles(snapDir, "*.json").Length != 0) return "a plain snapshot was left behind";
+                    int before = SettingsHistory.List().Count;
+                    sn.CommitTemplate = "SNAP-SECRET-DELTA two"; Settings.Save();
+                    if (Has("SNAP-SECRET-DELTA")) return "a new snapshot was written readable";
+                    var after = SettingsHistory.List();
+                    if (after.Count != before + 1 || !after[0].Snap.Settings.GetRawText().Contains("SNAP-SECRET-DELTA two")) return "the new encrypted snapshot did not come back through List";
+                    HistoryVault.Lock();
+                    if (SettingsHistory.List().Count != 0) return "a locked history still listed snapshots";
+                    int files = Directory.GetFiles(snapDir).Length;
+                    sn.CommitTemplate = "SNAP-SECRET-DELTA three"; Settings.Save();
+                    if (Directory.GetFiles(snapDir).Length != files) return "a snapshot was kept while locked";
+                    if (HistoryVault.Unlock("snapshot pw 12345") != null) return "unlock refused";
+                    if (SettingsHistory.List().Count != before + 1) return "unlocking did not bring the snapshots back";
+                    err = HistoryVault.Change(HistoryProtection.None);
+                    if (err != null) return "converting back refused: " + err;
+                    return Has("SNAP-SECRET-DELTA") && Directory.GetFiles(snapDir, "*.jsonenc").Length == 0 ? null : "snapshots were not converted back";
+                }
+                finally { ResetHistory(); sn.CommitTemplate = saved; Settings.Save(); }
+            });
+
             Check("history: retention by count and by age keeps the newest and drops the rest", () =>
             {
                 ResetHistory();
@@ -97,7 +141,7 @@ namespace MonitoringTools.UI
                 Settings.Current.HistoryKeepCount = 5;
                 for (int i = 1; i <= 12; i++) ScriptHistory.Save(key, "v" + i);
                 var list = ScriptHistory.List(key);
-                if (list.Count != 5 || ScriptHistory.Read(key, list[0].Id) != "v12" || ScriptHistory.Read(key, list[4].Id) != "v8") return "count limit wrong: " + list.Count;
+                if (list.Count != 5 || ScriptHistory.Read(key, list[0].Id) != "v12" || ScriptHistory.Read(key, list[4].Id) != "v8") return "count limit wrong: " + list.Count + ", newest " + ScriptHistory.Read(key, list[0].Id) + ", oldest " + ScriptHistory.Read(key, list[^1].Id) + ", mode " + HistoryVault.Mode + ", locked " + HistoryVault.IsLocked;
                 // age: backdate three of them by renaming
                 Settings.Current.HistoryKeepCount = 50;
                 var dir = Path.Combine(HistoryFolder, key);

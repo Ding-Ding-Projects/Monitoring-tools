@@ -65,12 +65,16 @@ namespace MonitoringTools.Core
             Add("Slants the text. Default: as the element normally looks.", "令文字傾斜。預設：照元素平時嘅樣。");
             Add("Draws a line under the text. Default: off.", "喺文字下面畫條線。預設：關。");
             Add("0 s elapsed", "已過 0 秒");
+            Add("Next: open Activity", "下一步：打開活動"); Add("Opened", "已打開");
+            Add("Select a date", "揀日期"); Add("h", "時"); Add("min", "分");
         }
 
         private static void AddLane4Patterns(List<(Regex, Func<Match, string>)> p)
         {
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => m.Result(yue)));
+            void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), fn));
 
+            AddFn(@"^(Start|End) time (hour|minute)$", m => (m.Groups[1].Value == "Start" ? "開始時間" : "結束時間") + (m.Groups[2].Value == "hour" ? "（時）" : "（分）"));
             Add(@"^How saved versions are stored: (.+)$", "已存版本點樣儲存：$1");
             Add(@"^The password check could not be read: (.+)$", "讀唔到密碼檢查：$1");
             Add(@"^The change failed and was stopped: (.+)$", "更改失敗，已停止：$1");

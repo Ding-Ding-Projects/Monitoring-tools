@@ -40,18 +40,24 @@ namespace MonitoringTools.Core
             }
         }
 
+        /// <summary>Every snapshot file, plain (.json) or encrypted (.jsonenc), by name.</summary>
+        internal static IEnumerable<string> SnapFiles() =>
+            Directory.GetFiles(Dir).Where(f => f.EndsWith(".json") || f.EndsWith(".jsonenc")).OrderBy(f => Path.GetFileNameWithoutExtension(f), StringComparer.Ordinal).ThenBy(f => f, StringComparer.Ordinal);
+
         /// <summary>Called after every save. Stores a snapshot only when the serialized settings differ from the last one.</summary>
         public static void Record(Settings s)
         {
             try
             {
+                // a password-protected history that is locked cannot take or read a snapshot; the settings themselves were saved already
+                if (HistoryVault.IsLocked) { Log.Warn("The history is locked, so this settings snapshot was not kept."); return; }
                 var now = Normalize(JsonSerializer.Serialize(s));
                 lock (Gate)
                 {
                     if (!_primed)
                     {
                         _primed = true;
-                        var newest = Directory.GetFiles(Dir, "*.json").OrderByDescending(f => f).FirstOrDefault();
+                        var newest = SnapFiles().LastOrDefault();
                         if (newest != null) { var snap0 = Load(newest); if (snap0 != null) _last = Normalize(snap0.Settings.GetRawText()); }
                     }
                     if (_last == now) return;
@@ -70,10 +76,17 @@ namespace MonitoringTools.Core
                         ["Summary"] = summary,
                         ["Settings"] = cur.RootElement.Clone()
                     };
-                    var name = DateTime.Now.ToString("yyyyMMdd-HHmmssfff") + ".json";
-                    File.WriteAllText(Path.Combine(Dir, name), JsonSerializer.Serialize(snap, Opts));
+                    var name = DateTime.Now.ToString("yyyyMMdd-HHmmssfff");
+                    var text = JsonSerializer.Serialize(snap, Opts);
+                    if (HistoryVault.Encrypts)
+                    {
+                        var sealedBytes = HistoryVault.Encrypt(text);
+                        if (sealedBytes == null) { Log.Warn("The history key is unavailable, so this settings snapshot was not kept."); return; }
+                        File.WriteAllBytes(Path.Combine(Dir, name + ".jsonenc"), sealedBytes);
+                    }
+                    else File.WriteAllText(Path.Combine(Dir, name + ".json"), text);
                     _last = now;
-                    var files = Directory.GetFiles(Dir, "*.json").OrderBy(f => f).ToList();
+                    var files = SnapFiles().ToList();
                     for (int i = 0; i < files.Count - Cap; i++) { try { File.Delete(files[i]); } catch { } }
                 }
                 Changed?.Invoke();
@@ -91,7 +104,7 @@ namespace MonitoringTools.Core
         public static List<(string File, SettingsSnapshot Snap)> List()
         {
             var list = new List<(string, SettingsSnapshot)>();
-            foreach (var f in Directory.GetFiles(Dir, "*.json").OrderByDescending(x => x))
+            foreach (var f in SnapFiles().Reverse())
             {
                 var s = Load(f);
                 if (s != null) list.Add((f, s));
@@ -109,7 +122,7 @@ namespace MonitoringTools.Core
             lock (Gate)
             {
                 var dir = Path.GetFullPath(Dir);
-                var newest = Directory.GetFiles(Dir, "*.json").OrderByDescending(f => f).FirstOrDefault();
+                var newest = SnapFiles().LastOrDefault();
                 foreach (var f in files.ToList())
                 {
                     var full = Path.GetFullPath(f);
@@ -131,7 +144,11 @@ namespace MonitoringTools.Core
 
         public static SettingsSnapshot Load(string file)
         {
-            try { return JsonSerializer.Deserialize<SettingsSnapshot>(File.ReadAllText(file)); }
+            try
+            {
+                var text = file.EndsWith(".jsonenc") ? HistoryVault.Decrypt(File.ReadAllBytes(file)) : File.ReadAllText(file);
+                return text == null ? null : JsonSerializer.Deserialize<SettingsSnapshot>(text);
+            }
             catch { return null; }
         }
 

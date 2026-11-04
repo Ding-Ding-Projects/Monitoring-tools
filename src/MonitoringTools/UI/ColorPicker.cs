@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using MonitoringTools.Clip;
@@ -606,6 +607,7 @@ namespace MonitoringTools.UI
 
         [StructLayout(LayoutKind.Sequential)] private struct PointNative { public int X, Y; }
         [StructLayout(LayoutKind.Sequential)] private struct RectNative { public int Left, Top, Right, Bottom; }
+        [DllImport("user32.dll", EntryPoint = "ClientToScreen")] private static extern bool ClientToScreenNative(IntPtr hwnd, ref PointNative p);
         [DllImport("user32.dll")] private static extern IntPtr WindowFromPoint(PointNative p);
         [DllImport("user32.dll")] private static extern IntPtr GetAncestor(IntPtr hwnd, uint flags);
         [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hwnd, out RectNative r);
@@ -721,11 +723,20 @@ namespace MonitoringTools.UI
                 Child = new TextBlock { Text = "Click a pixel to pick its colour. Esc cancels.", Foreground = Ui.Res("B.Text"), FontSize = 14 }
             };
             w.Content = new Grid { Children = { hint } };
-            w.MouseLeftButtonDown += (s, e) =>
+            // The click is read from the window message itself (its own position, in physical pixels), not from the global cursor, so it
+            // lands where the click was whether the mouse made it or another program posted it to this window.
+            w.SourceInitialized += (s, e) =>
             {
-                // the click's own position, in physical screen pixels
-                var p = w.PointToScreen(e.GetPosition(w));
-                PickAt(w, (int)Math.Round(p.X), (int)Math.Round(p.Y));
+                var src = HwndSource.FromHwnd(new WindowInteropHelper(w).Handle);
+                src?.AddHook((IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
+                {
+                    if (msg != 0x0201) return IntPtr.Zero;   // WM_LBUTTONDOWN
+                    var pt = new PointNative { X = (short)(lParam.ToInt64() & 0xFFFF), Y = (short)((lParam.ToInt64() >> 16) & 0xFFFF) };
+                    ClientToScreenNative(hwnd, ref pt);
+                    handled = true;
+                    PickAt(w, pt.X, pt.Y);
+                    return IntPtr.Zero;
+                });
             };
             w.Closed += (s, e) => _eyedropper = null;
             w.KeyDown += (s, e) => { if (e.Key == Key.Escape) w.Close(); };

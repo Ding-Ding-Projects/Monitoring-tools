@@ -17,7 +17,7 @@ namespace MonitoringTools.UI
         private DnsProfile _dnsOffer;
         private string _dnsName = "", _dnsPrimary = "", _dnsSecondary = "";
 
-        private static FrameworkElement Labeled(string caption, TextBox box, string name)
+        private static FrameworkElement Labeled(string caption, FrameworkElement box, string name)
         {
             AutomationProperties.SetName(box, name);
             var sp = new StackPanel { Margin = new Thickness(0, 0, 0, 4) };

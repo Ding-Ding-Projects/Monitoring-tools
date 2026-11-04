@@ -308,7 +308,7 @@ namespace MonitoringTools.Core
         private static bool InPicture(int w, int h, double x, double y) => x >= 0 && y >= 0 && x < w && y < h;
 
         /// <summary>Looks near the predicted spot for the alignment pattern (dark centre, light ring, dark ring) and returns its centre.</summary>
-        private static bool FindAlignment(bool[] bw, int w, int h, double px, double py, double exX, double exY, double eyX, double eyY, double radiusPx, out double ax, out double ay)
+        private static bool FindAlignment(bool[] bw, int w, int h, double px, double py, double exX, double exY, double eyX, double eyY, double radiusPx, out double ax, out double ay, int minScore = 21)
         {
             ax = px; ay = py;
             double bestScore = 0; double bx = px, by = py;
@@ -330,8 +330,35 @@ namespace MonitoringTools.Core
                     double penalty = (ox * ox + oy * oy) / (radiusPx * radiusPx + 1) * 0.5;
                     if (score - penalty > bestScore) { bestScore = score - penalty; bx = cx; by = cy; }
                 }
-            if (bestScore < 21) return false;
-            ax = bx; ay = by;
+            if (bestScore < minScore) return false;
+
+            // fine pass: a denser score (five samples inside each of the 25 cells) over a finer grid around the coarse best; the centre of the
+            // best-scoring positions is the pattern's centre to well under a pixel
+            int Dense(double cx, double cy)
+            {
+                int sc = 0;
+                for (int dy = -2; dy <= 2; dy++)
+                    for (int dx = -2; dx <= 2; dx++)
+                    {
+                        bool expect = Math.Max(Math.Abs(dx), Math.Abs(dy)) != 1;
+                        foreach (var (ux, uy) in new[] { (0.0, 0.0), (-0.3, 0.0), (0.3, 0.0), (0.0, -0.3), (0.0, 0.3) })
+                        {
+                            double mx = dx + ux, my = dy + uy;
+                            if (Dark(bw, w, h, cx + mx * exX + my * eyX, cy + mx * exY + my * eyY) == expect) sc++;
+                        }
+                    }
+                return sc;
+            }
+            double fine = Math.Max(0.25, ms / 8);
+            int bestDense = -1; double sumX = 0, sumY = 0; int n = 0;
+            for (double oy = -step; oy <= step + 1e-9; oy += fine)
+                for (double ox = -step; ox <= step + 1e-9; ox += fine)
+                {
+                    int d = Dense(bx + ox, by + oy);
+                    if (d > bestDense) { bestDense = d; sumX = bx + ox; sumY = by + oy; n = 1; }
+                    else if (d == bestDense) { sumX += bx + ox; sumY += by + oy; n++; }
+                }
+            ax = n > 0 ? sumX / n : bx; ay = n > 0 ? sumY / n : by;
             return true;
         }
 
@@ -390,28 +417,37 @@ namespace MonitoringTools.Core
             {
                 var tf = new Perspective(an.Mx, an.My, an.Ix, an.Iy);
                 if (!tf.Valid) continue;
-                if (version >= 7 && an.Mx[3] == dim - 6.5)
+                var candidates = new List<Perspective> { tf };   // the plain fit stays as a last resort when a refinement made things worse
+                bool alignmentAnchor = an.Mx[3] == dim - 6.5;
+                if (version >= 7 || (!alignmentAnchor && version >= 2))
                 {
-                    // large codes have several alignment patterns: find each one near where the first fit predicts it and refit on all of them
-                    var mxs = new List<double>(an.Mx); var mys = new List<double>(an.My); var ixs = new List<double>(an.Ix); var iys = new List<double>(an.Iy);
+                    int baseCount = alignmentAnchor ? 4 : 3;   // the guessed fourth corner of the fallback is not a measurement, so it is left out
+                    // large codes have several alignment patterns: find each one near where the current fit predicts it and refit on all of
+                    // them, twice, so the second pass looks where a better fit says they are
                     var centres = QrCommon.AlignmentFor(version); int last = centres.Length - 1;
-                    for (int i = 0; i <= last; i++)
-                        for (int j = 0; j <= last; j++)
-                        {
-                            if ((i == 0 && j == 0) || (i == 0 && j == last) || (i == last && j == 0) || (i == last && j == last)) continue;
-                            double gx = centres[i] + 0.5, gy = centres[j] + 0.5;
-                            var pp = tf.Map(gx, gy);
-                            var pxm = tf.Map(gx + 1, gy); var pym = tf.Map(gx, gy + 1);
-                            double modPx = Math.Sqrt((pxm.X - pp.X) * (pxm.X - pp.X) + (pxm.Y - pp.Y) * (pxm.Y - pp.Y));
-                            if (FindAlignment(bw, w, h, pp.X, pp.Y, pxm.X - pp.X, pxm.Y - pp.Y, pym.X - pp.X, pym.Y - pp.Y, 2.5 * modPx + 1, out double fx, out double fy))
-                            { mxs.Add(gx); mys.Add(gy); ixs.Add(fx); iys.Add(fy); }
-                        }
-                    if (mxs.Count > 4)
+                    for (int pass = 0; pass < 2; pass++)
                     {
+                        var mxs = new List<double>(an.Mx.Take(baseCount)); var mys = new List<double>(an.My.Take(baseCount)); var ixs = new List<double>(an.Ix.Take(baseCount)); var iys = new List<double>(an.Iy.Take(baseCount));
+                        for (int i = 0; i <= last; i++)
+                            for (int j = 0; j <= last; j++)
+                            {
+                                if ((i == 0 && j == 0) || (i == 0 && j == last) || (i == last && j == 0) || (alignmentAnchor && i == last && j == last)) continue;
+                                double gx = centres[i] + 0.5, gy = centres[j] + 0.5;
+                                var pp = tf.Map(gx, gy);
+                                var pxm = tf.Map(gx + 1, gy); var pym = tf.Map(gx, gy + 1);
+                                double modPx = Math.Sqrt((pxm.X - pp.X) * (pxm.X - pp.X) + (pxm.Y - pp.Y) * (pxm.Y - pp.Y));
+                                if (FindAlignment(bw, w, h, pp.X, pp.Y, pxm.X - pp.X, pxm.Y - pp.Y, pym.X - pp.X, pym.Y - pp.Y, (pass == 0 ? 3.5 : 1.8) * modPx + 1, out double fx, out double fy, 19))
+                                { mxs.Add(gx); mys.Add(gy); ixs.Add(fx); iys.Add(fy); }
+                            }
+                        if (mxs.Count <= baseCount) break;
                         var refined = new Perspective(mxs.ToArray(), mys.ToArray(), ixs.ToArray(), iys.ToArray());
-                        if (refined.Valid) tf = refined;
+                        if (!refined.Valid) break;
+                        tf = refined;
+                        candidates.Insert(0, refined);
                     }
                 }
+                foreach (var cand in candidates)
+                {
                 var grid = new bool[dim, dim];
                 double[] offs = { 0, -0.22, 0.22 };
                 bool off = false;
@@ -423,7 +459,7 @@ namespace MonitoringTools.Core
                             foreach (var ox in offs)
                             {
                                 if ((ox != 0 || oy != 0) && ox != oy && ox != -oy) continue; // the centre and the four diagonals
-                                var p = tf.Map(c + 0.5 + ox, r + 0.5 + oy);
+                                var p = cand.Map(c + 0.5 + ox, r + 0.5 + oy);
                                 if (!InPicture(w, h, p.X, p.Y)) continue;
                                 seen++; if (Dark(bw, w, h, p.X, p.Y)) votes++;
                             }
@@ -432,6 +468,7 @@ namespace MonitoringTools.Core
                     }
                 if (off) { reasons.Add((1, "The code runs off the edge of the picture.")); continue; }
                 if (DecodeGrid(grid, version, out text, reasons)) return true;
+                }
             }
             return false;
         }

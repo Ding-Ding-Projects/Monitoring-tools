@@ -84,6 +84,9 @@ namespace MonitoringTools.UI
             return true;
         }
         internal static bool KeepOpenForTest { get; set; }
+        internal static string HookDiag = "";
+        /// <summary>How many unlock prompts have been opened. For the self-test.</summary>
+        internal static int PromptsOpened;
         /// <summary>Closes the menu the self-test or capture run opened.</summary>
         public static void ClearLabels() => LastLabels = Array.Empty<string>();
         public static void CloseLast() { var c = _closeLast; _closeLast = null; LastCard = null; c?.Invoke(); }
@@ -102,6 +105,49 @@ namespace MonitoringTools.UI
             Extras.AddOrUpdate(w, new ExtraHolder { Extra = extra });
             if (options != null) WindowOptions.AddOrUpdate(w, options);
             if (locks) WireLocks(w);
+            // A click posted to the window by another program (or a remote or assistive input route) does not move the cursor, and WPF finds the
+            // target of a mouse event from the cursor. So the position carried by the click message itself is hit-tested here, and the same
+            // lock veil and element menu run from it. A click the hook does not act on goes on to WPF as usual.
+            bool hookOpened = false;
+            void InstallHook()
+            {
+                var src = System.Windows.Interop.HwndSource.FromHwnd(new System.Windows.Interop.WindowInteropHelper(w).Handle);
+                src?.AddHook((IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
+                {
+                    if (msg != 0x0201 && msg != 0x0205) return IntPtr.Zero;   // WM_LBUTTONDOWN, WM_RBUTTONUP
+                    if (Mouse.LeftButton == MouseButtonState.Pressed || Mouse.RightButton == MouseButtonState.Pressed) { HookDiag = "skipped: a mouse button is down"; return IntPtr.Zero; }   // a real mouse is down: WPF's own handlers have it
+                    var tf = src.CompositionTarget;
+                    if (tf == null) return IntPtr.Zero;
+                    long l = lParam.ToInt64();
+                    var dip = tf.TransformFromDevice.Transform(new Point((short)(l & 0xFFFF), (short)((l >> 16) & 0xFFFF)));
+                    if (w.InputHitTest(dip) is not DependencyObject d) return IntPtr.Zero;
+                    if (msg == 0x0201)
+                    {
+                        HookDiag = "left down at " + dip + " over " + d.GetType().Name + ", locks " + (locks && Locks.Any);
+                        if (!locks || !Locks.Any) return IntPtr.Zero;
+                        var locked = LockedAncestor(w, d);
+                        HookDiag += "; locked ancestor " + (locked?.GetType().Name ?? "none");
+                        if (locked == null)
+                        {
+                            var pg = PageIdOf(w);
+                            for (var q = d; q != null; q = Parent(q))
+                                if (q is FrameworkElement qf) HookDiag += " | " + qf.GetType().Name + " cand=" + IsCandidate(qf) + " key=" + KeyOf(qf) + " locked=" + (KeyOf(qf) != null && Locks.IsLocked(pg, KeyOf(qf)));
+                            HookDiag += " page=" + pg;
+                        }
+                        if (locked != null) { handled = true; try { Prompt(w, locked); } catch (Exception ex) { HookDiag += "; prompt failed: " + ex.GetType().Name + " " + ex.Message; } }
+                        return IntPtr.Zero;
+                    }
+                    DiagSeen++;
+                    if (InsideText(d)) return IntPtr.Zero;
+                    var target = Target(d);
+                    if (target == null) return IntPtr.Zero;
+                    DiagTarget++;
+                    hookOpened = true;   // WPF still gets the message, so its button state is released; its own handler is told to stand down
+                    Open(w, target, extra, dip);
+                    return IntPtr.Zero;
+                });
+            }
+            if (new System.Windows.Interop.WindowInteropHelper(w).Handle != IntPtr.Zero) InstallHook(); else w.SourceInitialized += (s, e) => InstallHook();
             w.PreviewMouseLeftButtonDown += (s, e) =>
             {
                 if (!locks || !Locks.Any || e.OriginalSource is not DependencyObject d) return;
@@ -110,6 +156,7 @@ namespace MonitoringTools.UI
             };
             w.PreviewMouseRightButtonUp += (s, e) =>
             {
+                if (hookOpened) { hookOpened = false; e.Handled = true; return; }   // the click message was acted on already
                 DiagSeen++;
                 if (e.OriginalSource is not DependencyObject d) return;
                 if (InsideText(d)) return; // text boxes keep their own cut, copy and paste menu
@@ -245,8 +292,12 @@ namespace MonitoringTools.UI
             return KeyOfText(s);
         }
 
+        private const string LockTip = "Locked. Click to unlock. Just for fun, not security.";
+
         public static string KeyOfText(string s)
         {
+            // the veil puts its own tooltip on a locked element; it is not part of what the element says, or a lock would lose its key the moment it closed
+            if (!string.IsNullOrEmpty(s)) { s = s.Replace(LockTip, ""); var yue = Core.Language.Yue(LockTip); if (!string.IsNullOrEmpty(yue)) s = s.Replace(yue, ""); }
             s = string.Join(" ", (s ?? "").Replace(ElementStyles.Hair.ToString(), "").Split((char[])null, StringSplitOptions.RemoveEmptyEntries)).Trim();
             if (s.Length == 0) return null;
             return s.Length > 120 ? s[..120] : s;
@@ -281,6 +332,7 @@ namespace MonitoringTools.UI
         public static void PromptEntry(LockEntry entry, FrameworkElement origin)
         {
             if (OpenPrompts.TryGetValue(entry.Id, out var existing) && existing.IsLoaded) { existing.Activate(); return; }
+            PromptsOpened++;
             var win = new LockPromptWindow(entry, origin, null);
             OpenPrompts[entry.Id] = win;
             win.Closed += (s, e) => OpenPrompts.Remove(entry.Id);

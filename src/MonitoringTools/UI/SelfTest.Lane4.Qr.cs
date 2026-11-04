@@ -35,7 +35,7 @@ namespace MonitoringTools.UI
                     double dx = x - w / 2.0, dy = y - h / 2.0;
                     // inverse perspective: the farther edge is the top, so the scale grows down the picture
                     double k = 1 + tilt * (dy / (h / 2.0));
-                    double ux = dx / k, uy = dy / (1 + tilt * 0.3);
+                    double ux = dx / k, uy = dy / k;   // both axes divided by the same factor: a true perspective (a homography), so straight lines stay straight
                     double rx = ux * ca + uy * sa + cx, ry = -ux * sa + uy * ca + cy;
                     double v = 255;
                     if (rx >= 0 && ry >= 0 && rx < sw - 1 && ry < sh - 1)
@@ -169,7 +169,7 @@ namespace MonitoringTools.UI
                     {
                         var text = PseudoText(n, n + seed);
                         QrEncoder.TryEncode(text, out var modules, out int version, out _);
-                        var gray = SimulatePhoto(modules, seed, out int w, out int h, tilt: 0.01 + 0.005 * seed, angleDeg: 2 + 2 * seed, blur: version > 20 ? 0.5 : 0.7, noise: 6);
+                        var gray = SimulatePhoto(modules, seed, out int w, out int h, tilt: 0.02 + 0.015 * seed, angleDeg: 2 + 2 * seed, blur: version > 20 ? 0.5 : 0.7, noise: 6);
                         tried++;
                         if (QrDecoder.TryDecode(gray, w, h, out var back, out var err) && back == text) ok++;
                         else failures.Add($"v{version} seed {seed}: {err ?? "different text"}");
@@ -178,15 +178,26 @@ namespace MonitoringTools.UI
                 // which single degradation matters: one at a time on a version 9 code
                 var probe = PseudoText(180, 7); QrEncoder.TryEncode(probe, out var pm, out _, out _);
                 var diag = new List<string>();
-                foreach (var (nm, t, a, b, nz) in new[] { ("none", 0.0, 0.0, 0.3, 0.0), ("tilt2%", 0.02, 0.0, 0.3, 0.0), ("tilt4%", 0.04, 0.0, 0.3, 0.0), ("tilt6%", 0.06, 0.0, 0.3, 0.0), ("turn", 0.0, 8.0, 0.3, 0.0), ("blur", 0.0, 0.0, 1.0, 0.0), ("noise", 0.0, 0.0, 0.3, 10.0) })
+                foreach (var (nm, t, a, b, nz) in new[] { ("none", 0.0, 0.0, 0.3, 0.0), ("tilt2%", 0.02, 0.0, 0.3, 0.0), ("tilt4%", 0.04, 0.0, 0.3, 0.0), ("tilt6%", 0.06, 0.0, 0.3, 0.0), ("tilt10%", 0.10, 0.0, 0.3, 0.0), ("tilt15%+turn", 0.15, 8.0, 0.3, 0.0), ("turn", 0.0, 8.0, 0.3, 0.0), ("blur", 0.0, 0.0, 1.0, 0.0), ("noise", 0.0, 0.0, 0.3, 10.0) })
                 {
                     var g = SimulatePhoto(pm, 1, out int pw, out int ph, t, a, b, nz);
-                    diag.Add(nm + "=" + (QrDecoder.TryDecode(g, pw, ph, out var pb, out _) && pb == probe ? "ok" : "fail"));
+                    bool okp = QrDecoder.TryDecode(g, pw, ph, out var pb, out var perr) && pb == probe;
+                    diag.Add(nm + "=" + (okp ? "ok" : "fail: " + perr));
                 }
                 Lane4Notes["qr-photo-factors"] = string.Join(", ", diag);
-                Lane4Notes["qr-photo-limit"] = "strong perspective (6% scale change across the picture) is a known limit: " + Lane4Notes["qr-photo-factors"];
+                // the same one-at-a-time probe on a version 24 code
+                var probe2 = PseudoText(900, 11); QrEncoder.TryEncode(probe2, out var pm2, out int pv2, out _);
+                var diag2 = new List<string>();
+                foreach (var (nm, t, a2, b2, nz) in new[] { ("none", 0.0, 0.0, 0.3, 0.0), ("tilt8%", 0.08, 0.0, 0.3, 0.0), ("turn10", 0.0, 10.0, 0.3, 0.0), ("blur.5", 0.0, 0.0, 0.5, 0.0), ("noise6", 0.0, 0.0, 0.3, 6.0), ("turn10+tilt8", 0.08, 10.0, 0.3, 0.0), ("all", 0.08, 10.0, 0.5, 6.0) })
+                {
+                    var g = SimulatePhoto(pm2, 3, out int pw, out int ph, t, a2, b2, nz);
+                    bool okp = QrDecoder.TryDecode(g, pw, ph, out var pb, out var perr) && pb == probe2;
+                    diag2.Add(nm + "=" + (okp ? "ok" : "fail"));
+                }
+                Lane4Notes["qr-photo-factors-v" + pv2] = string.Join(", ", diag2);
+                Lane4Notes["qr-photo-limit"] = "single degradations on a version 9 code: " + Lane4Notes["qr-photo-factors"];
                 Lane4Notes["qr-photo-failed"] = string.Join(" | ", failures);
-                return ok >= 14 && !failures.Any(f => f.StartsWith("v9 ") || f.StartsWith("v1 ")) ? null : ok + " of " + tried + " decoded (" + Lane4Notes["qr-photo-factors"] + "); failed: " + string.Join(" | ", failures.Take(6));
+                return ok >= 14 && failures.All(f => f.StartsWith("v24 ")) ? null : ok + " of " + tried + " decoded (" + Lane4Notes["qr-photo-factors"] + "); failed: " + string.Join(" | ", failures.Take(6));
             });
 
             Check("qr: pictures made by an independent encoder decode (when MT_QR_FOREIGN names a folder of them)", () =>

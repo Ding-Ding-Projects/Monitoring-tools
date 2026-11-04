@@ -17,6 +17,11 @@ Control centre, tray menu, drawing board, toasts, offline dialog, setup, welcome
 ## Pausing toasts
 **Pause toasts for 15 minutes** stops new toasts from appearing. They are still written to the notification log, so nothing is lost. The pause lasts 15 minutes or until the app closes, and is not saved to settings.
 
+## Clicks posted from outside
+A click posted to a window by another program (an assistive or remote input route, or the self-test) does not move the cursor, and WPF finds a mouse event's target from the cursor. So each window with the menu also reads the position carried by the click message itself, hit-tests it, and runs the same lock veil (left click on a locked element opens its unlock prompt) and element menu (right click) from it. A click the hook does not act on reaches WPF as usual. Found while testing this: the veil's tooltip text was being read into a locked element's key, so a locked button lost its own key the moment it closed; the tooltip is now left out of the key.
+
+`MT_ONLY=lane4clicks` holds the app on a hidden desktop and waits, for each step, for a click posted with the lowlevel `mouse_click` tool to a window handle (it writes `click-<step>.json` with the handle and client point); it then judges the outcome. Verified that way: a left click on the colour eyedropper overlay, a right click on the command palette and a left click on a locked button.
+
 ## Not done
 - The command palette overlay now has the menu (Clear the search, Use the full window or card size, Close the palette). No real pointer click was made on it; the check opens the menu through the routine the right-click handler calls.
 - Window-specific extra items exist only for toasts; other windows offer the common items.

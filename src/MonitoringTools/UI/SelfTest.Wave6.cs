@@ -205,16 +205,18 @@ namespace MonitoringTools.UI
                     host = Host(form);
                     if (!Press(form, "Next")) return "no Next button on step 1";
                     if (form.StepIndex != 1) return "step 1 did not advance";
-                    FindBox(form, "Start time").Text = "25:99";
-                    Press(form, "Next");
-                    if (form.StepIndex != 1) return "a bad time was accepted";
-                    FindBox(form, "Start time").Text = "08:00"; FindBox(form, "End time").Text = "12:30";
+                    void Time(string name, string h, string m) { Drive.Type(FindBox(form, name + " hour"), h, enter: true); Drive.Type(FindBox(form, name + " minute"), m, enter: true); }
+                    void Date(string name, string iso) { Window.GetWindow(form)?.UpdateLayout(); Descend<DatePicker>(form).First(d => AutomationProperties.GetName(d) == name).SelectedDate = DateTime.ParseExact(iso, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture); }
+                    Time("Start time", "25", "99");   // the pickers refuse an hour above 23 and a minute above 59, so no bad time can be entered
+                    Window.GetWindow(form)?.UpdateLayout(); var hourF = Descend<NumberField>(form).First(f => f.Label == "Start time hour"); var minF = Descend<NumberField>(form).First(f => f.Label == "Start time minute");
+                    if (hourF.Value > 23 || minF.Value > 59 || !Drive.TextOf(form).Contains("Not changed")) return "an hour of 25 or a minute of 99 was accepted by the time picker";
+                    Time("Start time", "8", "0"); Time("End time", "12", "30");
                     Press(form, "Next");
                     if (form.StepIndex != 2) return "valid times did not advance";
-                    FindBox(form, "Start date (optional)").Text = "2026-12-24"; FindBox(form, "End date (optional)").Text = "2026-12-01";
+                    Date("Start date (optional)", "2026-12-24"); Date("End date (optional)", "2026-12-01");
                     Press(form, "Next");
                     if (form.StepIndex != 2) return "an end date before the start date was accepted";
-                    FindBox(form, "End date (optional)").Text = "2026-12-31";
+                    Date("End date (optional)", "2026-12-31");
                     Press(form, "Next");
                     if (form.StepIndex != 3) return "valid dates did not advance";
                     host.UpdateLayout();

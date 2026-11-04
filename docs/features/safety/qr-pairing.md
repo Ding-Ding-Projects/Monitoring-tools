@@ -35,7 +35,7 @@ When the code holds an `otpauth://` link, the link fills the box above, the stat
 
 ### Known limits
 
-- A strong perspective tilt (about 6% change of scale across the picture) is not read.
+- Perspective: a code is read through a homography fitted to the three corner squares and every alignment pattern found (refitted twice, with a finer search for each pattern, and the plain four-point fit kept as a last resort). Simulated tilts up to 15% (with an 8 degree turn) decode on a version 9 code; two version 24 simulated photos (tilts of 6.5% and 8%, with turns of 8 and 10 degrees) still do not.
 - A very small code in a very large screenshot (modules of about 2 pixels or less) may not be found. Crop the picture or enlarge it.
 - The decoder is tested with generated images and with images from an independent encoder (see Verification). It has not been tested against a large set of real phone photographs.
 

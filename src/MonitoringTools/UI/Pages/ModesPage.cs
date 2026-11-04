@@ -250,10 +250,10 @@ namespace MonitoringTools.UI
             var days = new HashSet<int>();
             var label = Input("", 220, "Optional name for the rule");
             AutomationProperties.SetName(label, "Rule name");
-            var start = Input("09:00", 80, "Start time, 24-hour HH:mm"); AutomationProperties.SetName(start, "Start time");
-            var end = Input("17:00", 80, "End time, 24-hour HH:mm"); AutomationProperties.SetName(end, "End time");
-            var fromDate = Input("", 110, "Optional first date, yyyy-MM-dd. Empty means no start limit."); AutomationProperties.SetName(fromDate, "Start date (optional)");
-            var toDate = Input("", 110, "Optional last date, yyyy-MM-dd, included. Empty means no end limit."); AutomationProperties.SetName(toDate, "End date (optional)");
+            var start = new TimeField("Start time", "09:00");
+            var end = new TimeField("End time", "17:00");
+            var fromDate = new DateField("Start date (optional)", "");
+            var toDate = new DateField("End date (optional)", "");
             var valueHost = new ContentControl();
             var settingHost = new ContentControl();
             ScheduleRule editing = null;
@@ -403,31 +403,31 @@ namespace MonitoringTools.UI
             {
                 setting = r.Setting; value = r.Value;
                 days.Clear(); foreach (var d in r.Days ?? new List<int>()) days.Add(d);
-                start.Text = r.Start; end.Text = r.End; label.Text = r.Label ?? "";
-                fromDate.Text = r.FromDate ?? ""; toDate.Text = r.ToDate ?? "";
+                start.Value = r.Start; end.Value = r.End; label.Text = r.Label ?? "";
+                fromDate.Value = r.FromDate ?? ""; toDate.Value = r.ToDate ?? "";
                 BuildSetting(); BuildValue(); PaintDays();
                 SetEditing(r);
                 msg.Text = "Editing this rule in place. Change the fields above, then choose Save changes."; msg.Foreground = Ui.Res("B.TextMute");
-                start.Focus();
+                start.HourField.Box.Focus();
             }
             cancelEdit.Click += (x, y) => { SetEditing(null); msg.Text = "Edit cancelled. The rule is unchanged."; msg.Foreground = Ui.Res("B.TextMute"); };
             var addRow = new WrapPanel();
             addRow.Children.Add(addBtn); addRow.Children.Add(cancelEdit);
             addBtn.Click += (x0, y0) =>
             {
-                if (!Modes.TryParseTime(start.Text, out _) || !Modes.TryParseTime(end.Text, out _))
+                if (!Modes.TryParseTime(start.Value, out _) || !Modes.TryParseTime(end.Value, out _))
                 { msg.Text = "Enter both times as 24-hour HH:mm, for example 08:30."; msg.Foreground = Ui.Res("B.Amber"); return; }
                 if (editing == null && Settings.Current.ScheduleRules.Count >= 64) { msg.Text = "The limit is 64 rules."; msg.Foreground = Ui.Res("B.Amber"); return; }
                 if (!Modes.ValidValue(setting, value)) { msg.Text = "Pick a value first."; msg.Foreground = Ui.Res("B.Amber"); return; }
-                if (!Modes.TryParseDate(fromDate.Text, out _) || !Modes.TryParseDate(toDate.Text, out _))
+                if (!Modes.TryParseDate(fromDate.Value, out _) || !Modes.TryParseDate(toDate.Value, out _))
                 { msg.Text = "Enter dates as yyyy-MM-dd, for example 2026-12-24, or leave them empty."; msg.Foreground = Ui.Res("B.Amber"); return; }
-                if (!Modes.ValidDateRange(fromDate.Text, toDate.Text))
+                if (!Modes.ValidDateRange(fromDate.Value, toDate.Value))
                 { msg.Text = "The end date is before the start date."; msg.Foreground = Ui.Res("B.Amber"); return; }
                 var target = editing ?? new ScheduleRule();
                 target.Label = label.Text.Trim(); target.Setting = setting; target.Value = value;
-                target.Start = start.Text.Trim(); target.End = end.Text.Trim();
+                target.Start = start.Value.Trim(); target.End = end.Value.Trim();
                 target.Days = days.OrderBy(d => (d + 6) % 7).ToList();
-                target.FromDate = fromDate.Text.Trim(); target.ToDate = toDate.Text.Trim();
+                target.FromDate = fromDate.Value.Trim(); target.ToDate = toDate.Value.Trim();
                 bool wasEditing = editing != null;
                 if (!wasEditing) Settings.Current.ScheduleRules.Add(target);
                 Settings.Save(); Modes.Evaluate(); SetEditing(null); Refill();

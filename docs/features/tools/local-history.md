@@ -28,7 +28,7 @@ The **Local history** card on the Records page chooses how saved versions are st
 **Apply protection** moves every saved version to the chosen protection. Every version is read first and written under the new key before the old file is removed; if one cannot be read nothing is changed. Changing a password, or turning protection off, needs the history unlocked first. The card also lists each saved history with **Delete history** (two-key confirmation) and holds the two retention numbers.
 
 ## Not done
-- The settings snapshots on the Records page are not encrypted: they hold settings, not secrets.
+- Settings snapshots on the Records page follow the same protection: with it on they are written as `.jsonenc` files, listed only while the history is unlocked, and not kept while it is locked (the settings themselves are still saved). Apply protection converts them with the saved versions.
 - A forgotten history password cannot be recovered. That is by design.
 - A flipped bit in an encrypted file makes that version unreadable (it is detected, never shown wrong).
 - The comparison is by whole lines, so a small change inside a long line shows as one removed and one added line.

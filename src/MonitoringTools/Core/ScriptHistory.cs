@@ -79,7 +79,7 @@ namespace MonitoringTools.Core
         /// <summary>Reads one stored version, decrypting it when it is encrypted. Null when it is encrypted and cannot be opened.</summary>
         internal static string ReadFile(string path)
         {
-            try { return path.EndsWith(".enc") ? HistoryVault.Decrypt(File.ReadAllBytes(path)) : File.ReadAllText(path); }
+            try { return path.EndsWith(".enc") || path.EndsWith(".jsonenc") ? HistoryVault.Decrypt(File.ReadAllBytes(path)) : File.ReadAllText(path); }
             catch { return null; }
         }
 

@@ -19,10 +19,10 @@ namespace MonitoringTools.UI
             var days = new HashSet<int>();
             var valueHost = new ContentControl { IsTabStop = false };
             var label = Input("", 240, "Optional name for the rule");
-            var start = Input("09:00", 80, "Start time, 24-hour HH:mm");
-            var end = Input("17:00", 80, "End time, 24-hour HH:mm");
-            var fromDate = Input("", 110, "Optional first date, yyyy-MM-dd");
-            var toDate = Input("", 110, "Optional last date, yyyy-MM-dd, included");
+            var start = new TimeField("Start time", "09:00");
+            var end = new TimeField("End time", "17:00");
+            var fromDate = new DateField("Start date (optional)", "");
+            var toDate = new DateField("End date (optional)", "");
             var review = new TextBlock { Style = Ui.Style("T.Body"), TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text") };
 
             IEnumerable<(string, string)> ValuesFor(string key)
@@ -38,8 +38,8 @@ namespace MonitoringTools.UI
 
             ScheduleRule Draft() => new ScheduleRule
             {
-                Label = label.Text.Trim(), Setting = setting, Value = value, Start = start.Text.Trim(), End = end.Text.Trim(),
-                Days = days.OrderBy(d => (d + 6) % 7).ToList(), FromDate = fromDate.Text.Trim(), ToDate = toDate.Text.Trim()
+                Label = label.Text.Trim(), Setting = setting, Value = value, Start = start.Value.Trim(), End = end.Value.Trim(),
+                Days = days.OrderBy(d => (d + 6) % 7).ToList(), FromDate = fromDate.Value.Trim(), ToDate = toDate.Value.Trim()
             };
 
             var steps = new List<GuidedStep>
@@ -86,7 +86,7 @@ namespace MonitoringTools.UI
                         sp.Children.Add(Labeled("Name (optional)", label, "Rule name"));
                         return sp;
                     },
-                    Validate = () => Modes.CheckRuleTimes(start.Text, end.Text)
+                    Validate = () => Modes.CheckRuleTimes(start.Value, end.Value)
                 },
                 new GuidedStep
                 {
@@ -99,7 +99,7 @@ namespace MonitoringTools.UI
                         row.Children.Add(Labeled("Last date", toDate, "End date (optional)"));
                         return row;
                     },
-                    Validate = () => Modes.CheckRuleDates(fromDate.Text, toDate.Text)
+                    Validate = () => Modes.CheckRuleDates(fromDate.Value, toDate.Value)
                 },
                 new GuidedStep
                 {
