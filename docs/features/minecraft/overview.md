@@ -16,6 +16,15 @@ The first section of a server's workspace.
 
 A value that is not known is shown as "–" or "Unavailable" with the reason underneath, never as an estimate.
 
+## Players over the last 7 days
+
+![Peak players](../../screenshots/mc-overview-peaks.png)
+
+Every `list` answer the app reads raises that day's peak for the server, kept for 30 days in `player-peaks.json` beside
+`servers.json`. The card shows **Peak today**, **Peak in 7 days** and a bar for each of the last seven days. A day with
+no reading is a dash, never a zero, because nothing was known that day. Readings replayed from an old log tail are not
+counted. Sample servers show fixed sample values and say so.
+
 ## Recent console and players online
 
 The last six console lines, with a link to the [console](console.md), and the players the last `list` answer named,
@@ -32,4 +41,10 @@ each marked as operator or whitelisted from the server's files and with a menu f
 
 ## Verification
 
-Capture `mc-overview` uses the sample servers of the capture run; its players, memory and uptime are sample values.
+Capture `mc-overview` uses the sample servers of the capture run; its players, memory and uptime are sample values, and
+`mc-overview-peaks` shows the history card. Self-test checks keep the peak per server and per day (only upward within a
+day), save it to the file and read it back after a reload, prune after 30 days, and show a real server's recorded peaks
+and the dashes on the Overview, redrawn when a new peak arrives. The live check (`MT_LIVE_ONLY=minecraft-lane`) starts a
+real Paper server and reads `tps` through the same poll the Overview uses (20.0 on a quiet server), and runs the
+update check against the real Paper API: the newest build is reported as current, and a server recorded as build 1 is
+told a newer build exists.

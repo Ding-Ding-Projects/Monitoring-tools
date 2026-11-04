@@ -17,6 +17,10 @@ namespace MonitoringTools.Minecraft
         public string Id, Group, Label, Help, Template, Icon;
         /// <summary>Set for commands that need the two-key confirmation: the confirm button's label.</summary>
         public string Confirm;
+        /// <summary>For a command read from the live server: the small command tree made from its usage text, the namespace it came from and the usage itself.</summary>
+        public McCommandNode Synthetic;
+        public bool Live;
+        public string Source, Usage;
         /// <summary>The command word shown beside the task in the gallery.</summary>
         public string Shown => "/" + Template.Split(' ')[0].Trim('(', ')').Split('|')[0].Split('@')[0];
     }
@@ -79,7 +83,29 @@ namespace MonitoringTools.Minecraft
         private static McTask T(string id, string group, string label, string help, string template, string icon, string confirm = null) =>
             new McTask { Id = id, Group = group, Label = label, Help = help, Template = template, Icon = icon, Confirm = confirm };
 
-        public static McTask Find(string id) => All.FirstOrDefault(t => t.Id == id);
+        /// <summary>Tasks made from a running server's own command list, by task id. Filled when the builder reads the server.</summary>
+        private static readonly Dictionary<string, McTask> LiveTasks = new Dictionary<string, McTask>(StringComparer.Ordinal);
+
+        public static void SetLive(string serverId, IEnumerable<McTask> tasks)
+        {
+            lock (LiveTasks)
+            {
+                foreach (var k in LiveTasks.Keys.Where(k => k.StartsWith(serverId + "|", StringComparison.Ordinal)).ToList()) LiveTasks.Remove(k);
+                foreach (var t in tasks) LiveTasks[serverId + "|" + t.Id] = t;
+            }
+        }
+
+        public static List<McTask> LiveFor(string serverId)
+        {
+            lock (LiveTasks) return LiveTasks.Where(kv => kv.Key.StartsWith(serverId + "|", StringComparison.Ordinal)).Select(kv => kv.Value).OrderBy(t => t.Label, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        public static McTask Find(string id, string serverId = null)
+        {
+            if (id != null && id.StartsWith("live:", StringComparison.Ordinal))
+                lock (LiveTasks) return serverId != null && LiveTasks.TryGetValue(serverId + "|" + id, out var t) ? t : null;
+            return All.FirstOrDefault(t => t.Id == id);
+        }
 
         /// <summary>Friendly field names; an argument without one keeps the name the command tree gives it.</summary>
         public static readonly Dictionary<string, string> Labels = new Dictionary<string, string>(StringComparer.Ordinal)

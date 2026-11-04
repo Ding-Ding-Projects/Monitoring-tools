@@ -78,7 +78,7 @@ namespace MonitoringTools.Minecraft
         {
             var parsed = (tail ?? "").Split('\n').Where(x => x.Trim().Length > 0).Select(McLogLine.Parse).ToList();
             lock (_lines) { _lines.Clear(); _lines.AddRange(parsed.TakeLast(Keep)); }
-            foreach (var l in parsed.TakeLast(60)) Learn(l.Message);
+            foreach (var l in parsed.TakeLast(60)) Learn(l.Message, false);
             if (parsed.Any(l => IsReady(l.Message))) { Starting = false; StartingSince = null; }
             Updated?.Invoke(ServerId);
         }
@@ -87,9 +87,9 @@ namespace MonitoringTools.Minecraft
         public static bool IsReady(string message) => message != null && (message.StartsWith("Done (", StringComparison.Ordinal) || message.StartsWith("Server started.", StringComparison.Ordinal));
 
         /// <summary>Reads the answer to "list" and "tps" wherever it arrives: a console line or a remote console reply.</summary>
-        public void Learn(string text)
+        public void Learn(string text, bool fresh = true)
         {
-            if (McLogLine.TryPlayers(text, out var n, out var max, out var names)) { PlayersOnline = n; PlayersMax = max; PlayerNames = names; PlayersAt = DateTime.Now; }
+            if (McLogLine.TryPlayers(text, out var n, out var max, out var names)) { PlayersOnline = n; PlayersMax = max; PlayerNames = names; PlayersAt = DateTime.Now; if (fresh) McPeaks.Record(ServerId, n); }
             if (McLogLine.TryTps(text, out var tps)) Tps = tps;
             var g = GameRuleAnswer.Match(text ?? "");
             if (g.Success) lock (GameRules) GameRules[g.Groups[1].Value] = g.Groups[2].Value.Trim();

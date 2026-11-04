@@ -152,7 +152,7 @@ namespace MonitoringTools.Minecraft
                 var r = McRegistries.FileFor(v);
                 if (!File.Exists(r)) File.WriteAllText(r, McSampleReports.Registries);
                 var data = Path.Combine(Path.GetDirectoryName(r), "data-registries.json");
-                if (!File.Exists(data)) File.WriteAllText(data, McSampleReports.DataRegistries);
+                if (!File.Exists(data)) File.WriteAllText(data, McSampleReports.MergedData());
                 McRegistries.Forget(v);
             }
         }

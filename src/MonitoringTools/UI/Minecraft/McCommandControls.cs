@@ -67,10 +67,13 @@ namespace MonitoringTools.UI.Minecraft
         private static TextBlock Hint(string text) => new TextBlock { Text = text, FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 2, 0, 0) };
 
         /// <summary>The control for an argument node, chosen by its parser.</summary>
-        internal static McFieldView For(ServerDef s, McCommandNode n, string label, bool optional, string value, Action<string> set, McRegistries reg, PositionReader readPos)
+        internal static McFieldView For(ServerDef s, McCommandNode n, string label, bool optional, string value, Action<string> set, McRegistries reg, PositionReader readPos, bool literalNames = false)
         {
             var sp = new StackPanel { Margin = new Thickness(0, 0, 0, 16) };
-            sp.Children.Add(Label(label, optional));
+            var labelText = Label(label, optional);
+            // a field named by a server (a plugin command) keeps the server's own word
+            if (literalNames) Core.Language.SetLiteral(labelText, true);
+            sp.Children.Add(labelText);
             FrameworkElement body, focus;
             var p = n.Parser ?? "";
             if (p == "brigadier:integer" || p == "brigadier:long") (body, focus) = Whole(n, label, optional, value, set);
@@ -80,6 +83,8 @@ namespace MonitoringTools.UI.Minecraft
             else if (p == "minecraft:gamemode") { var c = Enum("gamemode", label, McCommandTree.GameModes, optional, value, set, false); body = focus = c; }
             else if (McCommandTree.IsTarget(p)) (body, focus) = Who(s, n, label, value, set);
             else if (McCommandTree.Axes(p) > 0) (body, focus) = Position(s, n, label, optional, value, set, readPos);
+            else if (p == "minecraft:nbt_compound_tag" || p == "minecraft:nbt_tag") { var ed = new McNbtEditor(label, value, set); body = ed; focus = Logical<Button>(ed).FirstOrDefault() ?? (FrameworkElement)ed; }
+            else if (p == "minecraft:item_stack" && McRegistries.RegistryOf(n) is string itemRegistry) (body, focus) = ItemStack(s, n, itemRegistry, label, value, set, reg);
             else if (McRegistries.RegistryOf(n) is string registry) (body, focus) = Pick(n, registry, label, value, set, reg);
             else if (p == "minecraft:component") { var box = Text(McCommandTasks.Uncomponent(value), label, 420, n.Hint); box.TextChanged += (o, e) => set(box.Text.Length == 0 ? "" : McCommandTasks.Component(box.Text)); body = focus = box; }
             else
@@ -89,6 +94,7 @@ namespace MonitoringTools.UI.Minecraft
                 box.TextChanged += (o, e) => set(box.Text.Replace("\r", "").Replace("\n", " "));
                 body = focus = box;
             }
+            if (literalNames) foreach (var named in Logical<FrameworkElement>(body).Where(e => e is TextBox || e is McNumberBox)) Core.Language.SetLiteral(named, true);
             sp.Children.Add(body);
             var hint = p.StartsWith("brigadier:", StringComparison.Ordinal) || p.Length == 0 ? n.Hint : n.Hint + " · " + p;
             var h = Hint(hint);
@@ -358,7 +364,7 @@ namespace MonitoringTools.UI.Minecraft
 
         // ------------------------------------------------------------------ ids from the registries
 
-        private static (FrameworkElement, FrameworkElement) Pick(McCommandNode n, string registry, string label, string value, Action<string> set, McRegistries reg)
+        internal static (FrameworkElement, FrameworkElement) Pick(McCommandNode n, string registry, string label, string value, Action<string> set, McRegistries reg)
         {
             var ids = reg?.Get(registry);
             var sp = new StackPanel();
@@ -408,6 +414,52 @@ namespace MonitoringTools.UI.Minecraft
             sp.Children.Add(grid);
             Paint();
             return (sp, search.Box);
+        }
+
+        private static IEnumerable<T> Logical<T>(DependencyObject d) where T : DependencyObject
+        {
+            foreach (var c in LogicalTreeHelper.GetChildren(d).OfType<DependencyObject>())
+            {
+                if (c is T t) yield return t;
+                foreach (var x in Logical<T>(c)) yield return x;
+            }
+        }
+
+        /// <summary>
+        /// An item argument: the id from the registry, and under it the item's data. Java 1.20.5 and newer take components
+        /// (a custom name, enchantments, damage and the rest) and earlier versions take NBT, each built with controls.
+        /// </summary>
+        private static (FrameworkElement, FrameworkElement) ItemStack(ServerDef s, McCommandNode n, string registry, string label, string value, Action<string> set, McRegistries reg)
+        {
+            var (id, rest) = McItemComponents.SplitValue(value);
+            string curId = id, curRest = rest;
+            void Push() => set(curId + curRest);
+            var (pick, focus) = Pick(n, registry, label, curId, v => { curId = v; Push(); }, reg);
+            var sp = new StackPanel();
+            sp.Children.Add(pick);
+            bool components = McItemComponents.Supports(s.Version);
+            var host = new ContentControl { IsTabStop = false, Margin = new Thickness(0, 6, 0, 0) };
+            var open = curRest.Length > 0;
+            Button toggle = null;
+            void Paint()
+            {
+                McUi.Paint(toggle, open);
+                host.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+                if (open && host.Content == null)
+                {
+                    if (components) host.Content = new McItemEditor(s.Version, reg, curRest, r => { curRest = r; Push(); });
+                    else host.Content = new McNbtEditor("Item data (NBT)", curRest, r => { curRest = r; Push(); });
+                    Core.Language.Refresh(host);
+                }
+            }
+            string name = components ? "Item components" : "Item data (NBT)";
+            toggle = McUi.Chip(name, open, () => { open = !open; Paint(); }, name);
+            toggle.ToolTip = components ? "Custom name, lore, enchantments, damage and other components of the item" : "Item data written as NBT";
+            toggle.Margin = new Thickness(0, 8, 0, 0);
+            sp.Children.Add(toggle);
+            sp.Children.Add(host);
+            Paint();
+            return (sp, focus);
         }
 
         /// <summary>A long choice (game rules) as a searchable list of literal words.</summary>

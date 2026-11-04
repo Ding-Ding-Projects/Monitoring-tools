@@ -19,6 +19,26 @@ namespace MonitoringTools.Minecraft
 {
     public enum WorldType { Normal, Flat, LargeBiomes, Amplified, SingleBiome }
 
+    /// <summary>
+    /// Pause and resume for pre-generation. Setting Paused holds the run at the next batch boundary (the current batch of at most
+    /// 256 chunks finishes first), where the server is idle; clearing it carries on from the next batch. Cancelling still works while paused.
+    /// </summary>
+    public sealed class GenPause
+    {
+        private volatile bool _paused;
+        public bool Paused { get => _paused; set => _paused = value; }
+        /// <summary>How many times a run has actually waited because of a pause.</summary>
+        public int Waits { get; private set; }
+
+        public async Task WaitAsync(CancellationToken ct, Action announce)
+        {
+            if (!_paused) return;
+            Waits++;
+            announce?.Invoke();
+            while (_paused) await Task.Delay(150, ct);
+        }
+    }
+
     public sealed class WorldGenOptions
     {
         public string Version;
@@ -476,7 +496,7 @@ namespace MonitoringTools.Minecraft
         /// Runs a private staging server with the chosen seed and type, optionally pre-generates the square area with
         /// forceload, saves, stops, and copies the world to a new folder or a ZIP. Returns the path written.
         /// </summary>
-        public static async Task<string> GenerateAsync(WorldGenOptions o, Action<string, double> progress, CancellationToken ct)
+        public static async Task<string> GenerateAsync(WorldGenOptions o, Action<string, double> progress, CancellationToken ct, GenPause pause = null)
         {
             if (!o.EulaAccepted) throw new InvalidOperationException("Accept the Minecraft EULA first; the server will not run without it.");
             if (string.IsNullOrWhiteSpace(o.Destination)) throw new InvalidOperationException("Choose where to put the world first.");
@@ -558,7 +578,7 @@ namespace MonitoringTools.Minecraft
                 string note = preGenNote;
                 var ruleNote = ApplyGameRules(con, o.GameRules, facts, ct);
                 if (ruleNote != null) note = (note == null ? "" : note + " ") + ruleNote;
-                if (preGen) await PreGenerateAsync(con, o.RadiusChunks, o.AreaCenterX, o.AreaCenterZ, dims, progress, ct);
+                if (preGen) await PreGenerateAsync(con, o.RadiusChunks, o.AreaCenterX, o.AreaCenterZ, dims, progress, ct, pause);
                 if (o.BorderToSize)
                 {
                     con.Send($"worldborder center {o.AreaCenterX * 16} {o.AreaCenterZ * 16}");
@@ -606,7 +626,7 @@ namespace MonitoringTools.Minecraft
         }
 
         /// <summary>Force-loads rectangles of at most 256 chunks in each requested dimension, confirming every chunk loaded before moving on. A null dimension id means the overworld.</summary>
-        private static async Task PreGenerateAsync(Console2 con, int radius, int centerX, int centerZ, List<(string Id, string Label)> dims, Action<string, double> progress, CancellationToken ct)
+        private static async Task PreGenerateAsync(Console2 con, int radius, int centerX, int centerZ, List<(string Id, string Label)> dims, Action<string, double> progress, CancellationToken ct, GenPause pause = null)
         {
             int perDim = BatchCount(radius), total = perDim * dims.Count, n = 0;
             for (int d = 0; d < dims.Count; d++)
@@ -619,15 +639,21 @@ namespace MonitoringTools.Minecraft
                     for (int cz = centerZ - radius; cz < centerZ + radius; cz += ChunksPerBatchSide)
                     {
                         ct.ThrowIfCancellationRequested();
+                        // a pause takes effect between batches, when no chunk is being loaded and nothing is force-loaded
+                        if (pause != null) await pause.WaitAsync(ct, () => progress($"Paused after batch {inThis} of {perDim}. Resume to carry on.", 0.15 + 0.7 * n / total));
                         int cx2 = Math.Min(cx + ChunksPerBatchSide - 1, centerX + radius - 1), cz2 = Math.Min(cz + ChunksPerBatchSide - 1, centerZ + radius - 1);
                         con.Send($"{run}forceload add {cx * 16} {cz * 16} {cx2 * 16 + 15} {cz2 * 16 + 15}");
+                        // the server answers the forceload command; an error here is reported with its own words instead of a five minute wait
+                        var added = con.WaitFor(l => l.Contains("force loaded") || l.Contains("force-loaded") || l.Contains("Unable") || l.Contains("Incorrect") || l.Contains("Too many") || l.Contains("Unknown or incomplete") || l.Contains("out of the world") || l.Contains("Cannot"), TimeSpan.FromSeconds(30), ct);
+                        if (added != null && !(added.Contains("force loaded") || added.Contains("force-loaded")))
+                            throw new InvalidOperationException($"The server refused to force-load {dim.Label} batch {inThis + 1} of {perDim}: {added.Trim()}");
                         var pending = new List<(int X, int Z)>();
                         for (int x = cx; x <= cx2; x++) for (int z = cz; z <= cz2; z++) pending.Add((x, z));
                         var deadline = DateTime.UtcNow.AddMinutes(5);
                         while (pending.Count > 0)
                         {
                             ct.ThrowIfCancellationRequested();
-                            if (DateTime.UtcNow > deadline) throw new TimeoutException($"{dim.Label} batch {inThis + 1} of {perDim} did not finish loading in 5 minutes. Last output:\n" + con.TailText());
+                            if (DateTime.UtcNow > deadline) throw new TimeoutException($"{dim.Label} batch {inThis + 1} of {perDim} did not finish loading in 5 minutes; {pending.Count} chunks were still not loaded, the first at chunk {pending[0].X}, {pending[0].Z}. Last output:\n" + con.TailText());
                             var still = new List<(int X, int Z)>();
                             foreach (var c in pending)
                             {

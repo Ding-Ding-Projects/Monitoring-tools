@@ -267,6 +267,22 @@ namespace MonitoringTools.Minecraft
 
         /// <summary>The identity file option when the server names its own key, so ssh uses that key and no other.</summary>
         internal static string KeyArgs(ServerDef s) => string.IsNullOrWhiteSpace(s.SshKey) ? "" : $"-i \"{s.SshKey.Trim()}\" -o IdentitiesOnly=yes ";
+        /// <summary>One argument for a Windows command line: quoted, with quotes and the backslashes before them escaped, so a command holding quotes (item components, NBT, text) reaches the program as typed.</summary>
+        internal static string WinArg(string s)
+        {
+            s ??= "";
+            var sb = new System.Text.StringBuilder("\"");
+            int slashes = 0;
+            foreach (var c in s)
+            {
+                if (c == '\\') { slashes++; continue; }
+                if (c == '"') sb.Append('\\', slashes * 2 + 1).Append('"');
+                else sb.Append('\\', slashes).Append(c);
+                slashes = 0;
+            }
+            return sb.Append('\\', slashes * 2).Append('"').ToString();
+        }
+
         internal static string Sh(string s) => "'" + s.Replace("'", "'\\''") + "'";
 
         // -------------------------------------------------------------- create
@@ -527,7 +543,7 @@ namespace MonitoringTools.Minecraft
                         catch (Exception ex) { return "RCON: " + ex.Message; }
                     }
                     return "The server is not running.";
-                case Target.LocalDocker: { var r = Run("docker", $"exec {s.ContainerName} {(s.IsBedrock ? "send-command \"" + command.Replace("\"", "\\\"") + "\"" : "rcon-cli " + command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
+                case Target.LocalDocker: { var r = Run("docker", $"exec {s.ContainerName} {(s.IsBedrock ? "send-command " : "rcon-cli ")}{WinArg(command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
                 case Target.SshProcess: { var r = Ssh(s, $"cd {Sh(s.RemoteFolder)} && echo {Sh(command)} > console.in", 30000); return r.Code == 0 ? "Sent." : ActionLine(r.Out); }
                 case Target.SshDocker: { var r = Ssh(s, $"docker exec {s.ContainerName} {(s.IsBedrock ? "send-command" : "rcon-cli")} {Sh(command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
             }

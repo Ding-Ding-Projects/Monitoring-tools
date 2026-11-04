@@ -101,15 +101,26 @@ namespace MonitoringTools.UI.Minecraft
             return root;
         }
 
+        /// <summary>Set by the self-test in place of the file and folder pickers: answers the path a person would have chosen, or null for cancel.</summary>
+        internal static Func<string> WorldSourceForTest;
+        /// <summary>Set by the self-test in place of the two-key confirmation window: answers whether it was confirmed.</summary>
+        internal static Func<bool> WorldConfirmForTest;
+        /// <summary>The most recent import, reset or replace, so a test can wait for it to finish.</summary>
+        internal static Task WorldActionTask = Task.CompletedTask;
+
         private void Import(ServerDef s, Action<string, string> say)
         {
-            var pick = new Microsoft.Win32.OpenFileDialog { Filter = "World ZIP (*.zip)|*.zip", Title = "Choose a world ZIP, or cancel to choose a folder" };
             string source = null;
-            if (pick.ShowDialog(Window.GetWindow(this)) == true) source = pick.FileName;
+            if (WorldSourceForTest != null) source = WorldSourceForTest();
             else
             {
-                var folder = new Microsoft.Win32.OpenFolderDialog { Title = "Choose a world folder (the one with level.dat)" };
-                if (folder.ShowDialog(Window.GetWindow(this)) == true) source = folder.FolderName;
+                var pick = new Microsoft.Win32.OpenFileDialog { Filter = "World ZIP (*.zip)|*.zip", Title = "Choose a world ZIP, or cancel to choose a folder" };
+                if (pick.ShowDialog(Window.GetWindow(this)) == true) source = pick.FileName;
+                else
+                {
+                    var folder = new Microsoft.Win32.OpenFolderDialog { Title = "Choose a world folder (the one with level.dat)" };
+                    if (folder.ShowDialog(Window.GetWindow(this)) == true) source = folder.FolderName;
+                }
             }
             if (source == null) return;
             var (_, problem) = McWorlds.Validate(source);
@@ -121,10 +132,7 @@ namespace MonitoringTools.UI.Minecraft
 
         private void Reset(ServerDef s, string replacement, Action<string, string> say)
         {
-            var dlg = new ConfirmWindow(replacement == null ? $"Reset the world of {s.Name}?" : $"Replace the world of {s.Name}?",
-                (replacement == null ? "The world folders are removed, and the server makes a new world on its next start." : "The current world is swapped for the one you chose.") +
-                " The server is stopped first, and a backup of the current world is taken before anything is removed.", replacement == null ? "Reset" : "Replace", danger: true);
-            dlg.Confirmed += async _ =>
+            async Task Go()
             {
                 say("Stopping and backing up…", "B.TextMute");
                 try
@@ -135,7 +143,16 @@ namespace MonitoringTools.UI.Minecraft
                     SetStatus((replacement == null ? "The world was reset." : "The world was replaced.") + (b != null ? " The old world is in the backup " + Path.GetFileName(b.Path) + "." : ""), "B.Mint");
                 }
                 catch (Exception ex) { say(ex.Message, "B.Amber"); }
-            };
+            }
+            if (WorldConfirmForTest != null)
+            {
+                if (WorldConfirmForTest()) WorldActionTask = Go(); else say("Not changed: it was not confirmed.", "B.TextMute");
+                return;
+            }
+            var dlg = new ConfirmWindow(replacement == null ? $"Reset the world of {s.Name}?" : $"Replace the world of {s.Name}?",
+                (replacement == null ? "The world folders are removed, and the server makes a new world on its next start." : "The current world is swapped for the one you chose.") +
+                " The server is stopped first, and a backup of the current world is taken before anything is removed.", replacement == null ? "Reset" : "Replace", danger: true);
+            dlg.Confirmed += _ => WorldActionTask = Go();
             dlg.Show();
         }
 

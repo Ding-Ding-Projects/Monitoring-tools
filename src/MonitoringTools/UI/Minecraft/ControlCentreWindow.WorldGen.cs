@@ -496,7 +496,23 @@ namespace MonitoringTools.UI
             var generate = Ui.Button("Generate world", null, "Btn.Accent", Icons.Bolt);
             var cancel = Ui.Button("Cancel", () => cts?.Cancel(), "Btn.Ghost", Icons.Close);
             cancel.IsEnabled = false;
-            var apply = Ui.Button("Write to server settings", null, "Btn.Ghost", Icons.Lines);
+            GenPause gpause = null;
+            Button pause = null;
+            pause = Ui.Button("Pause pre-generation", () =>
+            {
+                if (gpause == null) return;
+                gpause.Paused = !gpause.Paused;
+                var label = gpause.Paused ? "Resume pre-generation" : "Pause pre-generation";
+                pause.Content = new StackPanel { Orientation = Orientation.Horizontal, Children = { new ContentControl { Content = Ui.Icon(gpause.Paused ? Icons.Play : Icons.Pause, Ui.Res("B.TextSoft"), 14), Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center }, new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center } } };
+                AutomationProperties.SetName(pause, label);
+                Core.Language.Refresh(pause);
+                status.Text = gpause.Paused ? "Pausing after the batch being built. Nothing is lost; Resume carries on from the next batch." : "Resumed.";
+                Core.Language.Refresh(status);
+            }, "Btn.Ghost", Icons.Pause);
+            AutomationProperties.SetName(pause, "Pause pre-generation");
+            pause.ToolTip = "Holds the build between batches of chunks and carries on from the next batch when you resume. The private server stays up while paused.";
+            pause.IsEnabled = false;
+            var apply =Ui.Button("Write to server settings", null, "Btn.Ghost", Icons.Lines);
             apply.ToolTip = "Saves the seed, world type, structures and (for a local process server on Java 1.19 or newer) custom superflat layers into the chosen local server. No world is built. Game rules and extra dimensions apply only to a generated world.";
             generate.ToolTip = "Runs a private server on this computer to build the world, then saves it to the destination.";
             cancel.ToolTip = "Stops the build and deletes the temporary server folder.";
@@ -517,19 +533,26 @@ namespace MonitoringTools.UI
                     if (bad.Count > 0) { status.Text = "Fix the superflat layers first: " + bad[0]; status.Foreground = Ui.Res("B.Amber"); return; }
                 }
                 generate.IsEnabled = false; cancel.IsEnabled = true; bar.Visibility = Visibility.Visible; bar.Value = 0;
+                pause.IsEnabled = o.RadiusChunks > 0;
                 status.Foreground = Ui.Res("B.TextMute");
                 cts = new CancellationTokenSource();
+                gpause = new GenPause();
+                var pausable = gpause;
                 try
                 {
-                    var path = await Task.Run(() => WorldGenerator.GenerateAsync(o, (t, f) => Dispatcher.BeginInvoke(new Action(() => { status.Text = t; bar.Value = f; })), cts.Token));
+                    var path = await Task.Run(() => WorldGenerator.GenerateAsync(o, (t, f) => Dispatcher.BeginInvoke(new Action(() => { status.Text = t; bar.Value = f; })), cts.Token, pausable));
                     status.Text = "✓ Saved to " + path; status.Foreground = Ui.Res("B.Mint"); Sounds.Play(Cue.Complete);
                 }
                 catch (OperationCanceledException) { status.Text = "Cancelled. The temporary server folder was removed."; status.Foreground = Ui.Res("B.TextMute"); }
                 catch (Exception ex) { status.Text = ex.Message; status.Foreground = Ui.Res("B.Amber"); Sounds.Play(Cue.Warning); }
                 bar.Visibility = Visibility.Collapsed; generate.IsEnabled = true; cancel.IsEnabled = false;
+                gpause = null; pause.IsEnabled = false;
+                pause.Content = new StackPanel { Orientation = Orientation.Horizontal, Children = { new ContentControl { Content = Ui.Icon(Icons.Pause, Ui.Res("B.TextSoft"), 14), Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center }, new TextBlock { Text = "Pause pre-generation", VerticalAlignment = VerticalAlignment.Center } } };
+                AutomationProperties.SetName(pause, "Pause pre-generation");
+                Core.Language.Refresh(pause);
             };
             var actions = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
-            actions.Children.Add(generate); actions.Children.Add(cancel); actions.Children.Add(apply);
+            actions.Children.Add(generate); actions.Children.Add(pause); actions.Children.Add(cancel); actions.Children.Add(apply);
             sp.Children.Add(actions);
             sp.Children.Add(bar);
             sp.Children.Add(status);

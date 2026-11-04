@@ -51,6 +51,30 @@ namespace MonitoringTools.UI
                     await Shot(cc, name, caption, 700);
                     cc.Scroller.ScrollToTop();
                 }
+                // the peak players card in full
+                mc.ShowSection("overview");
+                await Task.Delay(900);
+                var peakCard = SelfTest.Descend<System.Windows.FrameworkElement>(mc).FirstOrDefault(e => System.Windows.Automation.AutomationProperties.GetName(e) == "Peak players, last 7 days");
+                if (peakCard != null)
+                {
+                    var at = peakCard.TranslatePoint(new System.Windows.Point(0, 0), cc.Scroller);
+                    cc.Scroller.ScrollToVerticalOffset(cc.Scroller.VerticalOffset + at.Y - 300);
+                }
+                await Shot(cc, "mc-overview-peaks", "Minecraft servers: the peak players today and over seven days, with a bar for each day; a day with no reading is a dash (sample values)", 700);
+                cc.Scroller.ScrollToTop();
+                // the generator's actions, with Pause pre-generation beside Generate world and Cancel
+                McManagerView.ShowGenerator = true;
+                mc.ShowSection("worlds");
+                await Task.Delay(1200);
+                var pauseButton = SelfTest.Descend<System.Windows.Controls.Button>(mc).FirstOrDefault(b => System.Windows.Automation.AutomationProperties.GetName(b) == "Pause pre-generation");
+                if (pauseButton != null)
+                {
+                    var at = pauseButton.TranslatePoint(new System.Windows.Point(0, 0), cc.Scroller);
+                    cc.Scroller.ScrollToVerticalOffset(cc.Scroller.VerticalOffset + at.Y - 420);
+                }
+                await Shot(cc, "mc-worlds-generator", "Minecraft servers: the world generator's actions with Pause pre-generation beside Generate world and Cancel (sample data)", 700);
+                cc.Scroller.ScrollToTop();
+                McManagerView.ShowGenerator = false;
                 McManagerView.Pending.Clear();
 
                 McManagerView.Draft = new McCreateDraft { Version = "1.21.4", Name = "Weekend server", Port = McManagerView.FreePort(25570) };
