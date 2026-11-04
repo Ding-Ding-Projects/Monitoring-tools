@@ -256,13 +256,26 @@ jobs:
         continue-on-error: true
         with:
           name: screenshots
-          path: site/screenshots
+          path: site-screenshots
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Renders docs/features/**/*.md into pages, vendored fonts and the real screenshots into site/dist.
+      # The fresh screenshots from this run are used when present; otherwise the committed docs/screenshots.
+      - name: Build the site
+        run: |
+          node scripts/vendor-site-fonts.mjs --check
+          node scripts/build-site.mjs
+        env:
+          SITE_SCREENSHOTS: ${{ github.workspace }}/site-screenshots
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: site/dist
 
       - id: deploy
         uses: actions/deploy-pages@v4
