@@ -116,6 +116,7 @@ namespace MonitoringTools.UI
 
         public static void Fade(UIElement e, double to, double ms, double delayMs = 0, Action done = null)
         {
+            if (Core.Appearance.ReduceMotion) { ms = 1; delayMs = 0; }
             var a = new DoubleAnimation(to, TimeSpan.FromMilliseconds(ms)) { EasingFunction = Out, BeginTime = TimeSpan.FromMilliseconds(delayMs) };
             if (done != null) a.Completed += (s, ev) => done();
             e.BeginAnimation(UIElement.OpacityProperty, a);
@@ -124,6 +125,7 @@ namespace MonitoringTools.UI
         /// <summary>Rise-and-fade entrance used for staggered rows and cards.</summary>
         public static void Rise(FrameworkElement e, double delayMs, double distance = 10, double ms = 340)
         {
+            if (Core.Appearance.ReduceMotion) { e.RenderTransform = Transform.Identity; e.Opacity = 1; return; }
             var tt = new TranslateTransform(0, distance);
             e.RenderTransform = tt;
             e.Opacity = 0;

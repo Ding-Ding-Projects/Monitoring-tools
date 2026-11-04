@@ -42,6 +42,8 @@ namespace MonitoringTools
             AppDomain.CurrentDomain.UnhandledException += (s, ex) => Log.Error("Unhandled", ex.ExceptionObject as Exception);
 
             Settings.Load();
+            Appearance.Initialize();
+            EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((s, e) => { if (s is Window w) Appearance.ScaleFor(w); }));
             PersonalWording.LoadCache();
             WordingLayer.Install();
             Games = new GameDetector();

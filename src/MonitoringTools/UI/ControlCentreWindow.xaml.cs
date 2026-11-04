@@ -73,7 +73,17 @@ namespace MonitoringTools.UI
                 if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && _pageSearch != null) { _pageSearch.Box.Focus(); _pageSearch.Box.SelectAll(); e.Handled = true; }
             };
             Loaded += (s, e) => Navigate("overview");
+            void OnLook() { AppName.Text = Appearance.DisplayName; Logo.Stroke = new SolidColorBrush(Appearance.LogoColor); if (_current != null) Navigate(_current, animate: false); }
+            Appearance.Changed += OnLook;
+            Closed += (s, e) => Appearance.Changed -= OnLook;
+            Loaded += (s, e) => { AppName.Text = Appearance.DisplayName; Logo.Stroke = new SolidColorBrush(Appearance.LogoColor); };
             CommandPalette.Attach(this);
+            ElementMenu.Attach(this, t =>
+            {
+                var words = SearchScope.Text(t).Split((char[])null, StringSplitOptions.RemoveEmptyEntries).Take(3);
+                var q = string.Join(" ", words);
+                return _pageSearch == null || q.Length == 0 ? null : new[] { new ElementMenu.Item($"Search this page for “{q}”", Icons.Search, "Ctrl+F", () => { _pageSearch.State.SetRegex(false); _pageSearch.State.SetQuery(q); _pageSearch.Box.Focus(); }) };
+            });
             ServerManager.Output += OnServerOutput;
             Closed += (s, e) => ServerManager.Output -= OnServerOutput;
             RefreshStatus();
