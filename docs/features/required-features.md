@@ -2,7 +2,7 @@
 
 The maintainer's shared app requirements, checked against this app on 2026-11-04. Status words:
 **done** (built and rendered from the real app by `--screenshots`), **partial** (works, with the gaps listed),
-**missing**, **n/a** (does not apply, with the reason). Nothing is marked done from reading source alone. `MonitoringTools.exe --selftest <folder>` drives 28 checks inside the built app in a throwaway data folder and writes a pass or fail report.
+**missing**, **n/a** (does not apply, with the reason). Nothing is marked done from reading source alone. `MonitoringTools.exe --selftest <folder>` drives 45 checks inside the built app in a throwaway data folder and writes a pass or fail report.
 
 ## Language, voice and personalization
 

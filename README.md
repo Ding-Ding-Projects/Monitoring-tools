@@ -162,7 +162,7 @@ Overview with live latency, uptime and outage history; an activity feed of conve
 <details>
 <summary><b>Self-test</b></summary>
 
-`MonitoringTools.exe --selftest <folder>` runs 24 checks of search, the regex builder, exports, settings history, language switching, themes, density, locks, the two-key confirmation, the authenticator, QR pairing, the docs and every page inside the built app. It uses its own throwaway data folder, so it never touches your settings, and writes `selftest.json`.
+`MonitoringTools.exe --selftest <folder>` runs 45 checks of search, the regex builder, exports, settings history, language switching, themes, density, locks, the two-key confirmation, the authenticator, QR pairing, the docs and every page inside the built app. It uses its own throwaway data folder, so it never touches your settings, and writes `selftest.json`.
 
 The regex builder also works from a terminal: `MonitoringTools.exe --regex "<pattern>" <file>...` (see [docs/features/search](docs/features/search/regex-builder.md)).
 
