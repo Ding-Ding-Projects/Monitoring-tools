@@ -431,6 +431,7 @@ namespace MonitoringTools.Core
             AddNew("The two passwords do not match.", "兩個密碼唔一致。");
             AddNew("Choose a password of 8 to 128 characters.", "請設定 8 至 128 個字元嘅密碼。");
             AddMore(t);
+            AddMinecraft(t);
             return t;
         }
 
@@ -441,6 +442,7 @@ namespace MonitoringTools.Core
         private static List<(Regex, Func<Match, string>)> BuildPatterns()
         {
             var p = new List<(Regex, Func<Match, string>)>();
+            AddMinecraftPatterns(p);
             AddMorePatterns(p);
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), fn));

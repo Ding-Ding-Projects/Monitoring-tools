@@ -754,6 +754,22 @@ namespace MonitoringTools.UI
                     await Settle(cc, 350);
                     Scan(cc, id);
                 }
+                // the Minecraft server manager: every section of a sample server, written only into the throwaway data folder
+                MonitoringTools.Minecraft.McDemo.Seed();
+                try
+                {
+                    cc.Navigate("minecraft", animate: false); await Settle(cc, 400);
+                    var mcv = cc.MinecraftManager;
+                    mcv.Select("sample-friends");
+                    foreach (var (sec, _, _) in UI.Minecraft.McManagerView.Sections) { mcv.ShowSection(sec); await Settle(cc, 400); Scan(cc, "minecraft " + sec); }
+                    foreach (var grp in MonitoringTools.Minecraft.McPropertyCatalog.Groups) { UI.Minecraft.McManagerView.SettingsGroup = grp; mcv.ShowSection("settings"); await Settle(cc, 300); Scan(cc, "minecraft settings " + grp); }
+                    UI.Minecraft.McManagerView.SettingsGroup = "Gameplay";
+                    UI.Minecraft.McManagerView.Draft = new UI.Minecraft.McCreateDraft { Version = "1.21.4" };
+                    mcv.OpenCreate(); await Settle(cc, 500);
+                    for (int i = 0; i < 6; i++) { Scan(cc, "minecraft create step " + (i + 1)); if (!SelfTest.Press(mcv.CreateForm, "Next")) break; await Settle(cc, 500); }
+                    UI.Minecraft.McManagerView.Draft = null; mcv.CloseCreate();
+                }
+                finally { MonitoringTools.Minecraft.McDemo.Remove(); }
             }
             finally { cc.Close(); }
             var wiz = new SetupWizardWindow();
