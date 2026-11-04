@@ -103,7 +103,7 @@
   },
   {
     "file": "command-palette.png",
-    "caption": "Command palette (Ctrl\u002BShift\u002BF)",
+    "caption": "Command palette (Ctrl+Shift+F)",
     "width": 1360,
     "height": 1120
   },
@@ -742,5 +742,29 @@
     "caption": "Local history of a script: three saved versions and a comparison with the current text",
     "width": 2088,
     "height": 1576
+  },
+  {
+    "file": "mc-commands-give.png",
+    "caption": "Minecraft servers: the command builder giving an item, with the online players, the version's item list searched for diamond and the coloured command line (sample data)",
+    "width": 3400,
+    "height": 2168
+  },
+  {
+    "file": "mc-commands-tp.png",
+    "caption": "Minecraft servers: teleport with a selector filter and relative axes (sample data)",
+    "width": 3400,
+    "height": 2168
+  },
+  {
+    "file": "mc-commands-tree.png",
+    "caption": "Minecraft servers: Every command, walking effect give through the server's own command tree with a control per argument (sample data)",
+    "width": 3400,
+    "height": 2168
+  },
+  {
+    "file": "mc-commands-favourites.png",
+    "caption": "Minecraft servers: favourite commands at the top of the task gallery, and the weather task (sample data)",
+    "width": 3400,
+    "height": 2168
   }
 ]

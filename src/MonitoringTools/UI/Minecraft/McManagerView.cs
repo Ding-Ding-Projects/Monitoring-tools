@@ -26,7 +26,7 @@ namespace MonitoringTools.UI.Minecraft
 
         internal static readonly (string Id, string Label, string Icon)[] Sections =
         {
-            ("overview", "Overview", Icons.Pulse), ("console", "Console", Icons.Code), ("players", "Players", Icons.Lines),
+            ("overview", "Overview", Icons.Pulse), ("console", "Console", Icons.Code), ("commands", "Commands", Icons.Bolt), ("players", "Players", Icons.Lines),
             ("settings", "Settings", Icons.Wand), ("worlds", "Worlds", Icons.Globe), ("content", "Plugins", Icons.Box),
             ("backups", "Backups", Icons.Archive), ("schedules", "Schedules", Icons.Clock),
         };
@@ -144,6 +144,7 @@ namespace MonitoringTools.UI.Minecraft
                 var body = Section switch
                 {
                     "console" => BuildConsole(s),
+                    "commands" => BuildCommands(s),
                     "players" => BuildPlayers(s),
                     "settings" => BuildSettings(s),
                     "worlds" => BuildWorlds(s),

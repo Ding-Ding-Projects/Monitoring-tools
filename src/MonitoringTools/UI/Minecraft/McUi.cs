@@ -252,6 +252,8 @@ namespace MonitoringTools.UI.Minecraft
         }
 
         public long Value => _value;
+        /// <summary>When true an empty field is accepted (an optional argument left out); the stepper starts from the lowest value.</summary>
+        public bool AllowEmpty { get; set; }
         public bool Valid { get; private set; } = true;
         public string Problem => _problem.Text;
 
@@ -267,6 +269,7 @@ namespace MonitoringTools.UI.Minecraft
         {
             var t = Box.Text.Trim();
             string bad = null;
+            if (AllowEmpty && t.Length == 0) { Valid = true; _problem.Text = ""; _problem.Visibility = Visibility.Collapsed; BorderBrush = Ui.Res("B.LineStrong"); return; }
             if (!long.TryParse(t, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v)) bad = "Type a whole number.";
             else if (v < Min) bad = $"The lowest is {Min.ToString(CultureInfo.InvariantCulture)}.";
             else if (v > Max) bad = $"The highest is {Max.ToString(CultureInfo.InvariantCulture)}.";

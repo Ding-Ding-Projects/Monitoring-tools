@@ -433,6 +433,7 @@ namespace MonitoringTools.Core
             AddMore(t);
             AddMinecraft(t);
             AddMinecraftCatalogue(t);
+            AddMcCommands(t);
             return t;
         }
 
@@ -445,6 +446,7 @@ namespace MonitoringTools.Core
             var p = new List<(Regex, Func<Match, string>)>();
             AddMinecraftCataloguePatterns(p);
             AddMinecraftPatterns(p);
+            AddMcCommandsPatterns(p);
             AddMorePatterns(p);
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), fn));

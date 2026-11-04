@@ -65,6 +65,14 @@ namespace MonitoringTools.Minecraft
                 case McScheduleKind.Message:
                     if (!running) return "Skipped: the server was not running.";
                     return await ServerManager.CommandAsync(s, "say " + job.Message.Replace("\n", " "));
+                case McScheduleKind.Command:
+                {
+                    if (!running) return "Skipped: the server was not running.";
+                    var line = (job.Command ?? "").Replace("\r", " ").Replace("\n", " ").Trim();
+                    if (line.Length == 0) return "Skipped: the schedule has no command.";
+                    var answer = await ServerManager.CommandAsync(s, line);
+                    return line + " · " + answer;
+                }
                 case McScheduleKind.Backup:
                 {
                     var b = await McBackups.BackUpAsync(s, running, "Scheduled", "");

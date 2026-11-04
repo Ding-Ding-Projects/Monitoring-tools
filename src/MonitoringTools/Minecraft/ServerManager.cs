@@ -72,6 +72,7 @@ namespace MonitoringTools.Minecraft
             s.FolderPath ??= "";
             s.Container ??= "";
             if (string.IsNullOrWhiteSpace(s.JarName)) s.JarName = "server.jar";
+            s.FavouriteCommands ??= new List<string>();
         }
 
         /// <summary>Reloads servers.json (used when the data folder changes under a self-test).</summary>

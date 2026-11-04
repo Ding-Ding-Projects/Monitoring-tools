@@ -137,27 +137,23 @@ namespace MonitoringTools.Minecraft
             w.Write($"name: {name}\nversion: {version}\nmain: sample.{name}\napi-version: '1.21'\n");
         }
 
-        /// <summary>A trimmed copy of a real 1.21.4 reports/commands.json, so the command builder can be shown and tested offline.</summary>
-        public const string SampleCommands = @"{""type"":""root"",""children"":{
-""difficulty"":{""type"":""literal"",""executable"":true,""children"":{""peaceful"":{""type"":""literal"",""executable"":true},""easy"":{""type"":""literal"",""executable"":true},""normal"":{""type"":""literal"",""executable"":true},""hard"":{""type"":""literal"",""executable"":true}}},
-""gamerule"":{""type"":""literal"",""children"":{""keepInventory"":{""type"":""literal"",""executable"":true,""children"":{""value"":{""type"":""argument"",""parser"":""brigadier:bool"",""executable"":true}}},""randomTickSpeed"":{""type"":""literal"",""executable"":true,""children"":{""value"":{""type"":""argument"",""parser"":""brigadier:integer"",""executable"":true}}}}},
-""give"":{""type"":""literal"",""children"":{""targets"":{""type"":""argument"",""parser"":""minecraft:entity"",""properties"":{""type"":""players"",""amount"":""multiple""},""children"":{""item"":{""type"":""argument"",""parser"":""minecraft:item_stack"",""executable"":true,""children"":{""count"":{""type"":""argument"",""parser"":""brigadier:integer"",""properties"":{""min"":1},""executable"":true}}}}}}},
-""kick"":{""type"":""literal"",""children"":{""targets"":{""type"":""argument"",""parser"":""minecraft:entity"",""properties"":{""type"":""players"",""amount"":""multiple""},""executable"":true,""children"":{""reason"":{""type"":""argument"",""parser"":""minecraft:message"",""executable"":true}}}}},
-""list"":{""type"":""literal"",""executable"":true,""children"":{""uuids"":{""type"":""literal"",""executable"":true}}},
-""save-all"":{""type"":""literal"",""executable"":true,""children"":{""flush"":{""type"":""literal"",""executable"":true}}},
-""say"":{""type"":""literal"",""children"":{""message"":{""type"":""argument"",""parser"":""minecraft:message"",""executable"":true}}},
-""time"":{""type"":""literal"",""children"":{""add"":{""type"":""literal"",""children"":{""time"":{""type"":""argument"",""parser"":""minecraft:time"",""properties"":{""min"":0},""executable"":true}}},""query"":{""type"":""literal"",""children"":{""daytime"":{""type"":""literal"",""executable"":true},""gametime"":{""type"":""literal"",""executable"":true},""day"":{""type"":""literal"",""executable"":true}}},""set"":{""type"":""literal"",""children"":{""day"":{""type"":""literal"",""executable"":true},""noon"":{""type"":""literal"",""executable"":true},""night"":{""type"":""literal"",""executable"":true},""midnight"":{""type"":""literal"",""executable"":true},""time"":{""type"":""argument"",""parser"":""minecraft:time"",""properties"":{""min"":0},""executable"":true}}}}},
-""weather"":{""type"":""literal"",""children"":{""clear"":{""type"":""literal"",""executable"":true,""children"":{""duration"":{""type"":""argument"",""parser"":""minecraft:time"",""properties"":{""min"":1},""executable"":true}}},""rain"":{""type"":""literal"",""executable"":true},""thunder"":{""type"":""literal"",""executable"":true}}},
-""whitelist"":{""type"":""literal"",""children"":{""add"":{""type"":""literal"",""children"":{""targets"":{""type"":""argument"",""parser"":""minecraft:game_profile"",""executable"":true}}},""list"":{""type"":""literal"",""executable"":true},""off"":{""type"":""literal"",""executable"":true},""on"":{""type"":""literal"",""executable"":true},""reload"":{""type"":""literal"",""executable"":true},""remove"":{""type"":""literal"",""children"":{""targets"":{""type"":""argument"",""parser"":""minecraft:game_profile"",""executable"":true}}}}}
-}}";
+        /// <summary>A trimmed copy of a real 1.21.4 reports/commands.json (see McSampleReports), so the command builder can be shown and tested offline.</summary>
+        public static string SampleCommands => McSampleReports.Commands;
 
-        private static void CommandsSample()
+        /// <summary>Writes the sample reports for the sample servers' versions into the throwaway data folder's cache.</summary>
+        internal static void CommandsSample()
         {
+            if (Core.Settings.DataDirOverride == null) throw new InvalidOperationException("Sample reports are only written into a throwaway data folder.");
             foreach (var v in new[] { "1.21.4", "1.20.6" })
             {
                 var f = McCommandTree.FileFor(v);
                 Directory.CreateDirectory(Path.GetDirectoryName(f));
                 if (!File.Exists(f)) File.WriteAllText(f, SampleCommands);
+                var r = McRegistries.FileFor(v);
+                if (!File.Exists(r)) File.WriteAllText(r, McSampleReports.Registries);
+                var data = Path.Combine(Path.GetDirectoryName(r), "data-registries.json");
+                if (!File.Exists(data)) File.WriteAllText(data, McSampleReports.DataRegistries);
+                McRegistries.Forget(v);
             }
         }
 

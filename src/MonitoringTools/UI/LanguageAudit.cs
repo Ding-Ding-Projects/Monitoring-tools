@@ -333,6 +333,7 @@ namespace MonitoringTools.UI
                     foreach (var (sec, _, _) in UI.Minecraft.McManagerView.Sections) { mcv.ShowSection(sec); await Settle(350); Scan("minecraft: " + sid + " " + sec, cc); }
                 }
                 mcv.Select("sample-friends");
+                await mcv.VisitCommandStatesAsync(async w => { await Settle(450); Scan("minecraft: " + w, cc); });
                 foreach (var grp in MonitoringTools.Minecraft.McPropertyCatalog.Groups) { UI.Minecraft.McManagerView.SettingsGroup = grp; mcv.ShowSection("settings"); await Settle(300); Scan("minecraft: settings " + grp, cc); }
                 UI.Minecraft.McManagerView.SettingsGroup = "Gameplay";
                 UI.Minecraft.McManagerView.Draft = new UI.Minecraft.McCreateDraft { Version = "1.21.4" };

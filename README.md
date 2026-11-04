@@ -119,9 +119,11 @@ Create your own `:name` commands in the control centre. Each one is a batch or P
 <summary><b>Tabs, tools and safety</b></summary>
 
 - The control centre is a tab strip docked on the left (or any edge), with New tab, pinning, groups, overflow and searches across tabs.
-- Local AI models: manage Ollama on this computer. Tools: draw on pictures, publish a folder to GitHub, open files in your editor. The Minecraft page is a server manager: a server list beside each server's overview, console with a typed command builder, players, settings, worlds and world generator, plugins and mods, backups and schedules, and a six-step create flow. Details: [Minecraft server manager](docs/features/minecraft/README.md).
+- Local AI models: manage Ollama on this computer. Tools: draw on pictures, publish a folder to GitHub, open files in your editor. The Minecraft page is a server manager: a server list beside each server's overview, console, a command builder (task forms with players, items, blocks, effects, bounds and relative positions, and every command of the version, with run, copy, favourites and scheduling), players, settings, worlds and world generator, plugins and mods, backups and schedules, and a six-step create flow. Details: [Minecraft server manager](docs/features/minecraft/README.md).
 
 ![Minecraft server manager](docs/screenshots/mc-overview.png)
+
+![Minecraft command builder](docs/screenshots/mc-commands-give.png)
 - Safety and locks: playful element locks with an unlock ladder, a Support Tickets desk and a built-in authenticator for one-time codes.
 
 What is finished and what is not: [docs/features/required-features.md](docs/features/required-features.md).

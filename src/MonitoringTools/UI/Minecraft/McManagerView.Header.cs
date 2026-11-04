@@ -118,6 +118,7 @@ namespace MonitoringTools.UI.Minecraft
                 if (running) _actions.Children.Add(Ui.Button("Stop", () => _ = Act(s, "Stop", async () => { await ServerManager.StopAsync(s); McLive.For(s).Stopped(); }), "Btn.Accent", Icons.Pause));
                 else _actions.Children.Add(Ui.Button("Start", () => _ = Act(s, "Start", () => ServerManager.StartAsync(s, t => Dispatcher.BeginInvoke(new Action(() => SetStatus(t, "B.TextMute"))))), "Btn.Accent", Icons.Play));
             }
+            if (!s.IsBedrock) _actions.Children.Add(Ui.Button("Commands", () => ShowSection("commands"), "Btn.Ghost", Icons.Bolt));
             if (s.IsLocal) _actions.Children.Add(Ui.Button("Open folder", () => ActionProvider.Shell(s.Folder), "Btn.Ghost", Icons.Folder));
             var remove = McUi.IconButton(Icons.Trash, "Remove from the list", () =>
             {
