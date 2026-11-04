@@ -7,13 +7,13 @@ namespace MonitoringTools.Core
     internal enum QrLevel { L = 0, M = 1, Q = 2, H = 3 }
 
     /// <summary>
-    /// Shared QR Code (ISO/IEC 18004 Model 2) tables and arithmetic for versions 1 to 10: block structure, function
+    /// Shared QR Code (ISO/IEC 18004 Model 2) tables and arithmetic for versions 1 to 40: block structure, function
     /// patterns, format information and Reed-Solomon coding over GF(256). The encoder and the decoder both use it,
     /// so a mistake here cannot be hidden by the two halves agreeing on a private convention.
     /// </summary>
     internal static class QrCommon
     {
-        public const int MaxVersion = 10;
+        public const int MaxVersion = 40;
 
         public static int Size(int version) => 17 + 4 * version;
 
@@ -33,6 +33,56 @@ namespace MonitoringTools.Core
             new[] { new[] { 18, 2, 68, 2, 69 }, new[] { 26, 4, 43, 1, 44 }, new[] { 24, 6, 19, 2, 20 }, new[] { 28, 6, 15, 2, 16 } },
         };
 
+        // Error-correction codewords per block and number of blocks, per level (L, M, Q, H), versions 1 to 40. The
+        // data-block layout of versions 11 to 40 is derived from these and the symbol's capacity; the same derivation
+        // reproduces the explicit table above for versions 1 to 10, which a self-test check asserts.
+        private static readonly int[][] EccPerBlock =
+        {
+            new[] { 7,10,15,20,26,18,20,24,30,18,20,24,26,30,22,24,28,30,28,28,28,28,30,30,26,28,30,30,30,30,30,30,30,30,30,30,30,30,30,30 },
+            new[] { 10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28 },
+            new[] { 13,22,18,26,18,24,18,22,20,24,28,26,24,20,30,24,28,28,26,30,28,30,30,30,30,28,30,30,30,30,30,30,30,30,30,30,30,30,30,30 },
+            new[] { 17,28,22,16,22,28,26,26,24,28,24,28,22,24,24,30,28,28,26,28,30,24,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30 },
+        };
+
+        private static readonly int[][] BlockCounts =
+        {
+            new[] { 1,1,1,1,1,2,2,2,2,4,4,4,4,4,6,6,6,6,7,8,8,9,9,10,12,12,12,13,14,15,16,17,18,19,19,20,21,22,24,25 },
+            new[] { 1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49 },
+            new[] { 1,1,2,2,4,4,6,6,8,8,8,10,12,16,12,17,16,18,21,20,23,23,25,27,29,34,34,35,38,40,43,45,48,51,53,56,59,62,65,68 },
+            new[] { 1,1,2,4,4,4,5,6,8,8,11,11,16,16,18,16,19,21,25,25,25,34,30,32,35,37,40,42,45,48,51,54,57,60,63,66,70,74,77,81 },
+        };
+
+        /// <summary>The number of modules in a version that can hold data or error correction (everything but function patterns).</summary>
+        public static int RawDataModules(int version)
+        {
+            int result = (16 * version + 128) * version + 64;
+            if (version >= 2)
+            {
+                int numAlign = version / 7 + 2;
+                result -= (25 * numAlign - 10) * numAlign - 55;
+                if (version >= 7) result -= 36;
+            }
+            return result;
+        }
+
+        public static int TotalCodewordsOf(int version) => RawDataModules(version) / 8;
+
+        /// <summary>The block layout derived from the per-block error-correction length and block count (versions 1 to 40).</summary>
+        internal static int[] DerivedBlockDataLengths(int version, QrLevel level, out int eccPerBlock)
+        {
+            int l = (int)level;
+            eccPerBlock = EccPerBlock[l][version - 1];
+            int blocks = BlockCounts[l][version - 1];
+            int raw = TotalCodewordsOf(version);
+            int shortLen = raw / blocks;
+            int numShort = blocks - raw % blocks;
+            var list = new List<int>();
+            for (int i = 0; i < blocks; i++) list.Add(shortLen - eccPerBlock + (i < numShort ? 0 : 1));
+            return list.ToArray();
+        }
+
+        public static int TotalCodewordsFor(int version) => version <= 10 ? TotalCodewords[version - 1] : TotalCodewordsOf(version);
+
         public static readonly int[] TotalCodewords = { 26, 44, 70, 100, 134, 172, 196, 242, 292, 346 };
 
         private static readonly int[][] AlignmentCenters =
@@ -41,9 +91,24 @@ namespace MonitoringTools.Core
             new[] { 6, 34 }, new[] { 6, 22, 38 }, new[] { 6, 24, 42 }, new[] { 6, 26, 46 }, new[] { 6, 28, 50 },
         };
 
+        /// <summary>The alignment pattern centres of a version, from the standard's spacing rule (the explicit list is used for versions 1 to 10).</summary>
+        internal static int[] DerivedAlignment(int version)
+        {
+            if (version == 1) return new int[0];
+            int num = version / 7 + 2, size = Size(version);
+            int step = version == 32 ? 26 : (version * 4 + num * 2 + 1) / (num * 2 - 2) * 2;
+            var r = new int[num];
+            r[0] = 6;
+            for (int i = num - 1, pos = size - 7; i >= 1; i--, pos -= step) r[i] = pos;
+            return r;
+        }
+
+        internal static int[] AlignmentFor(int version) => version <= 10 ? AlignmentCenters[version - 1] : DerivedAlignment(version);
+
         /// <summary>The data-block lengths of a version and level, in codeword order, plus the error-correction length per block.</summary>
         public static int[] BlockDataLengths(int version, QrLevel level, out int eccPerBlock)
         {
+            if (version > 10) return DerivedBlockDataLengths(version, level, out eccPerBlock);
             var t = Blocks[version - 1][(int)level];
             eccPerBlock = t[0];
             var list = new List<int>();
@@ -216,7 +281,7 @@ namespace MonitoringTools.Core
             {
                 for (int i = 0; i < Size; i++) { SetFunction(6, i, i % 2 == 0); SetFunction(i, 6, i % 2 == 0); }
                 DrawFinder(3, 3); DrawFinder(Size - 4, 3); DrawFinder(3, Size - 4);
-                var pos = AlignmentCenters[version - 1];
+                var pos = AlignmentFor(version);
                 int last = pos.Length - 1;
                 for (int i = 0; i <= last; i++)
                     for (int j = 0; j <= last; j++)

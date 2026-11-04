@@ -9,11 +9,11 @@ namespace MonitoringTools.Core
 {
     /// <summary>
     /// A QR Code reader written from the specification, with no library. It binarizes the picture with an adaptive
-    /// threshold, finds the three finder patterns, estimates the version (1 to 10), samples the grid through a perspective
+    /// threshold, finds the three finder patterns, estimates the version (1 to 40), samples the grid through a perspective
     /// transform anchored on the alignment pattern, reads the format information, undoes the mask, reads the codewords in
     /// zigzag order, repairs them with Reed-Solomon error correction (levels L, M, Q and H, interleaved blocks) and decodes
     /// numeric, alphanumeric and byte segments. Pictures turned by 90, 180 and 270 degrees and mildly tilted or noisy
-    /// pictures work. Mirrored codes, version 11 and above, and Kanji segments are not supported, and it says so.
+    /// pictures work. Mirrored codes are read by transposing the picture. Kanji segments are not supported, and it says so.
     /// </summary>
     public static class QrDecoder
     {
@@ -48,16 +48,30 @@ namespace MonitoringTools.Core
             text = null;
             if (gray == null || width < 21 || height < 21 || gray.Length < width * height) { error = "The picture is too small to hold a QR code."; return false; }
             var reasons = new List<(int Rank, string Message)>();
-            foreach (bool invert in new[] { false, true })
+            // a mirrored code reads correctly once the picture is transposed (a mirror image is a transpose plus a turn, and turns are handled)
+            for (int pass = 0; pass < 2; pass++)
             {
-                var bw = Binarize(gray, width, height, invert);
-                if (TryDecodeBinary(bw, width, height, out text, reasons)) { error = null; return true; }
+                byte[] g = gray; int gw = width, gh = height;
+                if (pass == 1)
+                {
+                    g = new byte[width * height]; gw = height; gh = width;
+                    for (int y = 0; y < height; y++)
+                        for (int x = 0; x < width; x++) g[x * height + y] = gray[y * width + x];
+                }
+                foreach (bool invert in new[] { false, true })
+                {
+                    var bw = Binarize(g, gw, gh, invert);
+                    if (TryDecodeBinary(bw, gw, gh, out text, reasons)) { error = null; LastWasMirrored = pass == 1; return true; }
+                }
             }
             error = reasons.Count == 0
                 ? "No QR code was found in the picture: there are no finder patterns (the three large squares in the corners)."
                 : reasons.OrderByDescending(r => r.Rank).First().Message;
             return false;
         }
+
+        /// <summary>True when the last successful decode needed the picture mirrored first. Set for the self-test and the pairing dialog's note.</summary>
+        [ThreadStatic] public static bool LastWasMirrored;
 
         // ------------------------------------------------------------ binarization
 
@@ -241,15 +255,25 @@ namespace MonitoringTools.Core
         private sealed class Perspective
         {
             private readonly double a, b, c, d, e, f, g, h;
+            /// <summary>Solves the map from four or more point pairs (least squares when there are more than four).</summary>
             public Perspective(double[] mx, double[] my, double[] ix, double[] iy)
             {
-                var m = new double[8, 9];
-                for (int i = 0; i < 4; i++)
+                int n = mx.Length;
+                var rows = new double[2 * n, 9];
+                for (int i = 0; i < n; i++)
                 {
                     int r = i * 2;
-                    m[r, 0] = mx[i]; m[r, 1] = my[i]; m[r, 2] = 1; m[r, 6] = -mx[i] * ix[i]; m[r, 7] = -my[i] * ix[i]; m[r, 8] = ix[i];
-                    m[r + 1, 3] = mx[i]; m[r + 1, 4] = my[i]; m[r + 1, 5] = 1; m[r + 1, 6] = -mx[i] * iy[i]; m[r + 1, 7] = -my[i] * iy[i]; m[r + 1, 8] = iy[i];
+                    rows[r, 0] = mx[i]; rows[r, 1] = my[i]; rows[r, 2] = 1; rows[r, 6] = -mx[i] * ix[i]; rows[r, 7] = -my[i] * ix[i]; rows[r, 8] = ix[i];
+                    rows[r + 1, 3] = mx[i]; rows[r + 1, 4] = my[i]; rows[r + 1, 5] = 1; rows[r + 1, 6] = -mx[i] * iy[i]; rows[r + 1, 7] = -my[i] * iy[i]; rows[r + 1, 8] = iy[i];
                 }
+                var m = new double[8, 9];
+                for (int p = 0; p < 8; p++)
+                    for (int q = 0; q < 9; q++)
+                    {
+                        double sum = 0;
+                        for (int r = 0; r < 2 * n; r++) sum += rows[r, p] * rows[r, q];
+                        m[p, q] = sum;
+                    }
                 for (int col = 0; col < 8; col++)
                 {
                     int piv = col;
@@ -320,7 +344,7 @@ namespace MonitoringTools.Core
             if (!PickTriple(finders, out var tl, out var tr, out var bl))
             {
                 reasons.Add((0, finders.Count(f => f.Count >= 2) > 0
-                    ? "Finder patterns were seen, but not three that form the corners of one QR code (the picture may be cropped, too small or mirrored)."
+                    ? "Finder patterns were seen, but not three that form the corners of one QR code (the picture may be cropped or too small)."
                     : "No QR code was found in the picture: there are no finder patterns (the three large squares in the corners)."));
                 return false;
             }
@@ -330,7 +354,7 @@ namespace MonitoringTools.Core
             int vEst = (int)Math.Round((dimEst - 17) / 4.0);
             if (vEst > QrCommon.MaxVersion + 1)
             {
-                reasons.Add((3, "Unsupported version: this QR code looks like version " + vEst + ". Versions 1 to " + QrCommon.MaxVersion + " (up to about 200 characters) are supported."));
+                reasons.Add((3, "Unsupported version: this QR code looks like version " + vEst + ". Versions 1 to " + QrCommon.MaxVersion + " are supported."));
                 return false;
             }
             var tries = new List<int>();
@@ -366,6 +390,28 @@ namespace MonitoringTools.Core
             {
                 var tf = new Perspective(an.Mx, an.My, an.Ix, an.Iy);
                 if (!tf.Valid) continue;
+                if (version >= 7 && an.Mx[3] == dim - 6.5)
+                {
+                    // large codes have several alignment patterns: find each one near where the first fit predicts it and refit on all of them
+                    var mxs = new List<double>(an.Mx); var mys = new List<double>(an.My); var ixs = new List<double>(an.Ix); var iys = new List<double>(an.Iy);
+                    var centres = QrCommon.AlignmentFor(version); int last = centres.Length - 1;
+                    for (int i = 0; i <= last; i++)
+                        for (int j = 0; j <= last; j++)
+                        {
+                            if ((i == 0 && j == 0) || (i == 0 && j == last) || (i == last && j == 0) || (i == last && j == last)) continue;
+                            double gx = centres[i] + 0.5, gy = centres[j] + 0.5;
+                            var pp = tf.Map(gx, gy);
+                            var pxm = tf.Map(gx + 1, gy); var pym = tf.Map(gx, gy + 1);
+                            double modPx = Math.Sqrt((pxm.X - pp.X) * (pxm.X - pp.X) + (pxm.Y - pp.Y) * (pxm.Y - pp.Y));
+                            if (FindAlignment(bw, w, h, pp.X, pp.Y, pxm.X - pp.X, pxm.Y - pp.Y, pym.X - pp.X, pym.Y - pp.Y, 2.5 * modPx + 1, out double fx, out double fy))
+                            { mxs.Add(gx); mys.Add(gy); ixs.Add(fx); iys.Add(fy); }
+                        }
+                    if (mxs.Count > 4)
+                    {
+                        var refined = new Perspective(mxs.ToArray(), mys.ToArray(), ixs.ToArray(), iys.ToArray());
+                        if (refined.Valid) tf = refined;
+                    }
+                }
                 var grid = new bool[dim, dim];
                 double[] offs = { 0, -0.22, 0.22 };
                 bool off = false;
@@ -429,7 +475,7 @@ namespace MonitoringTools.Core
             var bits = new List<bool>();
             foreach (var (x, y) in QrCommon.DataPath(tmpl.Function, size))
                 bits.Add(g[y, x] ^ QrCommon.MaskApplies(mask, x, y));
-            int total = QrCommon.TotalCodewords[version - 1];
+            int total = QrCommon.TotalCodewordsFor(version);
             var words = new byte[total];
             for (int i = 0; i < total; i++)
             {
@@ -493,7 +539,7 @@ namespace MonitoringTools.Core
                         case 1:
                         {
                             FlushBytes();
-                            int n = Read(version < 10 ? 10 : 12);
+                            int n = Read(version < 10 ? 10 : version < 27 ? 12 : 14);
                             while (n >= 3) { sb.Append(Read(10).ToString("000")); n -= 3; }
                             if (n == 2) sb.Append(Read(7).ToString("00"));
                             else if (n == 1) sb.Append(Read(4).ToString());
@@ -502,7 +548,7 @@ namespace MonitoringTools.Core
                         case 2:
                         {
                             FlushBytes();
-                            int n = Read(version < 10 ? 9 : 11);
+                            int n = Read(version < 10 ? 9 : version < 27 ? 11 : 13);
                             while (n >= 2) { int v = Read(11); sb.Append(Alnum[v / 45]).Append(Alnum[v % 45]); n -= 2; }
                             if (n == 1) sb.Append(Alnum[Read(6)]);
                             break;
