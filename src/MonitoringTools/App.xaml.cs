@@ -136,7 +136,7 @@ namespace MonitoringTools
                     else Converter.Start(c.SourcePath, c.Format);
                     break;
                 case CommandKind.Push:
-                    if (Modes.Blocks(ModeFeature.Push)) { Toasts.ShowNotice(Modes.SchoolName + " is on", "Pushing to git is paused while it is on.", Toasts.Amber, 3, icon: Icons.Git); break; }
+                    if (Modes.Blocks(ModeFeature.Push)) { Toasts.ShowNotice(Core.Language.Headline("mode.on", Modes.SchoolName), "Pushing to git is paused while it is on.", Toasts.Amber, 3, icon: Icons.Git); break; }
                     Toasts.StartPush(c.SourcePath); break;
                 case CommandKind.Custom:
                     var sc = Shortcuts.Find(c.Format);
@@ -172,7 +172,7 @@ namespace MonitoringTools
 
         private void ShowOffline(NetworkState state)
         {
-            NotificationLog.Add("Offline", state.Headline ?? "Internet connection lost", state.Cause.ToString());
+            NotificationLog.Add("Offline", Core.Language.NetHeadline(state.Headline ?? "Internet connection lost"), state.Cause.ToString());
             if (ShouldSuppress) { _offlineDeferred = true; return; }
             _offlineDeferred = false;
             _offline = new OfflineWindow(state);

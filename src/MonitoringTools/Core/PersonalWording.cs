@@ -31,7 +31,11 @@ namespace MonitoringTools.Core
         public static event Action Changed;
 
         public static int Count => _map.Count;
-        public static bool Active => _map.Count > 0;
+        /// <summary>True when a wording file is loaded and School mode is not leaving personal wording out.</summary>
+        public static bool Active => _map.Count > 0 && !Modes.Blocks(ModeFeature.PersonalVocabulary);
+
+        /// <summary>Tells listeners to re-apply the wording, for example after School mode switched on or off.</summary>
+        internal static void Reapply() => Changed?.Invoke();
         private static string CachePath => Path.Combine(Settings.DataDir, "wording.json");
 
         /// <summary>The headline for the celebration: the file's own value for "private vocabulary", else a neutral one.</summary>
@@ -55,6 +59,7 @@ namespace MonitoringTools.Core
         /// <summary>Validates and applies a file. Returns a short user-facing result; never the payload.</summary>
         public static bool TryApply(string path, out string message)
         {
+            if (Modes.Blocks(ModeFeature.PersonalVocabulary)) { message = Modes.SchoolName + " is on, so personal wording is left out until it is off."; return false; }
             try
             {
                 var info = new FileInfo(path);

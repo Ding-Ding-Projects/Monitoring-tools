@@ -149,9 +149,22 @@ namespace MonitoringTools.UI
             Toggle("Sound effects", "clipboard", () => s.SoundsEnabled, v => s.SoundsEnabled = v);
             Toggle("Start with Windows", "service", () => s.StartWithWindows, v => { s.StartWithWindows = v; ServiceHost.ApplyAutostart(); });
             Choice("Volume", "clipboard", new[] { ("Low", 0.3), ("Medium", 0.6), ("Full", 1.0) }, () => s.SoundVolume, v => s.SoundVolume = v);
-            list.Add(new Item { Group = "Settings", Title = "Personal wording", Detail = PersonalWording.Active ? $"Loaded, {PersonalWording.Count} phrases" : "No file loaded", Icon = Icons.Text, Page = "service", Run = () => Go("service", "Personal wording") });
-            Act("Choose a personal wording file", Icons.Text, () => WordingLayer.PickAndApply(App.Current.MainWindow));
-            if (PersonalWording.Active) Act("Clear personal wording", Icons.Restart, PersonalWording.Clear);
+            // School mode leaves personal wording out, so its entries are left out too.
+            if (!Modes.Blocks(ModeFeature.PersonalVocabulary))
+            {
+                list.Add(new Item { Group = "Settings", Title = "Personal wording", Detail = PersonalWording.Active ? $"Loaded, {PersonalWording.Count} phrases" : "No file loaded", Icon = Icons.Text, Page = "service", Run = () => Go("service", "Personal wording") });
+                Act("Choose a personal wording file", Icons.Text, () => WordingLayer.PickAndApply(App.Current.MainWindow));
+                if (PersonalWording.Active) Act("Clear personal wording", Icons.Restart, PersonalWording.Clear);
+            }
+
+            // The ADHD switches and the Focus spotlight. Each one says what it does, as on the Modes page.
+            Toggle("Focus spotlight", "modes", () => s.AdhdSpotlight, v => FocusSpotlight.Set(v), "Dim all but the card under focus or the mouse · Ctrl+Shift+Space");
+            Toggle("Focus", "modes", () => s.AdhdFocus, v => { s.AdhdFocus = v; Modes.NotifyChanged(); }, "ADHD mode · hold non-urgent popups in History");
+            Toggle("Low stimulation", "modes", () => s.AdhdLowStimulation, v => { s.AdhdLowStimulation = v; Modes.NotifyChanged(); }, "ADHD mode · no motion, only warnings make a sound");
+            Toggle("Time awareness", "modes", () => s.AdhdTimeAwareness, v => { s.AdhdTimeAwareness = v; Modes.NotifyChanged(); }, "ADHD mode · elapsed time and a gentle reminder");
+            Choice("Reminder interval", "modes", new[] { ("15 min", 15), ("30 min", 30), ("45 min", 45), ("60 min", 60), ("90 min", 90) }, () => s.TimeReminderMinutes, v => { s.TimeReminderMinutes = v; Modes.NotifyChanged(); });
+            Toggle("One thing at a time", "modes", () => s.AdhdOneThing, v => { s.AdhdOneThing = v; Modes.NotifyChanged(); }, "ADHD mode · one popup on screen at once");
+            Toggle("Momentum", "modes", () => s.AdhdMomentum, v => { s.AdhdMomentum = v; Modes.NotifyChanged(); }, "ADHD mode · reopen on the page you left");
 
             Act("Test connection now", Icons.Wifi, () => App.Net.ProbeNow());
             Act("Check public IP now", Icons.Globe, async () => { await App.PublicIp.CheckAsync(); Go("network", "Public IP"); });

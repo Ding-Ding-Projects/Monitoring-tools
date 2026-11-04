@@ -5,7 +5,7 @@ The Modes page (Settings, then Modes) holds five features. Each control on the p
 | Feature | Article | Default |
 | --- | --- | --- |
 | School mode | [school-mode.md](school-mode.md) | Off |
-| ADHD modes | [adhd-modes.md](adhd-modes.md) | All five off |
+| ADHD modes and Focus spotlight | [adhd-modes.md](adhd-modes.md) | All off |
 | Dim sum surprise | [dim-sum-surprise.md](dim-sum-surprise.md) | 10% chance per launch, no switch |
 | Scheduled settings | [scheduled-settings.md](scheduled-settings.md) | No rules |
 | Settings file | [settings-file.md](settings-file.md) | Not following a file |
@@ -24,6 +24,8 @@ The Modes page (Settings, then Modes) holds five features. Each control on the p
 | `Modes.ClipboardToastsOn` | `Settings.Current.ClipboardEnabled` in the clipboard handler. |
 | `Modes.ScheduledLanguage`, `Modes.ScheduledTheme` | Null means use the saved choice; otherwise apply the returned string. |
 | `Modes.Focus`, `Modes.ShouldHoldToast(urgent)`, `Modes.OneThing`, `Modes.LowStimulation`, `Modes.ReduceMotion`, `Modes.TimeAwareness`, `Modes.Momentum` | ADHD behaviour; see [adhd-modes.md](adhd-modes.md). |
+| `Modes.PasswordIsSet`, `Modes.CredentialIsSet`, `Modes.CredentialWord` | Whether a PIN, a password or both turn School mode off. |
+| `FocusSpotlight.Set(bool)` | Switch the Focus spotlight and keep the choice. |
 | `Modes.Changed` event | Raised on the UI thread when any effective value changes. |
 
 Verification status: the page and core compile; the behaviour has not been exercised in a running build.

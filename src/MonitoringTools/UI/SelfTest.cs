@@ -635,6 +635,134 @@ namespace MonitoringTools.UI
                 var first = doc.RootElement.GetProperty("shortcuts")[0];
                 return first.GetProperty("Name").GetString() == "demo" && first.GetProperty("Script").GetString() == "echo hi" ? null : "export shape wrong";
             });
+            // ---- language headlines, accessible names, School mode and the ADHD aids
+            Check("humour: every headline differs by level yet keeps the same facts", () =>
+            {
+                var facts = new object[] { "FACT-ZERO", "FACT-ONE" };
+                var indexes = new Regex(@"\{(\d)\}");
+                foreach (var key in Core.Language.HeadlineKeys.ToList())
+                    foreach (var lang in new[] { LanguageMode.English, LanguageMode.Cantonese })
+                    {
+                        var used = Enumerable.Range(1, 5).Select(l => string.Join(",", indexes.Matches(Core.Language.Variant(key, lang, l)).Select(m => m.Groups[1].Value).Distinct().OrderBy(x => x))).Distinct().ToList();
+                        if (used.Count != 1) return $"{key} ({lang}): levels use different facts: {string.Join(" | ", used)}";
+                        var texts = Enumerable.Range(1, 5).Select(l => Core.Language.Variant(key, lang, l, facts)).ToList();
+                        if (texts.Distinct().Count() < 3) return $"{key} ({lang}): fewer than three distinct levels";
+                        foreach (var idx in used[0].Split(',', StringSplitOptions.RemoveEmptyEntries))
+                            foreach (var t in texts)
+                                if (!t.Contains(facts[int.Parse(idx)].ToString())) return $"{key} ({lang}): a level lost fact {idx}: {t}";
+                    }
+                return null;
+            });
+            Check("humour: the plain level of each notice headline keeps the original title", () =>
+            {
+                var pairs = new[]
+                {
+                    ("Open in editor", "notice.editor"), ("Time check", "notice.timecheck"), ("IP address renewed", "notice.ip.renewed"), ("Cancelled", "notice.cancelled"),
+                    ("ipconfig finished", "notice.ipconfig"), ("Administrator rights unchanged", "notice.admin.unchanged"), ("DNS switch failed", "notice.dns.failed"),
+                    ("Checking the connection", "notice.checking"), ("Uninstalled", "notice.uninstalled"), ("Wording file refused", "notice.wording.refused"),
+                    ("Internet connection lost", "offline.title"), ("No network connection", "offline.noadapter"), ("Router is not responding", "offline.router"),
+                    ("Sign-in required", "offline.signin"), ("Conversion cancelled", "convert.cancelled"),
+                };
+                foreach (var (title, key) in pairs)
+                    if (Core.Language.Variant(key, LanguageMode.English, 1) != title) return $"{key} at level 1 is not \"{title}\"";
+                var saved = (Settings.Current.EnglishHumour, Settings.Current.LanguageMode);
+                try
+                {
+                    Settings.Current.LanguageMode = LanguageMode.English; Settings.Current.EnglishHumour = 1;
+                    var dns = Core.Language.NoticeTitle("DNS is now Cloudflare");
+                    return dns == "DNS is now Cloudflare" && Core.Language.NoticeTitle("Cancelled") == "Cancelled" && Core.Language.NetHeadline("Router is not responding") == "Router is not responding"
+                        ? null : "the plain level changed a title: " + dns;
+                }
+                finally { (Settings.Current.EnglishHumour, Settings.Current.LanguageMode) = saved; }
+            });
+            Check("language: accessible names and help text translate and restore exactly", () =>
+            {
+                var saved = Settings.Current.LanguageMode;
+                try
+                {
+                    var panel = new StackPanel();
+                    var b = new Button(); System.Windows.Automation.AutomationProperties.SetName(b, "Clipboard history"); System.Windows.Automation.AutomationProperties.SetHelpText(b, "Overview");
+                    var lit = new Button(); System.Windows.Automation.AutomationProperties.SetName(lit, "Clipboard history"); Core.Language.SetLiteral(lit, true);
+                    panel.Children.Add(b); panel.Children.Add(lit);
+                    bool Cjk(string x) => x.Any(c => c >= 0x2E80);
+                    Settings.Current.LanguageMode = LanguageMode.Cantonese; Core.Language.Refresh(panel);
+                    var yue = System.Windows.Automation.AutomationProperties.GetName(b); var help = System.Windows.Automation.AutomationProperties.GetHelpText(b);
+                    if (!Cjk(yue)) return "name not translated: " + yue;
+                    if (!Cjk(help)) return "help text not translated: " + help;
+                    if (System.Windows.Automation.AutomationProperties.GetName(lit) != "Clipboard history") return "an element marked literal was translated";
+                    Settings.Current.LanguageMode = LanguageMode.Bilingual; Core.Language.Refresh(panel);
+                    var both = System.Windows.Automation.AutomationProperties.GetName(b);
+                    if (!both.Contains("Clipboard history") || !Cjk(both)) return "bilingual name wrong: " + both;
+                    Settings.Current.LanguageMode = LanguageMode.English; Core.Language.Refresh(panel);
+                    var back = System.Windows.Automation.AutomationProperties.GetName(b); var backHelp = System.Windows.Automation.AutomationProperties.GetHelpText(b);
+                    return back == "Clipboard history" && backHelp == "Overview" ? null : $"not restored exactly: {back} / {backHelp}";
+                }
+                finally { Settings.Current.LanguageMode = saved; }
+            });
+            Check("school: a password needs 8 characters and its hash round-trips", () =>
+            {
+                if (Modes.PasswordLooksValid("short7!")) return "a 7-character password was accepted";
+                if (!Modes.PasswordLooksValid("longer-pass")) return "an 11-character password was refused";
+                var c = Modes.MakeCredential("longer-pass");
+                if (!Modes.MatchesCredential("longer-pass", c.Salt, c.Hash, c.Iterations)) return "the right password did not match";
+                if (Modes.MatchesCredential("longer-pass!", c.Salt, c.Hash, c.Iterations)) return "a wrong password matched";
+                return null;
+            });
+            await CheckAsync("school: the language page hides the language choices and humour sliders and English is forced", async () =>
+            {
+                var saved = Settings.Current.LanguageMode;
+                var cc = new ControlCentreWindow { Width = 1180, Height = 820 };
+                try
+                {
+                    cc.Show();
+                    await Task.Delay(700);
+                    Settings.Current.LanguageMode = LanguageMode.English;
+                    cc.Navigate("language", animate: false);
+                    await Task.Delay(400);
+                    var open = SearchScope.Text(cc);
+                    if (!open.Contains("English humour") || !open.Contains("廣東話")) return "the language choices or humour sliders are missing before School mode";
+                    Settings.Current.LanguageMode = LanguageMode.Cantonese;
+                    Modes.ForceSchoolForTest(true);
+                    if (!Core.Language.IsEnglish) return "language is not forced to English";
+                    if (Core.Language.Headline("snooze", "14:30") != Core.Language.Variant("snooze", LanguageMode.English, 1, "14:30")) return "headlines are not plain";
+                    cc.Navigate("language", animate: false);
+                    await Task.Delay(400);
+                    var text = SearchScope.Text(cc);
+                    if (text.Contains("廣東話")) return "a Cantonese choice is still shown";
+                    if (text.Contains("English humour") || text.Contains("Cantonese humour")) return "a humour slider is still shown";
+                    return text.Contains("English only") ? null : "the page does not name the mode";
+                }
+                finally { Modes.ForceSchoolForTest(false); Settings.Current.LanguageMode = saved; cc.Close(); }
+            });
+            Check("palette: every ADHD switch and the Focus spotlight have an entry", () =>
+            {
+                var titles = CommandPalette.Items().Select(i => i.Title).ToList();
+                foreach (var t in new[] { "Focus spotlight", "Focus", "Low stimulation", "Time awareness", "One thing at a time", "Momentum" })
+                    if (!titles.Contains(t)) return "missing the entry " + t;
+                return null;
+            });
+            await CheckAsync("spotlight: switching it on adds a dim layer to an open window and off removes it", async () =>
+            {
+                var cc = new ControlCentreWindow { Width = 1180, Height = 820 };
+                try
+                {
+                    cc.Show();
+                    await Task.Delay(700);
+                    var root = (UIElement)cc.Content;
+                    var layer = System.Windows.Documents.AdornerLayer.GetAdornerLayer(root);
+                    if (layer == null) return "the window has no adorner layer";
+                    int Count() => layer.GetAdorners(root)?.Length ?? 0;
+                    int before = Count();
+                    FocusSpotlight.Set(true);
+                    await Task.Delay(250);
+                    int on = Count();
+                    FocusSpotlight.Set(false);
+                    await Task.Delay(250);
+                    int off = Count();
+                    return on == before + 1 && off == before ? null : $"layers before {before}, on {on}, off {off}";
+                }
+                finally { FocusSpotlight.Set(false); cc.Close(); }
+            });
 
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");

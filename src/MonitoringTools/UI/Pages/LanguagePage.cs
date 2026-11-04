@@ -22,28 +22,56 @@ namespace MonitoringTools.UI
             var s = Settings.Current;
             var root = PageRoot("Settings", "Language and voice", "Language, humour, emoji and the narrator.");
 
+            // School mode leaves the language choices, humour levels and personal wording out entirely.
+            bool school = Modes.SchoolActive;
+
             // ---- language
             var lang = new StackPanel();
-            lang.Children.Add(CardTitle("Language", "Choose the language of the whole app: every page, toast, dialog, tray menu and palette entry. Switching applies at once to every open window."));
-            lang.Children.Add(Choice("App language",
-                new[] { ("English", LanguageMode.English), ("廣東話", LanguageMode.Cantonese), ("English + 廣東話", LanguageMode.Bilingual) },
-                s.LanguageMode, v => { s.LanguageMode = v; Lang.Refresh(); }));
-            lang.Children.Add(Ui.Text("Default: English. Bilingual shows English first, then Cantonese: short labels sit on one line, sentences use two lines."));
-            root.Children.Add(Card(lang));
+            if (school)
+            {
+                lang.Children.Add(CardTitle("Language", Modes.SchoolName + " is on. The app shows English only, and the language choices, humour levels and personal wording are left out until it is off."));
+                root.Children.Add(Card(lang));
+            }
+            else
+            {
+                lang.Children.Add(CardTitle("Language", "Choose the language of the whole app: every page, toast, dialog, tray menu and palette entry. Switching applies at once to every open window."));
+                lang.Children.Add(Choice("App language",
+                    new[] { ("English", LanguageMode.English), ("廣東話", LanguageMode.Cantonese), ("English + 廣東話", LanguageMode.Bilingual) },
+                    s.LanguageMode, v => { s.LanguageMode = v; Lang.Refresh(); }));
+                lang.Children.Add(Ui.Text("Default: English. Bilingual shows English first, then Cantonese: short labels sit on one line, sentences use two lines."));
+                var scheduled = Modes.ScheduledLanguage;
+                if (scheduled != null)
+                    lang.Children.Add(Ui.Text("A schedule rule or the settings file is setting the language to " + (scheduled == "en" ? "English" : scheduled == "yue" ? "Cantonese" : "bilingual") + " right now. Your saved choice above returns when it ends."));
+                root.Children.Add(Card(lang));
+            }
 
             // ---- humour
             var hum = new StackPanel();
-            hum.Children.Add(CardTitle("Humour", "Humour changes only the tone of headline messages such as the offline dialog, conversion results and snooze notices. The facts in them never change. Level 1 is plain and precise; level 5 is playful."));
-            hum.Children.Add(HumourRow("English humour", "Default: 3. Used for English headlines, and for the English line in bilingual mode.", LanguageMode.English,
-                () => s.EnglishHumour, v => s.EnglishHumour = v));
-            hum.Children.Add(HumourRow("Cantonese humour", "Default: 3. Used for Cantonese headlines, and for the Cantonese line in bilingual mode.", LanguageMode.Cantonese,
-                () => s.CantoneseHumour, v => s.CantoneseHumour = v));
+            if (school)
+            {
+                hum.Children.Add(CardTitle("Dialogs", "Headlines are plain while " + Modes.SchoolName + " is on. The humour levels are left out until it is off."));
+            }
+            else
+            {
+                hum.Children.Add(CardTitle("Humour", "Humour changes only the tone of headline messages such as the offline dialog, conversion results and snooze notices. The facts in them never change. Level 1 is plain and precise; level 5 is playful."));
+                hum.Children.Add(HumourRow("English humour", "Default: 3. Used for English headlines, and for the English line in bilingual mode.", LanguageMode.English,
+                    () => s.EnglishHumour, v => s.EnglishHumour = v));
+                hum.Children.Add(HumourRow("Cantonese humour", "Default: 3. Used for Cantonese headlines, and for the Cantonese line in bilingual mode.", LanguageMode.Cantonese,
+                    () => s.CantoneseHumour, v => s.CantoneseHumour = v));
+            }
             hum.Children.Add(Switch("Emoji in dialogs", "Show emoji in toast and dialog titles. Turn it off to strip emoji from the start and end of titles. Default: on.",
                 s.EmojiInDialogs, v => s.EmojiInDialogs = v));
             root.Children.Add(Card(hum));
 
             // ---- narrator
-            root.Children.Add(Card(NarratorSection(s)));
+            root.Children.Add(Card(NarratorSection(s, school)));
+
+            // Follow School mode and schedule changes made while this page is open.
+            string Snapshot() => $"{Modes.SchoolActive}|{Modes.SchoolName}|{Modes.ScheduledLanguage}";
+            var shape = Snapshot();
+            Action changed = () => { if (root.IsLoaded && Snapshot() != shape) Navigate("language", animate: false); };
+            root.Loaded += (a2, b2) => Modes.Changed += changed;
+            root.Unloaded += (a2, b2) => Modes.Changed -= changed;
             return root;
         }
 
@@ -146,7 +174,7 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- narrator
 
-        private static FrameworkElement NarratorSection(Settings s)
+        private static FrameworkElement NarratorSection(Settings s, bool school)
         {
             var sec = new StackPanel();
             sec.Children.Add(CardTitle("Narrator"));
@@ -169,12 +197,13 @@ namespace MonitoringTools.UI
                 int shown = 0;
                 shown += VoiceGroup(host, "English voice", "Default: automatic, the first installed English voice.", english, search,
                     () => s.EnglishVoiceId, id => s.EnglishVoiceId = id, false);
-                shown += VoiceGroup(host, "Cantonese voice", "Default: automatic, the first installed Cantonese voice.", cantonese, search,
-                    () => s.CantoneseVoiceId, id => s.CantoneseVoiceId = id, true);
-                search.SetCount(shown, english.Count + cantonese.Count, "voices");
+                if (!school)
+                    shown += VoiceGroup(host, "Cantonese voice", "Default: automatic, the first installed Cantonese voice.", cantonese, search,
+                        () => s.CantoneseVoiceId, id => s.CantoneseVoiceId = id, true);
+                search.SetCount(shown, english.Count + (school ? 0 : cantonese.Count), "voices");
             }
             search.Filter += Build;
-            search.SampleSource = () => english.Concat(cantonese).Select(v => v.Name + " " + v.Language);
+            search.SampleSource = () => (school ? english : english.Concat(cantonese)).Select(v => v.Name + " " + v.Language);
             Build();
             SearchScope.SetItem(voices, "voices narrator speech english cantonese 廣東話");
             sec.Children.Add(voices);

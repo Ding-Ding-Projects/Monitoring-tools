@@ -32,7 +32,7 @@ Narrator.Speak(title, Core.Language.Yue(title));     // queues speech for a toas
 
 Inside a class derived from `FrameworkElement` (any window), write `Core.Language` or alias it, because `FrameworkElement.Language` hides the type name.
 
-Headline keys: `offline.title`, `online.title`, `ip.changed`, `convert.done`, `convert.failed`, `push.done`, `push.failed`, `game.mode`, `snooze`, `history.empty`, `search.none`, `update.available`, `welcome`.
+Headline keys: `offline.title`, `online.title`, `ip.changed`, `convert.done`, `convert.failed`, `push.done`, `push.failed`, `game.mode`, `snooze`, `history.empty`, `search.none`, `update.available`, `welcome`, `narrator.test`, plus `convert.start`, `convert.cancelled`, `ffmpeg.missing`, `task.done`, `task.failed`, `shortcut.done`, `shortcut.failed`, `offline.noadapter`, `offline.noaddress`, `offline.noroute`, `offline.signin`, `offline.router`, `notice.*` and `mode.on`. `Language.NoticeTitle(title)` maps a plain notice title to its key, and `Language.NetHeadline(diagnosis)` maps a network diagnosis the same way. Each key has five English and five Cantonese variants, and the self-test checks that the levels differ while keeping the same facts.
 
 ## Failure modes
 
@@ -42,4 +42,4 @@ Headline keys: `offline.title`, `online.title`, `ip.changed`, `convert.done`, `c
 
 ## Verification
 
-Compile-checked only so far. Runtime checks still to do: switching the mode with several windows open, restoring English exactly, bilingual line breaks in narrow chips, and speaking with real installed voices.
+Compile-checked, with self-test checks written for headline levels and facts, accessible-name round trips and the School mode language page (not yet run by the author on a hidden desktop). Runtime checks still to do: switching the mode with several windows open, restoring English exactly, bilingual line breaks in narrow chips, and speaking with real installed voices.

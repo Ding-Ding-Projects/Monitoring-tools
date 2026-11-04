@@ -77,9 +77,13 @@ namespace MonitoringTools.UI
             var wash = new SolidColorBrush(Color.FromArgb(0x26, _accent.R, _accent.G, _accent.B));
             IconHost.Content = icon == null ? null : Ui.IconChip(icon, accent, wash);
             title = Core.Language.Title(title);
-            Core.Narrator.Speak(title, Core.Language.Yue(title));
+            var (spokenEn, spokenYue) = Core.Language.SpeechParts(title);
+            Core.Narrator.Speak(spokenEn, spokenYue);
             TitleText.Text = title;
             MetaText.Text = meta ?? "";
+            // The header is rewritten after the window loaded (a job finishing, a task result), so translate it again.
+            Core.Language.Refresh(TitleText);
+            Core.Language.Refresh(MetaText);
         }
 
         public void SetBody(UIElement body) => BodyHost.Content = body;
