@@ -225,7 +225,8 @@ namespace MonitoringTools.Core
         {
             Map.Remove(key);
             Settings.Save();
-            if (target != null) Apply(target, new ElementStyle());
+            // Keys without a page part ("tab:..." and "group:...") belong to the tab strip, which rebuilds itself from the change event.
+            if (target != null && key.IndexOf('|') >= 0) Apply(target, new ElementStyle());
             RestoreMatching(key);
             Changed?.Invoke();
         }

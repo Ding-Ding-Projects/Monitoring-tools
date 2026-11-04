@@ -7,6 +7,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using MonitoringTools.Core;
+using static MonitoringTools.UI.Tabs.TabText;
 
 namespace MonitoringTools.UI.Tabs
 {
@@ -20,7 +22,7 @@ namespace MonitoringTools.UI.Tabs
             public Peer(TabListPanel owner) : base(owner) { }
             protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Tab;
             protected override string GetClassNameCore() => "TabList";
-            protected override string GetNameCore() => "Open tabs";
+            protected override string GetNameCore() => T("Open tabs");
             protected override AutomationOrientation GetOrientationCore() => ((TabListPanel)Owner).Orientation == Orientation.Vertical ? AutomationOrientation.Vertical : AutomationOrientation.Horizontal;
         }
     }
@@ -31,6 +33,8 @@ namespace MonitoringTools.UI.Tabs
         private readonly TabStrip _o;
         public readonly string TabId;
         public bool IsActive { get; }
+        /// <summary>The label text, or null in the narrow icon-only strip. Saved looks are applied to it.</summary>
+        public TextBlock LabelBlock { get; private set; }
         private readonly bool _vertical;
         private readonly Border _hi, _ring;
         private Point _down;
@@ -39,9 +43,10 @@ namespace MonitoringTools.UI.Tabs
         public StripTab(TabStrip owner, TabInfo info, bool vertical, bool compact, string accentKey, int position, int size)
         {
             _o = owner; TabId = info.Id; IsActive = info.Active; _vertical = vertical;
-            Height = 40; CornerRadius = new CornerRadius(19);
+            Height = Appearance.Row(40); CornerRadius = new CornerRadius(19);
+            System.Windows.Documents.TextElement.SetFontSize(this, 14); System.Windows.Documents.TextElement.SetFontFamily(this, Ui.Font("F.Body"));
             Focusable = true; KeyboardNavigation.SetIsTabStop(this, false); FocusVisualStyle = null; Cursor = Cursors.Hand; AllowDrop = true;
-            Margin = vertical ? new Thickness(0, 0, 0, 2) : new Thickness(0, 0, 4, 0);
+            Margin = vertical ? new Thickness(0, 0, 0, Appearance.Gap(2)) : new Thickness(0, 0, 4, 0);
             if (compact) { Width = 44; HorizontalAlignment = HorizontalAlignment.Center; }
             else if (!vertical) { MinWidth = 120; MaxWidth = 230; }
             if (info.Active) SetResourceReference(BackgroundProperty, "B.SecondaryContainer"); else Background = Brushes.Transparent;
@@ -77,6 +82,7 @@ namespace MonitoringTools.UI.Tabs
             {
                 var label = new TextBlock { Text = info.Label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 14, FontFamily = Ui.Font("F.Body"), FontWeight = info.Active ? FontWeights.SemiBold : FontWeights.Medium, IsHitTestVisible = false };
                 label.SetResourceReference(TextBlock.ForegroundProperty, fg);
+                LabelBlock = label;
                 Grid.SetColumn(label, 1);
                 row.Children.Add(label);
                 FrameworkElement trail;
@@ -91,7 +97,7 @@ namespace MonitoringTools.UI.Tabs
                 }
                 else
                 {
-                    var x = new Border { Width = 26, Height = 26, CornerRadius = new CornerRadius(13), Background = Brushes.Transparent, Opacity = 0.65, Cursor = Cursors.Arrow, ToolTip = "Close tab (Ctrl+W)", VerticalAlignment = VerticalAlignment.Center };
+                    var x = new Border { Width = 26, Height = 26, CornerRadius = new CornerRadius(13), Background = Brushes.Transparent, Opacity = 0.65, Cursor = Cursors.Arrow, ToolTip = T("Close tab") + " (Ctrl+W)", VerticalAlignment = VerticalAlignment.Center };
                     var glyph = Ui.Icon(Icons.Close, Ui.Res("B.TextSoft"), 11, 1.8);
                     glyph.SetResourceReference(Shape.StrokeProperty, fg);
                     x.Child = glyph;
@@ -99,8 +105,8 @@ namespace MonitoringTools.UI.Tabs
                     x.MouseLeave += (s, e) => { x.Background = Brushes.Transparent; x.Opacity = 0.65; };
                     x.MouseLeftButtonDown += (s, e) => e.Handled = true;
                     x.MouseLeftButtonUp += (s, e) => { e.Handled = true; _o.CloseTab(TabId); };
-                    x.MouseRightButtonUp += (s, e) => { e.Handled = true; _o.OpenTabMenu(this, e.GetPosition(Window.GetWindow(this))); };
-                    AutomationProperties.SetName(x, "Close " + info.Label);
+                    x.MouseRightButtonUp += (s, e) => { e.Handled = true; _o.OpenTabMenuMouse(this, e.GetPosition(Window.GetWindow(this))); };
+                    AutomationProperties.SetName(x, T("Close tab") + " " + info.Label);
                     trail = x;
                 }
                 Grid.SetColumn(trail, 2);
@@ -109,12 +115,12 @@ namespace MonitoringTools.UI.Tabs
             grid.Children.Add(row);
             Child = grid;
 
-            ToolTip = info.Label + (info.Pinned ? " (pinned)" : "") + (info.GroupName != null ? " · group " + info.GroupName : "");
-            AutomationProperties.SetName(this, info.Label + (info.Pinned ? ", pinned" : "") + (info.GroupName != null ? ", group " + info.GroupName : ""));
-            AutomationProperties.SetItemStatus(this, info.Active ? "selected" : "not selected");
+            ToolTip = info.Label + (info.Pinned ? " " + T("(pinned)") : "") + (info.GroupName != null ? " · " + T("group") + " " + info.GroupName : "");
+            AutomationProperties.SetName(this, info.Label + (info.Pinned ? ", " + T("pinned") : "") + (info.GroupName != null ? ", " + T("group") + " " + info.GroupName : ""));
+            AutomationProperties.SetItemStatus(this, T(info.Active ? "selected" : "not selected"));
             AutomationProperties.SetPositionInSet(this, position);
             AutomationProperties.SetSizeOfSet(this, size);
-            AutomationProperties.SetHelpText(this, "Enter opens. Delete or Ctrl+W closes. Ctrl+Shift+P pins. Ctrl+Shift+Up or Down reorders. Applications key opens the menu.");
+            AutomationProperties.SetHelpText(this, T("Enter opens. Delete or Ctrl+W closes. Ctrl+Shift+P pins. Ctrl+Shift+Up or Down reorders. Applications key opens the menu. Shift plus right-click edits the tab appearance."));
 
             MouseEnter += (s, e) => _hi.Opacity = 0.08;
             MouseLeave += (s, e) => { _hi.Opacity = 0; _pressed = false; };
@@ -123,7 +129,7 @@ namespace MonitoringTools.UI.Tabs
             MouseLeftButtonDown += (s, e) => { _pressed = true; _down = e.GetPosition(this); _hi.Opacity = 0.12; Focus(); };
             MouseLeftButtonUp += (s, e) => { _hi.Opacity = 0.08; if (_pressed) { _pressed = false; _o.Activate(TabId); } };
             MouseDown += (s, e) => { if (e.ChangedButton == MouseButton.Middle) { e.Handled = true; _o.CloseTab(TabId); } };
-            MouseRightButtonUp += (s, e) => { e.Handled = true; _o.OpenTabMenu(this, e.GetPosition(Window.GetWindow(this))); };
+            MouseRightButtonUp += (s, e) => { e.Handled = true; _o.OpenTabMenuMouse(this, e.GetPosition(Window.GetWindow(this))); };
             MouseMove += (s, e) =>
             {
                 if (!_pressed || e.LeftButton != MouseButtonState.Pressed) return;
@@ -178,13 +184,15 @@ namespace MonitoringTools.UI.Tabs
         private readonly TabStrip _o;
         public readonly string GroupId;
         private readonly Border _hi, _ring;
+        /// <summary>The group name text, or null in the narrow icon-only strip. Saved looks are applied to it.</summary>
+        public TextBlock NameBlock { get; private set; }
 
         public GroupHeader(TabStrip owner, TabGroupInfo g, bool vertical, bool compact)
         {
             _o = owner; GroupId = g.Id;
-            Height = 32; CornerRadius = new CornerRadius(10);
+            Height = Appearance.Row(32); CornerRadius = new CornerRadius(10);
             Focusable = true; KeyboardNavigation.SetIsTabStop(this, false); FocusVisualStyle = null; Cursor = Cursors.Hand; AllowDrop = true; Background = Brushes.Transparent;
-            Margin = vertical ? new Thickness(0, 6, 0, 2) : new Thickness(6, 0, 4, 0);
+            Margin = vertical ? new Thickness(0, Appearance.Gap(6), 0, Appearance.Gap(2)) : new Thickness(6, 0, 4, 0);
             if (compact) { Width = 44; HorizontalAlignment = HorizontalAlignment.Center; }
             var grid = new Grid();
             _hi = new Border { CornerRadius = new CornerRadius(10), Opacity = 0, IsHitTestVisible = false };
@@ -206,6 +214,7 @@ namespace MonitoringTools.UI.Tabs
             {
                 var name = new TextBlock { Text = g.Name, Margin = new Thickness(8, 0, 0, 0), FontSize = 12, FontWeight = FontWeights.SemiBold, FontFamily = Ui.Font("F.Body"), MaxWidth = vertical ? 120 : 160, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
                 name.SetResourceReference(TextBlock.ForegroundProperty, "B.TextSoft");
+                NameBlock = name;
                 var count = new TextBlock { Text = g.Count.ToString(), Margin = new Thickness(6, 0, 0, 0), FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
                 count.SetResourceReference(TextBlock.ForegroundProperty, "B.TextMute");
                 row.Children.Add(name);
@@ -213,16 +222,16 @@ namespace MonitoringTools.UI.Tabs
             }
             grid.Children.Add(row);
             Child = grid;
-            ToolTip = g.Name + " · " + g.Count + (g.Count == 1 ? " tab" : " tabs") + (g.Collapsed ? " · collapsed" : "");
-            AutomationProperties.SetName(this, "Group " + g.Name + ", " + g.Count + (g.Count == 1 ? " tab" : " tabs") + (g.Collapsed ? ", collapsed" : ", expanded"));
-            AutomationProperties.SetHelpText(this, "Enter or Space collapses or expands. F2 renames. Applications key opens the group menu.");
+            ToolTip = g.Name + " · " + TabCount(g.Count) + (g.Collapsed ? " · " + T("collapsed") : "");
+            AutomationProperties.SetName(this, T("Group") + " " + g.Name + ", " + TabCount(g.Count) + ", " + T(g.Collapsed ? "collapsed" : "expanded"));
+            AutomationProperties.SetHelpText(this, T("Enter or Space collapses or expands. F2 renames. Applications key opens the group menu. Shift plus right-click edits the group appearance."));
 
             MouseEnter += (s, e) => _hi.Opacity = 0.08;
             MouseLeave += (s, e) => _hi.Opacity = 0;
             GotKeyboardFocus += (s, e) => _ring.Opacity = 1;
             LostKeyboardFocus += (s, e) => _ring.Opacity = 0;
             MouseLeftButtonUp += (s, e) => { Focus(); _o.ToggleCollapse(GroupId); e.Handled = true; };
-            MouseRightButtonUp += (s, e) => { e.Handled = true; _o.OpenGroupMenu(this, e.GetPosition(Window.GetWindow(this))); };
+            MouseRightButtonUp += (s, e) => { e.Handled = true; _o.OpenGroupMenuMouse(this, e.GetPosition(Window.GetWindow(this))); };
             DragOver += (s, e) => { e.Effects = e.Data.GetDataPresent(TabStrip.DragFormat) && _o.CanDropOnGroup((string)e.Data.GetData(TabStrip.DragFormat)) ? DragDropEffects.Move : DragDropEffects.None; e.Handled = true; };
             Drop += (s, e) => { if (e.Data.GetDataPresent(TabStrip.DragFormat)) _o.DropOnGroup((string)e.Data.GetData(TabStrip.DragFormat), GroupId); e.Handled = true; };
             var next = vertical ? Key.Down : Key.Right;

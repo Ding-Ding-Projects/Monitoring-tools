@@ -147,7 +147,7 @@ namespace MonitoringTools.UI
         private static StackPanel PageRoot(string eyebrow, string title, string sub = null)
         {
             var root = new StackPanel { MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 20) };
-            var head = new StackPanel { Margin = new Thickness(0, 4, 0, 22) };
+            var head = new StackPanel { Margin = new Thickness(0, 4, 0, Appearance.Gap(22)) };
             head.Children.Add(new TextBlock { Text = eyebrow.ToUpperInvariant(), Style = Ui.Style("T.Eyebrow"), FontSize = 12 });
             head.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 32, Margin = new Thickness(0, 4, 0, 0) });
             if (sub != null) head.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 6, 0, 0), MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left });
@@ -159,9 +159,9 @@ namespace MonitoringTools.UI
         {
             var b = new Border
             {
-                Background = Ui.Res("B.Surface"), CornerRadius = new CornerRadius(24), Padding = new Thickness(pad + 4),
+                Background = Ui.Res("B.Surface"), CornerRadius = new CornerRadius(24), Padding = new Thickness(Appearance.Gap(pad + 4)),
                 BorderBrush = edge == null ? Brushes.Transparent : new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge)),
-                BorderThickness = new Thickness(edge == null ? 0 : 1), Margin = new Thickness(0, 0, 0, 16), Child = child
+                BorderThickness = new Thickness(edge == null ? 0 : 1), Margin = new Thickness(0, 0, 0, Appearance.Gap(16)), Child = child
             };
             // Material 3 filled card: no outline; a soft tonal lift on hover.
             b.MouseEnter += (s, e) => b.Background = Ui.Res("B.Raised");
@@ -171,7 +171,7 @@ namespace MonitoringTools.UI
 
         private static StackPanel CardTitle(string title, string sub = null)
         {
-            var sp = new StackPanel { Margin = new Thickness(0, 0, 0, 12) };
+            var sp = new StackPanel { Margin = new Thickness(0, 0, 0, Appearance.Gap(12)) };
             sp.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 16 });
             if (sub != null) sp.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 3, 0, 0) });
             return sp;
@@ -179,7 +179,7 @@ namespace MonitoringTools.UI
 
         private static FrameworkElement Switch(string label, string sub, bool value, Action<bool> set, string accent = "B.Mint")
         {
-            var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = value, Tag = Ui.Res(accent), Margin = new Thickness(0, 4, 0, 10) };
+            var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = value, Tag = Ui.Res(accent), Margin = new Thickness(0, Appearance.Gap(4), 0, Appearance.Gap(10)) };
             var text = new StackPanel();
             text.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
             if (sub != null) text.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) });
@@ -196,7 +196,7 @@ namespace MonitoringTools.UI
 
         private static FrameworkElement Choice<T>(string label, IEnumerable<(string Label, T Value)> options, T current, Action<T> set)
         {
-            var sp = new StackPanel { Margin = new Thickness(0, 4, 0, 10) };
+            var sp = new StackPanel { Margin = new Thickness(0, Appearance.Gap(4), 0, Appearance.Gap(10)) };
             var opts = options.ToList();
             var labelRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
             labelRow.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
@@ -235,7 +235,7 @@ namespace MonitoringTools.UI
             sp.Children.Add(new TextBlock { Text = value, Style = Ui.Style("T.Title"), FontSize = 22, Foreground = accent, Margin = new Thickness(0, 6, 0, 4) });
             sp.Children.Add(Ui.Mono(sub, Ui.Res("B.TextMute")));
             var c = Card(sp, edge, 16);
-            c.Margin = new Thickness(0, 0, 14, 14);
+            c.Margin = new Thickness(0, 0, 14, Appearance.Gap(14));
             return SearchScope.SetItem(c);
         }
 
@@ -378,7 +378,7 @@ namespace MonitoringTools.UI
 
         private FrameworkElement HistoryRow(ClipItem it, bool selectable = false)
         {
-            var g = new Grid { Margin = new Thickness(6, 4, 6, 4) };
+            var g = new Grid { Margin = Appearance.Vertical(6, 4, 6, 4) };
             if (selectable && _selecting)
             {
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -411,7 +411,7 @@ namespace MonitoringTools.UI
             acts.Margin = new Thickness(0);
             btns.Children.Add(again); btns.Children.Add(acts);
             Grid.SetColumn(btns, c0 + 2); g.Children.Add(btns);
-            var row = new Border { CornerRadius = new CornerRadius(12), Padding = new Thickness(6), Child = g, Background = Brushes.Transparent };
+            var row = new Border { CornerRadius = new CornerRadius(12), Padding = new Thickness(6, Appearance.Gap(6), 6, Appearance.Gap(6)), Child = g, Background = Brushes.Transparent };
             SearchScope.SetItem(row, $"{it.Kind} {it.Text} {string.Join(" ", it.Files ?? Array.Empty<string>())}");
             if (selectable) _historyRows.Add((it, row));
             if (selectable && _selected.Contains(it)) row.Background = Ui.Res("B.SecondaryContainer");
@@ -1066,7 +1066,7 @@ namespace MonitoringTools.UI
 
         private static FrameworkElement ActivityRow(ActivityEntry e)
         {
-            var g = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+            var g = new Grid { Margin = new Thickness(0, 0, 0, Appearance.Gap(10)) };
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             g.ColumnDefinitions.Add(new ColumnDefinition());
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

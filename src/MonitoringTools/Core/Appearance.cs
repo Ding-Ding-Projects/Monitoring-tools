@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.Win32;
 
@@ -56,6 +57,45 @@ namespace MonitoringTools.Core
 
         public static double TextScale => Math.Max(90, Math.Min(150, S.TextScalePercent)) / 100.0;
         public static bool Compact => S.CompactDensity;
+
+        /// <summary>A row or control height for the current density: the comfortable value, or about four fifths of it when Compact is on (40 becomes 32).</summary>
+        public static double Row(double comfortable) => Compact ? Math.Round(comfortable * 0.8) : comfortable;
+
+        /// <summary>A gap, margin or padding for the current density: the comfortable value, or about three quarters of it when Compact is on.</summary>
+        public static double Gap(double comfortable) => Compact ? Math.Round(comfortable * 0.75) : comfortable;
+
+        /// <summary>Scales only the vertical parts of a thickness, so rows tighten without squeezing text sideways.</summary>
+        public static Thickness Vertical(double left, double top, double right, double bottom) =>
+            new Thickness(left, Gap(top), right, Gap(bottom));
+
+        // Buttons take their height from the theme styles. When density is Compact their height is trimmed at runtime, and
+        // restored when it is Comfortable again. A height the code set itself is never touched.
+        private static readonly DependencyProperty TrimmedHeight = DependencyProperty.RegisterAttached("TrimmedHeight", typeof(double), typeof(Appearance), new PropertyMetadata(0.0));
+        private static bool _densityHooked, _densityWasCompact;
+
+        private static void FitButton(Button b)
+        {
+            double mine = (double)b.GetValue(TrimmedHeight);
+            if (mine > 0 && b.ReadLocalValue(FrameworkElement.HeightProperty) is double local && Math.Abs(local - mine) < 0.01)
+            {
+                if (!Compact) { b.ClearValue(FrameworkElement.HeightProperty); b.ClearValue(TrimmedHeight); }
+                return;
+            }
+            if (!Compact) return;
+            if (b.ReadLocalValue(FrameworkElement.HeightProperty) != DependencyProperty.UnsetValue) return;
+            double h = b.Height;
+            if (double.IsNaN(h) || h < 30) return;
+            double next = Row(h);
+            b.Height = next;
+            b.SetValue(TrimmedHeight, next);
+        }
+
+        private static void FitTree(DependencyObject d)
+        {
+            if (d is Button b) FitButton(b);
+            int n = d is Visual || d is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetChildrenCount(d) : 0;
+            for (int i = 0; i < n; i++) FitTree(VisualTreeHelper.GetChild(d, i));
+        }
 
         /// <summary>Rounds a stored percentage to the nearest allowed step, 90 to 150.</summary>
         public static int ClampPercent(int p) => Math.Max(90, Math.Min(150, (int)(Math.Round(p / 10.0) * 10)));
@@ -148,6 +188,11 @@ namespace MonitoringTools.Core
                     Application.Current?.Dispatcher.BeginInvoke(new Action(Apply));
                 };
             }
+            if (!_densityHooked)
+            {
+                _densityHooked = true;
+                EventManager.RegisterClassHandler(typeof(Button), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) => FitButton((Button)o)));
+            }
             Apply();
         }
 
@@ -183,6 +228,11 @@ namespace MonitoringTools.Core
             Set("OnTertiaryContainer", r[7]);
 
             foreach (Window w in app.Windows) ScaleFor(w);
+            if (_densityWasCompact != Compact)
+            {
+                _densityWasCompact = Compact;
+                foreach (Window w in app.Windows) FitTree(w);
+            }
             Changed?.Invoke();
         }
 

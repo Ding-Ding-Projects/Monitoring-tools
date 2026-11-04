@@ -359,6 +359,58 @@ namespace MonitoringTools.Core
             Add("Narrator is off. Switch on Read toasts aloud first.", "朗讀已關閉，請先開啟「朗讀通知」。");
             Add("No Cantonese voice is installed, so Cantonese is not spoken.", "冇安裝廣東話語音，所以唔會讀出廣東話。");
             Add("Voices installed", "已安裝語音"); Add("No voices match.", "冇符合嘅語音。");
+
+            // ---- tab strip, its menus and dialogs (added only when the table has no entry yet)
+            void AddNew(string en, string yue) { t.TryAdd(en, yue); }
+            AddNew("Overview", "總覽"); AddNew("Activity", "活動"); AddNew("Clipboard history", "剪貼簿記錄");
+            AddNew("Clipboard", "剪貼簿"); AddNew("Shortcuts and scripts", "捷徑同腳本"); AddNew("Network and DNS", "網絡同 DNS");
+            AddNew("Game mode", "遊戲模式"); AddNew("Conversion", "轉檔"); AddNew("Minecraft servers", "Minecraft 伺服器");
+            AddNew("Local AI models", "本機 AI 模型"); AddNew("Tools", "工具"); AddNew("Safety and locks", "安全同鎖");
+            AddNew("Service", "服務"); AddNew("Appearance", "外觀"); AddNew("Language and voice", "語言同語音");
+            AddNew("Modes", "模式"); AddNew("Records and exports", "記錄同匯出"); AddNew("Help and docs", "說明同文件");
+            AddNew("About and updates", "關於同更新"); AddNew("Tab strip position", "分頁列位置"); AddNew("Which edge of the control centre the tabs sit on. Default: left.", "分頁放喺控制中心邊一邊。預設：左。");
+            AddNew("Left", "左"); AddNew("Top", "上"); AddNew("Right", "右");
+            AddNew("Bottom", "下"); AddNew("Dock tabs to the left", "將分頁列移到左邊"); AddNew("Dock tabs to the top", "將分頁列移到上邊");
+            AddNew("Dock tabs to the right", "將分頁列移到右邊"); AddNew("Dock tabs to the bottom", "將分頁列移到下邊"); AddNew("tab strip on the {0}", "分頁列放喺{0}邊");
+            AddNew("Rename group", "重新命名群組"); AddNew("Group name", "群組名稱"); AddNew("Rename", "重新命名");
+            AddNew("New group", "新群組"); AddNew("Create group", "建立群組"); AddNew("Move “{0}” into a group", "將「{0}」移入群組");
+            AddNew("Search this tab strip…", "搜尋呢個分頁列…"); AddNew("Search all open tabs…", "搜尋所有已開分頁…"); AddNew("Search tab groups…", "搜尋分頁群組…");
+            AddNew("Close tabs containing text…", "關閉包含文字嘅分頁…"); AddNew("Close tabs not containing text…", "關閉唔包含文字嘅分頁…"); AddNew("Unpin tab", "取消釘選分頁");
+            AddNew("Pin tab", "釘選分頁"); AddNew("Move tab earlier", "分頁移前"); AddNew("Move tab later", "分頁移後");
+            AddNew("Move tab up", "分頁上移"); AddNew("Move tab down", "分頁下移"); AddNew("Move… into group…", "移入群組…");
+            AddNew("Remove from group", "從群組移除"); AddNew("Search this group…", "搜尋呢個群組…"); AddNew("New group with this tab…", "用呢個分頁建立新群組…");
+            AddNew("Edit tab appearance…", "編輯分頁外觀…"); AddNew("Edit group appearance…", "編輯群組外觀…"); AddNew("Close tab", "關閉分頁");
+            AddNew("Close other tabs", "關閉其他分頁"); AddNew("Expand group", "展開群組"); AddNew("Collapse group", "收合群組");
+            AddNew("Rename group…", "重新命名群組…"); AddNew("Group colour…", "群組顏色…"); AddNew("Remove group (keeps its tabs)", "移除群組（保留分頁）");
+            AddNew("New tab…", "新分頁…"); AddNew("New group…", "新群組…"); AddNew("New tab", "新分頁");
+            AddNew("More tabs", "更多分頁"); AddNew("Tab options", "分頁選項"); AddNew("More tabs, {0} hidden", "更多分頁，隱藏咗 {0} 個");
+            AddNew("Open tabs", "已開分頁"); AddNew("(active)", "（目前）"); AddNew("All open tabs are visible; scroll the strip to move through them", "所有已開分頁都睇到，捲動分頁列就可以逐個睇");
+            AddNew("Close (Esc)", "關閉 (Esc)"); AddNew("Close dialog", "關閉視窗"); AddNew("{0} tab", "{0} 個分頁");
+            AddNew("{0} tabs", "{0} 個分頁"); AddNew("(pinned)", "（已釘選）"); AddNew("pinned", "已釘選");
+            AddNew("group", "群組"); AddNew("selected", "已選取"); AddNew("not selected", "未選取");
+            AddNew("collapsed", "已收合"); AddNew("expanded", "已展開"); AddNew("no group", "冇群組");
+            AddNew("active", "目前"); AddNew("in", "喺"); AddNew("Control centre", "控制中心");
+            AddNew("Pin", "釘選"); AddNew("Unpin", "取消釘選"); AddNew("Enter opens. Delete or Ctrl+W closes. Ctrl+Shift+P pins. Ctrl+Shift+Up or Down reorders. Applications key opens the menu. Shift plus right-click edits the tab appearance.", "按 Enter 開啟。按 Delete 或 Ctrl+W 關閉。Ctrl+Shift+P 釘選。Ctrl+Shift+上或下調整次序。應用程式鍵開選單。Shift 加右鍵可編輯分頁外觀。");
+            AddNew("Enter or Space collapses or expands. F2 renames. Applications key opens the group menu. Shift plus right-click edits the group appearance.", "按 Enter 或空白鍵收合或展開。F2 重新命名。應用程式鍵開群組選單。Shift 加右鍵可編輯群組外觀。"); AddNew("Every page of the control centre. Choosing one opens it in a tab, or switches to its tab when it is already open.", "控制中心所有頁面。揀一頁就會喺分頁開啟，如果已經開咗就會切換到佢嘅分頁。"); AddNew("Open. Choosing it switches to its tab.", "已開啟，揀佢就會切換到佢嘅分頁。");
+            AddNew("Opens in a new tab.", "會喺新分頁開啟。"); AddNew("Search every page", "搜尋所有頁面"); AddNew("Search groups", "搜尋群組");
+            AddNew("No groups yet. Create the first one below and the tab moves into it.", "仲未有群組。喺下面建立第一個，分頁就會移入去。"); AddNew("Create a new group", "建立新群組"); AddNew("New group name", "新群組名稱");
+            AddNew("Create group and move", "建立群組並移入"); AddNew("Group colour", "群組顏色"); AddNew("Colours come from the app theme, so they follow light, dark and your appearance choices.", "顏色來自程式主題，所以會跟住淺色、深色同你嘅外觀選擇。");
+            AddNew("Current colour", "目前顏色"); AddNew("Primary", "主色"); AddNew("Violet", "紫色");
+            AddNew("Amber", "琥珀色"); AddNew("Tertiary", "第三色"); AddNew("Alert", "警示色");
+            AddNew("Close tabs containing text", "關閉包含文字嘅分頁"); AddNew("Close tabs not containing text", "關閉唔包含文字嘅分頁"); AddNew("Matches the visible tab label only. Nothing is closed until you press the button below, and the preview shows exactly which tabs would close.", "只會比對睇得到嘅分頁標籤。撳下面個掣之前唔會關閉任何嘢，預覽會清楚顯示邊啲分頁會被關閉。");
+            AddNew("Text in the tab label", "分頁標籤內嘅文字"); AddNew("Text the tab label must contain", "分頁標籤必須包含嘅文字"); AddNew("Include pinned tabs (off by default)", "包括已釘選分頁（預設關閉）");
+            AddNew("Mode: regular expression", "模式：正規表示式"); AddNew(", match case", "，區分大小寫"); AddNew(", ignore case", "，唔分大小寫");
+            AddNew("INVALID", "無效"); AddNew("Mode: plain text, every word must appear", "模式：純文字，每個字都要出現"); AddNew("Mode: plain text, every word must appear for a tab to be kept", "模式：純文字，分頁要包含每個字先會保留");
+            AddNew("Enter text first. Nothing closes on an empty query.", "請先輸入文字。冇輸入就唔會關閉任何嘢。"); AddNew("The pattern is not valid, so nothing can close:", "表達式無效，所以唔會關閉任何嘢："); AddNew("{0} of {1} tabs would close.", "{1} 個分頁中有 {0} 個會被關閉。");
+            AddNew("{0} pinned tab is protected.", "{0} 個已釘選分頁受保護。"); AddNew("{0} pinned tabs are protected.", "{0} 個已釘選分頁受保護。"); AddNew("Some labels took too long to check and were left out.", "有啲標籤檢查太耐，已經略過。");
+            AddNew("and {0} more", "另外仲有 {0} 個"); AddNew("Close tabs", "關閉分頁"); AddNew("Close {0} tab", "關閉 {0} 個分頁");
+            AddNew("Close {0} tabs", "關閉 {0} 個分頁"); AddNew("Search this tab strip", "搜尋呢個分頁列"); AddNew("Search the group “{0}”", "搜尋群組「{0}」");
+            AddNew("Search tab groups", "搜尋分頁群組"); AddNew("Search all open tabs", "搜尋所有已開分頁"); AddNew("Search tabs in this strip", "搜尋呢個分頁列嘅分頁");
+            AddNew("Search tabs in this group", "搜尋呢個群組嘅分頁"); AddNew("Search group names", "搜尋群組名稱"); AddNew("Search every open tab", "搜尋每個已開分頁");
+            AddNew("Searches every tab of this strip. Groups and pinned state are shown on each result.", "搜尋呢個分頁列嘅每個分頁。每個結果都會顯示群組同釘選狀態。"); AddNew("Searches only the tabs of this group. It never looks at other groups.", "只搜尋呢個群組嘅分頁，唔會睇其他群組。"); AddNew("Searches the names of tab groups.", "搜尋分頁群組嘅名稱。");
+            AddNew("Searches every open tab in this app. There is one window and one strip, shown on each result.", "搜尋呢個程式所有已開分頁。得一個視窗同一個分頁列，每個結果都會顯示。");
+            AddNew("Locked", "已鎖"); AddNew("Unlock…", "解鎖…");
+            AddNew("This item is locked and will not run until it is unlocked.", "呢個項目已鎖，解鎖之前唔會執行。");
             return t;
         }
 
