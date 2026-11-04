@@ -19,6 +19,8 @@ namespace MonitoringTools.UI
         private string _wgServerId;
         private string _wgBiomeJar;
         private List<string> _wgBiomes;
+        private JarFacts _wgFacts;
+        private string _wgFactsVersion;
 
         /// <summary>
         /// World generator for the Minecraft page: seed, level type, structures, a bounded square area to pre-generate,
@@ -37,6 +39,10 @@ namespace MonitoringTools.UI
             var biomePanel = new StackPanel { Margin = new Thickness(0, 4, 0, 4) };
             var estimate = Ui.Mono("", Ui.Res("B.TextMute"), 11);
             WorldGenerator.Support current = null;
+            TextBlock jarStatus = null, dimNote = null, flatStatus = null;
+            StackPanel flatPanel = null, rulesPanel = null, rulesHost = null;
+            SearchField rulesFilter = null;
+            CheckBox dimNether = null, dimEnd = null;
 
             // ---- server and version
             var servers = ServerManager.Servers.Where(s => s.Target == Target.LocalProcess || s.Target == Target.LocalDocker).ToList();
@@ -90,6 +96,224 @@ namespace MonitoringTools.UI
             sp.Children.Add(biomePanel);
             sp.Children.Add(supportNote);
 
+            // ---- jar-driven options: read once per version, then used by the game rule editor, the layer editor and the dimension switches
+            jarStatus = Ui.Mono("", Ui.Res("B.TextMute"), 11);
+            jarStatus.TextWrapping = TextWrapping.Wrap; jarStatus.Margin = new Thickness(0, 4, 0, 4);
+            var readJar = Ui.Button("Read this version's jar", null, "Btn.Ghost", Icons.Folder);
+            readJar.ToolTip = "Downloads this version's server jar once (checked against Mojang's SHA-1) and runs its own data generator, without starting a server, to read its game rules, block list and command list. Needed for the game rule editor and for checking superflat blocks.";
+            flatPanel = new StackPanel { Margin = new Thickness(0, 6, 0, 6) };
+            rulesPanel = new StackPanel { Margin = new Thickness(0, 6, 0, 6) };
+            rulesFilter = new SearchField("minecraft:gamerules", "Search game rules", compact: true) { MaxWidth = 420, HorizontalAlignment = HorizontalAlignment.Left };
+            rulesHost = new StackPanel();
+            dimNote = Ui.Mono("", Ui.Res("B.TextMute"), 11);
+            dimNote.TextWrapping = TextWrapping.Wrap; dimNote.Margin = new Thickness(0, 0, 0, 6);
+            
+
+            void PaintDims()
+            {
+                if (dimNether == null) return;
+                var f = _wgFacts;
+                string why = null;
+                if (current != null && !current.Forceload) why = current.ForceloadReason;
+                else if (o.RadiusChunks <= 0) why = "Set an area radius above 0 first.";
+                else if (f != null && !f.Available) why = f.Reason;
+                else if (f != null && !f.HasExecuteIn) why = "This jar has no execute in command, so a chunk cannot be loaded in another dimension.";
+                else if (f != null && !f.HasLoadedTest) why = "This jar has no command that reports whether a chunk is loaded, so pre-generation cannot be confirmed.";
+                dimNether.IsEnabled = dimEnd.IsEnabled = why == null;
+                if (why != null) { o.PreGenNether = o.PreGenEnd = false; dimNether.IsChecked = dimEnd.IsChecked = false; }
+                dimNote.Text = why != null ? "Unavailable: " + why
+                    : f == null ? "Uses the same chunk radius in each dimension. Whether this jar supports it is confirmed when you read the jar or generate; if not, that dimension is skipped and the result says so."
+                    : "This jar supports execute in, so the same bounded procedure runs in each chosen dimension. Time and disk add up.";
+                dimNote.Foreground = Ui.Res(why != null ? "B.Amber" : "B.TextMute");
+            }
+
+            string RuleValue(string name) => o.GameRules.TryGetValue(name, out var v) ? v : null;
+
+            void PaintRules()
+            {
+                rulesHost.Children.Clear();
+                var f = _wgFacts;
+                if (f == null) { rulesHost.Children.Add(Ui.Text("Press “Read this version's jar” above to list this version's game rules.")); rulesFilter.SetCount(0, 0, "rules"); return; }
+                if (!f.Available || !f.HasGamerule) { rulesHost.Children.Add(Ui.Text(f.Reason ?? "This jar's command list has no game rules in a form this editor can read.")); rulesFilter.SetCount(0, 0, "rules"); return; }
+                rulesFilter.SampleSource = () => f.GameRules.Select(r => r.Name);
+                var hits = f.GameRules.Where(r => rulesFilter.State.Matches(r.Name)).ToList();
+                foreach (var r in hits)
+                {
+                    var def = r;
+                    var row = new Grid { Margin = new Thickness(0, 0, 0, 4) };
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 180 });
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    var name = new TextBlock { Text = def.Name, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
+                    row.Children.Add(name);
+                    FrameworkElement ctl;
+                    if (def.Kind == RuleKind.Bool)
+                    {
+                        var chips = new WrapPanel();
+                        foreach (var (label, val) in new[] { ("Server default", (string)null), ("true", "true"), ("false", "false") })
+                        {
+                            var v = val;
+                            var b = Ui.Button(label, () => { if (v == null) o.GameRules.Remove(def.Name); else o.GameRules[def.Name] = v; PaintRules(); }, "Btn.Chip");
+                            b.Height = 26; b.Margin = new Thickness(0, 0, 4, 0);
+                            bool on = RuleValue(def.Name) == v;
+                            b.Background = Ui.Res(on ? "B.Mint" : "B.Raised"); b.Foreground = Ui.Res(on ? "B.MintInk" : "B.TextSoft");
+                            b.ToolTip = v == null ? "Leave " + def.Name + " at the server's own default." : "Set " + def.Name + " to " + v + " once the world exists.";
+                            AutomationProperties.SetName(b, def.Name + " " + label);
+                            chips.Children.Add(b);
+                        }
+                        ctl = chips;
+                    }
+                    else if (def.Kind == RuleKind.Integer)
+                    {
+                        var box = Input(RuleValue(def.Name) ?? "", 110, "A whole number. Empty keeps the server default for " + def.Name + ".");
+                        AutomationProperties.SetName(box, def.Name + " value");
+                        box.LostFocus += (a, b) =>
+                        {
+                            var t = box.Text.Trim();
+                            if (t.Length == 0) o.GameRules.Remove(def.Name);
+                            else if (int.TryParse(t, out _)) o.GameRules[def.Name] = t;
+                            else box.Text = RuleValue(def.Name) ?? "";
+                        };
+                        ctl = box;
+                    }
+                    else ctl = Ui.Mono("type " + def.ParserType + " is not supported here", Ui.Res("B.TextMute"), 11);
+                    Grid.SetColumn(ctl, 1); row.Children.Add(ctl);
+                    SearchScope.SetItem(row, "game rule " + def.Name);
+                    rulesHost.Children.Add(row);
+                }
+                rulesFilter.SetCount(hits.Count, f.GameRules.Count, "rules");
+            }
+            rulesFilter.Filter += PaintRules;
+            var rulesScroll = new ScrollViewer { Content = rulesHost, MaxHeight = 280, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+            var resetRules = Ui.Button("Reset all rules to server defaults", () => { o.GameRules.Clear(); PaintRules(); }, "Btn.Ghost", Icons.Restart);
+            resetRules.ToolTip = "Forgets every rule you changed here. Nothing is written until you generate.";
+            rulesPanel.Children.Add(Ui.Mono("GAME RULES (only the ones you change are set)", Ui.Res("B.TextMute"), 11));
+            var rulesNote = Ui.Mono("The jar's command list gives each rule's name and type but not its default, so a rule left on “Server default” is not touched. Rules are applied to a world this tool generates; they are not written to an existing server.", Ui.Res("B.TextMute"), 11);
+            rulesNote.TextWrapping = TextWrapping.Wrap; rulesNote.Margin = new Thickness(0, 2, 0, 4);
+            rulesPanel.Children.Add(rulesNote);
+            rulesPanel.Children.Add(rulesFilter); rulesPanel.Children.Add(rulesScroll); rulesPanel.Children.Add(resetRules);
+
+            flatStatus = Ui.Mono("", Ui.Res("B.TextMute"), 11);
+            flatStatus.TextWrapping = TextWrapping.Wrap; flatStatus.Margin = new Thickness(0, 4, 0, 4);
+            void CheckFlat()
+            {
+                if (o.FlatLayers.Count == 0) { flatStatus.Text = "No custom layers: the version's own default superflat layers are used."; flatStatus.Foreground = Ui.Res("B.TextMute"); return; }
+                var bad = WorldGenerator.ValidateFlat(o.FlatLayers, o.FlatBiome, _wgFacts?.Available == true ? _wgFacts.Blocks : null);
+                int total = o.FlatLayers.Sum(l => Math.Max(0, l.Height));
+                var checkedAgainst = _wgFacts?.Available == true ? "Block names were checked against this version's jar." : "Block names are checked for format only; read the jar to check them against this version.";
+                if (bad.Count == 0) { flatStatus.Text = $"Valid: {o.FlatLayers.Count} layers, {total} blocks tall (limit {WorldGenerator.OverworldHeight}). {checkedAgainst}"; flatStatus.Foreground = Ui.Res("B.Mint"); }
+                else { flatStatus.Text = string.Join("\n", bad.Take(5)) + (bad.Count > 5 ? $"\n…and {bad.Count - 5} more." : ""); flatStatus.Foreground = Ui.Res("B.Amber"); }
+            }
+
+            void PaintFlat()
+            {
+                flatPanel.Children.Clear();
+                if (o.Type != WorldType.Flat) return;
+                flatPanel.Children.Add(Ui.Mono("SUPERFLAT LAYERS (bottom to top)", Ui.Res("B.TextMute"), 11));
+                if (current != null && !current.DataDriven)
+                {
+                    flatPanel.Children.Add(Ui.Text("Unavailable: custom layers need data-driven world presets, which arrived with Java 1.19. This version uses its default superflat layers."));
+                    return;
+                }
+                var note = Ui.Mono("Optional. Leave the list empty to use the version's default layers. Layers are written as a data pack built from the jar's own flat preset, so the rest of the preset stays as the version defines it.", Ui.Res("B.TextMute"), 11);
+                note.TextWrapping = TextWrapping.Wrap; note.Margin = new Thickness(0, 2, 0, 6);
+                flatPanel.Children.Add(note);
+                for (int i = 0; i < o.FlatLayers.Count; i++)
+                {
+                    int idx = i; var layer = o.FlatLayers[i];
+                    var row = new WrapPanel { Margin = new Thickness(0, 0, 0, 4) };
+                    var blk = Input(layer.Block, 280, "A block id such as minecraft:grass_block");
+                    AutomationProperties.SetName(blk, $"Layer {i + 1} block");
+                    blk.TextChanged += (a, b) => { layer.Block = blk.Text.Trim(); CheckFlat(); };
+                    var hgt = Input(layer.Height.ToString(), 70, "Height in blocks, 1 to 384");
+                    AutomationProperties.SetName(hgt, $"Layer {i + 1} height");
+                    hgt.TextChanged += (a, b) => { layer.Height = int.TryParse(hgt.Text, out var h) ? h : 0; CheckFlat(); };
+                    var up = Ui.Button("Up", () => { if (idx > 0) { (o.FlatLayers[idx - 1], o.FlatLayers[idx]) = (o.FlatLayers[idx], o.FlatLayers[idx - 1]); PaintFlat(); } }, "Btn.Ghost");
+                    var down = Ui.Button("Down", () => { if (idx < o.FlatLayers.Count - 1) { (o.FlatLayers[idx + 1], o.FlatLayers[idx]) = (o.FlatLayers[idx], o.FlatLayers[idx + 1]); PaintFlat(); } }, "Btn.Ghost");
+                    var del = Ui.Button("Remove", () => { o.FlatLayers.RemoveAt(idx); PaintFlat(); }, "Btn.Ghost", Icons.Close);
+                    up.ToolTip = "Move this layer towards the bottom of the world."; down.ToolTip = "Move this layer towards the top."; del.ToolTip = "Remove this layer.";
+                    AutomationProperties.SetName(up, $"Move layer {i + 1} down towards bedrock"); AutomationProperties.SetName(down, $"Move layer {i + 1} up"); AutomationProperties.SetName(del, $"Remove layer {i + 1}");
+                    row.Children.Add(blk); row.Children.Add(hgt); row.Children.Add(up); row.Children.Add(down); row.Children.Add(del);
+                    flatPanel.Children.Add(row);
+                }
+                var add = Ui.Button("Add layer", () => { o.FlatLayers.Add(new FlatLayer { Block = "minecraft:stone", Height = 1 }); PaintFlat(); }, "Btn.Ghost", Icons.Plus);
+                add.ToolTip = "Adds a layer on top of the current list.";
+                var classic = Ui.Button("Start from bedrock, dirt, grass", () =>
+                {
+                    o.FlatLayers.Clear();
+                    o.FlatLayers.Add(new FlatLayer { Block = "minecraft:bedrock", Height = 1 });
+                    o.FlatLayers.Add(new FlatLayer { Block = "minecraft:dirt", Height = 2 });
+                    o.FlatLayers.Add(new FlatLayer { Block = "minecraft:grass_block", Height = 1 });
+                    PaintFlat();
+                }, "Btn.Ghost", Icons.Wand);
+                classic.ToolTip = "Replaces the list with the classic superflat layout: bedrock, 2 dirt, grass.";
+                var clear = Ui.Button("Use the version's default", () => { o.FlatLayers.Clear(); PaintFlat(); }, "Btn.Ghost", Icons.Restart);
+                clear.ToolTip = "Empties the list so the version's own default layers are used.";
+                var bar2 = new WrapPanel(); bar2.Children.Add(add); bar2.Children.Add(classic); bar2.Children.Add(clear);
+                flatPanel.Children.Add(bar2);
+
+                var biomeBox = Input(o.FlatBiome, 280, "A biome id such as minecraft:plains. Default minecraft:plains.");
+                AutomationProperties.SetName(biomeBox, "Superflat biome");
+                biomeBox.TextChanged += (a, b) => { o.FlatBiome = biomeBox.Text.Trim(); CheckFlat(); };
+                flatPanel.Children.Add(Ui.Mono("SUPERFLAT BIOME (default minecraft:plains)", Ui.Res("B.TextMute"), 11));
+                flatPanel.Children.Add(biomeBox);
+
+                var presetBox = Input(o.FlatLayers.Count > 0 ? WorldGenerator.ExportFlatPreset(o.FlatLayers, o.FlatBiome) : "", 480, "A preset string such as minecraft:bedrock,2*minecraft:dirt,minecraft:grass_block;minecraft:plains");
+                AutomationProperties.SetName(presetBox, "Superflat preset string");
+                var presetNote = Ui.Mono("", Ui.Res("B.TextMute"), 11);
+                presetNote.TextWrapping = TextWrapping.Wrap;
+                var import = Ui.Button("Import string", () =>
+                {
+                    try
+                    {
+                        var (layers, biome, n) = WorldGenerator.ParseFlatPreset(presetBox.Text);
+                        o.FlatLayers.Clear(); o.FlatLayers.AddRange(layers); o.FlatBiome = biome;
+                        PaintFlat();
+                        flatStatus.Text += n != null ? "\n" + n : "";
+                    }
+                    catch (FormatException ex) { presetNote.Text = ex.Message; presetNote.Foreground = Ui.Res("B.Amber"); }
+                }, "Btn.Ghost", Icons.Plus);
+                import.ToolTip = "Replaces the layers and biome with the ones in the string. Structure and feature options in the string are ignored.";
+                var export = Ui.Button("Export string", () =>
+                {
+                    if (o.FlatLayers.Count == 0) { presetNote.Text = "There are no custom layers to export."; presetNote.Foreground = Ui.Res("B.Amber"); return; }
+                    presetBox.Text = WorldGenerator.ExportFlatPreset(o.FlatLayers, o.FlatBiome);
+                    try { Clipboard.SetText(presetBox.Text); presetNote.Text = "Written to the box and copied to the clipboard."; presetNote.Foreground = Ui.Res("B.Mint"); }
+                    catch { presetNote.Text = "Written to the box (the clipboard was not available)."; presetNote.Foreground = Ui.Res("B.TextMute"); }
+                }, "Btn.Ghost", Icons.Clipboard);
+                export.ToolTip = "Builds the preset string from the layers and copies it. Layers and biome only; structure options are not included.";
+                flatPanel.Children.Add(Ui.Mono("PRESET STRING (layers;biome)", Ui.Res("B.TextMute"), 11));
+                flatPanel.Children.Add(presetBox);
+                var pr = new WrapPanel(); pr.Children.Add(import); pr.Children.Add(export);
+                flatPanel.Children.Add(pr); flatPanel.Children.Add(presetNote);
+                flatPanel.Children.Add(flatStatus);
+                CheckFlat();
+            }
+
+            void PaintJarParts() { PaintFlat(); PaintRules(); PaintDims(); }
+
+            readJar.Click += async (a, b) =>
+            {
+                if (string.IsNullOrWhiteSpace(o.Version)) { jarStatus.Text = "Choose a version first."; jarStatus.Foreground = Ui.Res("B.Amber"); return; }
+                readJar.IsEnabled = false; jarStatus.Foreground = Ui.Res("B.TextMute"); jarStatus.Text = "Reading the jar…";
+                var ver = o.Version;
+                try
+                {
+                    var facts = await WorldGenerator.JarFactsAsync(ver, t => Dispatcher.BeginInvoke(new Action(() => jarStatus.Text = t)));
+                    if (ver == o.Version) { _wgFacts = facts; _wgFactsVersion = ver; }
+                    jarStatus.Text = facts.Available
+                        ? $"{ver}: {facts.GameRules.Count} game rules, {facts.Blocks.Count} blocks, execute in {(facts.HasExecuteIn ? "supported" : "not available")}, loaded-chunk test {(facts.HasLoadedTest ? "supported" : "not available")}."
+                        : facts.Reason;
+                    jarStatus.Foreground = Ui.Res(facts.Available ? "B.Mint" : "B.Amber");
+                }
+                catch (Exception ex) { jarStatus.Text = ex.Message; jarStatus.Foreground = Ui.Res("B.Amber"); }
+                readJar.IsEnabled = true;
+                PaintJarParts();
+            };
+            sp.Children.Add(flatPanel);
+            sp.Children.Add(readJar);
+            sp.Children.Add(jarStatus);
+            sp.Children.Add(rulesPanel);
+
             void PaintType()
             {
                 typePanel.Children.Clear();
@@ -102,6 +326,7 @@ namespace MonitoringTools.UI
                 if (o.Type == WorldType.SingleBiome) BuildBiomePicker();
                 supportNote.Text = (current?.SingleBiomeReason != null ? "Single biome is hidden: " + current.SingleBiomeReason + "\n" : "") +
                                    (current?.ForceloadReason != null ? "Pre-generation unavailable: " + current.ForceloadReason : "");
+                PaintJarParts();
             }
 
             void BuildBiomePicker()
@@ -158,6 +383,7 @@ namespace MonitoringTools.UI
                 try { current = await WorldGenerator.SupportAsync(o.Version); }
                 catch (Exception ex) { current = null; supportNote.Text = "Could not read the version catalogue: " + ex.Message; }
                 _wgBiomes = null;
+                if (_wgFactsVersion != o.Version) { _wgFacts = null; jarStatus.Text = ""; }
                 PaintType();
             }
 
@@ -172,7 +398,8 @@ namespace MonitoringTools.UI
                 var r = Math.Clamp(o.RadiusChunks, 0, WorldGenerator.MaxRadiusChunks);
                 estimate.Text = r == 0
                     ? "No pre-generation: the world is created around spawn and grows as it is explored."
-                    : $"{r * 2} x {r * 2} chunks = {r * 2 * 16} x {r * 2 * 16} blocks, {(long)r * r * 4:N0} chunks in {WorldGenerator.BatchCount(r)} batches of at most 256 chunks, centred on 0, 0. Overworld only; the Nether and the End are not pre-generated. Time and disk grow with the square of the radius.";
+                    : $"{r * 2} x {r * 2} chunks = {r * 2 * 16} x {r * 2 * 16} blocks, {(long)r * r * 4:N0} chunks in {WorldGenerator.BatchCount(r)} batches of at most 256 chunks, centred on 0, 0 in each chosen dimension (the Overworld always, the Nether and the End if switched on below). Time and disk grow with the square of the radius.";
+                PaintDims();
             }
             radius.LostFocus += (a, b) =>
             {
@@ -184,6 +411,14 @@ namespace MonitoringTools.UI
             estimate.TextWrapping = TextWrapping.Wrap; estimate.Margin = new Thickness(0, 0, 0, 8);
             sp.Children.Add(estimate);
             Estimate();
+            dimNether = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.PreGenNether, Margin = new Thickness(0, 4, 0, 2), Content = new TextBlock { Text = "Also pre-generate the Nether (default off)", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") } };
+            dimEnd = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.PreGenEnd, Margin = new Thickness(0, 2, 0, 2), Content = new TextBlock { Text = "Also pre-generate the End (default off)", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") } };
+            dimNether.ToolTip = "Runs the same bounded forceload procedure in the Nether with execute in minecraft:the_nether, when the jar supports it.";
+            dimEnd.ToolTip = "Runs the same bounded forceload procedure in the End with execute in minecraft:the_end, when the jar supports it.";
+            dimNether.Checked += (a, b) => o.PreGenNether = true; dimNether.Unchecked += (a, b) => o.PreGenNether = false;
+            dimEnd.Checked += (a, b) => o.PreGenEnd = true; dimEnd.Unchecked += (a, b) => o.PreGenEnd = false;
+            sp.Children.Add(dimNether); sp.Children.Add(dimEnd); sp.Children.Add(dimNote);
+            PaintDims();
             sp.Children.Add(Switch("Set the world border to this size", "Runs worldborder set after generation. Default off.", o.BorderToSize, v => o.BorderToSize = v));
 
             // ---- output
@@ -220,7 +455,7 @@ namespace MonitoringTools.UI
             var cancel = Ui.Button("Cancel", () => cts?.Cancel(), "Btn.Ghost", Icons.Close);
             cancel.IsEnabled = false;
             var apply = Ui.Button("Write to server settings", null, "Btn.Ghost", Icons.Lines);
-            apply.ToolTip = "Saves the seed, world type and structures into the chosen local server's server.properties. No world is built.";
+            apply.ToolTip = "Saves the seed, world type, structures and (for a local process server on Java 1.19 or newer) custom superflat layers into the chosen local server. No world is built. Game rules and extra dimensions apply only to a generated world.";
             generate.ToolTip = "Runs a private server on this computer to build the world, then saves it to the destination.";
             cancel.ToolTip = "Stops the build and deletes the temporary server folder.";
 
@@ -234,6 +469,11 @@ namespace MonitoringTools.UI
             generate.Click += async (a, b) =>
             {
                 if (string.IsNullOrWhiteSpace(o.Version)) { status.Text = "Choose a version first."; status.Foreground = Ui.Res("B.Amber"); return; }
+                if (o.Type == WorldType.Flat && o.FlatLayers.Count > 0)
+                {
+                    var bad = WorldGenerator.ValidateFlat(o.FlatLayers, o.FlatBiome, _wgFacts?.Available == true ? _wgFacts.Blocks : null);
+                    if (bad.Count > 0) { status.Text = "Fix the superflat layers first: " + bad[0]; status.Foreground = Ui.Res("B.Amber"); return; }
+                }
                 generate.IsEnabled = false; cancel.IsEnabled = true; bar.Visibility = Visibility.Visible; bar.Value = 0;
                 status.Foreground = Ui.Res("B.TextMute");
                 cts = new CancellationTokenSource();

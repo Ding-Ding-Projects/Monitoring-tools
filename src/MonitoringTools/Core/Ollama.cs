@@ -183,6 +183,55 @@ namespace MonitoringTools.Core
             if (!r.IsSuccessStatusCode) throw new InvalidOperationException(await ErrorText(r));
         }
 
+        /// <summary>What the server reports about one installed model through /api/show.</summary>
+        public sealed class ModelDetails
+        {
+            public string Name, Family, ParameterSize, Quantization, Format, Template, Parameters, LicenceSummary, LicenceKind;
+            public long ContextLength;
+            public List<string> Capabilities = new List<string>();
+        }
+
+        public static async Task<ModelDetails> ShowAsync(string model, CancellationToken ct = default)
+        {
+            using var r = await Http.PostAsync(BaseUrl + "/api/show",
+                new StringContent(JsonSerializer.Serialize(new { model }), Encoding.UTF8, "application/json"), ct);
+            if (!r.IsSuccessStatusCode) throw new InvalidOperationException(await ErrorText(r));
+            using var doc = JsonDocument.Parse(await r.Content.ReadAsStringAsync(ct));
+            var root = doc.RootElement;
+            string S(JsonElement e, string k) => e.ValueKind == JsonValueKind.Object && e.TryGetProperty(k, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : "";
+            var d = root.TryGetProperty("details", out var det) ? det : default;
+            var info = new ModelDetails
+            {
+                Name = model, Family = S(d, "family"), ParameterSize = S(d, "parameter_size"), Quantization = S(d, "quantization_level"), Format = S(d, "format"),
+                Template = S(root, "template"), Parameters = S(root, "parameters")
+            };
+            if (root.TryGetProperty("model_info", out var mi) && mi.ValueKind == JsonValueKind.Object)
+                foreach (var p in mi.EnumerateObject())
+                    if (p.Name.EndsWith(".context_length", StringComparison.Ordinal) && p.Value.ValueKind == JsonValueKind.Number) { info.ContextLength = p.Value.GetInt64(); break; }
+            if (root.TryGetProperty("capabilities", out var caps) && caps.ValueKind == JsonValueKind.Array)
+                foreach (var c in caps.EnumerateArray()) if (c.ValueKind == JsonValueKind.String) info.Capabilities.Add(c.GetString());
+            var lic = S(root, "license");
+            (info.LicenceKind, info.LicenceSummary) = SummariseLicence(lic);
+            return info;
+        }
+
+        /// <summary>A short, honest summary of a licence text: a recognised name when one is clearly present, plus its opening lines. Not legal advice.</summary>
+        public static (string Kind, string Summary) SummariseLicence(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return ("Not stated", "The server returned no licence text for this model. Check the model's page in the Ollama library.");
+            string kind = "Custom or unrecognised licence";
+            var t = text.ToLowerInvariant();
+            if (t.Contains("apache license")) kind = "Apache License";
+            else if (t.Contains("mit license") || t.Contains("permission is hereby granted, free of charge")) kind = "MIT License";
+            else if (t.Contains("llama") && t.Contains("community license")) kind = "Llama community licence (has usage conditions)";
+            else if (t.Contains("gemma") && t.Contains("terms of use")) kind = "Gemma terms of use (has usage conditions)";
+            else if (t.Contains("creative commons")) kind = "Creative Commons";
+            var lines = text.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).Take(3);
+            var sum = string.Join(" ", lines);
+            if (sum.Length > 360) sum = sum[..360] + "…";
+            return (kind, sum);
+        }
+
         /// <summary>Asks the server to unload a model from memory right away.</summary>
         public static async Task UnloadAsync(string model, CancellationToken ct = default)
         {
