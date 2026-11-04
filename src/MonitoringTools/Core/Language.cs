@@ -259,6 +259,47 @@ namespace MonitoringTools.Core
         /// </summary>
         public static string Headline(string key, params object[] args)
         {
+            var result = HeadlineNow(key, args);
+            Remember(result, key, args);
+            return result;
+        }
+
+        // Rendered headline -> (key, args), so a stored title can be rendered again in the language and level in force later.
+        private static readonly Dictionary<string, (string Key, object[] Args)> Sources = new Dictionary<string, (string, object[])>(StringComparer.Ordinal);
+        private static void Remember(string rendered, string key, object[] args)
+        {
+            if (string.IsNullOrEmpty(rendered)) return;
+            lock (Sources)
+            {
+                if (Sources.Count > 400) Sources.Clear();
+                Sources[rendered] = (key, args);
+            }
+        }
+
+        /// <summary>
+        /// Renders a title that came from <see cref="Headline"/> again in the language and humour level in force now,
+        /// or returns it unchanged when it was never a headline (plain titles are translated by the live layer instead).
+        /// </summary>
+        public static Func<string> RendererFor(string rendered)
+        {
+            if (string.IsNullOrEmpty(rendered)) return null;
+            (string Key, object[] Args) src;
+            lock (Sources) { if (!Sources.TryGetValue(rendered, out src)) return null; }
+            return () => HeadlineNow(src.Key, src.Args);
+        }
+
+        public static string Rerender(string rendered)
+        {
+            if (string.IsNullOrEmpty(rendered)) return rendered;
+            (string Key, object[] Args) src;
+            lock (Sources) { if (!Sources.TryGetValue(rendered, out src)) return rendered; }
+            var again = HeadlineNow(src.Key, src.Args);
+            Remember(again, src.Key, src.Args);   // the new wording must stay re-renderable for the next switch
+            return again;
+        }
+
+        private static string HeadlineNow(string key, object[] args)
+        {
             var s = Settings.Current;
             var mode = Mode;
             // School mode leaves humour out entirely: every headline is the plain level 1 wording.

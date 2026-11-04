@@ -10,6 +10,12 @@ namespace MonitoringTools.Core
         public string Kind;
         public string Title;
         public string Detail;
+
+        /// <summary>The title in the language and humour level in force now. Headlines are rendered again; other titles are plain text the live layer translates.</summary>
+        public string DisplayTitle => Render != null ? Render() : Title;
+
+        /// <summary>Writes the headline again at the current language and humour level; null for a title that was never a headline.</summary>
+        public Func<string> Render;
     }
 
     /// <summary>In-memory log of every toast, notice, offline alert and IP change. Nothing here is written to disk.</summary>
@@ -26,7 +32,7 @@ namespace MonitoringTools.Core
         {
             lock (Gate)
             {
-                Entries.Insert(0, new NotificationEntry { Kind = kind, Title = title ?? "", Detail = detail ?? "" });
+                Entries.Insert(0, new NotificationEntry { Kind = kind, Title = title ?? "", Detail = detail ?? "", Render = Language.RendererFor(title) });
                 if (Entries.Count > Cap) Entries.RemoveAt(Entries.Count - 1);
             }
             Changed?.Invoke();

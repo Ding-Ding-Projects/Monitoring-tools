@@ -104,11 +104,24 @@ namespace MonitoringTools.UI
             if (!Seen.ContainsKey(key) && Language.Yue(key) != null) Seen[key] = where;
         }
 
+        /// <summary>True while a bilingual pass runs: text must show the Cantonese beside its English, not only be free of English.</summary>
+        private static bool Bilingual;
+
         private static void Check(string text, string where, string kind, string original = null)
         {
             if (string.IsNullOrWhiteSpace(text)) return;
             Note(original ?? text, where);
             Examined++;
+            if (Bilingual)
+            {
+                var en = (original ?? text).Trim();
+                if (Language.HasCjk(en) || !HasUntranslated(en)) return;   // already Cantonese, or a name, unit or code that stays as it is
+                string why = Language.Yue(en) == null ? null : Language.HasCjk(text) ? "ok" : "English only";
+                if (why == "ok") return;
+                var k = en;
+                if (!Found.ContainsKey(k)) Found[k] = new Finding { Text = k, Where = where, Kind = why == null ? kind + " (no Cantonese entry)" : kind + " (bilingual shows English only)" };
+                return;
+            }
             if (!HasUntranslated(text)) return;
             var key = text.Trim();
             if (!Found.ContainsKey(key)) Found[key] = new Finding { Text = key, Where = where, Kind = kind };
@@ -405,6 +418,42 @@ namespace MonitoringTools.UI
             foreach (var kv in Seen.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase))
                 if (!Strings.Table.ContainsKey(kv.Key)) patterns.AppendLine(kv.Value + "\t" + kv.Key.Replace("\n", "\\n") + "\t" + (Language.Yue(kv.Key) ?? "").Replace("\n", "\\n"));
             File.WriteAllText(Path.Combine(dir, "language-patterns.tsv"), patterns.ToString());
+        }
+
+        /// <summary>
+        /// Opens every control-centre page in the given language and reports what is wrong. With <paramref name="refresh"/> false the
+        /// audit never calls Language.Refresh itself, so it proves that text written after a window loaded is translated by the
+        /// window sweep alone. Bilingual mode checks that each translatable string shows its Cantonese beside the English.
+        /// </summary>
+        internal static async Task<(List<Finding> Findings, int Examined, int Pages)> PagesAsync(LanguageMode mode, bool refresh)
+        {
+            Reset();
+            Bilingual = mode == LanguageMode.Bilingual;
+            var saved = Settings.Current.LanguageMode;
+            Settings.Current.LanguageMode = mode;
+            Language.Refresh();
+            int pages = 0;
+            try
+            {
+                var cc = new ControlCentreWindow { Width = 1180, Height = 820 };
+                cc.Show(); await Settle(900);
+                foreach (var id in cc.SectionIds.ToList())
+                {
+                    cc.Navigate(id, animate: false);
+                    await Settle(id == "ollama" ? 2500 : 700);   // longer than the 250 ms sweep, so only the sweep can have translated it
+                    var where = $"{mode} page: {id}";
+                    if (refresh) Scan(where, cc); else Visit(where, cc, 0);
+                    pages++;
+                }
+                cc.Close();
+            }
+            finally
+            {
+                Bilingual = false;
+                Settings.Current.LanguageMode = saved;
+                Language.Refresh();
+            }
+            return (Found.Values.ToList(), Examined, pages);
         }
 
         // The English label of a button, read from the text the language layer remembers.

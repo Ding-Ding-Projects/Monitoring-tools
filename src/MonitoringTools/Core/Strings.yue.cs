@@ -48,7 +48,8 @@ namespace MonitoringTools.Core
             Add("your shortcut", "你嘅捷徑");
 
             // ---- history
-            Add("Nothing yet. Copy something and it shows up here.", "暫時未有嘢，複製啲嘢就會出現喺度。");
+            Add("Nothing has been shown yet. Toasts and alerts will appear here as they happen.", "暫時未有通知。彈出通知同警報一出現就會列喺度。");
+            Add("Nothing yet. Copy something and it shows up here.","暫時未有嘢，複製啲嘢就會出現喺度。");
             Add("Copy again", "再複製一次");
             Add("Builder", "砌表達式"); Add("Search every page", "搜尋所有頁面"); Add("Filter actions", "篩選動作"); Add("Filter this menu", "篩選呢個選單");
             Add("Select", "揀選"); Add("Done selecting", "揀完"); Add("Select all shown", "揀晒顯示緊嘅"); Add("Save as text…", "存做文字檔…"); Add("Remove from history", "喺紀錄度移除");

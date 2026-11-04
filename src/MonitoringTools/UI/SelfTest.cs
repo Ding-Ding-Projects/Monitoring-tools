@@ -829,6 +829,7 @@ namespace MonitoringTools.UI
                 return left.Count + " untranslated of " + LanguageAudit.Examined + " examined: " + string.Join(" | ", shown) + (left.Count > 80 ? " | ... see language-untranslated.txt" : "");
             });
 
+            await LanguageChecksAsync();
             await RunNumberFieldsAsync();
             await McChecksAsync();
             // ---- docs and pages

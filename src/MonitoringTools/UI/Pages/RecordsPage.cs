@@ -123,7 +123,7 @@ namespace MonitoringTools.UI
                 bulk.Prune(all);
                 bulk.Begin();
                 var byKind = all.Where(n => kind == null || n.Kind == kind).ToList();
-                var hits = byKind.Where(n => search.State.Matches(n.Kind + " " + n.Title + " " + n.Detail)).ToList();
+                var hits = byKind.Where(n => search.State.Matches(n.Kind + " " + n.DisplayTitle + " " + n.Detail)).ToList();
                 list.Children.Clear();
                 if (all.Count == 0)
                     list.Children.Add(new TextBlock { Text = "Nothing has been shown yet. Toasts and alerts will appear here as they happen.", Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap });
@@ -138,12 +138,12 @@ namespace MonitoringTools.UI
                     var k = Ui.Mono(n.Kind, n.Kind == "Offline" ? Ui.Res("B.Amber") : n.Kind == "IP changed" ? Ui.Res("B.Violet") : Ui.Res("B.Mint")); Grid.SetColumn(k, 1);
                     g.Children.Add(k);
                     var text = new StackPanel(); Grid.SetColumn(text, 2);
-                    text.Children.Add(new TextBlock { Text = n.Title, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                    text.Children.Add(new TextBlock { Text = n.DisplayTitle, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     if (!string.IsNullOrWhiteSpace(n.Detail))
                         text.Children.Add(new TextBlock { Text = n.Detail, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap });
                     g.Children.Add(text);
                     SearchScope.SetItem(g, "notification " + n.Kind);
-                    list.Children.Add(bulk.Wrap(n, g, n.Title));
+                    list.Children.Add(bulk.Wrap(n, g, n.DisplayTitle));
                 }
                 if (hits.Count > MaxRows)
                     list.Children.Add(new TextBlock { Text = $"Showing the newest {MaxRows} of {hits.Count}. Narrow the search or an export to see the rest.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
@@ -179,8 +179,9 @@ namespace MonitoringTools.UI
             RebuildBar();
             search.Filter += Rebuild;
             Action changed = () => RunOnUi(Rebuild);
-            box.Loaded += (s, e) => { NotificationLog.Changed -= changed; NotificationLog.Changed += changed; Rebuild(); };
-            box.Unloaded += (s, e) => NotificationLog.Changed -= changed;
+            Action langChanged = () => RunOnUi(Rebuild);
+            box.Loaded += (s, e) => { NotificationLog.Changed -= changed; NotificationLog.Changed += changed; Core.Language.Changed -= langChanged; Core.Language.Changed += langChanged; Rebuild(); };
+            box.Unloaded += (s, e) => { NotificationLog.Changed -= changed; Core.Language.Changed -= langChanged; };
             Rebuild();
             return SearchScope.SetItem(Card(box), "notification centre toasts alerts log");
         }

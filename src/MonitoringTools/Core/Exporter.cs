@@ -67,7 +67,7 @@ namespace MonitoringTools.Core
                 {
                     var t = new ExportTable { Name = "Notifications", Columns = new[] { "Time", "Kind", "Title", "Detail" } };
                     foreach (var n in NotificationLog.All())
-                        t.Rows.Add(new[] { n.At.ToString("yyyy-MM-dd HH:mm:ss"), n.Kind, n.Title, n.Detail });
+                        t.Rows.Add(new[] { n.At.ToString("yyyy-MM-dd HH:mm:ss"), n.Kind, n.DisplayTitle, n.Detail });
                     return t;
                 }
                 default:

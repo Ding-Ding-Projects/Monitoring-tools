@@ -43,6 +43,10 @@ namespace MonitoringTools.UI
             MouseLeave += (s, e) => OnHover(false);
             _tick.Tick += (s, e) => Tick();
             Loaded += (s, e) => Enter();
+            // A language or humour change while the toast is open: write the headline again in the language now in force.
+            Action rerender = () => Dispatcher.BeginInvoke(new Action(RerenderTitle));
+            Core.Language.Changed += rerender;
+            Closed += (s, e) => Core.Language.Changed -= rerender;
             // A toast never takes focus, so the menu lets it be activated while open and holds the countdown meanwhile.
             ElementMenu.Attach(this, _ => MenuItems(), new ElementMenu.Options
             {
@@ -71,11 +75,23 @@ namespace MonitoringTools.UI
             HaloBrush.Color = accent;
         }
 
+        private string _titleSource;
+
+        private void RerenderTitle()
+        {
+            if (_titleSource == null) return;
+            var again = Core.Language.Rerender(_titleSource);
+            if (again == _titleSource) return;
+            _titleSource = again;
+            TitleText.Text = Core.Language.Title(again);
+        }
+
         public void SetHeader(string icon, string title, string meta)
         {
             var accent = new SolidColorBrush(_accent);
             var wash = new SolidColorBrush(Color.FromArgb(0x26, _accent.R, _accent.G, _accent.B));
             IconHost.Content = icon == null ? null : Ui.IconChip(icon, accent, wash);
+            _titleSource = title;
             title = Core.Language.Title(title);
             var (spokenEn, spokenYue) = Core.Language.SpeechParts(title);
             Core.Narrator.Speak(spokenEn, spokenYue);
