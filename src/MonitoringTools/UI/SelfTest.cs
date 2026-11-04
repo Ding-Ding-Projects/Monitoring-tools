@@ -53,6 +53,13 @@ namespace MonitoringTools.UI
             if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "wording") { await WordingChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit
+            {
+                await McChecksAsync();
+                await CheckAsync("settings explain themselves (server manager loop)", () => Wave6Flows.Explain());
+                await CheckAsync("language audit (server manager loop)", async () => { await LanguageAudit.RunAsync(dir); var left = LanguageAudit.Findings; return left.Count == 0 ? null : left.Count + " untranslated: " + string.Join(" | ", left.Take(200).Select(x => "\"" + x.Text.Replace("\n", " / ") + "\" (" + x.Where + ")")); });
+                Finish(dir); return;
+            }
 
             // ---- search
             Check("search: plain text needs every word", () =>
@@ -823,7 +830,7 @@ namespace MonitoringTools.UI
             });
 
             await RunNumberFieldsAsync();
-
+            await McChecksAsync();
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>

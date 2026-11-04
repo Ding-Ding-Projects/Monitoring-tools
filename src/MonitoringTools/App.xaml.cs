@@ -86,6 +86,7 @@ namespace MonitoringTools
             Clip.Start();
             Net.Start();
             PublicIp.Start();
+            Minecraft.McScheduler.Start();   // runs the Minecraft servers' schedules from the background app
             Tray.Refresh();
 
             ListenForSignal(ServiceHost.QuitEventName, () => Quit(ServiceHost.ExitQuit));

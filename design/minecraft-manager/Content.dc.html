@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Minecraft server · worlds, plugins, backups, schedules</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0F0D}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+input,select{font:inherit;color:inherit}
+a{color:#6FDBB4;text-decoration:none}a:hover{color:#8CF8CF}
+.ms{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;font-size:22px;line-height:1;display:inline-block;white-space:nowrap}
+.fill{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
+.st{position:relative;overflow:hidden;isolation:isolate;transition:border-radius .35s cubic-bezier(.34,1.56,.64,1),background-color .25s cubic-bezier(.2,0,0,1)}
+.st::before{content:"";position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .2s;z-index:-1;pointer-events:none}
+.st:hover::before{opacity:.08}.st:active::before{opacity:.12}
+.st:focus-visible{outline:3px solid #6FDBB4;outline-offset:2px}
+.btn{height:40px;padding:0 20px;border-radius:20px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn:active{border-radius:12px}
+.filled{background:#6FDBB4;color:#003827}
+.tonal{background:#354B41;color:#CFE9DB}
+.outlined{border:1px solid #89938C;color:#6FDBB4}
+.tab{height:48px;padding:0 16px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#BFC9C2;border-bottom:3px solid transparent}
+.tab[aria-current="page"]{color:#6FDBB4;border-bottom-color:#6FDBB4}
+.card{background:#1B211E;border-radius:24px;padding:20px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:14px;min-height:72px;padding:10px 4px;border-bottom:1px solid #262B28}
+.ico{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex:none}
+.badge{height:24px;padding:0 10px;border-radius:12px;display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:500}
+.mono{font-family:'Roboto Mono',ui-monospace,monospace}
+.num{display:inline-flex;align-items:center;height:44px;border-radius:12px;background:#303633;overflow:hidden}
+.num input{width:64px;height:44px;border:0;background:none;text-align:right;font-size:15px;outline:none}
+.num button{width:40px;height:44px;display:flex;align-items:center;justify-content:center;color:#BFC9C2}
+.fade{animation:fade .4s cubic-bezier(.05,.7,.1,1) both}
+@keyframes fade{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.fade{animation:none}.st{transition:none}}
+</style>
+</helmet>
+<div style="min-height: 1180px; background: #0F1512; color: #DEE4DF; font-family: 'Roboto Flex','Segoe UI Variable Text',system-ui,sans-serif; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px;">
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px;">
+    <a class="st" href="Main.dc.html" aria-label="Back to the server list" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center;"><span class="ms" aria-hidden="true">arrow_back</span></a>
+    <h2 style="margin: 0; font-size: 28px; font-weight: 400; flex: 1 1 240px;">Friends survival</h2>
+    <span class="badge" style="background: #00513A; color: #8CF8CF; height: 32px; padding: 0 14px; font-size: 14px;">Running</span>
+  </header>
+  <nav aria-label="Server sections" style="display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid #404943;">
+    <a class="tab st" href="Main.dc.html"><span class="ms" aria-hidden="true">dashboard</span>Overview</a>
+    <a class="tab st" href="Console.dc.html"><span class="ms" aria-hidden="true">terminal</span>Console</a>
+    <a class="tab st" href="Console.dc.html"><span class="ms" aria-hidden="true">group</span>Players</a>
+    <a class="tab st" href="Settings.dc.html"><span class="ms" aria-hidden="true">tune</span>Settings</a>
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+      <button class="tab st" aria-current="{{t.cur}}" onClick="{{t.pick}}"><span class="ms" aria-hidden="true">{{t.icon}}</span>{{t.label}}</button>
+    </sc-for>
+  </nav>
+
+  <!-- WORLDS -->
+  <sc-if value="{{isWorlds}}" hint-placeholder-val="{{true}}">
+    <div class="fade" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+      <section class="card" style="flex: 3 1 560px; min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px;">
+          <h3 style="margin: 0 auto 0 0; font-size: 18px; font-weight: 500;">Worlds</h3>
+          <button class="btn outlined st"><span class="ms" aria-hidden="true">upload</span>Import a world…</button>
+          <button class="btn filled st"><span class="ms" aria-hidden="true">auto_awesome</span>Generate a new world</button>
+        </div>
+        <sc-for list="{{worlds}}" as="w" hint-placeholder-count="3">
+          <div class="row">
+            <span class="ico" style="{{w.icoStyle}}"><span class="ms fill" aria-hidden="true">{{w.icon}}</span></span>
+            <span style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px;">{{w.name}}</span><span style="font-size: 12.5px; color: #BFC9C2;">{{w.meta}}</span></span>
+            <button class="btn tonal st" style="height: 36px;">{{w.action}}</button>
+            <button class="st" aria-label="World actions" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #BFC9C2;"><span class="ms" aria-hidden="true">more_vert</span></button>
+          </div>
+        </sc-for>
+        <p style="margin: 12px 0 0; font-size: 12.5px; color: #89938C; line-height: 1.5;">Reset, replace and delete stop the server, take a backup first and ask for the two-key confirmation. Download gives the world as one ZIP.</p>
+      </section>
+      <section class="card" style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 500;">Pre-generate chunks</h3>
+        <p style="margin: 0; font-size: 13px; color: #BFC9C2; line-height: 1.5;">Builds terrain ahead of time so exploring does not lag. Uses the server's own generator inside the world border.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+          <span style="font-size: 14px; flex: 1 1 120px;">Radius</span>
+          <span class="num"><button class="st" aria-label="Decrease radius"><span class="ms" aria-hidden="true">remove</span></button><input inputmode="numeric" value="2000" aria-label="Radius in blocks"><span style="padding: 0 4px; font-size: 13px; color: #89938C;">blocks</span><button class="st" aria-label="Increase radius"><span class="ms" aria-hidden="true">add</span></button></span>
+        </div>
+        <div style="height: 8px; border-radius: 4px; background: #303633; overflow: hidden;"><div style="width: 38%; height: 100%; background: #6FDBB4; border-radius: 4px;"></div></div>
+        <span style="font-size: 12.5px; color: #BFC9C2;">Overworld: 38 % · 5,812 of 15,376 chunks · about 9 minutes left</span>
+        <div style="display: flex; gap: 8px;"><button class="btn tonal st">Pause</button><button class="btn st" style="color: #6FDBB4;">Cancel</button></div>
+      </section>
+    </div>
+  </sc-if>
+
+  <!-- PLUGINS -->
+  <sc-if value="{{isPlugins}}" hint-placeholder-val="{{false}}">
+    <div class="fade" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+      <section class="card" style="flex: 3 1 560px; min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <h3 style="margin: 0 auto 0 0; font-size: 18px; font-weight: 500;">Installed on Paper 1.21.4</h3>
+          <button class="btn outlined st"><span class="ms" aria-hidden="true">upload_file</span>Install from a file…</button>
+          <button class="btn tonal st"><span class="ms" aria-hidden="true">system_update_alt</span>Update all (2)</button>
+        </div>
+        <sc-for list="{{plugins}}" as="p" hint-placeholder-count="4">
+          <div class="row">
+            <span class="ico" style="background: #2B2640; color: #CFBCFF;"><span class="ms" aria-hidden="true">extension</span></span>
+            <span style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 3px;">
+              <span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"><span style="font-size: 15px;">{{p.name}}</span><span class="badge" style="{{p.badgeStyle}}">{{p.badge}}</span></span>
+              <span style="font-size: 12.5px; color: #BFC9C2;">{{p.meta}}</span>
+            </span>
+            <button role="switch" aria-checked="{{p.on}}" aria-label="Enabled" onClick="{{p.toggle}}" style="{{p.sw}}"><i style="{{p.knob}}"></i></button>
+            <button class="st" aria-label="Plugin actions" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #BFC9C2;"><span class="ms" aria-hidden="true">more_vert</span></button>
+          </div>
+        </sc-for>
+      </section>
+      <section class="card" style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 500;">Find plugins</h3>
+        <label style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 16px; border-radius: 24px; background: #262B28; color: #BFC9C2;"><span class="ms" aria-hidden="true">search</span><input type="search" placeholder="Search Modrinth and Hangar" aria-label="Search plugin catalogues" style="flex: 1; min-width: 0; border: 0; background: none; outline: none;"></label>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;"><span class="badge" style="background: #354B41; color: #CFE9DB; height: 32px; padding: 0 12px; font-size: 13px;">Works with 1.21.4 only</span><span class="badge" style="border: 1px solid #404943; color: #BFC9C2; height: 32px; padding: 0 12px; font-size: 13px;">Paper</span></div>
+        <sc-for list="{{finds}}" as="f" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0;">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px;">{{f.name}}</span><span style="font-size: 12px; color: #89938C;">{{f.meta}}</span></span>
+            <button class="btn tonal st" style="height: 36px;">Install</button>
+          </div>
+        </sc-for>
+        <p style="margin: 0; font-size: 12px; color: #89938C; line-height: 1.5;">Each download is checked against the catalogue's hash before it is copied in. A backup of the plugins folder is kept so any install can be rolled back.</p>
+      </section>
+    </div>
+  </sc-if>
+
+  <!-- BACKUPS -->
+  <sc-if value="{{isBackups}}" hint-placeholder-val="{{false}}">
+    <div class="fade" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+      <section class="card" style="flex: 3 1 560px; min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <h3 style="margin: 0 auto 0 0; font-size: 18px; font-weight: 500;">Backups</h3>
+          <button class="btn filled st"><span class="ms" aria-hidden="true">backup</span>Back up now</button>
+        </div>
+        <sc-for list="{{backups}}" as="b" hint-placeholder-count="4">
+          <div class="row">
+            <span class="ico" style="background: #244C5D; color: #C2E8FD;"><span class="ms" aria-hidden="true">{{b.icon}}</span></span>
+            <span style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px;">{{b.when}}</span><span style="font-size: 12.5px; color: #BFC9C2;">{{b.meta}}</span></span>
+            <button class="btn outlined st" style="height: 36px;">Restore…</button>
+            <button class="st" aria-label="Backup actions" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #BFC9C2;"><span class="ms" aria-hidden="true">more_vert</span></button>
+          </div>
+        </sc-for>
+      </section>
+      <section class="card" style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 14px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 500;">Keep</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;"><span style="flex: 1 1 140px; font-size: 14px;">Newest backups to keep</span><span class="num"><button class="st" aria-label="Fewer"><span class="ms" aria-hidden="true">remove</span></button><input inputmode="numeric" value="14" aria-label="Backups to keep"><button class="st" aria-label="More"><span class="ms" aria-hidden="true">add</span></button></span></div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;"><span style="flex: 1 1 140px; font-size: 14px;">Folder</span><button class="btn tonal st"><span class="ms" aria-hidden="true">folder</span>Choose…</button></div>
+        <p style="margin: 0; font-size: 12.5px; color: #89938C; line-height: 1.5;">A backup runs "save-off", copies the world, then "save-on", so the copy is consistent while players stay online. Restore stops the server, keeps the current world as one more backup, then swaps.</p>
+      </section>
+    </div>
+  </sc-if>
+
+  <!-- SCHEDULES -->
+  <sc-if value="{{isSchedules}}" hint-placeholder-val="{{false}}">
+    <section class="card fade" style="display: flex; flex-direction: column; gap: 4px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+        <h3 style="margin: 0 auto 0 0; font-size: 18px; font-weight: 500;">Schedules</h3>
+        <button class="btn filled st"><span class="ms" aria-hidden="true">add</span>New schedule, step by step</button>
+      </div>
+      <sc-for list="{{schedules}}" as="s" hint-placeholder-count="4">
+        <div class="row">
+          <span class="ico" style="background: #354B41; color: #CFE9DB;"><span class="ms" aria-hidden="true">{{s.icon}}</span></span>
+          <span style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px;">{{s.name}}</span><span style="font-size: 12.5px; color: #BFC9C2;">{{s.when}}</span></span>
+          <span style="font-size: 12.5px; color: #89938C; min-width: 160px;">{{s.next}}</span>
+          <button role="switch" aria-checked="{{s.on}}" aria-label="Schedule on" onClick="{{s.toggle}}" style="{{s.sw}}"><i style="{{s.knob}}"></i></button>
+        </div>
+      </sc-for>
+      <p style="margin: 12px 0 0; font-size: 12.5px; color: #89938C; line-height: 1.5;">Schedules run in the background service, in this computer's time zone. If the computer was asleep at the time, a missed run happens once when it wakes, never several times.</p>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { tab: 0, off: { 'Chunky': true }, son: { 3: true } }; }
+  renderVals() {
+    const T = [['public', 'Worlds'], ['extension', 'Plugins'], ['backup', 'Backups'], ['schedule', 'Schedules']];
+    const tabs = T.map(([icon, label], i) => ({ icon, label, cur: i === this.state.tab ? 'page' : 'false', pick: () => this.setState({ tab: i }) }));
+    const sw = (on) => 'width:52px;height:32px;border-radius:16px;border:2px solid ' + (on ? '#6FDBB4' : '#89938C') + ';background:' + (on ? '#6FDBB4' : '#303633') + ';position:relative;flex:none;transition:background-color .3s';
+    const knob = (on) => 'position:absolute;top:50%;transform:translateY(-50%);left:' + (on ? '24px' : '6px') + ';width:' + (on ? '22px' : '16px') + ';height:' + (on ? '22px' : '16px') + ';border-radius:50%;background:' + (on ? '#003827' : '#89938C') + ';transition:left .35s cubic-bezier(.34,1.56,.64,1)';
+    const worlds = [
+      { icon: 'forest', name: 'world', meta: 'Overworld · 1.8 GB · seed 4127803392 · in use', action: 'Download ZIP', icoStyle: 'background:#00513A;color:#8CF8CF' },
+      { icon: 'local_fire_department', name: 'world_nether', meta: 'Nether · 310 MB', action: 'Download ZIP', icoStyle: 'background:#93000A;color:#FFDAD6' },
+      { icon: 'brightness_3', name: 'world_the_end', meta: 'The End · 96 MB', action: 'Download ZIP', icoStyle: 'background:#2B2640;color:#CFBCFF' }
+    ];
+    const P = [['EssentialsX', '2.21.0 · up to date', 'Compatible', 'ok'], ['LuckPerms', '5.4.141 · update to 5.4.145', 'Update', 'up'], ['Chunky', '1.4.28 · disabled', 'Compatible', 'ok'], ['OldWarps', '0.9 · built for 1.16', 'May not work', 'warn']];
+    const bs = { ok: 'background:#00513A;color:#8CF8CF', up: 'background:#3B2A12;color:#FFDDB3', warn: 'background:#93000A;color:#FFDAD6' };
+    const plugins = P.map(([name, meta, badge, k]) => { const on = !this.state.off[name]; return { name, meta, badge, badgeStyle: bs[k], on: String(on), sw: sw(on), knob: knob(on), toggle: () => this.setState({ off: { ...this.state.off, [name]: on } }) }; });
+    const finds = [{ name: 'Simple Voice Chat', meta: 'Modrinth · 1.21.4 · 12 M downloads' }, { name: 'CoreProtect', meta: 'Modrinth · 1.21.4 · block logging and rollback' }, { name: 'BlueMap', meta: 'Hangar · 1.21.4 · 3D web map' }];
+    const backups = [
+      { icon: 'schedule', when: 'Today 08:00', meta: 'Scheduled · 2.2 GB · world, nether, end, plugins' },
+      { icon: 'schedule', when: 'Today 04:00', meta: 'Scheduled · 2.2 GB' },
+      { icon: 'update', when: 'Yesterday 21:14', meta: 'Before updating Paper to build 121 · 2.1 GB' },
+      { icon: 'touch_app', when: 'Yesterday 18:02', meta: 'Made by hand · 2.1 GB · note: before the nether rebuild' }
+    ];
+    const S = [['restart_alt', 'Daily restart', 'Every day at 04:00 · players get a 5-minute warning in chat', 'Next: tomorrow 04:00'], ['backup', 'Backup', 'Every 4 hours, keep 14', 'Next: today 12:00'], ['campaign', 'Message', 'Every 30 minutes: "Vote for the next event in #general"', 'Next: in 12 min'], ['update', 'Check for Paper updates', 'Mondays 09:00, notify only, never installs by itself', 'Off']];
+    const schedules = S.map(([icon, name, when, next], i) => { const on = !this.state.son[i]; return { icon, name, when, next, on: String(on), sw: sw(on), knob: knob(on), toggle: () => this.setState({ son: { ...this.state.son, [i]: on } }) }; });
+    const t = this.state.tab;
+    return { tabs, worlds, plugins, finds, backups, schedules, isWorlds: t === 0, isPlugins: t === 1, isBackups: t === 2, isSchedules: t === 3 };
+  }
+}
+</script>
+</body>
+</html>

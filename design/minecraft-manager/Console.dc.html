@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Minecraft server · console and players</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0F0D}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+input,select{font:inherit;color:inherit}
+a{color:#6FDBB4;text-decoration:none}a:hover{color:#8CF8CF}
+.ms{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;font-size:22px;line-height:1;display:inline-block;white-space:nowrap}
+.fill{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
+.st{position:relative;overflow:hidden;isolation:isolate;transition:border-radius .35s cubic-bezier(.34,1.56,.64,1),background-color .25s cubic-bezier(.2,0,0,1)}
+.st::before{content:"";position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .2s;z-index:-1;pointer-events:none}
+.st:hover::before{opacity:.08}.st:active::before{opacity:.12}
+.st:focus-visible{outline:3px solid #6FDBB4;outline-offset:2px}
+.btn{height:40px;padding:0 20px;border-radius:20px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn:active{border-radius:12px}
+.filled{background:#6FDBB4;color:#003827}
+.tonal{background:#354B41;color:#CFE9DB}
+.outlined{border:1px solid #89938C;color:#6FDBB4}
+.tab{height:48px;padding:0 16px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#BFC9C2;border-bottom:3px solid transparent}
+.tab[aria-current="page"]{color:#6FDBB4;border-bottom-color:#6FDBB4}
+.card{background:#1B211E;border-radius:24px;padding:20px}
+.chip{height:32px;padding:0 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;border:1px solid #404943;color:#BFC9C2}
+.chip[aria-pressed="true"]{background:#354B41;border-color:transparent;color:#CFE9DB;border-radius:16px}
+.mono{font-family:'Roboto Mono',ui-monospace,monospace}
+.field{display:flex;flex-direction:column;gap:6px;font-size:12px;color:#BFC9C2}
+.field input,.field select{height:48px;border-radius:12px;border:0;background:#303633;padding:0 14px;font-size:15px;color:#DEE4DF;outline:none}
+.field input:focus,.field select:focus{box-shadow:0 0 0 2px #6FDBB4}
+.rise{animation:rise .45s cubic-bezier(.05,.7,.1,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.rise{animation:none}.st{transition:none}}
+th{font-size:12px;font-weight:500;color:#89938C;text-align:left;padding:8px 12px}
+td{padding:6px 12px;font-size:14px;border-top:1px solid #262B28}
+</style>
+</helmet>
+<div style="min-height: 1000px; background: #0F1512; color: #DEE4DF; font-family: 'Roboto Flex','Segoe UI Variable Text',system-ui,sans-serif; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px;">
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px;">
+    <a class="st" href="Main.dc.html" aria-label="Back to the server list" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #DEE4DF;"><span class="ms" aria-hidden="true">arrow_back</span></a>
+    <h2 style="margin: 0; font-size: 28px; font-weight: 400; flex: 1 1 240px;">Friends survival</h2>
+    <span style="display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 14px; border-radius: 16px; background: #00513A; color: #8CF8CF; font-size: 14px; font-weight: 500;"><span style="width: 8px; height: 8px; border-radius: 4px; background: #6FDBB4;" aria-hidden="true"></span>Running</span>
+    <button class="btn filled st"><span class="ms fill" aria-hidden="true">stop</span>Stop</button>
+  </header>
+  <nav aria-label="Server sections" style="display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid #404943;">
+    <a class="tab st" href="Main.dc.html"><span class="ms" aria-hidden="true">dashboard</span>Overview</a>
+    <a class="tab st" href="Console.dc.html" aria-current="page"><span class="ms" aria-hidden="true">terminal</span>Console</a>
+    <a class="tab st" href="Console.dc.html"><span class="ms" aria-hidden="true">group</span>Players</a>
+    <a class="tab st" href="Settings.dc.html"><span class="ms" aria-hidden="true">tune</span>Settings</a>
+    <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">public</span>Worlds</a>
+    <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">extension</span>Plugins</a>
+    <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">backup</span>Backups</a>
+    <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">schedule</span>Schedules</a>
+  </nav>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+    <!-- console -->
+    <section class="card" aria-label="Console" style="flex: 3 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+        <h3 style="margin: 0 auto 0 0; font-size: 18px; font-weight: 500;">Console</h3>
+        <div role="group" aria-label="Show" style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <sc-for list="{{levels}}" as="lv" hint-placeholder-count="4">
+            <button class="chip st" aria-pressed="{{lv.on}}" onClick="{{lv.toggle}}">{{lv.label}}</button>
+          </sc-for>
+        </div>
+        <button class="chip st" aria-pressed="true"><span class="ms" style="font-size: 18px;" aria-hidden="true">vertical_align_bottom</span>Follow</button>
+      </div>
+      <label style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 16px; border-radius: 22px; background: #262B28; color: #BFC9C2;">
+        <span class="ms" aria-hidden="true">search</span>
+        <input type="search" placeholder="Search the log" aria-label="Search the log" style="flex: 1; min-width: 0; border: 0; background: none; outline: none;">
+        <button class="mono st" aria-label="Regex builder" style="height: 32px; padding: 0 10px; border-radius: 16px; font-size: 12px;">.*  Builder</button>
+      </label>
+      <div class="mono" role="log" aria-live="polite" style="background: #0A0F0D; border-radius: 16px; padding: 14px 16px; font-size: 12.5px; line-height: 1.75; color: #BFC9C2; height: 380px; overflow: auto;">
+        <sc-for list="{{log}}" as="l" hint-placeholder-count="10">
+          <div style="white-space: pre;"><span style="color: #89938C;">{{l.t}}</span>  <span style="{{l.s}}">{{l.lvl}}</span>  {{l.msg}}</div>
+        </sc-for>
+      </div>
+
+      <!-- typed command builder -->
+      <div style="background: #262B28; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;"><span class="ms" style="color: #6FDBB4;" aria-hidden="true">bolt</span><strong style="font-weight: 500;">Run a command</strong><span style="font-size: 12px; color: #89938C;">Commands and their arguments come from this server's own command list (1.21.4).</span></div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+          <label class="field" style="flex: 1 1 200px;">Command
+            <select aria-label="Command"><option>time set</option><option>weather</option><option>give</option><option>tp</option><option>gamerule</option><option>whitelist add</option><option>say</option></select>
+          </label>
+          <label class="field" style="flex: 1 1 160px;">Time
+            <select aria-label="Time"><option>day</option><option>noon</option><option>night</option><option>midnight</option><option>a number of ticks…</option></select>
+          </label>
+          <button class="btn filled st" style="height: 48px; border-radius: 16px;"><span class="ms" aria-hidden="true">send</span>Run</button>
+        </div>
+        <div class="mono" style="font-size: 13px; color: #CFE9DB;">/time set day</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <span style="font-size: 12px; color: #89938C; align-self: center;">Recent:</span>
+          <button class="chip st">/weather clear</button><button class="chip st">/save-all</button><button class="chip st">/list</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- players -->
+    <section class="card" aria-label="Players" style="flex: 2 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <h3 style="margin: 0 auto 0 0; font-size: 18px; font-weight: 500;">Players</h3>
+        <div role="group" aria-label="Which players" style="display: flex; gap: 6px;">
+          <button class="chip st" aria-pressed="true">Everyone 6</button><button class="chip st">Online 3</button><button class="chip st">Banned 1</button>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <label class="field" style="flex: 1 1 200px;">Add a player by name
+          <input placeholder="Minecraft name" aria-label="Minecraft name">
+        </label>
+        <button class="btn tonal st" style="align-self: flex-end; height: 48px; border-radius: 16px;"><span class="ms" aria-hidden="true">person_add</span>Whitelist</button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 380px;">
+          <thead><tr><th>Player</th><th>Operator</th><th>Whitelist</th><th>Status</th><th><span style="position: absolute; left: -9999px;">Actions</span></th></tr></thead>
+          <tbody>
+            <sc-for list="{{players}}" as="p" hint-placeholder-count="6">
+              <tr>
+                <td><span style="display: flex; align-items: center; gap: 10px;"><span style="width: 32px; height: 32px; border-radius: 9px; background: #244C5D; color: #C2E8FD; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px;" aria-hidden="true">{{p.init}}</span>{{p.name}}</span></td>
+                <td><button role="switch" aria-checked="{{p.op}}" aria-label="Operator" onClick="{{p.toggleOp}}" style="{{p.opStyle}}"><i style="{{p.opKnob}}"></i></button></td>
+                <td><button role="switch" aria-checked="{{p.wl}}" aria-label="Whitelisted" onClick="{{p.toggleWl}}" style="{{p.wlStyle}}"><i style="{{p.wlKnob}}"></i></button></td>
+                <td style="font-size: 13px; color: #BFC9C2;">{{p.status}}</td>
+                <td><button class="st" aria-label="More player actions" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #BFC9C2;"><span class="ms" aria-hidden="true">more_vert</span></button></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin: 0; font-size: 12px; color: #89938C; line-height: 1.5;">Kick, ban and pardon are in each player's menu. Bans and operator changes ask for the two-key confirmation. Changes apply live while the server runs.</p>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { off: {}, op: { Ava: true }, wl: { Ava: true, Ben: true, Chloe: true, Dev: true } }; }
+  renderVals() {
+    const L = [['INFO', 'Info'], ['WARN', 'Warnings'], ['CHAT', 'Chat'], ['CMD', 'Commands']];
+    const levels = L.map(([k, label]) => ({ label, on: this.state.off[k] ? 'false' : 'true', toggle: () => this.setState({ off: { ...this.state.off, [k]: !this.state.off[k] } }) }));
+    const sty = { INFO: 'color:#6FDBB4', WARN: 'color:#FFB95F', CHAT: 'color:#CFBCFF', CMD: 'color:#C2E8FD' };
+    const raw = [
+      ['14:02:05', 'INFO', 'Starting minecraft server version 1.21.4'], ['14:02:05', 'INFO', 'Loading properties'],
+      ['14:02:07', 'INFO', 'Preparing level "world"'], ['14:02:11', 'INFO', 'Done (6.214s)! For help, type "help"'],
+      ['14:05:40', 'INFO', 'Ava joined the game'], ['14:06:02', 'CHAT', '<Ava> anyone up for the nether?'],
+      ['14:07:30', 'CMD', 'Ava issued server command: /time set day'], ['14:09:18', 'INFO', 'Ben joined the game'],
+      ['14:12:51', 'WARN', "Can't keep up! Running 2041ms behind, skipping 40 ticks"], ['14:13:07', 'INFO', 'Saved the game'],
+      ['14:15:44', 'CHAT', '<Ben> found diamonds at y -58'], ['14:16:20', 'INFO', 'Chloe joined the game']
+    ];
+    const log = raw.filter(r => !this.state.off[r[0] === undefined ? '' : r[1]]).map(([t, lvl, msg]) => ({ t, lvl, msg, s: sty[lvl] }));
+    const sw = (on) => 'width:52px;height:32px;border-radius:16px;border:2px solid ' + (on ? '#6FDBB4' : '#89938C') + ';background:' + (on ? '#6FDBB4' : '#303633') + ';position:relative;display:inline-block;transition:background-color .3s';
+    const knob = (on) => 'position:absolute;top:50%;transform:translateY(-50%);left:' + (on ? '24px' : '6px') + ';width:' + (on ? '22px' : '16px') + ';height:' + (on ? '22px' : '16px') + ';border-radius:50%;background:' + (on ? '#003827' : '#89938C') + ';transition:left .35s cubic-bezier(.34,1.56,.64,1)';
+    const P = [['Ava', 'online · 1 h 8 m'], ['Ben', 'online · 54 m'], ['Chloe', 'online · 12 m'], ['Dev', 'last seen yesterday'], ['Eli', 'never joined'], ['Finn', 'banned: griefing']];
+    const players = P.map(([name, status]) => {
+      const op = !!this.state.op[name], wl = !!this.state.wl[name];
+      return { name, status, init: name[0], op: String(op), wl: String(wl), opStyle: sw(op), opKnob: knob(op), wlStyle: sw(wl), wlKnob: knob(wl),
+        toggleOp: () => this.setState({ op: { ...this.state.op, [name]: !op } }), toggleWl: () => this.setState({ wl: { ...this.state.wl, [name]: !wl } }) };
+    });
+    return { levels, log, players };
+  }
+}
+</script>
+</body>
+</html>

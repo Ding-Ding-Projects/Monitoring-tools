@@ -34,6 +34,13 @@ namespace MonitoringTools.UI
                 SetCursorPos(0, 0);
                 Demo.SeedLivedIn();
                 var s = Demo.EnsureSamples();
+                if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager scenes
+                {
+                    await MinecraftScenesAsync();
+                    File.WriteAllText(Path.Combine(_dir, "index.json"), JsonSerializer.Serialize(Index, new JsonSerializerOptions { WriteIndented = true }));
+                    App.Current.Shutdown(0);
+                    return;
+                }
                 if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1")   // quick loop while developing these scenes
                 {
                     await Wave6ScenesAsync();
@@ -170,6 +177,7 @@ namespace MonitoringTools.UI
                 confirm.Close();
 
                 await Wave6ScenesAsync();
+                await MinecraftScenesAsync();
 
                 File.WriteAllText(Path.Combine(_dir, "index.json"), JsonSerializer.Serialize(Index, new JsonSerializerOptions { WriteIndented = true }));
             }

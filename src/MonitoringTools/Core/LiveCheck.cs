@@ -41,6 +41,11 @@ namespace MonitoringTools.Core
             var pngRed = RedSquarePng();   // made here, on the STA thread, before any await
             Task.Run(async () =>
             {
+                if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-server")   // run only the server manager end to end
+                {
+                    await Check(results, "minecraft: a real server is created, started, answers list and stops", MinecraftServer);
+                    return;
+                }
                 await Check(results, "narrator: an installed English voice synthesises speech", () => Voice(dir, false));
                 await Check(results, "narrator: a Cantonese voice synthesises speech", () => Voice(dir, true));
                 await Check(results, "ollama: the local server answers and lists models", OllamaList);
@@ -49,6 +54,7 @@ namespace MonitoringTools.Core
                 await Check(results, "dim sum: the live catalogue gives a dish with its photo", DimSum);
                 await Check(results, "forge: publishing creates the repository and pushes the commit", () => Forge(dir));
                 await Check(results, "minecraft: the real server jar lists its game rules, blocks and biomes", Minecraft);
+                await Check(results, "minecraft: a real server is created, started, answers list and stops", MinecraftServer);
             }).GetAwaiter().GetResult();
 
             File.WriteAllText(Path.Combine(dir, "livecheck.json"), JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true }));
@@ -230,6 +236,46 @@ namespace MonitoringTools.Core
                 var j = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(f));
                 if (f.Contains("noise_settings") ? (int)j["sea_level"] != 70 : (double)j["ambient_light"] != 0.25) return "an edit did not land in " + Path.GetFileName(Path.GetDirectoryName(f));
             }
+            return null;
+        }
+
+        /// <summary>
+        /// The server manager end to end, in the throwaway data folder: create a real Vanilla server (the EULA is accepted
+        /// for this test server only), start it, wait for "Done", ask it "list", read the answer, and stop it gracefully.
+        /// </summary>
+        private static async Task<string> MinecraftServer()
+        {
+            var version = Environment.GetEnvironmentVariable("MT_LIVE_MC");
+            if (string.IsNullOrEmpty(version)) version = "1.21.4";
+            var port = 25565;
+            while (!MonitoringTools.Minecraft.ServerManager.PortFree(port)) port++;
+            var s = new MonitoringTools.Minecraft.ServerDef { Name = "Live check", Version = version, Target = MonitoringTools.Minecraft.Target.LocalProcess, Port = port, MemoryMb = 1024, EulaAccepted = true };
+            await MonitoringTools.Minecraft.ServerManager.CreateAsync(s, _ => { }, new Dictionary<string, string> { ["max-players"] = "7", ["online-mode"] = "false" });
+            var live = MonitoringTools.Minecraft.McLive.For(s);
+            try
+            {
+                await MonitoringTools.Minecraft.ServerManager.StartAsync(s, _ => { });
+                var until = DateTime.Now.AddMinutes(6);
+                while (DateTime.Now < until && !live.Lines().Any(l => l.Message.StartsWith("Done (", StringComparison.Ordinal)))
+                {
+                    if (MonitoringTools.Minecraft.ServerManager.ProcessOf(s) == null) return "the server exited before it was ready: " + Trim(string.Join(" | ", live.Lines().TakeLast(5).Select(l => l.Raw)));
+                    await Task.Delay(1000);
+                }
+                if (!live.Lines().Any(l => l.Message.StartsWith("Done (", StringComparison.Ordinal))) return "the server did not report Done within six minutes";
+                var st = await MonitoringTools.Minecraft.McState.ProbeAsync(s);
+                if (st.State != MonitoringTools.Minecraft.McRunState.Running) return "the state probe said " + st.State;
+                await MonitoringTools.Minecraft.ServerManager.CommandAsync(s, "list");
+                for (int i = 0; i < 20 && live.PlayersMax == null; i++) await Task.Delay(500);
+                if (live.PlayersOnline != 0 || live.PlayersMax != 7) return $"list answered {live.PlayersOnline} of {live.PlayersMax}, expected 0 of 7";
+            }
+            finally
+            {
+                await MonitoringTools.Minecraft.ServerManager.StopAsync(s);
+            }
+            if (MonitoringTools.Minecraft.ServerManager.ProcessOf(s) != null) return "the server did not stop";
+            var after = await MonitoringTools.Minecraft.McState.ProbeAsync(s);
+            if (after.State != MonitoringTools.Minecraft.McRunState.Stopped) return "after stopping the state is " + after.State;
+            if (!live.Lines().Any(l => l.Raw.Contains("Stopping the server") || l.Raw.Contains("Stopping server"))) return "the log shows no graceful stop";
             return null;
         }
 

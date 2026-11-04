@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New Minecraft server</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0F0D}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+input,select{font:inherit;color:inherit}
+a{color:#6FDBB4;text-decoration:none}a:hover{color:#8CF8CF}
+.ms{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;font-size:22px;line-height:1;display:inline-block;white-space:nowrap}
+.fill{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
+.st{position:relative;overflow:hidden;isolation:isolate;transition:border-radius .35s cubic-bezier(.34,1.56,.64,1),background-color .25s cubic-bezier(.2,0,0,1),border-color .25s}
+.st::before{content:"";position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .2s;z-index:-1;pointer-events:none}
+.st:hover::before{opacity:.08}.st:active::before{opacity:.12}
+.st:focus-visible{outline:3px solid #6FDBB4;outline-offset:2px}
+.btn{height:40px;padding:0 24px;border-radius:20px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn:active{border-radius:12px}
+.filled{background:#6FDBB4;color:#003827}
+.tonal{background:#354B41;color:#CFE9DB}
+.mono{font-family:'Roboto Mono',ui-monospace,monospace}
+.opt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:18px;border-radius:20px;border:1px solid #404943;text-align:left;min-height:120px}
+.opt[aria-checked="true"]{border-color:transparent;background:#354B41;color:#CFE9DB;border-radius:28px}
+.num{display:inline-flex;align-items:center;height:48px;border-radius:12px;background:#303633;overflow:hidden}
+.num input{width:96px;height:48px;border:0;background:none;text-align:right;font-size:15px;outline:none}
+.num button{width:44px;height:48px;display:flex;align-items:center;justify-content:center;color:#BFC9C2}
+.step{animation:step .45s cubic-bezier(.05,.7,.1,1) both}
+@keyframes step{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.step{animation:none}.st{transition:none}}
+</style>
+</helmet>
+<div style="min-height: 1000px; background: #0F1512; color: #DEE4DF; font-family: 'Roboto Flex','Segoe UI Variable Text',system-ui,sans-serif; padding: 24px 32px 40px; display: flex; flex-wrap: wrap; gap: 32px;">
+  <!-- step rail -->
+  <nav aria-label="Steps" style="flex: 1 1 240px; max-width: 280px; display: flex; flex-direction: column; gap: 4px;">
+    <a class="st" href="Main.dc.html" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 20px; color: #DEE4DF; margin-bottom: 12px;"><span class="ms" aria-hidden="true">close</span>Cancel</a>
+    <h1 style="margin: 0 12px 16px; font-size: 26px; font-weight: 400;">New server</h1>
+    <sc-for list="{{steps}}" as="s" hint-placeholder-count="6">
+      <button onClick="{{s.go}}" aria-current="{{s.cur}}" class="st" style="{{s.style}}">
+        <span style="{{s.dotStyle}}"><span class="ms" style="font-size: 18px;" aria-hidden="true">{{s.mark}}</span></span>
+        <span style="display: flex; flex-direction: column; align-items: flex-start;"><span style="font-size: 14px; font-weight: 500;">{{s.title}}</span><span style="font-size: 12px; opacity: .75;">{{s.sum}}</span></span>
+      </button>
+    </sc-for>
+    <p style="margin: 16px 12px 0; font-size: 12px; color: #89938C; line-height: 1.5;">Your answers are kept as a draft, so you can leave and come back.</p>
+  </nav>
+
+  <main style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 20px;">
+    <div style="height: 6px; border-radius: 3px; background: #262B28; overflow: hidden;"><div style="{{barStyle}}"></div></div>
+    <span style="font-size: 13px; color: #89938C;">Step {{num}} of 6</span>
+
+    <sc-if value="{{s0}}" hint-placeholder-val="{{true}}">
+      <section class="step" style="display: flex; flex-direction: column; gap: 16px;">
+        <h2 style="margin: 0; font-size: 28px; font-weight: 400;">Edition and version</h2>
+        <div role="radiogroup" aria-label="Edition" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+          <button role="radio" aria-checked="true" class="opt st"><span class="ms fill" aria-hidden="true">coffee</span><strong style="font-weight: 500; font-size: 16px;">Java edition</strong><span style="font-size: 13px; opacity: .85;">Every version in Mojang's catalogue, plus Paper, Fabric, Forge and others.</span></button>
+          <button role="radio" aria-checked="false" class="opt st"><span class="ms" aria-hidden="true">devices</span><strong style="font-weight: 500; font-size: 16px;">Bedrock edition</strong><span style="font-size: 13px; opacity: .85;">The official dedicated server, for phones, consoles and Windows players.</span></button>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+          <label style="flex: 1 1 320px; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 16px; border-radius: 24px; background: #262B28; color: #BFC9C2;"><span class="ms" aria-hidden="true">search</span><input type="search" placeholder="Search 800 versions" aria-label="Search versions" style="flex: 1; min-width: 0; border: 0; background: none; outline: none;"><span class="mono" style="font-size: 12px;">.*</span></label>
+          <button class="btn tonal st" aria-pressed="false">Show snapshots</button>
+          <button class="btn tonal st" aria-pressed="false">Show old alpha and beta</button>
+        </div>
+        <div role="listbox" aria-label="Versions" style="background: #1B211E; border-radius: 24px; padding: 8px; display: flex; flex-direction: column; gap: 2px;">
+          <sc-for list="{{versions}}" as="v" hint-placeholder-count="6">
+            <button role="option" aria-selected="{{v.sel}}" onClick="{{v.pick}}" class="st" style="{{v.style}}">
+              <span class="mono" style="font-size: 15px; min-width: 90px; text-align: left;">{{v.id}}</span>
+              <span style="flex: 1; text-align: left; font-size: 13px; color: inherit; opacity: .8;">{{v.note}}</span>
+              <span style="font-size: 12px; opacity: .7;">{{v.java}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{s1}}" hint-placeholder-val="{{false}}">
+      <section class="step" style="display: flex; flex-direction: column; gap: 16px;">
+        <h2 style="margin: 0; font-size: 28px; font-weight: 400;">Server software for 1.21.4</h2>
+        <p style="margin: 0; font-size: 14px; color: #BFC9C2;">Only software that has a build for 1.21.4 is offered.</p>
+        <div role="radiogroup" aria-label="Server software" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+          <sc-for list="{{flavours}}" as="f" hint-placeholder-count="6">
+            <button role="radio" aria-checked="{{f.sel}}" onClick="{{f.pick}}" class="opt st"><strong style="font-weight: 500; font-size: 16px;">{{f.name}}</strong><span style="font-size: 13px; opacity: .85;">{{f.note}}</span><span class="mono" style="font-size: 12px; opacity: .7; margin-top: auto;">{{f.build}}</span></button>
+          </sc-for>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{s2}}" hint-placeholder-val="{{false}}">
+      <section class="step" style="display: flex; flex-direction: column; gap: 16px;">
+        <h2 style="margin: 0; font-size: 28px; font-weight: 400;">Where it runs</h2>
+        <div role="radiogroup" aria-label="Where the server runs" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+          <sc-for list="{{targets}}" as="t" hint-placeholder-count="4">
+            <button role="radio" aria-checked="{{t.sel}}" onClick="{{t.pick}}" class="opt st"><span class="ms" aria-hidden="true">{{t.icon}}</span><strong style="font-weight: 500; font-size: 16px;">{{t.name}}</strong><span style="font-size: 13px; opacity: .85;">{{t.note}}</span><span style="font-size: 12px; margin-top: auto; color: #6FDBB4;">{{t.check}}</span></button>
+          </sc-for>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{s3}}" hint-placeholder-val="{{false}}">
+      <section class="step" style="display: flex; flex-direction: column; gap: 18px;">
+        <h2 style="margin: 0; font-size: 28px; font-weight: 400;">Name, memory and port</h2>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #BFC9C2; max-width: 480px;">Name<input value="Friends survival" style="height: 48px; border-radius: 12px; border: 0; background: #303633; padding: 0 14px; font-size: 15px; color: #DEE4DF;"></label>
+        <sc-for list="{{nums}}" as="n" hint-placeholder-count="3">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; max-width: 720px;">
+            <span style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px;">{{n.label}}</span><span style="font-size: 12.5px; color: #BFC9C2;">{{n.help}}</span></span>
+            <span class="num"><button class="st" aria-label="Decrease" onClick="{{n.dec}}"><span class="ms" aria-hidden="true">remove</span></button><input inputmode="numeric" value="{{n.value}}" aria-label="{{n.label}}"><span style="padding: 0 4px; font-size: 13px; color: #89938C;">{{n.unit}}</span><button class="st" aria-label="Increase" onClick="{{n.inc}}"><span class="ms" aria-hidden="true">add</span></button></span>
+          </div>
+        </sc-for>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 16px; background: #00513A; color: #8CF8CF; max-width: 720px;"><span class="ms" aria-hidden="true">check_circle</span>Port 25565 is free on this computer. 16 GB of memory is installed, so 4 GB is comfortable.</div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{s4}}" hint-placeholder-val="{{false}}">
+      <section class="step" style="display: flex; flex-direction: column; gap: 16px;">
+        <h2 style="margin: 0; font-size: 28px; font-weight: 400;">World</h2>
+        <div role="radiogroup" aria-label="World" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+          <button role="radio" aria-checked="true" class="opt st"><span class="ms" aria-hidden="true">auto_awesome</span><strong style="font-weight: 500; font-size: 16px;">New world</strong><span style="font-size: 13px; opacity: .85;">Seed, world type and game rules, from this version's own options.</span></button>
+          <button role="radio" aria-checked="false" class="opt st"><span class="ms" aria-hidden="true">folder_open</span><strong style="font-weight: 500; font-size: 16px;">Use a world I have</strong><span style="font-size: 13px; opacity: .85;">A folder or ZIP. It is checked and copied, never moved.</span></button>
+          <button role="radio" aria-checked="false" class="opt st"><span class="ms" aria-hidden="true">backup</span><strong style="font-weight: 500; font-size: 16px;">From a backup</strong><span style="font-size: 13px; opacity: .85;">Start from any backup of another server.</span></button>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #BFC9C2; max-width: 480px;">Seed (empty picks one at random)<input class="mono" placeholder="for example 4127803392" style="height: 48px; border-radius: 12px; border: 0; background: #303633; padding: 0 14px; font-size: 15px; color: #DEE4DF;"></label>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{s5}}" hint-placeholder-val="{{false}}">
+      <section class="step" style="display: flex; flex-direction: column; gap: 16px; max-width: 760px;">
+        <h2 style="margin: 0; font-size: 28px; font-weight: 400;">Review and create</h2>
+        <div style="background: #1B211E; border-radius: 24px; padding: 8px 20px;">
+          <sc-for list="{{review}}" as="r" hint-placeholder-count="6">
+            <div style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid #262B28; flex-wrap: wrap;"><span style="flex: 0 0 180px; color: #BFC9C2; font-size: 14px;">{{r.k}}</span><span style="flex: 1 1 240px; font-size: 14px;">{{r.v}}</span></div>
+          </sc-for>
+        </div>
+        <label style="display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 16px; background: #262B28; font-size: 14px; line-height: 1.5;"><input type="checkbox" style="width: 20px; height: 20px; margin-top: 2px; accent-color: #6FDBB4;"><span>I accept the <a href="https://aka.ms/MinecraftEULA">Minecraft End User License Agreement</a>. The server will not start without it.</span></label>
+      </section>
+    </sc-if>
+
+    <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: auto; padding-top: 12px;">
+      <sc-if value="{{hasBack}}" hint-placeholder-val="{{false}}"><button class="btn tonal st" onClick="{{back}}">Back</button></sc-if>
+      <button class="btn filled st" onClick="{{next}}">{{nextLabel}}</button>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { step: 0, ver: 0, fl: 1, tg: 0, mem: 4096, port: 25565, players: 20 }; }
+  renderVals() {
+    const st = this.state;
+    const V = [['1.21.4', 'release · 3 Dec 2024', 'Java 21'], ['1.21.3', 'release · 23 Oct 2024', 'Java 21'], ['1.20.6', 'release · 29 Apr 2024', 'Java 21'], ['1.20.4', 'release · 7 Dec 2023', 'Java 17'], ['1.19.4', 'release · 14 Mar 2023', 'Java 17'], ['1.12.2', 'release · 18 Sep 2017', 'Java 8']];
+    const F = [['Vanilla', 'Mojang’s own server.', 'from Mojang'], ['Paper', 'Fast, with Bukkit and Spigot plugins.', 'build 128'], ['Purpur', 'Paper plus many extra options.', 'build 2391'], ['Fabric', 'Light mod loader.', 'loader 0.16.9'], ['Forge', 'The classic mod loader.', '54.0.16'], ['NeoForge', 'A modern fork of Forge.', '21.4.48']];
+    const Tg = [['computer', 'This computer', 'A process on this PC. Simplest.', 'Java 21 will be downloaded for it'], ['deployed_code', 'Docker on this computer', 'A container with its own folder for the world.', 'Docker 29.6 is running'], ['lan', 'Another computer over SSH', 'Runs as a process on a machine you can SSH to.', 'Pick a host; its key is checked first'], ['cloud', 'Docker over SSH', 'A container on another machine.', 'Needs Docker on that machine']];
+    const titles = ['Edition and version', 'Software', 'Where it runs', 'Name and resources', 'World', 'Review'];
+    const sums = [V[st.ver][0], F[st.fl][0], Tg[st.tg][1], st.mem + ' MB · port ' + st.port, 'New world', ''];
+    const steps = titles.map((title, i) => { const done = i < st.step, cur = i === st.step; return { title, sum: done ? sums[i] : '', cur: cur ? 'step' : 'false', mark: done ? 'check' : String(i + 1), go: () => this.setState({ step: i }),
+      style: 'display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 12px;border-radius:' + (cur ? '28px' : '16px') + ';background:' + (cur ? '#354B41' : 'transparent') + ';color:' + (cur ? '#CFE9DB' : '#DEE4DF') + ';text-align:left',
+      dotStyle: 'width:32px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex:none;font-size:13px;font-weight:600;background:' + (done || cur ? '#6FDBB4' : '#303633') + ';color:' + (done || cur ? '#003827' : '#BFC9C2') }; });
+    const versions = V.map(([id, note, java], i) => ({ id, note, java, sel: String(i === st.ver), pick: () => this.setState({ ver: i }),
+      style: 'display:flex;align-items:center;gap:16px;width:100%;min-height:52px;padding:0 16px;border-radius:' + (i === st.ver ? '26px' : '14px') + ';background:' + (i === st.ver ? '#354B41' : 'transparent') + ';color:' + (i === st.ver ? '#CFE9DB' : '#DEE4DF') }));
+    const flavours = F.map(([name, note, build], i) => ({ name, note, build, sel: String(i === st.fl), pick: () => this.setState({ fl: i }) }));
+    const targets = Tg.map(([icon, name, note, check], i) => ({ icon, name, note, check, sel: String(i === st.tg), pick: () => this.setState({ tg: i }) }));
+    const mk = (key, label, help, unit, min, max, step) => ({ label, help, unit, value: String(st[key]), dec: () => this.setState({ [key]: Math.max(min, st[key] - step) }), inc: () => this.setState({ [key]: Math.min(max, st[key] + step) }) });
+    const nums = [mk('mem', 'Memory', 'Memory for the Java server. 512 MB to 65536 MB.', 'MB', 512, 65536, 256), mk('port', 'Port', 'The port players connect to. 1 to 65535.', '', 1, 65535, 1), mk('players', 'Maximum players', 'How many can be online at once.', 'players', 0, 1000, 1)];
+    const review = [{ k: 'Edition', v: 'Java ' + V[st.ver][0] }, { k: 'Software', v: F[st.fl][0] + ' ' + F[st.fl][2] }, { k: 'Runs on', v: Tg[st.tg][1] }, { k: 'Memory', v: st.mem + ' MB' }, { k: 'Port', v: String(st.port) }, { k: 'World', v: 'New world, random seed' }];
+    const s = st.step;
+    return { steps, versions, flavours, targets, nums, review, num: s + 1, s0: s === 0, s1: s === 1, s2: s === 2, s3: s === 3, s4: s === 4, s5: s === 5,
+      hasBack: s > 0, back: () => this.setState({ step: s - 1 }), next: () => this.setState({ step: Math.min(5, s + 1) }), nextLabel: s === 5 ? 'Create server' : 'Next',
+      barStyle: 'height:100%;border-radius:3px;background:#6FDBB4;transition:width .5s cubic-bezier(.2,0,0,1);width:' + Math.round((s + 1) / 6 * 100) + '%' };
+  }
+}
+</script>
+</body>
+</html>

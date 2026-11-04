@@ -18,6 +18,7 @@ and the reason is written beside it.
 | Dim sum | Loads the live public dish catalogue and picks a dish with both names. |
 | Forge | Publishes a folder to a test Gitea/Forgejo or GitLab server with a one-time token, then reads the pushed file back through the server's API. |
 | Minecraft | Downloads the real server jar and Java, lists game rules, blocks and biomes from the jar's own reports, and writes a noise-settings and dimension-type edit from the jar's default files. |
+| Minecraft server | Creates a real Vanilla server with the server manager in the throwaway data folder (the EULA is accepted for that test server only), starts it, waits for "Done", sends `list` and reads the answer, then stops it gracefully. `MT_LIVE_ONLY=minecraft-server` runs only this check. |
 
 ## Settings
 
@@ -45,5 +46,6 @@ token with `gitea admin user create` and `gitea admin user generate-access-token
 | Dim sum | passed |
 | Forge | passed (Gitea 1.22.6 in a local container; repository created, commit pushed, README read back) |
 | Minecraft | passed (1.21.4 jar: game rules, blocks, biomes, noise and dimension edits) |
+| Minecraft server | passed (1.21.4 Vanilla: created, started, `list` answered 0 of 7, stopped; 46 s) |
 
 GitLab was not run: no GitLab server was available.

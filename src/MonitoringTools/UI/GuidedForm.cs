@@ -120,6 +120,9 @@ namespace MonitoringTools.UI
 
         private void Go(int delta) => Show(_index + delta);
 
+        /// <summary>Returns to an earlier step, as a step rail beside the form does. Later steps are reached with Next, so their checks run.</summary>
+        public void GoTo(int step) { if (step >= 0 && step < _index) Show(step); }
+
         private async void Next()
         {
             var err = _steps[_index].Validate?.Invoke();

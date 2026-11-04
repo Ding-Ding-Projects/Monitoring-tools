@@ -36,7 +36,7 @@ namespace MonitoringTools.UI
             "CSS", "XML", "YAML", "TOML", "HTML", "SVG", "MKV", "MOV", "AVI", "WAV", "FLAC", "OGG", "AAC", "WebM", "BMP", "TIFF", "ICO", "NET", "API", "SSH", "SSL", "TLS",
             "UI", "ID", "OS", "PC", "AI", "LLM", "GGUF", "CLI", "SSD", "NAT", "VPN", "LAN", "WAN", "MAC", "ARP", "ICMP", "TTL", "RAW", "UTC", "AM", "PM", "CRLF", "LF", "UAC",
             "Roblox", "League", "Legends", "Valorant", "Fortnite", "Steam", "Epic", "Cloudflare", "Google", "OpenDNS", "Quad", "Comodo", "Paper", "Spigot", "Fabric", "Forge",
-            "Vanilla", "Purpur", "Bukkit", "Mojang", "Java", "Gradle", "Bedrock", "Neo", "Quilt", "Folia", "Velocity", "Waterfall", "Windows", "Microsoft", "Apple", "Mac",
+            "Vanilla", "Purpur", "Bukkit", "NeoForge", "Mojang", "Java", "Gradle", "Bedrock", "Neo", "Quilt", "Folia", "Velocity", "Waterfall", "Windows", "Microsoft", "Apple", "Mac",
             "Hyper", "WSL", "Linux", "Ubuntu", "Edge", "Chrome", "Firefox", "Python", "Node", "Visual", "Studio", "Code", "VS", "Sublime", "Text", "Regex", "RegexBuddy",
             "Base", "AES", "Argon", "bcrypt", "x", "px", "pt", "em", "pm", "am", "vs", "etc", "eg", "ie", "Adapter", "Gateway", "Wi-Fi", "WiFi", "Ethernet",
             "Intel", "AMD", "NVIDIA", "Realtek", "Qualcomm", "Atheros", "Broadcom", "Home", "Offline", "Cantonese", "English", "Mint", "Violet", "Amber", "Rose", "Sky", "Coral", "Lime",
@@ -46,11 +46,11 @@ namespace MonitoringTools.UI
         // Key names are only skipped inside a Cantonese sentence; a lone English "Delete" is still a gap.
         private static readonly HashSet<string> KeyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Enter", "Delete", "Shift", "Ctrl", "Alt", "Esc", "Home", "End", "Tab", "Space", "Backspace", "Left", "Right", "Up", "Down" };
 
-        // Lock labels that earlier self-test checks wrote into the safety history; they are test data, not wording of the app.
-        private static readonly HashSet<string> TestLabels = new HashSet<string>(StringComparer.Ordinal) { "Frozen look", "Frozen look (PIN)", "Selftest button", "Selftest button (PIN)" };
+        // Lock labels that earlier self-test checks wrote into the safety history, and the names of the sample Minecraft servers and plugins; they are test data, not wording of the app.
+        private static readonly HashSet<string> TestLabels = new HashSet<string>(StringComparer.Ordinal) { "Frozen look", "Frozen look (PIN)", "Selftest button", "Selftest button (PIN)", "Friends survival", "Creative build", "Minigames", "Modded test", "Chunky", "EssentialsX", "LuckPerms", "paper-custom-key" };
 
         // Sample data and data the person owns: a commit message, a file name with its extension.
-        private static readonly Regex SampleData = new Regex(@"(Update \S+ on \S+ at \S+$)|(^Selftest\b)|(\bSelftest (lock|button|outage|entry))|(\bBulk drive notice \d+$)|(^detail \d+$)|(^poster$)|(\.[A-Za-z0-9]{1,5}$)|(^[A-Za-z]:\\)|(^%[A-Z]+%)", RegexOptions.Compiled);
+        private static readonly Regex SampleData = new Regex(@"(Update \S+ on \S+ at \S+$)|(^Selftest\b)|(\bSelftest (lock|button|outage|entry))|(\bBulk drive notice \d+$)|(Vote for the next event in #general$)|(^detail \d+$)|(^poster$)|(\.[A-Za-z0-9]{1,5}$)|(^[A-Za-z]:\\)|(^%[A-Z]+%)", RegexOptions.Compiled);
 
         private static readonly Regex Word = new Regex(@"[A-Za-z]+", RegexOptions.Compiled);
         private static readonly char[] CodeChars = "0123456789/\\_@#=%$~<>{}|^*+[]".ToCharArray();
@@ -323,8 +323,23 @@ namespace MonitoringTools.UI
                 cc.Navigate("shortcuts", animate: false); await Settle(400);
                 if (await Press(cc, "New shortcut"))
                     for (int step = 0; step < 6; step++) { Scan("guided form: new shortcut, step " + (step + 1), cc); if (!await Press(cc, "Next")) break; }
+                // the server manager: every section of a sample server, then every step of the create flow
+                MonitoringTools.Minecraft.McDemo.Seed();
                 cc.Navigate("minecraft", animate: false); await Settle(500);
-                for (int step = 0; step < 8; step++) { Scan("guided form: new server, step " + (step + 1), cc); if (!await Press(cc, "Next")) break; }
+                var mcv = cc.MinecraftManager;
+                foreach (var sid in new[] { "sample-friends", "sample-modded", "sample-minigames", "sample-creative" })
+                {
+                    mcv.Select(sid);
+                    foreach (var (sec, _, _) in UI.Minecraft.McManagerView.Sections) { mcv.ShowSection(sec); await Settle(350); Scan("minecraft: " + sid + " " + sec, cc); }
+                }
+                mcv.Select("sample-friends");
+                foreach (var grp in MonitoringTools.Minecraft.McPropertyCatalog.Groups) { UI.Minecraft.McManagerView.SettingsGroup = grp; mcv.ShowSection("settings"); await Settle(300); Scan("minecraft: settings " + grp, cc); }
+                UI.Minecraft.McManagerView.SettingsGroup = "Gameplay";
+                UI.Minecraft.McManagerView.Draft = new UI.Minecraft.McCreateDraft { Version = "1.21.4" };
+                mcv.OpenCreate(); await Settle(600);
+                for (int step = 0; step < 6; step++) { Scan("guided form: new server, step " + (step + 1), cc); if (!await Press(cc, "Next")) break; await Settle(600); }
+                UI.Minecraft.McManagerView.Draft = null; mcv.CloseCreate();
+                MonitoringTools.Minecraft.McDemo.Remove();
                 cc.Navigate("modes", animate: false); await Settle(400);
                 if (await Press(cc, "Add rule")) Scan("modes: schedule rule form", cc);
                 cc.Navigate("safety", animate: false); await Settle(400);
