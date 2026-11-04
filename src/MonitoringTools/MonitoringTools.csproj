@@ -39,6 +39,14 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)..\..\deps\manifest.json" LogicalName="bundled/manifest.json" />
   </ItemGroup>
 
+  <!-- The offline documentation shown on the Help and docs page: every feature article, the README and
+       the screenshots those articles reference. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\docs\features\**\*.md" LogicalName="docs/features/%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\README.md" LogicalName="docs/README.md" />
+    <EmbeddedResource Include="..\..\docs\screenshots\toast-link.png;..\..\docs\screenshots\toast-compose.png;..\..\docs\screenshots\control-history.png;..\..\docs\screenshots\control-conversion.png;..\..\docs\screenshots\commit-template.png;..\..\docs\screenshots\control-shortcuts.png;..\..\docs\screenshots\offline-dialog.png;..\..\docs\screenshots\control-network.png;..\..\docs\screenshots\control-game.png;..\..\docs\screenshots\filetools-move.png;..\..\docs\screenshots\filetools-base64.png;..\..\docs\screenshots\filetools-encrypt.png;..\..\docs\screenshots\control-minecraft.png;..\..\docs\screenshots\control-service.png;..\..\docs\screenshots\tray-menu.png;..\..\docs\screenshots\command-palette.png" LogicalName="docs/screenshots/%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <!-- Stamps the build time into the app so the front screen can show when this exact build was made. -->
   <ItemGroup>
     <AssemblyMetadata Include="BuildTimeUtc" Value="$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))" />
