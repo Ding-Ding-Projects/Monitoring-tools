@@ -25,6 +25,7 @@ namespace MonitoringTools.UI
                 "Create and run Java edition servers on this computer, in Docker, or on another machine over SSH. Versions come straight from Mojang's official catalogue.");
 
             foreach (var s in ServerManager.Servers.ToList()) root.Children.Add(ServerCard(s));
+            root.Children.Add(WorldGenCard());
             root.Children.Add(CreateCard());
             return root;
         }
