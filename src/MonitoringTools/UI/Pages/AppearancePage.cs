@@ -67,6 +67,7 @@ namespace MonitoringTools.UI
                     v => { s.MotionMode = v; Appearance.Apply(); }),
                 "On skips animation. Follow Windows uses the Windows animation setting. Off always animates.", "Follow Windows", "motion animation reduce"));
             root.Children.Add(Card(feel));
+            root.Children.Add(Card(SearchScope.SetItem(Tabs.TabStrip.DockChoice(), "tab strip dock edge left top right bottom")));
 
             // ---- Name and logo
             var ident = new StackPanel();
