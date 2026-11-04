@@ -88,7 +88,15 @@ namespace MonitoringTools.Minecraft
         {
             if (McLogLine.TryPlayers(text, out var n, out var max, out var names)) { PlayersOnline = n; PlayersMax = max; PlayerNames = names; PlayersAt = DateTime.Now; }
             if (McLogLine.TryTps(text, out var tps)) Tps = tps;
+            var g = GameRuleAnswer.Match(text ?? "");
+            if (g.Success) lock (GameRules) GameRules[g.Groups[1].Value] = g.Groups[2].Value.Trim();
         }
+
+        // "Gamerule keepInventory is currently set to: false"
+        private static readonly System.Text.RegularExpressions.Regex GameRuleAnswer = new System.Text.RegularExpressions.Regex(@"Gamerule (\S+) is currently set to: (\S+)", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        /// <summary>Game rule values the running server reported in answer to "gamerule &lt;name&gt;".</summary>
+        public readonly Dictionary<string, string> GameRules = new Dictionary<string, string>(StringComparer.Ordinal);
 
         public void MarkStarting() { Starting = true; StartingSince = DateTime.Now; LastFailure = null; Updated?.Invoke(ServerId); }
         public void Failed(string why) { Starting = false; StartingSince = null; LastFailure = why; LastFailureAt = DateTime.Now; Updated?.Invoke(ServerId); }

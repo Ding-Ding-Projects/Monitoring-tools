@@ -87,24 +87,25 @@ namespace MonitoringTools.Minecraft
 
         private static async Task<McBuildList> PaperAsync(string version)
         {
-            var url = $"https://api.papermc.io/v2/projects/paper/versions/{Uri.EscapeDataString(version)}/builds";
+            // PaperMC's Fill API (v3); the older v2 API has been retired. Builds are listed newest first.
+            var url = $"https://fill.papermc.io/v3/projects/paper/versions/{Uri.EscapeDataString(version)}/builds";
             using var r = await Http.GetAsync(url);
             if ((int)r.StatusCode == 404) return new McBuildList { Unavailable = $"Paper has no builds for {version}." };
             r.EnsureSuccessStatusCode();
             using var doc = JsonDocument.Parse(await r.Content.ReadAsStringAsync());
             var list = new McBuildList();
-            foreach (var b in doc.RootElement.GetProperty("builds").EnumerateArray().Reverse())
+            if (doc.RootElement.ValueKind != JsonValueKind.Array) return new McBuildList { Unavailable = $"Paper lists no builds for {version}." };
+            foreach (var b in doc.RootElement.EnumerateArray())
             {
-                var id = b.GetProperty("build").GetInt32().ToString();
-                string name = null, sha = null;
-                if (b.TryGetProperty("downloads", out var dl) && dl.TryGetProperty("application", out var app))
-                { name = app.GetProperty("name").GetString(); sha = app.TryGetProperty("sha256", out var h) ? h.GetString() : null; }
-                list.Builds.Add(new McBuild
+                var id = b.GetProperty("id").GetInt32().ToString();
+                string dlUrl = null, sha = null;
+                if (b.TryGetProperty("downloads", out var dl) && dl.TryGetProperty("server:default", out var app))
                 {
-                    Id = id, Channel = b.TryGetProperty("channel", out var c) ? c.GetString() : "default",
-                    DownloadUrl = name == null ? null : $"https://api.papermc.io/v2/projects/paper/versions/{Uri.EscapeDataString(version)}/builds/{id}/downloads/{Uri.EscapeDataString(name)}",
-                    HashKind = sha == null ? null : "sha256", Hash = sha
-                });
+                    dlUrl = app.TryGetProperty("url", out var u) ? u.GetString() : null;
+                    sha = app.TryGetProperty("checksums", out var cs) && cs.TryGetProperty("sha256", out var h) ? h.GetString() : null;
+                }
+                var channel = b.TryGetProperty("channel", out var c) ? c.GetString()?.ToLowerInvariant() : "default";
+                list.Builds.Add(new McBuild { Id = id, Channel = channel == "stable" ? "default" : channel, DownloadUrl = dlUrl, HashKind = sha == null ? null : "sha256", Hash = sha });
             }
             return list;
         }

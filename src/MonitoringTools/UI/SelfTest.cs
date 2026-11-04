@@ -51,6 +51,7 @@ namespace MonitoringTools.UI
             dir = Path.GetFullPath(dir);
             Directory.CreateDirectory(dir);
             if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
+            if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1") { await McChecksAsync(); Finish(dir); return; }   // quick loop for the server manager checks
 
             // ---- search
             Check("search: plain text needs every word", () =>
@@ -811,6 +812,7 @@ namespace MonitoringTools.UI
                 return left.Count + " untranslated of " + LanguageAudit.Examined + " examined: " + string.Join(" | ", shown) + (left.Count > 80 ? " | ... see language-untranslated.txt" : "");
             });
 
+            await McChecksAsync();
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>

@@ -84,6 +84,16 @@ namespace MonitoringTools.Minecraft
             catch (Exception ex) { return (null, "The command list had an unexpected shape: " + ex.Message); }
         }
 
+        /// <summary>The game rules the jar's own "gamerule" command lists, with the parser of each rule's value.</summary>
+        public static List<(string Name, string Parser)> GameRules(McCommandNode root)
+        {
+            var gr = root?.Children.FirstOrDefault(c => c.Name == "gamerule" && c.IsLiteral);
+            if (gr == null) return new List<(string, string)>();
+            return gr.Children.Where(c => c.IsLiteral)
+                .Select(c => (c.Name, c.Children.FirstOrDefault(a => a.IsArgument)?.Parser ?? "unknown"))
+                .OrderBy(x => x.Name, StringComparer.Ordinal).ToList();
+        }
+
         /// <summary>Checks one argument value against its parser, returning a plain reason or null.</summary>
         public static string Check(McCommandNode arg, string value)
         {

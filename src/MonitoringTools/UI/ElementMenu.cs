@@ -177,6 +177,9 @@ namespace MonitoringTools.UI
             return s.Trim();
         }
 
+        /// <summary>Shows only the given items, as an action menu for a "more" button.</summary>
+        public static void OpenItems(Window w, FrameworkElement origin, IEnumerable<Item> items, Point at) => new MenuPopup(items.ToList(), origin, null).Show(w, at);
+
         public static void Open(Window w, FrameworkElement target, Func<FrameworkElement, IEnumerable<Item>> extra, Point at)
         {
             var text = TextOf(target);

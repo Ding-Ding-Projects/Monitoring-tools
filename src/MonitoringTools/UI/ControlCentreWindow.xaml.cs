@@ -79,8 +79,6 @@ namespace MonitoringTools.UI
                 var q = string.Join(" ", words);
                 return _pageSearch == null || q.Length == 0 ? null : new[] { new ElementMenu.Item($"Search this page for “{q}”", Icons.Search, "Ctrl+F", () => { _pageSearch.State.SetRegex(false); _pageSearch.State.SetQuery(q); _pageSearch.Box.Focus(); }) };
             });
-            ServerManager.Output += OnServerOutput;
-            Closed += (s, e) => ServerManager.Output -= OnServerOutput;
             RefreshStatus();
         }
 
