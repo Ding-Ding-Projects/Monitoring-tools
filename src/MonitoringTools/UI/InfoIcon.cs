@@ -36,7 +36,7 @@ namespace MonitoringTools.UI
             Add("Toast duration", "How many seconds a toast stays on screen before it fades.", s => s.ToastSeconds + " s");
             Add("History size", "How many recent copies are kept in memory for the History page. Quitting the app clears them.", s => s.HistorySize.ToString());
             Add("Sound effects", "Plays a short cue when an action finishes or fails, or when the connection drops and returns. Cues stay quiet during Windows quiet time, presentations and games.", s => OnOff(s.SoundsEnabled));
-            Add("Volume", "How loud the sound effects are. It does not change the Windows volume.", s => s.SoundVolume >= 0.99 ? "Full" : s.SoundVolume >= 0.55 ? "Medium" : "Low");
+            Add("Volume", "How loud the sound effects are. It does not change the Windows volume.", s => Math.Round(s.SoundVolume * 100) + " %");
             Add("Network alerts", "Shows a dialog when the internet connection drops and keeps it up until the line comes back or you dismiss it.", s => OnOff(s.NetworkEnabled));
             Add("Alert me when the internet drops", "Shows a dialog when the internet connection drops.", s => OnOff(s.NetworkEnabled));
             Add("Check every|2 s", "How often the app tests the connection. Shorter notices a drop sooner and makes slightly more small requests.", s => s.ProbeIntervalSeconds + " s");

@@ -100,27 +100,9 @@ namespace MonitoringTools.UI
                         return cb;
                     }
                 });
-            void Choice<T>(string title, string page, (string, T)[] options, Func<T> get, Action<T> set) =>
-                list.Add(new Item
-                {
-                    Group = "Settings", Title = title, Detail = "Control centre · " + page, Icon = Icons.Shield, Page = page,
-                    Run = () => Go(page, title),
-                    Inline = () =>
-                    {
-                        var wrap = new StackPanel { Orientation = Orientation.Horizontal };
-                        var buttons = new List<(Button, T)>();
-                        void Paint() { foreach (var (b, v) in buttons) { bool on = EqualityComparer<T>.Default.Equals(v, get()); b.Background = Ui.Res(on ? "B.Mint" : "B.Raised"); b.Foreground = Ui.Res(on ? "B.MintInk" : "B.TextSoft"); } }
-                        foreach (var (l, v) in options)
-                        {
-                            var val = v;
-                            var b = Ui.Button(l, null, "Btn.Chip"); b.Height = 26; b.Margin = new Thickness(0, 0, 4, 0); b.Focusable = false;
-                            b.Click += (o, e) => { set(val); Settings.Save(); Paint(); };
-                            buttons.Add((b, v)); wrap.Children.Add(b);
-                        }
-                        Paint();
-                        return wrap;
-                    }
-                });
+            // A number setting is typed, never picked from presets, so its entry opens the page where the number field sits.
+            void NumberSetting(string title, string page) =>
+                list.Add(new Item { Group = "Settings", Title = title, Detail = "Control centre · " + page + " · type a number", Icon = Icons.Shield, Page = page, Run = () => Go(page, title) });
             void Act(string title, string icon, Action run, string detail = null, string group = "Actions", bool literalDetail = false) =>
                 list.Add(new Item { Group = group, Title = title, Detail = detail, Icon = icon, Run = run, LiteralDetail = literalDetail });
 
@@ -141,15 +123,15 @@ namespace MonitoringTools.UI
             Toggle("Render Markdown", "clipboard", () => s.RenderMarkdown, v => s.RenderMarkdown = v);
             Toggle("Skip password managers", "clipboard", () => s.IgnoreSensitiveSources, v => s.IgnoreSensitiveSources = v);
             Toggle("Quick commands", "clipboard", () => s.QuickCommandsEnabled, v => s.QuickCommandsEnabled = v);
-            Choice("Toast duration", "clipboard", new[] { ("2 s", 2.0), ("3 s", 3.0), ("5 s", 5.0), ("8 s", 8.0) }, () => s.ToastSeconds, v => s.ToastSeconds = v);
+            NumberSetting("Toast duration", "clipboard");
             Toggle("Network alerts", "network", () => s.NetworkEnabled, v => s.NetworkEnabled = v);
             Toggle("Watch the public IP", "network", () => s.PublicIpEnabled, v => s.PublicIpEnabled = v);
-            Choice("Check every", "network", new[] { ("2 s", 2), ("3 s", 3), ("5 s", 5), ("10 s", 10) }, () => s.ProbeIntervalSeconds, v => s.ProbeIntervalSeconds = v);
+            NumberSetting("Check every", "network");
             Toggle("Suppress while gaming", "game", () => s.GameModeEnabled, v => s.GameModeEnabled = v);
             Toggle("Any fullscreen app counts", "game", () => s.GameModeFullscreen, v => s.GameModeFullscreen = v);
             Toggle("Sound effects", "clipboard", () => s.SoundsEnabled, v => s.SoundsEnabled = v);
             Toggle("Start with Windows", "service", () => s.StartWithWindows, v => { s.StartWithWindows = v; ServiceHost.ApplyAutostart(); });
-            Choice("Volume", "clipboard", new[] { ("Low", 0.3), ("Medium", 0.6), ("Full", 1.0) }, () => s.SoundVolume, v => s.SoundVolume = v);
+            NumberSetting("Volume", "clipboard");
             // School mode leaves personal wording out, so its entries are left out too.
             if (!Modes.Blocks(ModeFeature.PersonalVocabulary))
             {
@@ -163,7 +145,7 @@ namespace MonitoringTools.UI
             Toggle("Focus", "modes", () => s.AdhdFocus, v => { s.AdhdFocus = v; Modes.NotifyChanged(); }, "ADHD mode · hold non-urgent popups in History");
             Toggle("Low stimulation", "modes", () => s.AdhdLowStimulation, v => { s.AdhdLowStimulation = v; Modes.NotifyChanged(); }, "ADHD mode · no motion, only warnings make a sound");
             Toggle("Time awareness", "modes", () => s.AdhdTimeAwareness, v => { s.AdhdTimeAwareness = v; Modes.NotifyChanged(); }, "ADHD mode · elapsed time and a gentle reminder");
-            Choice("Reminder interval", "modes", new[] { ("15 min", 15), ("30 min", 30), ("45 min", 45), ("60 min", 60), ("90 min", 90) }, () => s.TimeReminderMinutes, v => { s.TimeReminderMinutes = v; Modes.NotifyChanged(); });
+            NumberSetting("Reminder interval", "modes");
             Toggle("One thing at a time", "modes", () => s.AdhdOneThing, v => { s.AdhdOneThing = v; Modes.NotifyChanged(); }, "ADHD mode · one popup on screen at once");
             Toggle("Momentum", "modes", () => s.AdhdMomentum, v => { s.AdhdMomentum = v; Modes.NotifyChanged(); }, "ADHD mode · reopen on the page you left");
 

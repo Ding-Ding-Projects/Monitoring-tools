@@ -57,7 +57,7 @@ namespace MonitoringTools.UI
             {
                 SelfTest.Press(form, "Dark"); SelfTest.Press(form, "Next");
                 SelfTest.Press(form, "Violet"); SelfTest.Press(form, "Next");
-                SelfTest.Press(form, "Compact"); SelfTest.Press(form, "120 %"); SelfTest.Press(form, "Next");
+                SelfTest.Press(form, "Compact"); Drive.Type(SelfTest.Descend<NumberField>(form).First(f => f.Label == "Text size").Box, "120", true); SelfTest.Press(form, "Next");
                 await Task.Delay(300);
                 form.BringIntoView();
             }

@@ -331,18 +331,20 @@ namespace MonitoringTools.UI
 
         private void AddSizePanel(Panel row)
         {
-            var label = new TextBlock { Text = $"Width {(int)_width}", Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 10, 6), MinWidth = 64 };
+            var label = new TextBlock { Text = "Width", Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 10, 6) };
             var slider = new Slider { Minimum = 1, Maximum = 48, Value = _width, Width = 220, TickFrequency = 1, IsSnapToTickEnabled = true, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 6) };
             AutomationProperties.SetName(slider, "Stroke width");
             slider.ToolTip = "Stroke width in pixels; also the eraser and text size. Default 4.";
+            // A typed box beside the slider: both change the same width and follow each other.
+            var typed = new NumberField("Stroke width", null, Math.Round(_width), 1, 48, 1, v => { slider.Value = v; Settings.Save(); }, "px", 0, false, true) { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 6) };
             slider.ValueChanged += (s, e) =>
             {
-                _width = slider.Value; label.Text = $"Width {(int)_width}";
+                _width = slider.Value; typed.SetValue(_width);
                 Settings.Current.DrawWidth = _width; ApplyTool();
             };
             slider.PreviewMouseLeftButtonUp += (s, e) => Settings.Save();
             slider.KeyUp += (s, e) => Settings.Save();
-            row.Children.Add(label); row.Children.Add(slider);
+            row.Children.Add(label); row.Children.Add(slider); row.Children.Add(typed);
             row.Children.Add(ToolButton("Done", "Back to the pens (Z)", () => TogglePanel("tools"), false, "Close the size controls"));
         }
 

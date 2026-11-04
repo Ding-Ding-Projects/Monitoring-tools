@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Minecraft servers · overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0A0F0D}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+input,select{font:inherit;color:inherit}
+a{color:#6FDBB4;text-decoration:none}a:hover{color:#8CF8CF}
+.ms{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;font-size:22px;line-height:1;display:inline-block;white-space:nowrap;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24}
+.fill{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
+.st{position:relative;overflow:hidden;isolation:isolate;transition:border-radius .35s cubic-bezier(.34,1.56,.64,1),background-color .25s cubic-bezier(.2,0,0,1)}
+.st::before{content:"";position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .2s;z-index:-1;pointer-events:none}
+.st:hover::before{opacity:.08}.st:active::before{opacity:.12}
+.st:focus-visible{outline:3px solid #6FDBB4;outline-offset:2px}
+.btn{height:40px;padding:0 20px;border-radius:20px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap}
+.btn:active{border-radius:12px}
+.filled{background:#6FDBB4;color:#003827}
+.tonal{background:#354B41;color:#CFE9DB}
+.outlined{border:1px solid #89938C;color:#6FDBB4}
+.danger{background:#93000A;color:#FFDAD6}
+.tab{height:48px;padding:0 16px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#BFC9C2;border-bottom:3px solid transparent}
+.tab[aria-current="page"]{color:#6FDBB4;border-bottom-color:#6FDBB4}
+.card{background:#1B211E;border-radius:24px;padding:20px}
+.chip{height:28px;padding:0 12px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;background:#262B28;color:#BFC9C2}
+.mono{font-family:'Roboto Mono',ui-monospace,monospace}
+.rise{animation:rise .5s cubic-bezier(.05,.7,.1,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.pulse{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion: reduce){.rise,.pulse{animation:none}.st{transition:none}}
+</style>
+</helmet>
+<div style="min-height: 1000px; background: #0F1512; color: #DEE4DF; font-family: 'Roboto Flex','Segoe UI Variable Text',system-ui,sans-serif; display: flex; flex-wrap: wrap;">
+
+  <!-- server list pane -->
+  <aside aria-label="Servers" style="flex: 1 1 320px; max-width: 360px; min-width: 0; background: #0A0F0D; padding: 24px 16px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 0 8px;">
+      <span class="ms fill" style="color: #6FDBB4; font-size: 28px;" aria-hidden="true">deployed_code</span>
+      <h1 style="margin: 0; font-size: 22px; font-weight: 500;">Minecraft servers</h1>
+    </div>
+    <a class="btn filled st" href="Create.dc.html" style="justify-content: center; height: 56px; border-radius: 16px; font-size: 15px;"><span class="ms" aria-hidden="true">add</span>New server</a>
+    <label style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 16px; border-radius: 24px; background: #262B28; color: #BFC9C2;">
+      <span class="ms" aria-hidden="true">search</span>
+      <input type="search" placeholder="Search servers" aria-label="Search servers" style="flex: 1; min-width: 0; border: 0; background: none; outline: none; font-size: 15px;">
+      <span class="mono" style="font-size: 12px; color: #89938C;">.*</span>
+    </label>
+    <div role="group" aria-label="Filter by state" style="display: flex; gap: 6px; flex-wrap: wrap; padding: 0 4px;">
+      <button class="chip st" aria-pressed="true" style="background: #354B41; color: #CFE9DB;">All 4</button>
+      <button class="chip st">Running 2</button>
+      <button class="chip st">Stopped 1</button>
+      <button class="chip st">Offline host 1</button>
+    </div>
+    <div role="listbox" aria-label="Server list" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+      <sc-for list="{{servers}}" as="s" hint-placeholder-count="4">
+        <button role="option" aria-selected="{{s.sel}}" onClick="{{s.pick}}" class="st rise" style="{{s.rowStyle}}">
+          <span style="{{s.dotStyle}}" aria-hidden="true"></span>
+          <span style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; flex: 1;">
+            <span style="font-size: 15px; font-weight: 500;">{{s.name}}</span>
+            <span style="font-size: 12px; color: #BFC9C2;">{{s.sub}}</span>
+          </span>
+          <span class="chip" style="background: transparent; border: 1px solid #404943;"><span class="ms" style="font-size: 16px;" aria-hidden="true">{{s.targetIcon}}</span>{{s.target}}</span>
+        </button>
+      </sc-for>
+    </div>
+    <p style="margin: auto 8px 0; font-size: 12px; line-height: 1.5; color: #89938C;">Found on this computer: 1 running server not created here. <a href="#">Review and adopt</a>. Nothing is touched until you adopt it.</p>
+  </aside>
+
+  <!-- workspace -->
+  <main style="flex: 999 1 640px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px;">
+    <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px;">
+      <div style="flex: 1 1 320px; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <h2 style="margin: 0; font-size: 32px; font-weight: 400;">{{cur.name}}</h2>
+          <span style="{{cur.badgeStyle}}"><span class="pulse" style="{{cur.badgeDot}}" aria-hidden="true"></span>{{cur.state}}</span>
+        </div>
+        <p style="margin: 6px 0 0; font-size: 14px; color: #BFC9C2;">{{cur.detail}}</p>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn tonal st" aria-label="Copy join address"><span class="ms" aria-hidden="true">content_copy</span><span class="mono">{{cur.address}}</span></button>
+        <button class="btn tonal st"><span class="ms" aria-hidden="true">restart_alt</span>Restart</button>
+        <button class="btn filled st"><span class="ms fill" aria-hidden="true">{{cur.mainIcon}}</span>{{cur.mainAction}}</button>
+      </div>
+    </header>
+
+    <nav aria-label="Server sections" style="display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid #404943;">
+      <a class="tab st" href="Main.dc.html" aria-current="page"><span class="ms" aria-hidden="true">dashboard</span>Overview</a>
+      <a class="tab st" href="Console.dc.html"><span class="ms" aria-hidden="true">terminal</span>Console</a>
+      <a class="tab st" href="Console.dc.html"><span class="ms" aria-hidden="true">group</span>Players</a>
+      <a class="tab st" href="Settings.dc.html"><span class="ms" aria-hidden="true">tune</span>Settings</a>
+      <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">public</span>Worlds</a>
+      <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">extension</span>Plugins</a>
+      <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">backup</span>Backups</a>
+      <a class="tab st" href="Content.dc.html"><span class="ms" aria-hidden="true">schedule</span>Schedules</a>
+    </nav>
+
+    <!-- live stats -->
+    <section aria-label="Live status" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+      <sc-for list="{{stats}}" as="k" hint-placeholder-count="5">
+        <div class="card rise" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 6px;">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #BFC9C2;"><span class="ms" style="font-size: 18px; color: #6FDBB4;" aria-hidden="true">{{k.icon}}</span>{{k.label}}</span>
+          <span style="font-size: 28px; font-weight: 400;">{{k.value}}</span>
+          <span style="font-size: 12px; color: #89938C;">{{k.note}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch;">
+      <!-- recent console -->
+      <section class="card" style="flex: 2 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 500;">Recent console</h3>
+          <a class="btn outlined st" href="Console.dc.html" style="height: 36px;">Open console<span class="ms" aria-hidden="true">arrow_forward</span></a>
+        </div>
+        <div class="mono" role="log" aria-label="Last server log lines" style="background: #0A0F0D; border-radius: 16px; padding: 14px 16px; font-size: 12.5px; line-height: 1.7; color: #BFC9C2; overflow-x: auto;">
+          <sc-for list="{{log}}" as="l" hint-placeholder-count="6">
+            <div style="white-space: pre;"><span style="color: #89938C;">{{l.t}}</span>  <span style="{{l.lvlStyle}}">{{l.lvl}}</span>  {{l.msg}}</div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- players now -->
+      <section class="card" style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 500;">Players online</h3>
+          <span class="chip">3 of 20</span>
+        </div>
+        <sc-for list="{{players}}" as="p" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 12px; min-height: 48px;">
+            <span style="width: 36px; height: 36px; border-radius: 10px; background: #244C5D; color: #C2E8FD; display: flex; align-items: center; justify-content: center; font-weight: 600;" aria-hidden="true">{{p.init}}</span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px;">{{p.name}}</span><span style="font-size: 12px; color: #89938C;">{{p.note}}</span></span>
+            <button class="st" aria-label="Player actions" style="width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #BFC9C2;"><span class="ms" aria-hidden="true">more_vert</span></button>
+          </div>
+        </sc-for>
+      </section>
+    </div>
+
+    <!-- health and next steps -->
+    <section class="card" style="display: flex; flex-direction: column; gap: 12px;">
+      <h3 style="margin: 0; font-size: 18px; font-weight: 500;">Needs your attention</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 16px; background: #3B2A12; color: #FFDDB3; flex-wrap: wrap;">
+          <span class="ms fill" style="color: #FFB95F;" aria-hidden="true">update</span>
+          <span style="flex: 1 1 280px;">Paper build 128 is out for 1.21.4. Your server runs build 121. A backup is taken first, and you can roll back.</span>
+          <button class="btn tonal st" style="background: #FFB95F; color: #462A00;">Review update</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 16px; background: #262B28; flex-wrap: wrap;">
+          <span class="ms" style="color: #6FDBB4;" aria-hidden="true">backup</span>
+          <span style="flex: 1 1 280px;">Last backup 6 hours ago. The daily backup runs at 04:00.</span>
+          <a class="btn outlined st" href="Content.dc.html">Back up now</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { picked: 0 }; }
+  renderVals() {
+    const S = [
+      { name: 'Friends survival', sub: 'Paper 1.21.4 · 3 of 20 players', target: 'This PC', targetIcon: 'computer', state: 'Running', tone: 'run', address: 'localhost:25565', detail: 'Paper 1.21.4 build 121 · Java 21 · started 2 h 14 m ago · world "world"' },
+      { name: 'Creative build', sub: 'Vanilla 1.21.4 · stopped', target: 'Docker', targetIcon: 'deployed_code', state: 'Stopped', tone: 'stop', address: 'localhost:25566', detail: 'Vanilla 1.21.4 · container mc-creative · stopped 1 day ago' },
+      { name: 'Modded test', sub: 'Fabric 1.20.6 · 0 players', target: 'SSH', targetIcon: 'lan', state: 'Running', tone: 'run', address: 'build-box:25565', detail: 'Fabric 1.20.6 · on build-box over SSH · host key approved' },
+      { name: 'Minigames', sub: 'Host not reachable', target: 'SSH Docker', targetIcon: 'cloud', state: 'Host offline', tone: 'off', address: 'media-box:25565', detail: 'Last seen 40 min ago. A host that cannot be reached is not treated as a stopped server.' }
+    ];
+    const tone = { run: ['#6FDBB4', '#00513A', '#8CF8CF'], stop: ['#89938C', '#303633', '#DEE4DF'], off: ['#FFB95F', '#3B2A12', '#FFDDB3'] };
+    const servers = S.map((s, i) => ({
+      ...s, sel: i === this.state.picked ? 'true' : 'false',
+      pick: () => this.setState({ picked: i }),
+      rowStyle: 'display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 12px;border-radius:' + (i === this.state.picked ? '28px' : '16px') + ';text-align:left;background:' + (i === this.state.picked ? '#354B41' : 'transparent') + ';color:' + (i === this.state.picked ? '#CFE9DB' : '#DEE4DF') + ';animation-delay:' + (i * 40) + 'ms',
+      dotStyle: 'width:10px;height:10px;border-radius:5px;flex:none;background:' + tone[s.tone][0]
+    }));
+    const c = S[this.state.picked]; const t = tone[c.tone];
+    const cur = { ...c,
+      badgeStyle: 'display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 14px;border-radius:16px;font-size:14px;font-weight:500;background:' + t[1] + ';color:' + t[2],
+      badgeDot: 'width:8px;height:8px;border-radius:4px;background:' + t[0],
+      mainAction: c.tone === 'run' ? 'Stop' : (c.tone === 'off' ? 'Reconnect' : 'Start'),
+      mainIcon: c.tone === 'run' ? 'stop' : (c.tone === 'off' ? 'sync' : 'play_arrow') };
+    const stats = [
+      { icon: 'group', label: 'Players', value: '3 / 20', note: 'peak today 7' },
+      { icon: 'speed', label: 'Ticks per second', value: '19.9', note: 'from the server, last minute' },
+      { icon: 'memory', label: 'Memory', value: '2.1 / 4 GB', note: 'Java memory in use' },
+      { icon: 'schedule', label: 'Uptime', value: '2 h 14 m', note: 'since the last start' },
+      { icon: 'lan', label: 'Port', value: '25565', note: 'open on this computer' }
+    ];
+    const lv = { INFO: 'color:#6FDBB4', WARN: 'color:#FFB95F', CHAT: 'color:#CFBCFF' };
+    const log = [
+      ['14:02:11', 'INFO', 'Done (6.214s)! For help, type "help"'],
+      ['14:05:40', 'INFO', 'Ava joined the game'],
+      ['14:06:02', 'CHAT', '<Ava> anyone up for the nether?'],
+      ['14:09:18', 'INFO', 'Ben joined the game'],
+      ['14:12:51', 'WARN', "Can't keep up! Running 2041ms behind, skipping 40 ticks"],
+      ['14:13:07', 'INFO', 'Saved the game']
+    ].map(([t, lvl, msg]) => ({ t, lvl, msg, lvlStyle: lv[lvl] }));
+    const players = [
+      { init: 'A', name: 'Ava', note: 'operator · online 1 h 8 m' },
+      { init: 'B', name: 'Ben', note: 'whitelisted · online 54 m' },
+      { init: 'C', name: 'Chloe', note: 'whitelisted · online 12 m' }
+    ];
+    return { servers, cur, stats, log, players };
+  }
+}
+</script>
+</body>
+</html>

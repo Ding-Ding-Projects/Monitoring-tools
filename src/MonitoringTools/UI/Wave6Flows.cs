@@ -180,7 +180,7 @@ namespace MonitoringTools.UI
                 if (!Drive.TextOf(cc).Contains("The end date is before the start date")) return "no message for a reversed date range";
 
                 // edit in place
-                var edit = Drive.All<ButtonBase>(cc).First(b => b.IsVisible && Drive.LabelOf(b) == "Edit");
+                var edit = Drive.All<ButtonBase>(cc).Last(b => b.IsVisible && (Drive.LabelOf(b) == "Edit" || Drive.OriginalLabelOf(b) == "Edit"));   // the new rule is the last one listed
                 Drive.Click(edit); await Settle(cc, 350);
                 if (Drive.Need<TextBox>(cc, "Start date (optional)").Text != "2026-12-24") return "Edit did not load the rule's start date";
                 if (Drive.Find<ButtonBase>(cc, "Save changes") == null) return "the form did not switch to Save changes";
@@ -373,43 +373,49 @@ namespace MonitoringTools.UI
                 Drive.Press(form, "Save profile"); await Settle(cc, 500);
                 if (!s.DnsProfiles.Any(p => p.Name == "Selftest DNS" && p.Primary == "203.0.113.53" && p.Secondary == "198.51.100.53")) return "the DNS profile was not stored";
 
-                // ---- new Minecraft server
+                // ---- new Minecraft server (the six-step create flow of the server manager)
                 cc.Navigate("minecraft", animate: false); await Settle(cc, 900);
-                GuidedForm F() => FormNamed(cc, "New server");   // the page may rebuild itself when the version catalogue arrives, so the form is looked up again each time
+                cc.MinecraftManager.OpenCreate(); await Settle(cc, 500);
+                GuidedForm F() => FormNamed(cc, "New server");   // the manager may rebuild itself when the version catalogue arrives, so the form is looked up again each time
                 form = F();
                 if (form == null) return "the new-server form is missing";
-                if (cc.DraftForTest == null) return "the new-server draft is missing";
-                cc.DraftForTest.Version = null;
-                if (!StepOf(F()).StartsWith("Step 1 of 4")) return "new server starts at: " + StepOf(F());
+                var draft = UI.Minecraft.McManagerView.Draft;
+                if (draft == null) return "the new-server draft is missing";
+                draft.Version = null;
+                if (!StepOf(F()).StartsWith("Step 1 of 6")) return "new server starts at: " + StepOf(F());
                 await Reveal(cc, F());
-                await Snap(snap, cc, "guided-minecraft-1", "New server, step 1: name and version");
+                await Snap(snap, cc, "guided-minecraft-1", "New server, step 1: edition and version");
                 Drive.Press(F(), "Next"); await Settle(cc, 150);
-                if (!StepOf(F()).StartsWith("Step 1 of 4")) return "a server without a version was allowed to continue";
-                cc.DraftForTest.Version = "1.21.1";
+                if (!StepOf(F()).StartsWith("Step 1 of 6")) return "a server without a version was allowed to continue";
+                draft.Version = "1.21.1";
                 Drive.Press(F(), "Next"); await Settle(cc, 400);
-                if (!StepOf(F()).StartsWith("Step 2 of 4")) return "step 2 not reached: " + StepOf(F());
+                if (!StepOf(F()).StartsWith("Step 2 of 6")) return "step 2 not reached: " + StepOf(F());
                 await Reveal(cc, F());
-                await Snap(snap, cc, "guided-minecraft-2", "New server, step 2: where it runs");
+                await Snap(snap, cc, "guided-minecraft-2", "New server, step 2: software");
                 Drive.Press(F(), "Next"); await Settle(cc, 400);
-                if (!StepOf(F()).StartsWith("Step 3 of 4")) return "step 3 not reached: " + StepOf(F());
+                if (!StepOf(F()).StartsWith("Step 3 of 6")) return "step 3 not reached: " + StepOf(F());
+                Drive.Press(F(), "Next"); await Settle(cc, 400);
+                if (!StepOf(F()).StartsWith("Step 4 of 6")) return "step 4 not reached: " + StepOf(F());
                 Drive.Type(Drive.Need<TextBox>(F(), "Port"), "80");
                 Drive.Press(F(), "Next"); await Settle(cc, 150);
-                if (!StepOf(F()).StartsWith("Step 3 of 4")) return "a port below 1024 was allowed";
+                if (!StepOf(F()).StartsWith("Step 4 of 6")) return "a port below 1024 was allowed";
                 Drive.Type(Drive.Need<TextBox>(F(), "Port"), "25577");
                 await Reveal(cc, F());
-                await Snap(snap, cc, "guided-minecraft-3", "New server, step 3: memory and port");
+                await Snap(snap, cc, "guided-minecraft-3", "New server, step 4: name, memory and port");
                 Drive.Press(F(), "Next"); await Settle(cc, 400);
-                if (!StepOf(F()).StartsWith("Step 4 of 4")) return "step 4 not reached: " + StepOf(F());
-                if (!Drive.TextOf(F()).Contains("Port: 25577")) return "the review does not show the port";
+                if (!StepOf(F()).StartsWith("Step 5 of 6")) return "step 5 not reached: " + StepOf(F());
+                Drive.Press(F(), "Next"); await Settle(cc, 400);
+                if (!StepOf(F()).StartsWith("Step 6 of 6")) return "step 6 not reached: " + StepOf(F());
+                if (!Drive.TextOf(F()).Contains("25577")) return "the review does not show the port";
                 Drive.Press(F(), "Create server"); await Settle(cc, 300);
-                if (!StepOf(F()).StartsWith("Step 4 of 4") || !Drive.TextOf(F()).Contains("Accept the EULA")) return "creating without accepting the EULA was not refused";
+                if (!StepOf(F()).StartsWith("Step 6 of 6") || !Drive.TextOf(F()).Contains("Accept the EULA")) return "creating without accepting the EULA was not refused";
                 Drive.Click(Drive.All<CheckBox>(F()).First());
-                if (cc.DraftForTest?.EulaAccepted != true) return "the EULA switch did not register";
+                if (draft.Eula != true) return "the EULA switch did not register";
                 await Reveal(cc, F());
-                await Snap(snap, cc, "guided-minecraft-4", "New server, step 4: review and accept the EULA");
+                await Snap(snap, cc, "guided-minecraft-4", "New server, step 6: review and accept the EULA");
                 if (ServerManager.Servers.Any(x => x.Port == 25577 && x.Version == "1.21.1")) return "a server was created without pressing Create server";
                 Drive.Press(F(), "Cancel"); await Settle(cc, 400);
-                return cc.DraftForTest == null || cc.DraftForTest.Version == null ? null : "Cancel kept the draft";
+                return UI.Minecraft.McManagerView.Draft == null ? null : "Cancel kept the draft";
             }
             finally
             {
@@ -748,6 +754,22 @@ namespace MonitoringTools.UI
                     await Settle(cc, 350);
                     Scan(cc, id);
                 }
+                // the Minecraft server manager: every section of a sample server, written only into the throwaway data folder
+                MonitoringTools.Minecraft.McDemo.Seed();
+                try
+                {
+                    cc.Navigate("minecraft", animate: false); await Settle(cc, 400);
+                    var mcv = cc.MinecraftManager;
+                    mcv.Select("sample-friends");
+                    foreach (var (sec, _, _) in UI.Minecraft.McManagerView.Sections) { mcv.ShowSection(sec); await Settle(cc, 400); Scan(cc, "minecraft " + sec); }
+                    foreach (var grp in MonitoringTools.Minecraft.McPropertyCatalog.Groups) { UI.Minecraft.McManagerView.SettingsGroup = grp; mcv.ShowSection("settings"); await Settle(cc, 300); Scan(cc, "minecraft settings " + grp); }
+                    UI.Minecraft.McManagerView.SettingsGroup = "Gameplay";
+                    UI.Minecraft.McManagerView.Draft = new UI.Minecraft.McCreateDraft { Version = "1.21.4" };
+                    mcv.OpenCreate(); await Settle(cc, 500);
+                    for (int i = 0; i < 6; i++) { Scan(cc, "minecraft create step " + (i + 1)); if (!SelfTest.Press(mcv.CreateForm, "Next")) break; await Settle(cc, 500); }
+                    UI.Minecraft.McManagerView.Draft = null; mcv.CloseCreate();
+                }
+                finally { MonitoringTools.Minecraft.McDemo.Remove(); }
             }
             finally { cc.Close(); }
             var wiz = new SetupWizardWindow();

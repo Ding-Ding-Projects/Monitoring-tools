@@ -2,48 +2,74 @@
 
 Create and run Java edition servers on this computer, in Docker, or on another machine over SSH.
 
-![The Minecraft page](../../screenshots/control-minecraft.png)
+![The server manager](../../screenshots/mc-overview.png)
 
-## Create a server
+## The server list
 
-Open **Minecraft servers** in the control centre. The **New server** card is a four-step guide with Back, Next and Cancel; the step you are on is kept if the page redraws, and Cancel discards the draft.
+The left side lists every server this app created. Each row shows a state dot, the name, the software and version,
+the players online (or the state), and a badge for where it runs: **This PC**, **Docker**, **SSH** or **SSH Docker**.
 
-1. **Name and version.** Name the server and pick a version. The list comes straight from Mojang's official catalogue; choose the type and search the version picker. A version without a dedicated server is reported here.
-2. **Where it runs.** Pick the target (see below). The Docker targets also offer the flavour: Vanilla, Paper or Fabric. SSH targets ask for the host and optionally a folder, with **Check host key**.
-3. **Memory and port.** Choose the memory and a port from 1024 to 65535. A port already used by another server on the same target is refused.
-4. **Review and accept the EULA.** Read the summary, accept the EULA and press **Create server**. Nothing is downloaded until then; progress and any failure are shown under the step.
+- **New server** opens the [guided create flow](create.md).
+- **Search servers** is the app's shared search field: plain words by default, `.*` for a regular expression with the
+  regex builder, `Aa` for matching case. It searches the name, version, software, target and SSH host.
+- The filter chips **All**, **Running**, **Stopped** and **Offline host** show how many servers each one holds.
+
+Removing a server from the list never deletes its world, settings or backups.
+
+## The header
+
+The header shows the server's name, a state badge and a detail line with the software, version, build, where it runs and
+how long it has been up. The actions change with the state:
+
+| State | Meaning | Actions |
+| --- | --- | --- |
+| Running | The process or container is up | Stop, Restart |
+| Starting | Started from here and not yet "Done" | Stop, Restart |
+| Stopped | The host answered and the server is not running | Start, Restart |
+| Host offline | Docker is not running here, or the SSH host could not be reached | Reconnect |
+| Missing | The container is not there any more | Start (reports why it cannot) |
+
+A host that cannot be reached is never shown as stopped: SSH reports a failed connection with exit code 255, and only an
+answer from the host itself can say the server is stopped. **Copy join address** copies `localhost:port`, or the SSH
+host's name and port. **Open folder** opens the server folder for servers on this computer.
 
 ## Where it can run
 
-| Target | What it means |
-| --- | --- |
-| Local process | Runs with Java on this computer |
-| Local Docker | Runs in a container on this computer |
-| SSH process | Runs on another machine over SSH |
-| SSH Docker | Runs in a container on another machine over SSH |
+| Target | What it means | Software |
+| --- | --- | --- |
+| This computer | A Java process started by the app | Vanilla, Paper, Purpur |
+| Docker on this computer | The `itzg/minecraft-server` image with the server folder as its volume | All six |
+| Another computer over SSH | A Java process on the host, signed in with your SSH key | Vanilla |
+| Docker over SSH | The same image on the host | All six |
 
-For SSH targets, **Check host key** shows the machine's key first so you can confirm you are connecting to the right one.
+Fabric, Forge and NeoForge need their own installers, so they run on the Docker targets. For SSH targets, **Check host
+key** shows the machine's key first so you can confirm you are connecting to the right one; it is stored in the app's own
+`known_hosts`, and connections use key authentication only.
 
-## Manage it
+## The sections
 
-Each server card shows an icon tile, the name, chips for version, flavour, where it runs and the port, and a
-status pill. While the server runs, the pill and tile turn mint and the dot breathes; a stopped server stays still,
-and an unreachable or missing one turns amber. The page header counts the servers and how many are running.
+[Overview](overview.md), [Console](console.md), [Players](players.md), [Settings](settings.md), [Worlds](worlds.md),
+[Plugins or Mods](plugins.md), [Backups](backups.md) and [Schedules](schedules.md). The tab bar is reachable with Tab and
+the arrow keys. At narrow widths the list stacks above the workspace. Sections slide in with the app's shared motion,
+which is skipped under reduced motion and low stimulation.
 
-Actions: Start, Stop, Restart, Console, Settings (local targets), Add plugin or mod, Open folder (local targets) and Remove.
+## Stored data
 
-- **Console** opens a terminal panel under the actions: the live log, then the command builder. Pick a known
-  command from the chips (the prompt shows it), type its arguments and press Send. Commands are sent to the server,
-  never to a shell.
-- **Settings** opens a drawer with the `server.properties` controls (switches, choices and numbers). Changes are
-  saved at once and applied on the next start. The drawer is closed by default so the card stays short.
-
-With no servers yet, the page shows a short empty state above the New server guide.
+`servers.json` in the app's data folder keeps the list. Fields added with the server manager (build, backup folder, how
+many backups to keep, schedules, recent commands) have defaults, so a list from an older version loads unchanged and gains
+them the next time it is saved. A list that cannot be read is copied aside rather than overwritten.
 
 ## Failure modes
 
-- A server that cannot start shows the error it printed.
+- A server that cannot start shows the error in the header and as "The last start failed" on the overview.
+- A port already in use on this computer is refused before the server starts.
 - The EULA must be accepted before a server will run.
+
+## Verification
+
+Self-test checks drive the list filter and regex search, the Host offline state of an unreachable SSH host, and an older
+`servers.json`. The [live check](../tools/live-check.md) creates a real Vanilla 1.21.4 server in a throwaway folder,
+starts it, asks it `list` and stops it.
 
 ## Related
 
