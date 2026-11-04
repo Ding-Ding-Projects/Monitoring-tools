@@ -23,6 +23,7 @@ namespace MonitoringTools.UI
             var (_, status) = App.Tray.State();
             StatusText.Text = status;
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
+            ElementMenu.Attach(this);
             CommandPalette.Attach(this);
             Loaded += (s, e) => Enter();
             KeyDown += (s, e) => { if (e.Key == Key.Escape) Close(); };

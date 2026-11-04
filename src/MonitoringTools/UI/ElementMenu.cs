@@ -24,6 +24,46 @@ namespace MonitoringTools.UI
     {
         public sealed record Item(string Label, string Icon, string Keys, Action Run, bool Danger = false);
 
+        /// <summary>How the menu behaves in one window.</summary>
+        public sealed class Options
+        {
+            /// <summary>Only "Copy text" is offered: no Press, no appearance editing and no locks. Used where a menu entry could stand in for a deliberate confirmation.</summary>
+            public bool CopyOnly;
+            /// <summary>The window never takes focus (a toast). The menu briefly lets it be activated so its filter field can receive keys, then restores that.</summary>
+            public bool NoActivate;
+            /// <summary>Called with true when the menu opens and false when it closes, for example to hold a timer.</summary>
+            public Action<bool> OnMenu;
+            public static Options Copy => new Options { CopyOnly = true };
+        }
+
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Window, Options> WindowOptions = new System.Runtime.CompilerServices.ConditionalWeakTable<Window, Options>();
+
+        private static class NoActivateStyle
+        {
+            private const int GWL_EXSTYLE = -20;
+            private const long WS_EX_NOACTIVATE = 0x08000000L;
+            [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] private static extern IntPtr Get(IntPtr h, int i);
+            [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")] private static extern IntPtr Set(IntPtr h, int i, IntPtr v);
+
+            /// <summary>Clears the no-activate flag and returns whether it had been set.</summary>
+            public static bool Clear(Window w)
+            {
+                var h = new System.Windows.Interop.WindowInteropHelper(w).Handle;
+                if (h == IntPtr.Zero) return false;
+                long ex = Get(h, GWL_EXSTYLE).ToInt64();
+                if ((ex & WS_EX_NOACTIVATE) == 0) return false;
+                Set(h, GWL_EXSTYLE, new IntPtr(ex & ~WS_EX_NOACTIVATE));
+                return true;
+            }
+
+            public static void Restore(Window w)
+            {
+                var h = new System.Windows.Interop.WindowInteropHelper(w).Handle;
+                if (h == IntPtr.Zero) return;
+                Set(h, GWL_EXSTYLE, new IntPtr(Get(h, GWL_EXSTYLE).ToInt64() | WS_EX_NOACTIVATE));
+            }
+        }
+
         private static readonly List<WeakReference<Window>> Attached = new List<WeakReference<Window>>();
         private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<FrameworkElement, LockBadge> Badges = new System.Runtime.CompilerServices.ConditionalWeakTable<FrameworkElement, LockBadge>();
         private static readonly Dictionary<string, Window> OpenPrompts = new Dictionary<string, Window>();
@@ -32,12 +72,14 @@ namespace MonitoringTools.UI
         /// <summary>Supplies extra, window-specific items (for example "Search this page").</summary>
         public static Func<FrameworkElement, IEnumerable<Item>> Extra { get; set; }
 
-        public static void Attach(Window w, Func<FrameworkElement, IEnumerable<Item>> extra = null)
+        public static void Attach(Window w, Func<FrameworkElement, IEnumerable<Item>> extra = null, Options options = null)
         {
-            WireLocks(w);
+            bool locks = options?.CopyOnly != true;
+            if (options != null) WindowOptions.AddOrUpdate(w, options);
+            if (locks) WireLocks(w);
             w.PreviewMouseLeftButtonDown += (s, e) =>
             {
-                if (!Locks.Any || e.OriginalSource is not DependencyObject d) return;
+                if (!locks || !Locks.Any || e.OriginalSource is not DependencyObject d) return;
                 var locked = LockedAncestor(w, d);
                 if (locked != null) { e.Handled = true; Prompt(w, locked); }
             };
@@ -52,7 +94,7 @@ namespace MonitoringTools.UI
             };
             w.PreviewKeyDown += (s, e) =>
             {
-                if (Locks.Any && (e.Key == Key.Enter || e.Key == Key.Space) && Keyboard.FocusedElement is DependencyObject lf && !InsideText(lf))
+                if (locks && Locks.Any && (e.Key == Key.Enter || e.Key == Key.Space) && Keyboard.FocusedElement is DependencyObject lf && !InsideText(lf))
                 {
                     var locked = LockedAncestor(w, lf);
                     if (locked != null) { e.Handled = true; Prompt(w, locked); return; }
@@ -70,7 +112,9 @@ namespace MonitoringTools.UI
                 var target = Target(d);
                 if (target == null) return;
                 e.Handled = true;
-                var p = target.TranslatePoint(new Point(12, target.ActualHeight / 2), w);
+                Point p;
+                try { p = target.TranslatePoint(new Point(12, target.ActualHeight / 2), w); }
+                catch { p = Mouse.GetPosition(w); }   // an element that cannot report its place falls back to the pointer
                 Open(w, target, extra, p);
             };
         }
@@ -109,6 +153,15 @@ namespace MonitoringTools.UI
         public static void Open(Window w, FrameworkElement target, Func<FrameworkElement, IEnumerable<Item>> extra, Point at)
         {
             var text = TextOf(target);
+            WindowOptions.TryGetValue(w, out var opts);
+            if (opts?.CopyOnly == true)
+            {
+                var only = new List<Item>();
+                if (text.Length > 0) only.Add(new Item("Copy text", Icons.Clipboard, "Ctrl+C", () => ClipboardWatcher.SetText(text)));
+                if (only.Count == 0) return;
+                new MenuPopup(only, target, null).Show(w, at);
+                return;
+            }
             var pageId = PageIdOf(w);
             var key = KeyOf(target);
             var entry = key == null ? null : Locks.Find(pageId, key);
@@ -133,7 +186,18 @@ namespace MonitoringTools.UI
                 }
             }
 
-            var menu = new MenuPopup(items, target);
+            bool restoreStyle = false;
+            if (opts?.NoActivate == true)
+            {
+                restoreStyle = NoActivateStyle.Clear(w);
+                try { w.Activate(); } catch { }
+            }
+            opts?.OnMenu?.Invoke(true);
+            var menu = new MenuPopup(items, target, () =>
+            {
+                if (restoreStyle) NoActivateStyle.Restore(w);
+                opts?.OnMenu?.Invoke(false);
+            });
             menu.Show(w, at);
         }
 
@@ -288,10 +352,12 @@ namespace MonitoringTools.UI
             private readonly FrameworkElement _origin;
             private List<Item> _shown;
             private int _sel;
+            private readonly Action _onClosed;
 
-            public MenuPopup(List<Item> items, FrameworkElement origin)
+            public MenuPopup(List<Item> items, FrameworkElement origin, Action onClosed)
             {
                 _items = items;
+                _onClosed = onClosed;
                 _origin = origin;
                 _filter = new SearchField("menu:element", "Filter actions", compact: true) { Margin = new Thickness(0, 0, 0, 6) };
                 _filter.SampleSource = () => _items.Select(i => i.Label);
@@ -309,7 +375,7 @@ namespace MonitoringTools.UI
                 AutomationProperties.SetName(_card, "Actions for this element");
                 _popup = new Popup { Child = _card, StaysOpen = false, AllowsTransparency = true, Placement = PlacementMode.Relative, Focusable = true };
                 _card.PreviewKeyDown += OnKey;
-                _popup.Closed += (s, e) => { if (!_filter.BuilderOpen) _origin.Focus(); };
+                _popup.Closed += (s, e) => { if (!_filter.BuilderOpen) _origin.Focus(); _onClosed?.Invoke(); };
             }
 
             public void Show(Window w, Point at)

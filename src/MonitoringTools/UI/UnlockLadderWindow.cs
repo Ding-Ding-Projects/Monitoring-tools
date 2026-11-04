@@ -110,6 +110,8 @@ namespace MonitoringTools.UI
             };
             AutomationProperties.SetName(_frame, name);
             Content = _frame;
+            // Covers the lock prompt, the lock wizard, the unlock ladder and the QR window. Copy text only, so no entry can press a step or lock the lock screens themselves.
+            ElementMenu.Attach(this, null, ElementMenu.Options.Copy);
             PreviewKeyDown += (s, e) => { if (e.Key == Key.Escape) { e.Handled = true; Close(); } };
             Loaded += (s, e) => Place();
             Closed += (s, e) => { try { _origin?.Focus(); } catch { } };

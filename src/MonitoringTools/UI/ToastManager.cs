@@ -36,6 +36,7 @@ namespace MonitoringTools.UI
         private void Present(ToastWindow w)
         {
             if (_live.Count >= MaxLive) _live.First(t => !t.IsClosing).CloseAnimated();
+            if (ToastWindow.IsPaused) { NotificationLog.AddToast(w.TitleText.Text, w.MetaText.Text); w.Close(); return; }   // paused from a toast's menu: still recorded in the log, not shown
             _live.Add(w); NotificationLog.AddToast(w.TitleText.Text, w.MetaText.Text);
             w.Gone += () => { _live.Remove(w); Restack(); };
             w.SizeChanged += (s, e) => Restack();

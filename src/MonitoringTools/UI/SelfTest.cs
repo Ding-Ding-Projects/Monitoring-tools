@@ -532,6 +532,62 @@ namespace MonitoringTools.UI
                 return s == (0, 0, 10) && big.Radius == ChunkAreaPicker.MaxRadius && one.Radius == 1 ? null : $"{s} {big} {one}";
             });
 
+            Check("history: every save keeps a version, duplicates are skipped and the oldest beyond 50 are dropped", () =>
+            {
+                const string key = "selftest-history";
+                try { var d = System.IO.Path.Combine(Settings.DataDir, "history", key); if (System.IO.Directory.Exists(d)) System.IO.Directory.Delete(d, true); } catch { }
+                if (!ScriptHistory.Save(key, "one")) return "first save not kept";
+                if (ScriptHistory.Save(key, "one")) return "an identical save was stored twice";
+                for (int i = 2; i <= 55; i++) ScriptHistory.Save(key, "version " + i);
+                var list = ScriptHistory.List(key);
+                if (list.Count != ScriptHistory.Cap) return "expected " + ScriptHistory.Cap + " versions, found " + list.Count;
+                if (ScriptHistory.Read(key, list[0].Id) != "version 55") return "newest is not first";
+                if (ScriptHistory.Read(key, list[^1].Id) != "version 6") return "oldest kept is wrong: " + ScriptHistory.Read(key, list[^1].Id);
+                if (ScriptHistory.Read(key, "../../settings") != null) return "an id outside the history folder was readable";
+                return null;
+            });
+            Check("history: a restored version comes back exactly and the replaced text is kept", () =>
+            {
+                const string key = "selftest-restore";
+                try { var d = System.IO.Path.Combine(Settings.DataDir, "history", key); if (System.IO.Directory.Exists(d)) System.IO.Directory.Delete(d, true); } catch { }
+                ScriptHistory.Save(key, "alpha\r\nbeta");
+                var first = ScriptHistory.List(key)[0];
+                ScriptHistory.Save(key, "alpha\r\ngamma");       // the text that will be replaced
+                var restored = ScriptHistory.Read(key, first.Id);
+                ScriptHistory.Save(key, restored);
+                var all = ScriptHistory.List(key);
+                if (restored != "alpha\r\nbeta") return "restored text differs";
+                if (all.Count != 3) return "expected 3 versions, found " + all.Count;
+                return all.Any(v => ScriptHistory.Read(key, v.Id) == "alpha\r\ngamma") ? null : "the replaced text was not kept";
+            });
+            Check("history: the comparison marks added and removed lines", () =>
+            {
+                var d = ScriptHistory.Diff("a\nb\nc", "a\nx\nc\nd");
+                var text = string.Join("|", d.Select(l => l.Op + l.Text));
+                return text == " a|-b|+x| c|+d" ? null : text;
+            });
+            Check("forges: remote addresses are parsed and the host is recognised", () =>
+            {
+                var a = ForgeHosts.ParseRemote("https://gitlab.com/group/sub/project.git");
+                var b = ForgeHosts.ParseRemote("git@gitea.example.org:me/thing.git");
+                var c = ForgeHosts.ParseRemote("https://git.example.org:8443/me/repo");
+                var d = ForgeHosts.ParseRemote("ssh://git@codeberg.org/me/repo.git");
+                if (a == null || a.Kind != ForgeKind.GitLab || a.Owner != "group/sub" || a.Name != "project" || a.BaseUrl != "https://gitlab.com") return "gitlab url: " + a;
+                if (b == null || b.Kind != ForgeKind.Gitea || b.Owner != "me" || b.Name != "thing" || b.Host != "gitea.example.org") return "scp style: " + b;
+                if (c == null || c.Kind != null || c.Host != "git.example.org:8443" || c.Name != "repo") return "self-hosted with port: " + c;
+                if (d == null || d.Kind != ForgeKind.Gitea || d.Name != "repo") return "ssh url: " + d;
+                if (ForgeHosts.ParseRemote("not a url") != null || ForgeHosts.ParseRemote("https://github.com/only-one") != null) return "a malformed address was accepted";
+                return ForgeHosts.ParseRemote("https://github.com/o/r.git")?.Kind == ForgeKind.GitHub ? null : "github not recognised";
+            });
+            Check("forges: server addresses are normalised and unsafe ones refused", () =>
+            {
+                if (ForgeHosts.NormaliseBase("git.example.org/") != "https://git.example.org") return "no scheme: " + ForgeHosts.NormaliseBase("git.example.org/");
+                if (ForgeHosts.NormaliseBase("http://10.0.0.5:3000") != "http://10.0.0.5:3000") return "port kept: " + ForgeHosts.NormaliseBase("http://10.0.0.5:3000");
+                if (ForgeHosts.NormaliseBase("https://user:pw@host.example") != null) return "an address carrying a password was accepted";
+                if (ForgeHosts.NormaliseBase("ftp://host.example") != null) return "a non-web scheme was accepted";
+                return ForgeHosts.NormaliseBase("   ") == null ? null : "blank accepted";
+            });
+
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>

@@ -25,6 +25,7 @@ namespace MonitoringTools.UI
             InitializeComponent();
             _state = state;
             SourceInitialized += (s, e) => Native.MakeToolWindow(this, noActivate: true);
+            ElementMenu.Attach(this, null, new ElementMenu.Options { NoActivate = true });
             Loaded += (s, e) => Enter();
             SizeChanged += (s, e) => Place();
             _clock.Tick += (s, e) => TickClock();

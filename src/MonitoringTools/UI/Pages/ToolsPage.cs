@@ -17,6 +17,7 @@ namespace MonitoringTools.UI
     {
         private string _forgeOwner;
         private string _forgeFolder;
+        private ForgeKind _forgeKind = ForgeKind.GitHub;
 
         // The tools page: drawing and annotation, publishing a folder to GitHub, and the external editor.
         private FrameworkElement ToolsPage()
@@ -81,6 +82,11 @@ namespace MonitoringTools.UI
             var sp = new StackPanel();
             sp.Children.Add(CardTitle("Publish a folder to GitHub",
                 "Commits the folder with Git, then uploads it. A new repository is only created after you agree to it. This app never sees or stores a password or token: sign-in lives in the GitHub CLI's own credential store."));
+
+            Action applyKind = null;
+            sp.Children.Add(Choice("Where to publish (default GitHub)",
+                new[] { ("GitHub", ForgeKind.GitHub), ("GitLab", ForgeKind.GitLab), ("Gitea or Forgejo", ForgeKind.Gitea) }, _forgeKind,
+                v => { _forgeKind = v; applyKind?.Invoke(); }));
 
             var gh = ForgePublish.GhPath();
             var ghNote = ToolsNote(gh != null
@@ -184,6 +190,40 @@ namespace MonitoringTools.UI
                 LoadOwners();
             }
 
+            // ---- other hosts: GitLab and Gitea/Forgejo
+            var otherPanel = new StackPanel();
+            var serverBox = Input("", 440, "The server address, for example https://git.example.org. Leave empty for gitlab.com. Gitea and Forgejo need an address.");
+            AutomationProperties.SetName(serverBox, "Server address");
+            var ownerBox = Input("", 260, "The group, organization or user that should own the new repository. Empty means the account that signs in.");
+            AutomationProperties.SetName(ownerBox, "Owner of the new repository");
+            var tokenBox = ModesPin("Personal access token (used once, never saved)");
+            tokenBox.Width = 440; tokenBox.MaxLength = 300;
+            tokenBox.ToolTip = "Only needed to create a new repository when the matching command-line tool is not signed in. It is kept in memory for this one action, sent only to the server named above, and cleared afterwards. It is never saved or logged.";
+            var cliNote = ToolsNote("");
+            otherPanel.Children.Add(ToolsLabel("Server address (empty means gitlab.com for GitLab)"));
+            otherPanel.Children.Add(serverBox);
+            otherPanel.Children.Add(ToolsLabel("Owner of a new repository (optional)"));
+            otherPanel.Children.Add(ownerBox);
+            otherPanel.Children.Add(cliNote);
+            otherPanel.Children.Add(tokenBox);
+            otherPanel.Children.Add(ToolsNote("The token is only used when you tick \"create a new repository\" and the command-line tool is missing or not signed in. Pushing an existing repository uses whatever sign-in Git already has on this computer."));
+            sp.Children.Add(otherPanel);
+            applyKind = () =>
+            {
+                bool gitHub = _forgeKind == ForgeKind.GitHub;
+                otherPanel.Visibility = gitHub ? Visibility.Collapsed : Visibility.Visible;
+                ghNote.Visibility = gitHub ? Visibility.Visible : Visibility.Collapsed;
+                accountsBox.Visibility = gitHub ? Visibility.Visible : Visibility.Collapsed;
+                ownerHost.Visibility = gitHub ? Visibility.Visible : Visibility.Collapsed;
+                if (!gitHub)
+                {
+                    var tool = ForgeHosts.CliName(_forgeKind);
+                    cliNote.Text = ForgeHosts.CliPath(_forgeKind) != null
+                        ? "The " + tool + " command-line tool was found and is used first when it is signed in to this server."
+                        : "The " + tool + " command-line tool is not installed, so creating a repository here needs a token. Publishing to an existing empty repository does not.";
+                }
+            };
+
             // ---- what to publish
             sp.Children.Add(new TextBlock { Text = "Folder to publish", Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 8, 0, 6) });
             _forgeFolder ??= s.ForgeLastFolder;
@@ -230,26 +270,41 @@ namespace MonitoringTools.UI
                 var plan = new ForgePlan
                 {
                     Folder = folderBox.Text.Trim().Trim('"'), Name = nameBox.Text.Trim(), Owner = _forgeOwner,
-                    Private = s.ForgePrivate, CreateRepository = createSwitch, ExistingRemoteUrl = remoteBox.Text.Trim(), Push = s.ForgePush
+                    Private = s.ForgePrivate, CreateRepository = createSwitch, ExistingRemoteUrl = remoteBox.Text.Trim(), Push = s.ForgePush,
+                    Kind = _forgeKind
                 };
+                if (_forgeKind != ForgeKind.GitHub)
+                {
+                    plan.Owner = ownerBox.Text.Trim();
+                    plan.BaseUrl = serverBox.Text.Trim();
+                    plan.Token = tokenBox.Password;
+                }
                 string problem = null;
                 if (plan.Folder.Length == 0 || !Directory.Exists(plan.Folder)) problem = "Choose a folder that exists.";
                 else if (plan.CreateRepository && !System.Text.RegularExpressions.Regex.IsMatch(plan.Name, @"^[A-Za-z0-9._-]{1,100}$")) problem = "A repository name uses letters, digits, dots, dashes and underscores only.";
-                else if (plan.CreateRepository && gh == null) problem = "Creating a repository needs the GitHub CLI, which is not installed.";
+                else if (plan.CreateRepository && plan.Kind == ForgeKind.GitHub && gh == null) problem = "Creating a repository needs the GitHub CLI, which is not installed.";
+                else if (plan.CreateRepository && plan.Kind == ForgeKind.Gitea && plan.BaseUrl.Length == 0) problem = "Enter the address of your Gitea or Forgejo server.";
+                else if (plan.CreateRepository && plan.Kind != ForgeKind.GitHub && ForgeHosts.NormaliseBase(plan.BaseUrl.Length == 0 ? "https://gitlab.com" : plan.BaseUrl) == null) problem = "The server address is not a valid web address.";
+                else if (!plan.CreateRepository && plan.Push && plan.ExistingRemoteUrl.Length == 0 && plan.Kind != ForgeKind.GitHub) problem = "Paste the address of an existing empty repository, or tick \"create a new repository\".";
                 if (problem != null) { ShowPublishProblem(card, problem); return; }
                 s.ForgeLastFolder = plan.Folder; Settings.Save();
 
                 if (plan.CreateRepository)
                 {
                     var slug = (plan.Owner != null ? plan.Owner + "/" : "") + plan.Name;
-                    var dlg = new ConfirmWindow($"Create {slug} on GitHub?",
-                        $"This creates a new {(plan.Private ? "private" : "PUBLIC")} repository named {slug} and then uploads the committed files of this folder.\n\n" +
+                    var where = ForgeHosts.Display(plan.Kind);
+                    var dlg = new ConfirmWindow($"Create {slug} on {where}?",
+                        $"This creates a new {(plan.Private ? "private" : "PUBLIC")} repository named {slug} on {(plan.Kind == ForgeKind.GitHub ? "GitHub" : string.IsNullOrWhiteSpace(plan.BaseUrl) ? "gitlab.com" : plan.BaseUrl)} and then uploads the committed files of this folder.\n\n" +
+                        (plan.Kind != ForgeKind.GitHub && !string.IsNullOrEmpty(plan.Token) ? "The access token you pasted is used for this one action only and is cleared afterwards.\n\n" : "") +
                         (plan.Private ? "Only you and people you invite can see it." : "A public repository can be seen by anyone on the internet. Check the folder has nothing you want to keep to yourself."),
                         "Create and publish", danger: false);
-                    dlg.Confirmed += _ => StartPublish(card, plan);
+                    bool started = false;
+                    dlg.Confirmed += _ => { started = true; StartPublish(card, plan); };
+                    dlg.Closed += (_, _) => { if (!started) plan.Token = null; };
                     dlg.Show();
                 }
                 else StartPublish(card, plan);
+                tokenBox.Clear();           // the plan holds the only remaining copy, and drops it when the action ends
             }, "Btn.Accent", Icons.Git);
             card.Guard(publish, folderBox, nameBox, remoteBox);
             var pubRow = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };
@@ -257,7 +312,8 @@ namespace MonitoringTools.UI
             sp.Children.Add(pubRow);
             sp.Children.Add(card);
             sp.Children.Add(ToolsNote("Forking is not offered. This copies your own folder into your own repository, which works on any host; a fork button would only make sense for someone else's project. The route taken is reported when it finishes."));
-            return SearchScope.SetItem(Card(sp), "publish github repository push commit git account owner private public gh cli ip history");
+            applyKind();
+            return SearchScope.SetItem(Card(sp), "publish github gitlab gitea forgejo repository push commit git account owner private public gh glab tea cli token server ip history");
         }
 
         private static TextBlock ToolsLabel(string text) =>

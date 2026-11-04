@@ -39,6 +39,7 @@ namespace MonitoringTools.UI
             Define();
             _index = Math.Clamp(Settings.Current.OnboardingStep, 0, _steps.Count - 1);
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
+            ElementMenu.Attach(this);
             Loaded += (s, e) => { Enter(); Show(_index, 0); };
             PreviewKeyDown += OnKeys;
         }

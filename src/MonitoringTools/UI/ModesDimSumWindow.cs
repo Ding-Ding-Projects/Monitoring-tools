@@ -46,6 +46,7 @@ namespace MonitoringTools.UI
             AutomationProperties.SetName(card, "Dim sum surprise: " + name);
             AutomationProperties.SetLiveSetting(card, AutomationLiveSetting.Polite);
             Content = card;
+            ElementMenu.Attach(this);
 
             Loaded += (s, e) =>
             {

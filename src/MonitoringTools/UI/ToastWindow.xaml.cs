@@ -25,6 +25,14 @@ namespace MonitoringTools.UI
         private bool _expanded;
         private readonly DispatcherTimer _tick = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
         private Color _accent;
+        private readonly List<(ToastAction Action, Button Button)> _actionButtons = new List<(ToastAction, Button)>();
+        private bool _menuOpen;
+
+        /// <summary>Toasts are not shown until this moment passes. Set from the toast menu; it lasts until the app closes.</summary>
+        public static DateTime PausedUntil { get; private set; } = DateTime.MinValue;
+        public static bool IsPaused => DateTime.Now < PausedUntil;
+        public static void PauseFor(TimeSpan span) => PausedUntil = DateTime.Now + span;
+        public static void Resume() => PausedUntil = DateTime.MinValue;
 
         public ToastWindow()
         {
@@ -35,6 +43,23 @@ namespace MonitoringTools.UI
             MouseLeave += (s, e) => OnHover(false);
             _tick.Tick += (s, e) => Tick();
             Loaded += (s, e) => Enter();
+            // A toast never takes focus, so the menu lets it be activated while open and holds the countdown meanwhile.
+            ElementMenu.Attach(this, _ => MenuItems(), new ElementMenu.Options
+            {
+                NoActivate = true,
+                OnMenu = open => { _menuOpen = open; if (!open) _deadline = DateTime.UtcNow + TimeSpan.FromSeconds(Math.Max(1.4, _remaining.TotalSeconds)); }
+            });
+        }
+
+        private IEnumerable<ElementMenu.Item> MenuItems()
+        {
+            foreach (var (a, b) in _actionButtons.ToList())
+            {
+                var action = a; var button = b;
+                yield return new ElementMenu.Item(action.Label, action.Icon ?? Icons.Bolt, null, () => RunAction(button, action));
+            }
+            yield return new ElementMenu.Item("Dismiss", Icons.Close, null, CloseAnimated);
+            yield return new ElementMenu.Item("Pause toasts for 15 minutes", Icons.Pause, null, () => { PauseFor(TimeSpan.FromMinutes(15)); CloseAnimated(); });
         }
 
         // -------------------------------------------------------------- content
@@ -71,6 +96,7 @@ namespace MonitoringTools.UI
         {
             ActionsPanel.Children.Clear();
             ChipsPanel.Children.Clear();
+            _actionButtons.Clear();
             _hasActions = actions != null && actions.Count > 0;
             if (!_hasActions) return;
 
@@ -87,6 +113,7 @@ namespace MonitoringTools.UI
                 var style = a.Chip ? "Btn.Chip" : a.Primary ? "Btn.Accent" : "Btn.Ghost";
                 var b = Ui.Button(a.Label, null, style, a.Chip ? null : a.Icon);
                 b.Click += (s, e) => RunAction(b, a);
+                _actionButtons.Add((a, b));
                 if (!string.IsNullOrEmpty(a.Tip))
                 {
                     b.MouseEnter += (s, e) => TipText.Text = a.Tip;
@@ -179,6 +206,7 @@ namespace MonitoringTools.UI
 
         private void Tick()
         {
+            if (_menuOpen) { _deadline += _tick.Interval; return; }
             if (_paused || IsClosing) return;
             var left = _deadline - DateTime.UtcNow;
             TimerScale.ScaleX = Math.Clamp(left.TotalSeconds / _seconds, 0, 1);

@@ -25,6 +25,7 @@ namespace MonitoringTools.UI
                 Snippets.Children.Add(b);
             }
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
+            ElementMenu.Attach(this);
             Loaded += (s, e) =>
             {
                 RootScale.ScaleX = RootScale.ScaleY = 0.94;
@@ -60,8 +61,26 @@ namespace MonitoringTools.UI
         {
             Settings.Current.CommitTemplate = Input.Text.Trim();
             Settings.Save();
+            ScriptHistory.Save(ScriptHistory.CommitTemplateKey, Settings.Current.CommitTemplate);
             Close();
             if (_continueAfter) Saved?.Invoke();
+        }
+
+        private void OnHistory(object s, RoutedEventArgs e)
+        {
+            if (HistoryHost.Visibility == Visibility.Visible) { HistoryHost.Visibility = Visibility.Collapsed; return; }
+            if (HistoryHost.Children.Count == 0)
+            {
+                // Restoring puts the version in the box and saves it, without sending a :push on its own.
+                HistoryHost.Children.Add(HistoryPanel.Build(ScriptHistory.CommitTemplateKey, () => Input.Text.Trim(), t =>
+                {
+                    Input.Text = t;
+                    Settings.Current.CommitTemplate = t.Trim();
+                    Settings.Save();
+                    ScriptHistory.Save(ScriptHistory.CommitTemplateKey, Settings.Current.CommitTemplate);
+                }, "message template"));
+            }
+            HistoryHost.Visibility = Visibility.Visible;
         }
 
         private void OnCancel(object s, RoutedEventArgs e) => Close();

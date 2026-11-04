@@ -59,6 +59,7 @@ namespace MonitoringTools.Core
         {
             // Batch files read best as the console code page; UTF-8 without BOM keeps ASCII scripts identical.
             File.WriteAllText(s.ScriptPath, body, s.Shell == ScriptShell.PowerShell ? new UTF8Encoding(true) : new UTF8Encoding(false));
+            ScriptHistory.Save(ScriptHistory.ScriptKey(s.Name), body);   // every save keeps a versioned copy
         }
 
         public static Task<ShortcutResult> RunAsync(Shortcut s, string input)
