@@ -24,6 +24,10 @@ namespace MonitoringTools.UI
         public Action Run;
         public bool HandsOff;      // the action opens its own toast, so this one closes right away
         public string Done = "Done";
+        /// <summary>The action changes this toast in place (editing, installing), so the toast stays open when it is pressed.</summary>
+        public bool Stay;
+        /// <summary>A key shown inside the button, for example "Ctrl+Enter".</summary>
+        public string KeyHint;
     }
 
     public static class ActionProvider

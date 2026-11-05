@@ -439,6 +439,7 @@ namespace MonitoringTools.Core
             AddRegexParity(t);
             AddMcFiles(t);
             AddLane4(t);
+            AddToasts(t);
             AddUpdate(t);
             AddMcLane(t);
             return t;
@@ -458,6 +459,7 @@ namespace MonitoringTools.Core
             AddMcCommandsPatterns(p);
             AddMcFilesPatterns(p);
             AddLane4Patterns(p);
+            AddToastsPatterns(p);
             AddUpdatePatterns(p);
             AddMcLanePatterns(p);
             AddMorePatterns(p);

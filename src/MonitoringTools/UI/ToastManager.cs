@@ -97,6 +97,16 @@ namespace MonitoringTools.UI
         {
             var w = new ToastWindow();
             w.SetAccent(Mint, Ui.C("C.MintWash"));
+            TextToastEditor editor = null;
+            if (item.Kind == ClipKind.Install)
+            {
+                // A copied install command: its own card, with its own states (offer, refused, installing, installed, declined).
+                var card = new InstallToast(w, item);
+                card.Offer();
+                w.StartTimer(card.OfferSeconds);
+                Present(w);
+                return w;
+            }
             switch (item.Kind)
             {
                 case ClipKind.Url: Url(w, item); break;
@@ -111,15 +121,26 @@ namespace MonitoringTools.UI
                 case ClipKind.Image: Bitmap(w, item); break;
                 case ClipKind.Audio: AudioBody(w, item); break;
                 default:
-                    w.SetHeader(Icons.Text, "Text", Counts(item.Text));
-                    w.SetBody(PlainText(item.Text));
+                    // Plain text is edited in place: the toast shows the text in a field that stays quiet until it is clicked.
+                    if (item.Kind == ClipKind.Text)
+                    {
+                        editor = new TextToastEditor(w, item);
+                        w.SetHeader(Icons.Text, "Copied text", TextToastEditor.Counts(item.Text));
+                        w.SetBody(editor.Build());
+                    }
+                    else { w.SetHeader(Icons.Text, "Text", Counts(item.Text)); w.SetBody(PlainText(item.Text)); }
                     break;
             }
-            w.SetActions(ActionProvider.For(item));
+            var offered = ActionProvider.For(item);
+            if (editor != null) { editor.Decorate(offered); w.SetActions(offered); editor.ApplyIdleHeader(); }
+            else w.SetActions(offered);
             w.StartTimer(Settings.Current.ToastSeconds);
             Present(w);
             return w;
         }
+
+        /// <summary>Automatic mode: the command with a visible countdown and a Cancel button. Returns null (and runs nothing) when the toast could not be shown.</summary>
+        internal InstallToast ShowAutoInstall(ClipItem item) => InstallToast.ShowAuto(this, item, w => { Present(w); return w.IsVisible && !w.IsClosing; });
 
         private static string Counts(string t)
         {

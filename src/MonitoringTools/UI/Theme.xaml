@@ -316,6 +316,34 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <!-- Multi-line text field for the text toast: same look as Input, grows with its text, vertical padding, primary ring when focused. -->
+    <Style x:Key="Input.Multi" TargetType="TextBox">
+        <Setter Property="Foreground" Value="{DynamicResource B.Text}"/>
+        <Setter Property="CaretBrush" Value="{DynamicResource B.Mint}"/>
+        <Setter Property="SelectionBrush" Value="{DynamicResource B.Mint}"/>
+        <Setter Property="SelectionOpacity" Value="0.4"/>
+        <Setter Property="FontFamily" Value="{DynamicResource F.Body}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="AcceptsReturn" Value="True"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd" CornerRadius="12" Background="{DynamicResource B.Sunken}"
+                            BorderBrush="Transparent" BorderThickness="2" Padding="10,8">
+                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource B.Mint}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <!-- Slim overlay scrollbar -->
     <Style TargetType="ScrollBar">
         <Setter Property="Width" Value="6"/>

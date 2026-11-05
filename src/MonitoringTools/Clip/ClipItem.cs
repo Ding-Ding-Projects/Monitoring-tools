@@ -8,7 +8,7 @@ using System.Windows.Media.Imaging;
 
 namespace MonitoringTools.Clip
 {
-    public enum ClipKind { Text, Markdown, Url, Email, Color, Json, Files, Image, Audio, Command }
+    public enum ClipKind { Text, Markdown, Url, Email, Color, Json, Files, Image, Audio, Command, Install }
     public enum FileKind { Other, Folder, Video, Audio, Image, Document, Archive, Code }
 
     public enum CommandKind { Convert, Push, Custom }
@@ -28,6 +28,11 @@ namespace MonitoringTools.Clip
         public BitmapSource Image { get; set; }
         public byte[] Audio { get; set; }
         public QuickCommand Command { get; set; }
+        /// <summary>A copied choco or winget install command, read strictly (Kind is Install).</summary>
+        public MonitoringTools.Core.InstallCommand Install { get; set; }
+        /// <summary>The copied text was edited in the toast; Text holds the edit and OriginalText the copy.</summary>
+        public bool Edited { get; set; }
+        public string OriginalText { get; set; }
         public DateTime At { get; set; } = DateTime.Now;
         public string Signature { get; set; }
         /// <summary>The copied text wrapped paths in quotes (Explorer "Copy as path" does this).</summary>
@@ -92,6 +97,9 @@ namespace MonitoringTools.Clip
                     item.Files = string.IsNullOrEmpty(cmd.SourcePath) ? Array.Empty<string>() : new[] { cmd.SourcePath };
                 return item;
             }
+
+            var install = MonitoringTools.Core.InstallCommands.Parse(t);
+            if (install != null) { item.Kind = ClipKind.Install; item.Install = install; return item; }
 
             if (!t.Contains('\n'))
             {

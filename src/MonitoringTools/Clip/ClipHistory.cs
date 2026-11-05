@@ -38,6 +38,9 @@ namespace MonitoringTools.Clip
             Updated?.Invoke();
         }
 
+        /// <summary>An entry changed in place (an edited copy): tell the History page without adding a second entry.</summary>
+        public void Touch(ClipItem item) { if (Items.Contains(item)) Updated?.Invoke(); }
+
         /// <summary>Drops the oldest copies beyond the History size setting. Called when a copy is added and when the setting is lowered.</summary>
         public void Trim()
         {

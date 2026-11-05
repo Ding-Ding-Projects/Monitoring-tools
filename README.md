@@ -41,6 +41,8 @@ To remove it, right-click the tray icon and choose **Uninstall service**.
   - **Images, video and audio**: save, convert and quick command chips such as `:mp4`, `:gif`, `:mp3`, `:webp`. Drag the preview out of the toast into any drop target.
   - **Docker**: a copied `compose.yaml` / `docker-compose.yml` offers up, down, pull, restart and logs; a `Dockerfile` offers build and build-and-run. Each button explains what it will do.
   - **JSON, colors, email addresses** get their own previews and actions.
+  - **Text is editable in the toast**: click it, edit, and the clipboard follows after a short pause. Ctrl+Enter keeps, Esc restores the original.
+  - **Install commands**: a copied `choco install` or `winget install` shows the packages, the source and whether Windows will ask for permission, and installs only when you press Install. An opt-in automatic mode (off by default) starts plain commands after a visible countdown. See [install commands](docs/features/clipboard/install-commands.md).
 - Copies that password managers mark as private are skipped.
 - History of the last copies, kept in memory only.
 
