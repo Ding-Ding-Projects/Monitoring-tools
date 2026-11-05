@@ -50,6 +50,7 @@ namespace MonitoringTools.Core
                 req.Headers.UserAgent.ParseAdd("MonitoringTools-Changelog/" + RunningVersion);
                 req.Headers.Accept.ParseAdd("application/vnd.github+json");
                 using var resp = await Http.SendAsync(req).ConfigureAwait(false);
+                if ((int)resp.StatusCode is 403 or 429) throw new HttpRequestException("rate limited", null, resp.StatusCode);
                 resp.EnsureSuccessStatusCode();
                 var json = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var list = Parse(json);
@@ -58,7 +59,7 @@ namespace MonitoringTools.Core
             }
             catch (Exception ex)
             {
-                var res = new ChangelogResult { Error = ex is TaskCanceledException ? "the request timed out after 10 seconds" : ex.Message };
+                var res = new ChangelogResult { Error = PlainError(ex) };
                 try
                 {
                     if (File.Exists(CacheFile))
@@ -87,5 +88,15 @@ namespace MonitoringTools.Core
             }
             return list.OrderByDescending(r => r.Published ?? DateTime.MinValue).ToList();
         }
+
+        /// <summary>The reason in plain words of this app, not the server's own English, so it can be translated.</summary>
+        internal static string PlainError(Exception ex) => ex switch
+        {
+            TaskCanceledException => "the request timed out after 10 seconds",
+            HttpRequestException h when (int?)h.StatusCode is 403 or 429 => "its limit for requests without signing in is used up for now",
+            HttpRequestException h when h.StatusCode != null => "it answered with an error, code " + (int)h.StatusCode.Value,
+            HttpRequestException => "there is no connection to it",
+            _ => "an unexpected error",
+        };
     }
 }

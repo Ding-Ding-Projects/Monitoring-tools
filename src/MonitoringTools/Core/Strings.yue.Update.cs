@@ -67,8 +67,10 @@ namespace MonitoringTools.Core
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline), fn));
 
             // the Records page when GitHub cannot be reached (rate limits included); the error itself is the server's own text
-            Add(@"^GitHub could not be reached \((.+)\)\. Showing the copy saved (.+) \((.+)\)\.$", "連唔到 GitHub（$1）。顯示 $2 儲存嘅副本（$3）。");
-            Add(@"^The changelog is unavailable: GitHub could not be reached \((.+)\) and no saved copy exists yet\.$", "更新紀錄用唔到：連唔到 GitHub（$1），亦未有儲存嘅副本。");
+            AddFn(@"^GitHub could not be reached \((.+)\)\. Showing the copy saved (.+) \((.+)\)\.$", m =>
+                $"連唔到 GitHub（{Reason(m.Groups[1].Value)}）。顯示 {m.Groups[2].Value} 儲存嘅副本（{m.Groups[3].Value}）。");
+            AddFn(@"^The changelog is unavailable: GitHub could not be reached \((.+)\) and no saved copy exists yet\.$", m =>
+                $"更新紀錄用唔到：連唔到 GitHub（{Reason(m.Groups[1].Value)}），亦未有儲存嘅副本。");
             Add(@"^Clone to (.+)$", "複製去 $1");
             Add(@"^Clones (.+) into (.+)\. Change the default folder on the Tools page\.$", "將 $1 複製去 $2。預設資料夾喺「工具」頁改。");
             Add(@"^Cloning (.+)$", "複製緊 $1");
@@ -101,6 +103,17 @@ namespace MonitoringTools.Core
             Add(@"^Updated to ([\d.]+) in the background\.$", "已經喺背景更新到 $1。");
             Add(@"^You have ([\d.]+)\. It installs by itself in the background\.$", "你而家用緊 $1。佢會自己喺背景安裝。");
         }
+
+        /// <summary>The reasons Changelog.PlainError gives, in Cantonese.</summary>
+        private static string Reason(string en) => en switch
+        {
+            "the request timed out after 10 seconds" => "等咗 10 秒都冇回應",
+            "its limit for requests without signing in is used up for now" => "未登入嘅查詢次數暫時用晒",
+            "there is no connection to it" => "連唔上",
+            "an unexpected error" => "出咗意料之外嘅錯",
+            _ when en.StartsWith("it answered with an error, code ") => "佢回覆錯誤，代碼 " + en.Substring("it answered with an error, code ".Length),
+            _ => en,
+        };
 
         private static string When(string en) => en switch
         {

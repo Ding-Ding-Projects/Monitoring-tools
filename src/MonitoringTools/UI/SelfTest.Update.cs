@@ -101,6 +101,10 @@ namespace MonitoringTools.UI
                 unix.Headers.Add("X-RateLimit-Reset", now.AddMinutes(23).ToUnixTimeSeconds().ToString());
                 var read = AutoUpdater.RateLimited.From(unix).ResetsAt;
                 if (read == null || Math.Abs((read.Value - reset.ResetsAt.Value).TotalSeconds) > 1) return Task.FromResult("the reset header was not read: " + read);
+                // the Records page shows its own words for GitHub's refusal, and they translate in full
+                var why = Changelog.PlainError(new System.Net.Http.HttpRequestException("rate limited", null, System.Net.HttpStatusCode.Forbidden));
+                var yue = Language.Yue($"The changelog is unavailable: GitHub could not be reached ({why}) and no saved copy exists yet.");
+                if (yue != "更新紀錄用唔到：連唔到 GitHub（未登入嘅查詢次數暫時用晒），亦未有儲存嘅副本。") return Task.FromResult("Records reason not translated: " + yue);
                 return Task.FromResult<string>(null);
             });
 
