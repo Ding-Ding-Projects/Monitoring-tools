@@ -66,6 +66,9 @@ namespace MonitoringTools.Core
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline), fn));
 
+            // the Records page when GitHub cannot be reached (rate limits included); the error itself is the server's own text
+            Add(@"^GitHub could not be reached \((.+)\)\. Showing the copy saved (.+) \((.+)\)\.$", "連唔到 GitHub（$1）。顯示 $2 儲存嘅副本（$3）。");
+            Add(@"^The changelog is unavailable: GitHub could not be reached \((.+)\) and no saved copy exists yet\.$", "更新紀錄用唔到：連唔到 GitHub（$1），亦未有儲存嘅副本。");
             Add(@"^Clone to (.+)$", "複製去 $1");
             Add(@"^Clones (.+) into (.+)\. Change the default folder on the Tools page\.$", "將 $1 複製去 $2。預設資料夾喺「工具」頁改。");
             Add(@"^Cloning (.+)$", "複製緊 $1");
