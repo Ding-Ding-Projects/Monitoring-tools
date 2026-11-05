@@ -114,6 +114,12 @@ namespace MonitoringTools.Core
             if (Current.DnsProfiles == null || Current.DnsProfiles.Count == 0) Current.DnsProfiles = DnsProfile.Defaults();
             if (Current.CommitTemplate == null) Current.CommitTemplate = "";
             if (Current.SavedPatterns == null) Current.SavedPatterns = new List<SavedPattern>();
+            Current.RegexCodeTemplates ??= new Dictionary<string, string>();
+            Current.RegexBenchHistory ??= new List<RegexBenchRecord>();
+            Current.RegexGrepPresets ??= new List<RegexGrepPreset>();
+            Current.RegexGrepHistory ??= new List<RegexGrepRecord>();
+            Current.RegexHiddenTabs ??= new List<string>();
+            if (string.IsNullOrEmpty(Current.RegexDefaultTab)) Current.RegexDefaultTab = "Build";
         }
 
         public static void Save()

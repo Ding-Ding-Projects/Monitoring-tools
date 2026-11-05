@@ -388,24 +388,6 @@ namespace MonitoringTools.Core
             return list;
         }
 
-        /// <summary>The program and arguments that open a file at a line, or null when no known editor is installed and the plain open is all there is.</summary>
-        public static (string Exe, string Args)? EditorForLine(string path, int line, int column)
-        {
-            string Find(string file)
-            {
-                foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(System.IO.Path.PathSeparator))
-                {
-                    try { var f = System.IO.Path.Combine(dir.Trim(), file); if (!string.IsNullOrWhiteSpace(dir) && File.Exists(f)) return f; } catch { }
-                }
-                return null;
-            }
-            var code = Find("code.cmd") ?? Find("code.exe");
-            if (code != null) return (code, "-g \"" + path + ":" + line + ":" + column + "\"");
-            var npp = Find("notepad++.exe") ?? (File.Exists(@"C:\Program Files\Notepad++\notepad++.exe") ? @"C:\Program Files\Notepad++\notepad++.exe" : null);
-            if (npp != null) return (npp, "-n" + line + " -c" + column + " \"" + path + "\"");
-            return null;
-        }
-
         /// <summary>The newest backup folder that has a manifest, or null.</summary>
         public static string LastBackup()
         {

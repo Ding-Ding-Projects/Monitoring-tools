@@ -193,6 +193,28 @@ namespace MonitoringTools.UI.Search
                 }
             };
             _rows[n.Key] = row;
+            // Drag a row onto a neighbour at the same level to swap their order.
+            row.AllowDrop = true;
+            Point? dragFrom = null;
+            row.PreviewMouseLeftButtonDown += (o, e) => dragFrom = e.GetPosition(row);
+            row.PreviewMouseLeftButtonUp += (o, e) => dragFrom = null;
+            row.MouseMove += (o, e) =>
+            {
+                if (e.LeftButton != MouseButtonState.Pressed || dragFrom == null) return;
+                var d = e.GetPosition(row) - dragFrom.Value;
+                if (Math.Abs(d.X) < SystemParameters.MinimumHorizontalDragDistance && Math.Abs(d.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+                dragFrom = null;
+                DragDrop.DoDragDrop(row, new DataObject("regex-node", n.Key), DragDropEffects.Move);
+            };
+            row.DragOver += (o, e) =>
+            {
+                e.Effects = e.Data.GetData("regex-node") is string k && _nodes.TryGetValue(k, out var mv) && RegexTree.CanReorder(mv, n) ? DragDropEffects.Move : DragDropEffects.None;
+                e.Handled = true;
+            };
+            row.Drop += (o, e) =>
+            {
+                if (e.Data.GetData("regex-node") is string k && _nodes.TryGetValue(k, out var mv)) { e.Handled = true; DropNode(mv, n); }
+            };
             _explain.Children.Add(row);
         }
 
@@ -272,12 +294,99 @@ namespace MonitoringTools.UI.Search
                 case RegexTree.NodeKind.Quantifier: QuantifierEditor(n); break;
                 case RegexTree.NodeKind.CharClass: ClassEditor(n); break;
                 case RegexTree.NodeKind.Group when RegexTree.IsEditableGroup(n): GroupEditor(n); break;
+                case RegexTree.NodeKind.Group when n.Group == RegexTree.GroupKind.Balancing: BalancingEditor(n); break;
+                case RegexTree.NodeKind.Anchor: ChoiceEditor(n, "Anchor", RegexTree.AnchorChoices, (p, c) => RegexTree.ApplyAnchor(p, n, c, _s.EngineOptions)); break;
+                case RegexTree.NodeKind.Shorthand: ChoiceEditor(n, "Shorthand class", RegexTree.ShorthandChoices, (p, c) => RegexTree.ApplyShorthand(p, n, c, _s.EngineOptions)); break;
+                case RegexTree.NodeKind.Escape: EscapeEditor(n); break;
+                case RegexTree.NodeKind.Comment when RegexTree.CommentText(_tree.Pattern, n) != null: CommentEditor(n); break;
                 default:
                     var note = Ui.Mono("No guided editor for this part. Edit it as text: its characters are selected in the pattern box.", Ui.Res("B.TextMute"), 11);
                     note.TextWrapping = TextWrapping.Wrap;
                     _editor.Children.Add(note);
                     break;
             }
+            MoveControls(n);
+        }
+
+        private void ChoiceEditor(TreeNode n, string what, (string Text, string Meaning)[] choices, Func<string, string, string> apply)
+        {
+            _editor.Children.Add(Label(what + ": pick another"));
+            var wrap = new WrapPanel();
+            foreach (var (text, meaning) in choices)
+            {
+                var t = text;
+                var chip = Chip(text, meaning, () =>
+                {
+                    var next = apply(_tree.Pattern, t);
+                    if (next == null) { SetTreeStatus("That change cannot be made.", true); return; }
+                    ApplyEdit(next, n);
+                });
+                chip.FontFamily = Ui.Font("F.Mono");
+                Paint(chip, n.Text(_tree.Pattern) == text);
+                wrap.Children.Add(chip);
+            }
+            _editor.Children.Add(wrap);
+        }
+
+        private void EscapeEditor(TreeNode n)
+        {
+            var box = SmallInput("Replacement escape or character", n.Text(_tree.Pattern), 160);
+            _editor.Children.Add(Label("Escape, such as \\. \\t \\x41 or \\p{L}, or one letter or digit"));
+            _editor.Children.Add(box);
+            _editor.Children.Add(Ui.Button("Apply to the pattern", () =>
+            {
+                var next = RegexTree.ApplyEscape(_tree.Pattern, n, box.Text.Trim(), _s.EngineOptions);
+                if (next == null) { SetTreeStatus("That is not an escape this editor accepts. Use a backslash and one character, \\xNN, \\uNNNN, \\cX, or a single letter or digit.", true); return; }
+                ApplyEdit(next, n);
+            }, "Btn.Accent"));
+        }
+
+        private void CommentEditor(TreeNode n)
+        {
+            var box = SmallInput("Comment text", RegexTree.CommentText(_tree.Pattern, n), 320);
+            _editor.Children.Add(Label("Comment (ignored when matching; it cannot contain a closing parenthesis)"));
+            _editor.Children.Add(box);
+            _editor.Children.Add(Ui.Button("Apply to the pattern", () =>
+            {
+                var next = RegexTree.ApplyComment(_tree.Pattern, n, box.Text, _s.EngineOptions);
+                if (next == null) { SetTreeStatus("A comment cannot contain a closing parenthesis.", true); return; }
+                ApplyEdit(next, n);
+            }, "Btn.Accent"));
+        }
+
+        private void BalancingEditor(TreeNode n)
+        {
+            var name = SmallInput("Name the group captures into, empty for none", n.Name ?? "", 140);
+            var other = SmallInput("Name of the group whose capture is removed", n.Other ?? "", 140);
+            var line = new WrapPanel();
+            line.Children.Add(Label("Captures as")); line.Children.Add(name);
+            line.Children.Add(Label("Removes from")); line.Children.Add(other);
+            _editor.Children.Add(line);
+            _editor.Children.Add(Ui.Button("Apply to the pattern", () =>
+            {
+                var next = RegexTree.ApplyBalancing(_tree.Pattern, n, name.Text.Trim(), other.Text.Trim(), _s.EngineOptions);
+                if (next == null) { SetTreeStatus("Names use letters, digits and underscores; the group to remove from is required.", true); return; }
+                ApplyEdit(next, n);
+            }, "Btn.Accent"));
+        }
+
+        /// <summary>Earlier and Later buttons for any part that has a sibling to swap with. The text of each part is unchanged; only the order moves.</summary>
+        private void MoveControls(TreeNode n)
+        {
+            if (n.Parent == null || n.Kind == RegexTree.NodeKind.Pattern) return;
+            var sibs = n.Parent.Children;
+            int i = sibs.IndexOf(n);
+            var row = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+            row.Children.Add(Label("Move this part"));
+            var earlier = Ui.Button("Earlier", () => ReorderNodes(n, sibs[i - 1], false), "Btn.Ghost");
+            var later = Ui.Button("Later", () => ReorderNodes(n, sibs[i + 1], true), "Btn.Ghost");
+            earlier.ToolTip = "Swap this part with the one before it, keeping both exactly as written";
+            later.ToolTip = "Swap this part with the one after it, keeping both exactly as written";
+            earlier.IsEnabled = i > 0 && RegexTree.CanReorder(n, sibs[i - 1]);
+            later.IsEnabled = i >= 0 && i + 1 < sibs.Count && RegexTree.CanReorder(n, sibs[i + 1]);
+            earlier.Margin = new Thickness(0, 0, 6, 0);
+            row.Children.Add(earlier); row.Children.Add(later);
+            _editor.Children.Add(row);
         }
 
         private void QuantifierEditor(TreeNode n)
