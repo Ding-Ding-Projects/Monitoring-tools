@@ -1130,6 +1130,9 @@ namespace MonitoringTools.Core
             Add("Code", "程式碼");
             Add("Maximize window", "最大化視窗");
             Add("held", "已留住");
+            Add("held until you close it", "留住，等你自己關");
+            Add("Hold until I close it", "留住，等我自己關");
+            Add("Stop holding", "唔再留住");
             Add("now", "而家");
 
             // ---- extra2

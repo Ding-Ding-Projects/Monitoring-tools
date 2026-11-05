@@ -47,6 +47,13 @@ namespace MonitoringTools.UI
                 await Shot(w, "toast-text-reverted", "Copied text, reverted", 700);
                 w.CloseAnimated(); await Task.Delay(350);
 
+                // held until the person closes it
+                var hw = App.Toasts.ShowClip(ClipItem.FromText(text));
+                await Task.Delay(400);
+                hw.SetHeldForever(true);
+                await Shot(hw, "toast-held", "Held until closed: the countdown stops and the header says so", 900);
+                hw.CloseAnimated(); await Task.Delay(350);
+
                 var longText = string.Join("\n", Enumerable.Range(1, 96).Select(i => i switch { 1 => "Action items from the planning call", 2 => "1. Move the release to the second week.", _ => $"{i - 1}. Follow-up item number {i - 1} for the team." }));
                 var lw = App.Toasts.ShowClip(ClipItem.FromText(longText));
                 await Shot(lw, "toast-text-long", "Long copied text scrolls inside the toast", 900);

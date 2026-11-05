@@ -510,6 +510,39 @@ namespace MonitoringTools.UI
                     return null;
                 });
 
+                await CheckAsync("toast hold: Hold keeps a toast past its countdown until it is closed, and Stop holding starts the countdown again", async () =>
+                {
+                    var secs0 = Settings.Current.ToastSeconds;
+                    Settings.Current.ToastSeconds = 2;
+                    try
+                    {
+                        var w = App.Toasts.ShowClip(ClipItem.FromText("Hold me for a while"));
+                        await Task.Delay(300);
+                        var hold = Descend<Button>(w).FirstOrDefault(b => b.Name == "HoldBtn");
+                        if (hold == null || hold.Visibility != Visibility.Visible) return "no Hold button on a counting toast";
+                        if (System.Windows.Automation.AutomationProperties.GetName(hold) != "Hold until I close it") return "Hold button name: " + System.Windows.Automation.AutomationProperties.GetName(hold);
+                        hold.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+                        if (!w.HeldForever) return "pressing Hold did not hold the toast";
+                        if (!ToastTexts(w).Contains("held until you close it")) return "the header does not say it is held: " + ToastTexts(w);
+                        await Task.Delay(3500);   // well past the 2 second countdown
+                        if (w.IsClosing || !w.IsVisible) return "the held toast closed by itself";
+                        if (System.Windows.Automation.AutomationProperties.GetName(hold) != "Stop holding") return "the button was not renamed Stop holding";
+                        hold.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+                        if (w.HeldForever) return "Stop holding did not release it";
+                        for (var i = 0; i < 80 && w.IsVisible && !w.IsClosing; i++) await Task.Delay(100);
+                        if (!w.IsClosing && w.IsVisible) return "after Stop holding the toast never closed";
+                        // a toast that never times out has nothing to hold
+                        var p = App.Toasts.ShowClip(ClipItem.FromText("Persistent one"));
+                        await Task.Delay(200);
+                        p.StartTimer(0);
+                        var ph = Descend<Button>(p).FirstOrDefault(b => b.Name == "HoldBtn");
+                        var shown = ph != null && ph.Visibility == Visibility.Visible;
+                        p.CloseAnimated();
+                        return shown ? "a toast without a countdown still offers Hold" : null;
+                    }
+                    finally { Settings.Current.ToastSeconds = secs0; }
+                });
+
                 await CheckAsync("text toast: edits reach the clipboard 400 ms after the last key, once, in place in history, and the watcher is told to ignore it", async () =>
                 {
                     sink.Clear();

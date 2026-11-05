@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -70,6 +71,10 @@ namespace MonitoringTools.UI
                 var action = a; var button = b;
                 yield return new ElementMenu.Item(action.Label, action.Icon ?? Icons.Bolt, null, () => RunAction(button, action));
             }
+            if (!_persistent)
+                yield return _heldForever
+                    ? new ElementMenu.Item("Stop holding", Icons.Pause, null, () => SetHeldForever(false))
+                    : new ElementMenu.Item("Hold until I close it", Icons.Pause, null, () => SetHeldForever(true));
             yield return new ElementMenu.Item("Dismiss", Icons.Close, null, CloseAnimated);
             yield return new ElementMenu.Item("Pause toasts for 15 minutes", Icons.Pause, null, () => { PauseFor(TimeSpan.FromMinutes(15)); CloseAnimated(); });
         }
@@ -263,7 +268,9 @@ namespace MonitoringTools.UI
             _remaining = TimeSpan.FromSeconds(_seconds);
             _deadline = DateTime.UtcNow + _remaining;
             TimerScale.ScaleX = 1;
+            HoldBtn.Visibility = _persistent ? Visibility.Collapsed : Visibility.Visible;   // a toast that never times out has nothing to hold
             if (_persistent) { TimerFill.Opacity = 0.35; _tick.Stop(); return; }
+            if (_heldForever) { TimerFill.Opacity = 0.35; _remaining = TimeSpan.FromSeconds(_seconds); _tick.Start(); return; }
             TimerFill.Opacity = 1;
             _paused = false;
             _tick.Start();
@@ -272,6 +279,7 @@ namespace MonitoringTools.UI
         public void SetProgress(double p)
         {
             _persistent = true;
+            HoldBtn.Visibility = Visibility.Collapsed;
             _tick.Stop();
             TimerFill.Opacity = 1;
             TimerScale.BeginAnimation(ScaleTransform.ScaleXProperty,
@@ -280,7 +288,7 @@ namespace MonitoringTools.UI
 
         private void Tick()
         {
-            if (_menuOpen || _focusHeld) { _deadline += _tick.Interval; return; }
+            if (_menuOpen || _focusHeld || _heldForever) { _deadline += _tick.Interval; return; }
             if (_paused || IsClosing) return;
             var left = _deadline - DateTime.UtcNow;
             TimerScale.ScaleX = Math.Clamp(left.TotalSeconds / _seconds, 0, 1);
@@ -295,8 +303,9 @@ namespace MonitoringTools.UI
             Ui.ColorTo(CardBorder, over ? _accent : Ui.C("C.Line"), 180);
             Ui.Fade(Halo, over ? 0.12 : 0, 200);
             Ui.Fade(CloseBtn, over ? 1 : 0, 160);
+            Ui.Fade(HoldBtn, over || _heldForever ? 1 : 0, 160);
 
-            if (!_persistent && hold && !_focusHeld)
+            if (!_persistent && hold && !_focusHeld && !_heldForever)
             {
                 if (over)
                 {
@@ -357,6 +366,43 @@ namespace MonitoringTools.UI
         private static bool Still => Core.Appearance.ReduceMotion || Core.Modes.ReduceMotion;
 
         private void OnCloseClick(object sender, RoutedEventArgs e) => CloseAnimated();
+
+        private void OnHoldClick(object sender, RoutedEventArgs e) => SetHeldForever(!_heldForever);
+
+        private bool _heldForever;
+        /// <summary>True while the person has asked this toast to stay until they close it.</summary>
+        public bool HeldForever => _heldForever;
+
+        /// <summary>Stops the countdown until the person closes the toast, or, turned off, starts it again from where it stopped.</summary>
+        public void SetHeldForever(bool on)
+        {
+            if (_persistent || IsClosing || on == _heldForever) return;
+            _heldForever = on;
+            if (on)
+            {
+                _remaining = _deadline - DateTime.UtcNow;
+                TimerFill.Opacity = 0.35;
+                HeldText.Text = "held until you close it";
+                Ui.Fade(Held, 1, 160); Ui.Fade(WhenText, 0, 120); Ui.Fade(HoldBtn, 1, 120);
+                HoldIcon.Stroke = Ui.Res("B.Mint");
+                HoldBtn.ToolTip = "Stop holding";
+                AutomationProperties.SetName(HoldBtn, "Stop holding");
+            }
+            else
+            {
+                var rest = TimeSpan.FromSeconds(Math.Max(3, _remaining.TotalSeconds));
+                _seconds = Math.Max(_seconds, rest.TotalSeconds);
+                _deadline = DateTime.UtcNow + rest;
+                _paused = IsMouseOver && Settings.Current.KeepOpenOnHover;
+                TimerFill.Opacity = 1;
+                HeldText.Text = "held";
+                if (!_paused) { Ui.Fade(Held, 0, 160); Ui.Fade(WhenText, 1, 160); }
+                HoldIcon.Stroke = Ui.Res("B.TextSoft");
+                HoldBtn.ToolTip = "Hold until I close it";
+                AutomationProperties.SetName(HoldBtn, "Hold until I close it");
+            }
+            Core.Language.Refresh(Header);
+        }
 
         // Esc anywhere in an active toast dismisses it unless its body used the key first (the text editor's Esc reverts).
         private void OnToastKey(object sender, KeyEventArgs e)
