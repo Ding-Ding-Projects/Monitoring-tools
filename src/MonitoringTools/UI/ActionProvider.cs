@@ -291,6 +291,7 @@ namespace MonitoringTools.UI
             }
 
             bool primaryTaken = item.HadQuotes || encrypted || DockerActions.Detect(f) != DockerFileKind.None;
+            DocSysActions.Add(item, l);
             if (kind == FileKind.Folder)
             {
                 l.Add(A("Open", Icons.Folder, () => Shell(f), primary: !primaryTaken, done: "Opened"));

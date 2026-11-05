@@ -442,6 +442,7 @@ namespace MonitoringTools.Core
             AddToasts(t);
             AddUpdate(t);
             AddMcLane(t);
+            AddDocSys(t);
             return t;
         }
 
@@ -452,6 +453,7 @@ namespace MonitoringTools.Core
         private static List<(Regex, Func<Match, string>)> BuildPatterns()
         {
             var p = new List<(Regex, Func<Match, string>)>();
+            AddDocSysPatterns(p);
             AddRegexExplainPatterns(p);
             AddRegexParityPatterns(p);
             AddMinecraftCataloguePatterns(p);

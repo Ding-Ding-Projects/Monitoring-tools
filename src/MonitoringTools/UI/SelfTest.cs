@@ -73,6 +73,7 @@ namespace MonitoringTools.UI
             }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "toasts") { InstallParserChecks(); await InstallToastChecksAsync(); await TextToastChecksAsync(); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "docsys") { await DocSysChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit
             {
                 await McChecksAsync();
@@ -860,6 +861,7 @@ namespace MonitoringTools.UI
             await RunNumberFieldsAsync();
             await McChecksAsync();
             await Lane4ChecksAsync(dir);
+            await DocSysChecksAsync(dir);
             await UpdateChecksAsync(dir);
             TotpQrChecks();
             ClipCodeChecks(dir);
