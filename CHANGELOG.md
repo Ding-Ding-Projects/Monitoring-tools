@@ -4,6 +4,26 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.51 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.51)
+
+- Add the data and security dialog captures the article points at ([`a6fc278`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a6fc278c26aa60faa2fa22fbd8937bbe12f9b491))
+- Count the watcher's ignore calls instead of reading its time window ([`faf9f56`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/faf9f560f6ddb19528eeb7e00ed42b62a5ee4879))
+- Media file tool dialogs: privacy, icon, notice buttons, Cantonese, self-tests, captures ([`ff05d92`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ff05d9287228d505d45cb197f8c7b5c191f5bfb1))
+- Tighten two Cantonese patterns and make the cancel check deterministic ([`9a7f890`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9a7f890a16b69c1ccf5695f4552e40a68fa9066e))
+- Translate the Records page message when GitHub cannot be reached ([`efcb622`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/efcb62229a628e09ba5f27bbcf7bd496de8f7832))
+- Archive and virtual disk: capture states, layout fixes, inventory row ([`2ba0c83`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/2ba0c839468151a960e314d4ed09285fea11d15d))
+- Record v1.0.50 figures and changelog ([`4f1a76d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/4f1a76d9f9344149afcf0947704a71ade89c5e65))
+- Finish the archive, subtitle, font and disc image dialogs: Cantonese, checks, captures, docs ([`e448527`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e44852750ef6c11efa0f7512491c6d7230969d71))
+- Archive and virtual disk windows: checks green, Cantonese audited, docs added ([`ada83f6`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ada83f6f98cacfb6284cd542341ee52f13ab08d4))
+- Data and security dialogs: hash, signature, certificate, data, encoding ([`f9e73c1`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/f9e73c1d182f93110fe4ebfa8d6410d0414f6063))
+- WIP: archive and virtual disk windows, built and unverified in the self-test ([`83f1da4`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/83f1da48a6eec3067641ef17ba707ff5c598c426))
+- WIP: data and security dialogs (hash, signature, certificate, data, encoding) ([`b6385e2`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b6385e2aea08ed8d29b6d1c6ab0ec0117a3ae32d))
+- File tool dialogs: shared window kit plus Video trim, Video to GIF, Audio and Images resize ([`f909cf0`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/f909cf06acb01c3e2f63cb8c70522cf6f69526c4))
+- Add archive, subtitle, font and disc image dialogs (engines and windows) ([`c45aa21`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c45aa211046d839bd77ac2589710e303257b348d))
+- Media engines for the six file tool dialogs: trim, GIF, audio, images, privacy, icon ([`e0a15e2`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e0a15e2299e7cacc4f6cbb5833858954677e9d05))
+
 ## 1.0.50 (2026-11-05)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.50)
