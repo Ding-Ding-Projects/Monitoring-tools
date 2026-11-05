@@ -13,7 +13,7 @@ namespace MonitoringTools.UI.Dialogs
         {
             var dir = Path.Combine(Settings.DataDir, "audit-archive-disk"); Directory.CreateDirectory(dir);
             var a = Path.Combine(dir, "Report.txt"); File.WriteAllText(a, new string('x', 3000));
-            var b = Path.Combine(dir, "photos"); Directory.CreateDirectory(b); File.WriteAllBytes(Path.Combine(b, "IMG_1.jpg"), new byte[5000]);
+            var b = Path.Combine(dir, "IMG_1"); Directory.CreateDirectory(b); File.WriteAllBytes(Path.Combine(b, "IMG_1.jpg"), new byte[5000]);
             var items = new[] { a, b };
 
             ArchiveDialog.Open(items);
@@ -50,6 +50,7 @@ namespace MonitoringTools.UI.Dialogs
             if (k != null)
             {
                 await k.WaitForMeasureAsync(6000);
+                k.NameBox.Text = "VOL1"; k.LabelBox.Text = "VOL1";
                 LanguageAudit.Scan(where + ": disk form", k);
                 k.SetSizeForTest(64, "GB"); await Task.Delay(300);
                 LanguageAudit.Scan(where + ": disk FAT32 off at 64 GB", k);
@@ -57,7 +58,7 @@ namespace MonitoringTools.UI.Dialogs
                 LanguageAudit.Scan(where + ": disk FAT32, folder, fixed, move", k);
                 k.NameBox.Text = ""; await Task.Delay(300);
                 LanguageAudit.Scan(where + ": disk refused", k);
-                k.NameBox.Text = "audit"; k.MountBox.Select("letter"); await Task.Delay(200);
+                k.NameBox.Text = "VOL1"; k.MountBox.Select("letter"); await Task.Delay(200);
                 k.PreviewProgress(); await Task.Delay(250);
                 LanguageAudit.Scan(where + ": disk progress", k);
                 k.PreviewDone(); await Task.Delay(250);

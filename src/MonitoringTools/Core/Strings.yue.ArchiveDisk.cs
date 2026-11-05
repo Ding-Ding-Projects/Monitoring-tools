@@ -50,7 +50,7 @@ namespace MonitoringTools.Core
             Add("Volume size", "分卷大小"); Add("Volume unit", "分卷單位");
             Add("A CD.", "一張光碟。"); Add("FAT32 files stop at 4 GiB minus one byte, so each volume is 4,095 MB.", "FAT32 檔案上限係 4 GiB 減一個位元組，所以每個分卷係 4,095 MB。"); Add("A single-layer DVD.", "單層 DVD。");
             Add("Volume size 700 MB", "分卷大小 700 MB"); Add("Volume size FAT32 4 GB", "分卷大小 FAT32 4 GB"); Add("Volume size DVD 4.4 GB", "分卷大小 DVD 4.4 GB");
-            Add("FAT32 4 GB", "FAT32 4 GB"); Add("DVD 4.4 GB", "DVD 4.4 GB");
+            Add("FAT32 4 GB", "FAT32 4 GB"); 
             Add("Contents", "內容"); Add("Include the parent folder", "包括上層資料夾");
             Add("Keeps the folder the items are in as the top folder inside.", "將項目所在嘅資料夾保留做壓縮檔入面最上層嘅資料夾。");
             Add("Exclude patterns", "排除規則"); Add("add pattern…", "加入規則…"); Add("Add an exclude pattern", "加入排除規則");
@@ -86,6 +86,11 @@ namespace MonitoringTools.Core
             Add("Volumes must be at least 64 KB.", "分卷最少要 64 KB。"); Add("Every item is excluded by the patterns.", "所有項目都被排除規則排除咗。");
             Add("Cancelled. The disk was detached and its file deleted.", "已取消。磁碟已卸載，檔案已刪除。");
             Add("An estimate from the file types.", "按檔案類型估算。");
+            Add("Glob, Regex", "萬用字元, 正則"); Add("Copy, Move, Leave empty", "複製, 搬移, 留空"); Add("Drive letter, Folder", "磁碟機代號, 資料夾");
+            Add("Dynamically expanding, Fixed size", "動態擴展, 固定大小"); Add("Keep mounted, Detach", "保持掛載, 卸載");
+            Add("NTFS, exFAT, FAT32", "NTFS, exFAT, FAT32 檔案系統");
+            Add("NTFS, exFAT, FAT32 (unavailable: Off above 32 GB: Windows formats FAT32 only up to 32 GB here.)", "NTFS, exFAT, FAT32（用唔到：超過 32 GB 就用唔到：呢度 Windows 淨係可以格式化最大 32 GB 嘅 FAT32。）");
+            Add("DVD 4.4 GB", "DVD 光碟 4.4 GB");
 
             // ---- virtual disk window
             Add("Create virtual disk", "建立虛擬磁碟"); Add("Disk file", "磁碟檔案"); Add("Volume", "磁碟區");
@@ -164,39 +169,51 @@ namespace MonitoringTools.Core
             Add(@"^Put (the selected item|the \d+ selected items) in$", "將$1放入");
             Add(@"^Fixed takes the full (.+) on (.+) right away\.$", "固定大小會即刻佔用 $2 嘅全部 $1。");
             Add(@"^Starts small and grows up to (.+) as you add files\. Fixed takes the full size on (.+) right away\.$", "一開始好細，隨住加檔案最多脹到 $1。固定大小會即刻佔用 $2 嘅全部空間。");
-            Add(@"^(.+) has (.+) free\.$", "$1 剩返 $2 空間。");
+            Add(@"^([A-Z]:) has (\d[\d.,]* (?:B|KB|MB|GB|TB)) free\.$", "$1 剩返 $2 空間。");
             Add(@"^NTFS: up to 32 characters\. FAT32 and exFAT: up to 11\. (.+) allows (\d+)\.$", "NTFS：最多 32 個字元。FAT32 同 exFAT：最多 11 個。$1 容許 $2 個。");
             Add(@"^A file called (.+) is already there\. Choose another name\.$", "已經有個叫 $1 嘅檔案。請揀另一個名。");
             Add(@"^The label can have (\d+) characters for (.+)\.$", "$2 嘅標籤最多 $1 個字元。");
             Add(@"^The volume label can have (\d+) characters for (.+)\.$", "$2 嘅磁碟區標籤最多 $1 個字元。");
-            Add(@"^(.+) is already in use\.$", "$1 已經有人用。");
+            Add(@"^([A-Z]:) is already in use\.$", "$1 已經有人用。");
             Add(@"^Give the disk a name without .+ or \|\.$", "請幫磁碟改個名，唔好有 \\ / : * ? \" < > 或 |。");
             Add(@"^The disk must be at least (\d+) MB\.$", "磁碟最少要 $1 MB。");
             Add(@"^A fixed disk takes the full size at once, and the drive has (.+) free\.$", "固定磁碟會即刻佔用全部大小，而磁碟機得返 $1。");
             Add(@"^The selected items \((.+)\) do not fit in a (.+) disk once the file system takes its share\. Make the disk bigger or leave it empty\.$", "已揀嘅項目（$1）喺扣咗檔案系統嘅開銷之後放唔落 $2 嘅磁碟。請加大磁碟或者留空。");
-            Add(@"^Creating (.+)$", "建立緊 $1");
+            Add(@"^Creating (.+\.vhdx?)$", "建立緊 $1");
             Add(@"^Formatted (NTFS|exFAT|FAT32) as (.+)$", "已將 $2 格式化為 $1");
             Add(@"^Copying (\d+) items?$", "複製緊 $1 個項目");
             Add(@"^Originals$", "原檔");
-            Add(@"^Size on (.+)$", "$1 上嘅大小");
+            Add(@"^Size on ([A-Z]:)$", "$1 上嘅大小");
             Add(@"^(.+), grows as needed$", "$1，按需要脹大");
-            Add(@"^(\d+) items?, (.+)( · originals .+)?$", "$1 個項目，$2$3");
+            Add(@"^(\d+) items?, (\d[\d.,]* (?:B|KB|MB|GB|TB))$", "$1 個項目，$2");
             Add(@"^ · originals are in the Recycle Bin$", " · 原檔喺資源回收筒");
             Add(@"^ · originals kept$", " · 原檔已保留");
             Add(@"^Open (V:|[A-Z]:|the folder)$", "開啟 $1");
             Add(@"^Copying stopped: (.+) The disk was detached and deleted\.$", "複製停咗：$1 磁碟已卸載並刪除。");
             Add(@"^Every file copied and matched its size\. (.+) moves? to the Recycle Bin\. The copy on the disk stays\.$", "每個檔案都複製好而且大小一致。$1 會移去資源回收筒。磁碟上嘅副本會保留。");
-            Add(@"^(.+) of (.+) · (.+)/s$", "$1／$2 · $3/s");
-            Add(@"^(.+) of (.+)$", "$1／$2");
+            Add(@"^(\d[\d.,]* (?:B|KB|MB|GB|TB)) of (\d[\d.,]* (?:B|KB|MB|GB|TB)) · (.+)/s$", "$1／$2 · $3/s");
+            Add(@"^(\d[\d.,]* (?:B|KB|MB|GB|TB)) of (\d[\d.,]* (?:B|KB|MB|GB|TB))$", "$1／$2");
+            Add(@"^(\d[\d.,]* (?:B|KB|MB|GB|TB)) from (\d[\d.,]* (?:B|KB|MB|GB|TB)) \((\d+)%\)$", "$1，原本 $2（$3%）");
             Add(@"^about (.+) left$", "仲有大約 $1");
             Add(@"^(.+)/s · about (.+) left$", "$1/s · 仲有大約 $2");
-            Add(@"^Remove the exclude pattern (.+)$", "移除排除規則 $1");
+            Add(@"^Exclude pattern (.+), press to remove$", "排除規則 $1，撳一下就移除");
             Add(@"^(VHDX|VHD) · (fixed size|dynamically expanding up to) (.+?) · (NTFS|exFAT|FAT32)(.*) · mounts as (.+) · (.+)$", "$1 · $2 $3 · $4$5 · 掛載為 $6 · $7");
             Add(@"^The file takes (.+) on (.+) at once\. GPT partition, quick format\.$", "檔案會即刻佔用 $2 上嘅 $1。GPT 分割區，快速格式化。");
             Add(@"^The file starts at about 50 MB on (.+)\. GPT partition, quick format\.$", "檔案一開始大約 50 MB（$1 上）。GPT 分割區，快速格式化。");
             Add(@"^Windows Explorer cannot open an AES-256 zip, but 7-Zip can$", "Windows 檔案總管開唔到 AES-256 zip，不過 7-Zip 開到");
             Add(@"^exit code (\d+) · cancelled by the user$", "結束碼 $1 · 用戶取消");
             Add(@"^exit code (-?\d+)$", "結束碼 $1");
+            Add(@"^The test failed: (.+) reads back different from the original$", "測試失敗：$1 讀返出嚟同原檔唔一樣");
+            Add(@"^(.+) reads back different from the original$", "$1 讀返出嚟同原檔唔一樣");
+            Add(@"^(\d+) of (\d+) files are in the archive$", "壓縮檔入面得 $1 個檔案，應該有 $2 個");
+            string[] states = { "done", "in progress", "waiting" }; string[] stateYue = { "完成", "進行緊", "等緊" };
+            foreach (var (en, yue) in new[] { ("Scan", "掃描"), ("Compress", "壓縮"), ("Test", "測試"), ("Finish", "完成"), ("Permission given", "已批准權限"), ("Created the file and attached it", "已建立檔案並掛上") })
+                for (int i = 0; i < 3; i++) Add("^" + Regex.Escape(en) + ", " + states[i] + "$", yue + "，" + stateYue[i]);
+            for (int i = 0; i < 3; i++)
+            {
+                Add(@"^Formatted (NTFS|exFAT|FAT32) as (.+), " + states[i] + "$", "已將 $2 格式化為 $1，" + stateYue[i]);
+                Add(@"^Copying (\d+) items?, " + states[i] + "$", "複製緊 $1 個項目，" + stateYue[i]);
+            }
             Add(@"^Starts small and grows .*$", "一開始好細，之後會脹大。");
         }
     }

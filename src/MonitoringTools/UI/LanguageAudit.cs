@@ -40,7 +40,7 @@ namespace MonitoringTools.UI
             "Hyper", "WSL", "Linux", "Ubuntu", "Edge", "Chrome", "Firefox", "Python", "Node", "Visual", "Studio", "Code", "VS", "Sublime", "Text", "Regex", "RegexBuddy",
             "Base", "AES", "Argon", "bcrypt", "x", "px", "pt", "em", "pm", "am", "vs", "etc", "eg", "ie", "Adapter", "Gateway", "Wi-Fi", "WiFi", "Ethernet",
             "Intel", "AMD", "NVIDIA", "Realtek", "Qualcomm", "Atheros", "Broadcom", "Home", "Offline", "Cantonese", "English", "Mint", "Violet", "Amber", "Rose", "Sky", "Coral", "Lime",
-            "Aa", "ABC", "NG", "OK", "Alpha", "Beta", "AVIF", "Matroska", "Ogg", "Vorbis", "Opus", "QuickTime", "GitLab", "Gitea", "Forgejo", "Valheim", "winget", "primary", "outline", "surface", "Drawesome", "Ink", "ECMAScript", "true", "false", "Qwen", "Llama", "Gemma", "Mistral", "DeepSeek", "Phi", "LLaVA", "Nomic", "TinyLlama", "Footage", "my", "repo", "Insiders", "en", "Hong", "Kong", "Toronto", "Canada", "CA", "US", "UK", "HK", "AS", "Fibre", "Example", "Org"
+            "Aa", "ABC", "NG", "OK", "Alpha", "Beta", "AVIF", "Matroska", "Ogg", "Vorbis", "Opus", "QuickTime", "GitLab", "Gitea", "Forgejo", "Valheim", "winget", "primary", "outline", "surface", "Drawesome", "Ink", "ECMAScript", "true", "false", "Qwen", "Llama", "Gemma", "Mistral", "DeepSeek", "Phi", "LLaVA", "Nomic", "TinyLlama", "Footage", "NTFS", "exFAT", "FAT", "DVD", "VHD", "VHDX", "Deflate", "Deflate64", "my", "repo", "Insiders", "en", "Hong", "Kong", "Toronto", "Canada", "CA", "US", "UK", "HK", "AS", "Fibre", "Example", "Org"
         };
 
         // Key names are only skipped inside a Cantonese sentence; a lone English "Delete" is still a gap.

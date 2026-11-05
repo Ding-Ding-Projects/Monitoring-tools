@@ -54,8 +54,15 @@ namespace MonitoringTools.UI
         private static async Task ArchiveDiskChecksAsync(string dir)
         {
             var work = Path.Combine(Settings.DataDir, "archive-disk"); Directory.CreateDirectory(work);
-            var sevenZip = ArchiveEngine.SevenZip;
+            // a running log of finished checks, so a stuck run shows where it stopped
+            _ = Task.Run(async () => { while (true) { try { File.WriteAllLines(Path.Combine(dir, "progress.txt"), Results.ToArray().Select(r => (r.Pass ? "PASS " : "FAIL ") + r.Name + (r.Pass ? "" : " :: " + r.Detail))); } catch { } await Task.Delay(1500); } });
+            void Mark(string m) { try { File.AppendAllText(Path.Combine(dir, "marks.txt"), DateTime.Now.ToString("HH:mm:ss.fff ") + m + Environment.NewLine); } catch { } }
+            Mark("start");
+            string sevenZip = null;
+            try { sevenZip = ArchiveEngine.SevenZip; } catch (Exception ex) { Check("archive: the bundled 7-Zip extracts and verifies", () => ex.GetType().Name + ": " + ex.Message); }
+            Mark("7z " + sevenZip);
             var tree = MakeArchiveTree(Path.Combine(work, "Project"));
+            Mark("tree");
             Func<string, bool> excl1 = r => r.StartsWith("node_modules/") || r.EndsWith(".tmp");
 
             // ---------------------------------------------------------------- rules and estimate
@@ -533,7 +540,9 @@ namespace MonitoringTools.UI
                 if (V(r => r.File = Path.Combine(disks, "x.img")) == null) return "a .img file was accepted";
                 if (V(r => r.File = @"\\server\share\x.vhdx") == null) return "a network share was accepted";
                 if (V(r => r.Letter = "C") == null) return "drive letter C was accepted";
-                if (V(r => { r.MountMode = "folder"; r.Folder = disks; }) == null) return "a folder mount with no existing empty folder check passed: " + V(r => { r.MountMode = "folder"; r.Folder = disks; });
+                var full = Path.Combine(work, "mnt-full"); Directory.CreateDirectory(full); File.WriteAllText(Path.Combine(full, "x.txt"), "x");
+                if (V(r => { r.MountMode = "folder"; r.Folder = full; }) == null) return "a non-empty mount folder was accepted";
+                if (V(r => { r.MountMode = "folder"; r.Folder = Path.Combine(work, "does-not-exist"); }) == null) return "a missing mount folder was accepted";
                 var empty = Path.Combine(work, "mnt-empty"); Directory.CreateDirectory(empty);
                 if (V(r => { r.MountMode = "folder"; r.Folder = empty; }) != null && new DriveInfo(Path.GetPathRoot(empty)).DriveFormat == "NTFS") return "an empty NTFS folder was refused: " + V(r => { r.MountMode = "folder"; r.Folder = empty; });
                 if (V(r => { r.Fixed = true; r.SizeMb = 500 * 1024; }, free: 100L * 1024 * 1024 * 1024) == null) return "a fixed 500 GB disk was accepted with 100 GB free";

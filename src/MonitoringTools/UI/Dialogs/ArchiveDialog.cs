@@ -457,7 +457,7 @@ namespace MonitoringTools.UI.Dialogs
                 sp.Children.Add(new TextBlock { Text = (r.Regex ? ".* " : "") + r.Pattern, FontFamily = Ui.Font("F.Mono"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Foreground = Ui.Res("B.Text") });
                 sp.Children.Add(new ContentControl { Content = Ui.Icon(Icons.Close, Ui.Res("B.TextSoft"), 11), Margin = new Thickness(8, 0, 0, 0), Focusable = false, VerticalAlignment = VerticalAlignment.Center });
                 b.Content = sp;
-                AutomationProperties.SetName(b, "Remove the exclude pattern " + r.Pattern);
+                AutomationProperties.SetName(b, "Exclude pattern " + r.Pattern + ", press to remove");
                 b.ToolTip = "Removes this pattern.";
                 b.Click += (s, e) => RemoveExclude(rule);
                 _excludeChips.Children.Add(b);
@@ -743,7 +743,7 @@ namespace MonitoringTools.UI.Dialogs
             ShowDone(o, r);
             if (deleted) _originals.Text = "Deleted: they are in the Recycle Bin";
         }
-        internal void PreviewError() => ShowError(ReadOptions(), new ArchiveResult { Error = "7-Zip stopped: Cannot open file 'locked.db' (it is used by another process)." });
+        internal void PreviewError() => ShowError(ReadOptions(), new ArchiveResult { Error = "The test failed: data.bin reads back different from the original" });
         internal void PreviewForm() { ShowForm(); }
     }
 }

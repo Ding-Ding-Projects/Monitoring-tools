@@ -105,7 +105,16 @@ namespace MonitoringTools.Core.Archives
 
         public static void DeleteOutputs(string primary)
         {
-            foreach (var p in OutputsFor(primary).Append(primary + ".part")) { try { if (File.Exists(p)) File.Delete(p); } catch { } }
+            var found = new List<string>(OutputsFor(primary)) { primary + ".part" };
+            // 7-Zip keeps a numbered volume under a .tmp name while it is writing it
+            try
+            {
+                var dir = Path.GetDirectoryName(primary); var file = Path.GetFileName(primary);
+                if (dir != null && Directory.Exists(dir))
+                    found.AddRange(Directory.EnumerateFiles(dir, file + "*").Where(p => Regex.IsMatch(Path.GetFileName(p).Substring(file.Length), @"^(\.\d{3})?(\.tmp|\.part)?$")));
+            }
+            catch { }
+            foreach (var p in found.Distinct()) { try { if (File.Exists(p)) File.Delete(p); } catch { } }
         }
 
         // ------------------------------------------------------------ run
@@ -207,9 +216,9 @@ namespace MonitoringTools.Core.Archives
         {
             private readonly Stream _inner; private readonly Meter _m; private readonly string _name; private readonly CancellationToken _ct; private readonly IncrementalHash _hash;
             public CountingStream(Stream inner, Meter m, string name, IncrementalHash hash, CancellationToken ct) { _inner = inner; _m = m; _name = name; _hash = hash; _ct = ct; }
-            public override bool CanRead => true; public override bool CanSeek => false; public override bool CanWrite => false;
+            public override bool CanRead => true; public override bool CanSeek => true; public override bool CanWrite => false;   // seekable only because the tar writer insists; it reads straight through
             public override long Length => _inner.Length;
-            public override long Position { get => _inner.Position; set => throw new NotSupportedException(); }
+            public override long Position { get => _inner.Position; set => _inner.Position = value; }
             public override int Read(byte[] buffer, int offset, int count)
             {
                 _ct.ThrowIfCancellationRequested();
@@ -218,7 +227,7 @@ namespace MonitoringTools.Core.Archives
                 return n;
             }
             public override void Flush() { }
-            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+            public override long Seek(long offset, SeekOrigin origin) => _inner.Seek(offset, origin);
             public override void SetLength(long value) => throw new NotSupportedException();
             public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
             protected override void Dispose(bool disposing) { if (disposing) _inner.Dispose(); base.Dispose(disposing); }

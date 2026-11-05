@@ -66,7 +66,12 @@ namespace MonitoringTools.UI
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "update") { await UpdateChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexexplain") { await RegexExplainChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
-            if (Environment.GetEnvironmentVariable("MT_ONLY") == "archivedisk") { await ArchiveDiskChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "archivedisk") 
+            {
+                await ArchiveDiskChecksAsync(dir);
+                await CheckAsync("language audit (archive and disk loop)", async () => { await LanguageAudit.RunAsync(dir); var left = LanguageAudit.Findings; return left.Count == 0 ? null : left.Count + " untranslated: " + string.Join(" | ", left.Take(200).Select(x => "\"" + x.Text.Replace("\n", " / ") + "\" (" + x.Where + ")")); });
+                Finish(dir); return;
+            }
             if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit
             {
                 await McChecksAsync();
