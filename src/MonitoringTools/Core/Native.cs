@@ -14,6 +14,19 @@ namespace MonitoringTools.Core
         public const int WS_EX_NOACTIVATE = 0x08000000;
         public const int WS_EX_TOPMOST = 0x00000008;
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct LASTINPUTINFO { public uint cbSize; public uint dwTime; }
+        [DllImport("user32.dll")]
+        private static extern bool GetLastInputInfo(ref LASTINPUTINFO info);
+
+        /// <summary>How long since the last keyboard or mouse input on this session, or null when Windows will not say.</summary>
+        public static TimeSpan? IdleFor()
+        {
+            var li = new LASTINPUTINFO { cbSize = (uint)Marshal.SizeOf<LASTINPUTINFO>() };
+            if (!GetLastInputInfo(ref li)) return null;
+            return TimeSpan.FromMilliseconds(unchecked((uint)Environment.TickCount - li.dwTime));
+        }
+
         public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         public const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOACTIVATE = 0x0010, SWP_SHOWWINDOW = 0x0040;
 

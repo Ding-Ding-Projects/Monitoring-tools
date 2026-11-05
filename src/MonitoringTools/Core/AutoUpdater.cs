@@ -96,9 +96,16 @@ namespace MonitoringTools.Core
             if (ServiceHost.IsPortableBuild) return "this is a development build, which never installs over itself";
             if (Media.Converter.Busy) return "a conversion is running";
             if (Minecraft.ServerManager.AnyLocalProcessRunning) return "a Minecraft server started here is running";
-            if (App.Games?.IsGaming == true) return "a game is running";
+            if (App.Games?.IsGaming == true && IsPlaying(Native.IdleFor())) return "a game is running";
             return null;
         }
+
+        /// <summary>How long without keyboard or mouse input counts as not playing, even with a game left open.</summary>
+        public static readonly TimeSpan AwayAfter = TimeSpan.FromMinutes(10);
+
+        /// <summary>A game only holds the update back while someone is using the computer: a game client left open
+        /// all day would otherwise stop every update. Unknown idle time counts as playing.</summary>
+        internal static bool IsPlaying(TimeSpan? idle) => idle == null || idle.Value < AwayAfter;
 
         /// <summary>Looks for a newer release, downloads and verifies it, and installs it when nothing would be interrupted.</summary>
         public static async Task CheckAsync(bool installWhenQuiet)
@@ -131,7 +138,7 @@ namespace MonitoringTools.Core
         {
             "a conversion is running" => "the conversion finishes",
             "a Minecraft server started here is running" => "that Minecraft server stops",
-            "a game is running" => "you stop playing",
+            "a game is running" => "you stop playing or step away for 10 minutes",
             _ => why.StartsWith("this is a development build") ? "it runs as the installed copy" : "nothing is running",
         };
 

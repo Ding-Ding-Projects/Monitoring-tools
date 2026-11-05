@@ -58,7 +58,7 @@ namespace MonitoringTools.Core
         {
             "the conversion finishes" => "轉完檔",
             "that Minecraft server stops" => "嗰個 Minecraft 伺服器停咗",
-            "you stop playing" => "你唔再打機",
+            "you stop playing or step away for 10 minutes" => "你唔再打機或者走開 10 分鐘",
             "it runs as the installed copy" => "用返已安裝嘅版本行",
             _ => "冇嘢行緊",
         };

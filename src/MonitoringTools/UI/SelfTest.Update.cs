@@ -74,7 +74,11 @@ namespace MonitoringTools.UI
                     var note = AutoUpdater.TakeUpdatedNote();
                     if (note != "Updated from 1.0.28 to 1.0.31 in the background.") return "note: " + note;
                     if (File.Exists(flag) || AutoUpdater.TakeUpdatedNote() != null) return "the note shows more than once";
-                    // 8. the real quiet test knows a development build never installs over itself
+                    // 8. a game left open while nobody touches the computer does not hold the update back forever
+                    if (!AutoUpdater.IsPlaying(TimeSpan.FromMinutes(2))) return "recent input with a game open was not treated as playing";
+                    if (AutoUpdater.IsPlaying(TimeSpan.FromHours(15))) return "15 hours without input with a game open still counted as playing";
+                    if (!AutoUpdater.IsPlaying(null)) return "unknown idle time was not treated as playing";
+                    // 9. the real quiet test knows a development build never installs over itself
                     AutoUpdater.BlockedForTest = null;
                     var why = AutoUpdater.BlockedReason();
                     if (ServiceHost.IsPortableBuild && (why == null || !why.Contains("development build"))) return "development build not blocked: " + why;

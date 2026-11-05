@@ -139,7 +139,10 @@ namespace MonitoringTools.UI
                 ResetHistory();
                 const string key = "l4-keep";
                 Settings.Current.HistoryKeepCount = 5;
-                for (int i = 1; i <= 12; i++) ScriptHistory.Save(key, "v" + i);
+                var refused = new System.Collections.Generic.List<string>();
+                for (int i = 1; i <= 12; i++)
+                    if (!ScriptHistory.Save(key, "v" + i)) refused.Add($"v{i} (mode {HistoryVault.Mode}, locked {HistoryVault.IsLocked}, files {Directory.GetFiles(Path.Combine(HistoryFolder, key)).Length})");
+                if (refused.Count > 0) return "saves refused: " + string.Join("; ", refused);
                 var list = ScriptHistory.List(key);
                 if (list.Count != 5 || ScriptHistory.Read(key, list[0].Id) != "v12" || ScriptHistory.Read(key, list[4].Id) != "v8") return "count limit wrong: " + list.Count + ", newest " + ScriptHistory.Read(key, list[0].Id) + ", oldest " + ScriptHistory.Read(key, list[^1].Id) + ", mode " + HistoryVault.Mode + ", locked " + HistoryVault.IsLocked;
                 // age: backdate three of them by renaming
