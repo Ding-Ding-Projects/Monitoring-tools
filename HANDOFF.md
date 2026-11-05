@@ -28,8 +28,8 @@ checked; anything unchecked is labelled.
   60 s) and fixed with `pause-when-empty-seconds=0`.
 - **Since then, done:** SSH world import, reset and replace from this app (self-test and a live
   OpenSSH run), and Forge and NeoForge live runs through the command builder (both passed).
-  The history retention self-test check failed twice in other
-  runs and never in four runs here; it now reports the exact refused save if it fails again.
+  The history retention self-test check failed in 3 of about 9 full runs before history names were
+  compared at millisecond precision, and in 0 of 4 full runs since (184 of 184 each); not proven fixed, and it lists every kept version if it fails again.
 - **Done:** register a TOTP account when a copied image holds an `otpauth://` QR
   code (see ROADMAP.md).
 - **Needs the maintainer:** native review of the Cantonese, a FIDO2 key, a real pen or touch screen,

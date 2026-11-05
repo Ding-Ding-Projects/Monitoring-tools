@@ -24,8 +24,8 @@ Next steps:
    and SSH world import, reset and replace from the app are merged and checked.
 1. Forge (2,781 s) and NeoForge (1,529 s) both passed live through the command builder.
 2. Background updates are confirmed on the maintainer's computer (v1.0.36 to v1.0.37 to v1.0.40 by itself).
-3. The history retention self-test check failed twice in other runs; it now names the refused save.
-   If it fails again, fix the cause it reports.
+3. The history retention check failed in 3 of ~9 full runs before the millisecond naming change and 0 of 4 since;
+   not proven fixed. If it fails again, its message lists every kept version.
 Needs the maintainer: native Cantonese review, FIDO2 key, pen or touch device, phone camera, real
 Windows Hello prompt, approval to download glab and tea for the forge checks.
 ```
