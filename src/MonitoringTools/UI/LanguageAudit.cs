@@ -37,7 +37,7 @@ namespace MonitoringTools.UI
             "UI", "ID", "OS", "PC", "AI", "LLM", "GGUF", "CLI", "SSD", "NAT", "VPN", "LAN", "WAN", "MAC", "ARP", "ICMP", "TTL", "RAW", "UTC", "AM", "PM", "CRLF", "LF", "UAC",
             "Roblox", "League", "Legends", "Valorant", "Fortnite", "Steam", "Epic", "Cloudflare", "Google", "OpenDNS", "Quad", "Comodo", "Paper", "Spigot", "Fabric", "Forge",
             "Vanilla", "Purpur", "Bukkit", "NeoForge", "Mojang", "Java", "Gradle", "Bedrock", "Neo", "Quilt", "Folia", "Velocity", "Waterfall", "Windows", "Microsoft", "Apple", "Mac",
-            "Hyper", "WSL", "Linux", "Ubuntu", "Edge", "Chrome", "Firefox", "Python", "Node", "Visual", "Studio", "Code", "VS", "Sublime", "Text", "Regex", "RegexBuddy",
+            "Hyper", "WSL", "Linux", "Ubuntu", "Edge", "Chrome", "Firefox", "Python", "JavaScript", "Java", "Node", "Visual", "Studio", "Code", "VS", "Sublime", "Text", "Regex", "RegexBuddy",
             "Base", "AES", "Argon", "bcrypt", "x", "px", "pt", "em", "pm", "am", "vs", "etc", "eg", "ie", "Adapter", "Gateway", "Wi-Fi", "WiFi", "Ethernet",
             "Intel", "AMD", "NVIDIA", "Realtek", "Qualcomm", "Atheros", "Broadcom", "Home", "Offline", "Cantonese", "English", "Mint", "Violet", "Amber", "Rose", "Sky", "Coral", "Lime",
             "Aa", "ABC", "NG", "OK", "Alpha", "Beta", "AVIF", "Matroska", "Ogg", "Vorbis", "Opus", "QuickTime", "GitLab", "Gitea", "Forgejo", "Valheim", "winget", "primary", "outline", "surface", "Drawesome", "Ink", "ECMAScript", "true", "false", "Qwen", "Llama", "Gemma", "Mistral", "DeepSeek", "Phi", "LLaVA", "Nomic", "TinyLlama", "Footage", "my", "repo", "Insiders", "en", "Hong", "Kong", "Toronto", "Canada", "CA", "US", "UK", "HK", "AS", "Fibre", "Example", "Org"
@@ -298,7 +298,7 @@ namespace MonitoringTools.UI
                 if (f != null)
                 {
                     f.State.SetQuery(@"(?<name>\w+)\.(png|md|csv)");
-                    foreach (var tab in new[] { "Build", "Test", "Replace", "Debug", "Compare", "Files", "Code", "Library" })
+                    foreach (var tab in new[] { "Build", "Test", "Replace", "Debug", "Compare", "Benchmark", "Files", "Code", "Library", "Help" })
                     {
                         f.OpenBuilder(tab); await Settle(450);
                         Scan("regex builder: " + tab, cc);

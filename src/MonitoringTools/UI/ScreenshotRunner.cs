@@ -221,6 +221,10 @@ namespace MonitoringTools.UI
             await ShotWithBuilder(cc, f, "search-builder-code", "Regex builder: generated code", 900);
             f.OpenBuilder("Library");
             await ShotWithBuilder(cc, f, "search-builder-library", "Regex builder: saved patterns", 900);
+            f.OpenBuilder("Benchmark");
+            await ShotWithBuilder(cc, f, "search-builder-benchmark", "Regex builder: pattern pair, per-part timing and saved history", 1000);
+            f.OpenBuilder("Help");
+            await ShotWithBuilder(cc, f, "search-builder-help", "Regex builder: syntax help and builder preferences", 1000);
             f.State.SetQuery("(a+)+$");
             f.OpenBuilder("Build");
             await ShotWithBuilder(cc, f, "search-builder-risk", "Regex builder warns about catastrophic backtracking", 1000);

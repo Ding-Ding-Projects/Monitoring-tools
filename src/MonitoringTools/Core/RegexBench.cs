@@ -137,6 +137,133 @@ namespace MonitoringTools.Core
             return new SubjectBench(label, subject.Length, matched, per, to, growth, Verdict(growth), false);
         }
 
+        // ---------------------------------------------------------------- two patterns side by side
+
+        public sealed record PatternRun(string Label, string Pattern, string Error, int Matches, double Ms, bool TimedOut, List<(int Index, int Length)> Hits);
+
+        public sealed record PairResult(PatternRun A, PatternRun B, string Verdict);
+
+        /// <summary>Runs two patterns on the same subject with the same options and says which finds what and which is faster.</summary>
+        public static PairResult ComparePatterns(string patternA, string patternB, RegexOptions options, string subject)
+        {
+            subject ??= "";
+            if (subject.Length > RegexKit.MaxSampleLength) subject = subject[..RegexKit.MaxSampleLength];
+            PatternRun One(string label, string p)
+            {
+                var rx = RegexKit.TryCreate(p, options, out var err);
+                if (rx == null) return new PatternRun(label, p, err, 0, 0, false, new List<(int, int)>());
+                var hits = new List<(int, int)>();
+                var sw = Stopwatch.StartNew();
+                bool to = false;
+                try { for (var m = rx.Match(subject); m.Success && hits.Count < MaxCompared; m = m.NextMatch()) hits.Add((m.Index, m.Length)); }
+                catch (RegexMatchTimeoutException) { to = true; }
+                double first = sw.Elapsed.TotalMilliseconds;
+                // a fast pattern is timed over a few repeats so the number is not just one noisy sample
+                if (!to && first < 5)
+                {
+                    int runs = 1; sw.Restart();
+                    try { while (runs < 500 && sw.Elapsed.TotalMilliseconds < 25) { rx.IsMatch(subject); runs++; } }
+                    catch (RegexMatchTimeoutException) { to = true; }
+                    if (!to && runs > 1) first = sw.Elapsed.TotalMilliseconds / runs;
+                }
+                return new PatternRun(label, p, null, hits.Count, first, to, hits);
+            }
+            var a = One("A", patternA ?? ""); var b = One("B", patternB ?? "");
+            string verdict;
+            if (a.Error != null || b.Error != null) verdict = "At least one pattern is not valid, so there is nothing to compare.";
+            else if (a.TimedOut || b.TimedOut) verdict = (a.TimedOut ? "A" : "B") + " hit the time limit" + (a.TimedOut && b.TimedOut ? " and so did B" : "") + ", so its matches are incomplete.";
+            else
+            {
+                var same = a.Hits.SequenceEqual(b.Hits);
+                var speed = a.Ms <= 0 || b.Ms <= 0 ? "" : a.Ms < b.Ms * 0.8 ? $" A is about {b.Ms / Math.Max(a.Ms, 0.0001):0.0} times faster." : b.Ms < a.Ms * 0.8 ? $" B is about {a.Ms / Math.Max(b.Ms, 0.0001):0.0} times faster." : " The times are within noise of each other.";
+                verdict = (same ? $"Both find the same {a.Hits.Count} match(es)." : $"They differ: A finds {a.Matches}, B finds {b.Matches}; " + FirstPairDifference(a.Hits, b.Hits) + ".") + speed;
+            }
+            return new PairResult(a, b, verdict);
+        }
+
+        private static string FirstPairDifference(List<(int Index, int Length)> a, List<(int Index, int Length)> b)
+        {
+            int n = Math.Min(a.Count, b.Count);
+            for (int i = 0; i < n; i++) if (a[i] != b[i]) return $"the first difference is match #{i + 1} (A at {a[i].Index} length {a[i].Length}, B at {b[i].Index} length {b[i].Length})";
+            return a.Count > b.Count ? $"A has {a.Count - n} more after the shared ones" : $"B has {b.Count - n} more after the shared ones";
+        }
+
+        // ---------------------------------------------------------------- per-token profile
+
+        public sealed record TokenTime(string Text, int Start, int End, double PrefixMs, double DeltaMs, int PrefixMatches, bool TimedOut, bool Skipped, string Note);
+
+        /// <summary>
+        /// Times the pattern one top-level piece at a time: the first piece alone, then the first two, and so on. The difference between
+        /// two neighbours is the cost that piece added on this subject. Only pieces that form a valid pattern on their own are timed;
+        /// the others are listed with the reason. This is a cost estimate from the real engine, not an internal profile of it.
+        /// </summary>
+        public static List<TokenTime> Profile(string pattern, RegexOptions options, string subject, CancellationToken ct = default)
+        {
+            var list = new List<TokenTime>();
+            pattern ??= ""; subject ??= "";
+            if (subject.Length > 20000) subject = subject[..20000];
+            var tree = RegexTree.Parse(pattern, options & ~(RegexOptions.NonBacktracking | RegexOptions.RightToLeft | RegexOptions.ECMAScript));
+            if (!tree.Valid || tree.Root == null) { list.Add(new TokenTime(pattern, 0, pattern.Length, 0, 0, 0, false, true, "The pattern is not valid: " + tree.Message)); return list; }
+            var root = tree.Root;
+            var parts = new List<RegexTree.Node>();
+            foreach (var c in root.Children)
+            {
+                if (c.Kind == RegexTree.NodeKind.Alternation)
+                {
+                    foreach (var br in c.Children) parts.Add(br);
+                    list.Add(new TokenTime(c.Text(pattern), c.Start, c.End, 0, 0, 0, false, true, "Alternation: each branch is timed on its own below."));
+                    break;
+                }
+                parts.Add(c);
+            }
+            bool alternation = root.Children.Any(c => c.Kind == RegexTree.NodeKind.Alternation);
+            double previous = 0;
+            for (int i = 0; i < parts.Count; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+                var node = parts[i];
+                var text = alternation ? node.Text(pattern) : pattern.Substring(parts[0].Start, node.End - parts[0].Start);
+                var piece = node.Text(pattern);
+                if (piece.Length == 0) continue;
+                var rx = RegexKit.TryCreate(text, options, out var err);
+                if (rx == null) { list.Add(new TokenTime(piece, node.Start, node.End, 0, 0, 0, false, true, "Not a valid pattern on its own: " + err)); continue; }
+                int count = 0; bool to = false;
+                double ms;
+                var sw = Stopwatch.StartNew();
+                try { foreach (Match m in rx.Matches(subject)) { count++; if (count >= MaxCompared) break; } }
+                catch (RegexMatchTimeoutException) { to = true; }
+                ms = sw.Elapsed.TotalMilliseconds;
+                if (!to && ms < 10)
+                {
+                    int runs = 1; sw.Restart();
+                    try { while (runs < 300 && sw.Elapsed.TotalMilliseconds < 20) { rx.Matches(subject).Count.ToString(); runs++; } }
+                    catch (RegexMatchTimeoutException) { to = true; }
+                    if (!to && runs > 1) ms = sw.Elapsed.TotalMilliseconds / runs;
+                }
+                var delta = alternation ? ms : Math.Max(0, ms - previous);
+                list.Add(new TokenTime(piece, node.Start, node.End, ms, delta, count, to, false, to ? "Stopped at the time limit" : ""));
+                if (!alternation) previous = ms;
+                if (to) break;
+            }
+            return list;
+        }
+
+        // ---------------------------------------------------------------- saved history
+
+        public const int MaxHistory = 30;
+
+        /// <summary>Adds a record at the front of the saved history and trims it. Returns the record.</summary>
+        public static RegexBenchRecord Remember(string pattern, RegexOptions options, SubjectBench bench)
+        {
+            var rec = new RegexBenchRecord { When = DateTime.Now.ToString("yyyy-MM-dd HH:mm"), Pattern = pattern ?? "", Options = (int)options, SubjectLength = bench.Length, MsPerRun = Math.Round(bench.MsPerRun, 4), TimedOut = bench.TimedOut, Verdict = bench.Verdict ?? "" };
+            var s = Settings.Current;
+            if (s == null) return rec;
+            s.RegexBenchHistory ??= new List<RegexBenchRecord>();
+            s.RegexBenchHistory.Insert(0, rec);
+            if (s.RegexBenchHistory.Count > MaxHistory) s.RegexBenchHistory.RemoveRange(MaxHistory, s.RegexBenchHistory.Count - MaxHistory);
+            return rec;
+        }
+
         private static string Repeat(string s, int factor)
         {
             if ((long)s.Length * factor > RegexKit.MaxSampleLength) factor = Math.Max(1, RegexKit.MaxSampleLength / s.Length);

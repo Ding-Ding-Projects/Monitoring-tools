@@ -65,6 +65,12 @@ namespace MonitoringTools.UI
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "wording") { await WordingChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "update") { await UpdateChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexexplain") { await RegexExplainChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexparity") { await RegexParityChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "language")
+            {
+                await CheckAsync("language audit (language loop)", async () => { await LanguageAudit.RunAsync(dir); var left = LanguageAudit.Findings; return left.Count == 0 ? null : left.Count + " untranslated"; });
+                Finish(dir); return;
+            }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit
             {
@@ -235,8 +241,8 @@ namespace MonitoringTools.UI
             });
             Check("regex debug: unsupported constructs are named, not faked", () =>
             {
-                var r = RegexTrace.Run(@"(?<=a)b", RegexOptions.None, "ab");
-                return r.Unsupported != null && r.Steps.Count == 0 ? null : "lookbehind was traced";
+                var r = RegexTrace.Run(@"(?i)a", RegexOptions.None, "A");
+                return r.Unsupported != null && r.Steps.Count == 0 ? null : "an inline option was traced";
             });
             Check("regex compare: non-backtracking refuses lookbehind with the engine's message", () =>
             {
@@ -849,6 +855,7 @@ namespace MonitoringTools.UI
 
             await LanguageChecksAsync();
             await RegexExplainChecksAsync(dir);
+            await RegexParityChecksAsync(dir);
             await RunNumberFieldsAsync();
             await McChecksAsync();
             await Lane4ChecksAsync(dir);

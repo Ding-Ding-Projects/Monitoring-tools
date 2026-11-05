@@ -26,6 +26,8 @@ namespace MonitoringTools.Core
             public string Masks = "*";
             /// <summary>Masks for file or folder names to leave out.</summary>
             public string ExcludeMasks = "";
+            /// <summary>An optional regular expression tested against each file name (ignore case). Empty means no name filter beyond the masks.</summary>
+            public string NameRegex = "";
             public bool Subfolders = true;
             public bool SkipBinary = true;
             public long MaxBytes = 5L * 1024 * 1024;
@@ -143,7 +145,7 @@ namespace MonitoringTools.Core
 
         // ---------------------------------------------------------------- enumeration
 
-        private static IEnumerable<string> Enumerate(Options o, List<Regex> include, List<Regex> exclude, List<Skip> skipped, CancellationToken ct)
+        private static IEnumerable<string> Enumerate(Options o, List<Regex> include, List<Regex> exclude, Regex nameRx, List<Skip> skipped, CancellationToken ct)
         {
             var stack = new Stack<string>();
             stack.Push(o.Folder);
@@ -159,6 +161,7 @@ namespace MonitoringTools.Core
                     var name = System.IO.Path.GetFileName(f);
                     if (exclude.Count > 0 && Any(exclude, name)) continue;
                     if (include.Count > 0 && !Any(include, name)) continue;
+                    if (nameRx != null && !SafeNameMatch(nameRx, name)) continue;
                     yield return f;
                 }
                 if (!o.Subfolders) continue;
@@ -189,9 +192,15 @@ namespace MonitoringTools.Core
             }
             var include = CompileMasks(o.Masks);
             var exclude = CompileMasks(o.ExcludeMasks);
+            Regex nameRx = null;
+            if (!string.IsNullOrWhiteSpace(o.NameRegex))
+            {
+                nameRx = RegexKit.TryCreate(o.NameRegex, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, out var nameError);
+                if (nameRx == null) { report.Skipped.Add(new Skip { Path = "", Reason = "The file name pattern is not valid: " + nameError }); return report; }
+            }
             try
             {
-                foreach (var path in Enumerate(o, include, exclude, report.Skipped, ct))
+                foreach (var path in Enumerate(o, include, exclude, nameRx, report.Skipped, ct))
                 {
                     ct.ThrowIfCancellationRequested();
                     report.FilesScanned++;
@@ -351,6 +360,34 @@ namespace MonitoringTools.Core
             return outcome;
         }
 
+        private static bool SafeNameMatch(Regex rx, string name)
+        {
+            try { return rx.IsMatch(name); }
+            catch (RegexMatchTimeoutException) { return false; }
+        }
+
+        public sealed record BackupInfo(string Folder, string Name, int Files, DateTime Created);
+
+        /// <summary>Every backup run that has a manifest, newest first, so any run can be restored and not only the last one.</summary>
+        public static List<BackupInfo> ListBackups()
+        {
+            var list = new List<BackupInfo>();
+            try
+            {
+                if (!Directory.Exists(BackupRoot)) return list;
+                foreach (var d in Directory.GetDirectories(BackupRoot).OrderByDescending(x => x, StringComparer.OrdinalIgnoreCase))
+                {
+                    var mf = System.IO.Path.Combine(d, "manifest.json");
+                    if (!File.Exists(mf)) continue;
+                    int n = 0;
+                    try { n = JsonSerializer.Deserialize<List<ManifestEntry>>(File.ReadAllText(mf))?.Count ?? 0; } catch { }
+                    list.Add(new BackupInfo(d, System.IO.Path.GetFileName(d), n, Directory.GetCreationTime(d)));
+                }
+            }
+            catch { }
+            return list;
+        }
+
         /// <summary>The newest backup folder that has a manifest, or null.</summary>
         public static string LastBackup()
         {
@@ -364,10 +401,12 @@ namespace MonitoringTools.Core
         }
 
         /// <summary>Copies every file in the newest backup back over its original. Returns a plain report.</summary>
-        public static (int Restored, List<Skip> Failed, string Folder) RestoreLast()
+        public static (int Restored, List<Skip> Failed, string Folder) RestoreLast() => RestoreFolder(LastBackup());
+
+        /// <summary>Copies every file in the given backup run back over its original.</summary>
+        public static (int Restored, List<Skip> Failed, string Folder) RestoreFolder(string folder)
         {
             var failed = new List<Skip>();
-            var folder = LastBackup();
             if (folder == null) return (0, failed, null);
             int restored = 0;
             List<ManifestEntry> manifest;
