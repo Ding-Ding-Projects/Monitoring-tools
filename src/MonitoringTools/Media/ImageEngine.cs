@@ -268,6 +268,19 @@ namespace MonitoringTools.Media
             finally { try { Directory.Delete(tmp, true); } catch { } }
         }
 
+        /// <summary>The "after" side of the preview: the crop applied and, for lossy formats, the chosen quality really encoded and decoded
+        /// again, so the picture shows what the compression does. Works on a reduced copy of the picture.</summary>
+        public static BitmapSource Simulate(BitmapSource small, ImageOptions o, bool lossy)
+        {
+            // a crop to the free shape needs the aspect of the typed size, so it is kept even when nothing is scaled
+            var rect = CropRect(small.PixelWidth, small.PixelHeight, o.Crop, o.Width > 0 && o.Height > 0 ? (double)o.Width / o.Height : 0);
+            BitmapSource img = rect.Width == small.PixelWidth && rect.Height == small.PixelHeight ? small : new CroppedBitmap(small, rect);
+            if (!lossy) return img;
+            int q = o.UseTarget ? 70 : Math.Clamp(o.Quality, 1, 100);
+            var data = EncodeJpeg(img, q, null);
+            return MediaProc.Decode(data) ?? img;
+        }
+
         /// <summary>A rough size for the list before anything is saved: pixel area and quality scale the original.</summary>
         public static long Estimate(long srcBytes, int srcW, int srcH, ImageOptions o, string srcExt)
         {
