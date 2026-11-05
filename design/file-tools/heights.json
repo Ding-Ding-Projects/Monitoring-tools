@@ -18,5 +18,45 @@
  "VideoTrim.dc.html": {
   "h": 1352,
   "w": 1712
+ },
+ "CertInspector.dc.html": {
+  "h": 1262,
+  "w": 1752
+ },
+ "DataViewer.dc.html": {
+  "h": 1525,
+  "w": 1792
+ },
+ "DiscImage.dc.html": {
+  "h": 1226,
+  "w": 1752
+ },
+ "EncodingLines.dc.html": {
+  "h": 1310,
+  "w": 1872
+ },
+ "ExtractArchive.dc.html": {
+  "h": 1303,
+  "w": 1832
+ },
+ "FontInstall.dc.html": {
+  "h": 1244,
+  "w": 1752
+ },
+ "HashVerify.dc.html": {
+  "h": 1232,
+  "w": 1712
+ },
+ "MakeIcon.dc.html": {
+  "h": 1276,
+  "w": 1832
+ },
+ "SubtitleTiming.dc.html": {
+  "h": 1348,
+  "w": 1792
+ },
+ "WhoSigned.dc.html": {
+  "h": 1240,
+  "w": 1752
  }
 }
