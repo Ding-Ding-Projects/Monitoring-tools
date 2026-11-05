@@ -389,7 +389,7 @@ namespace MonitoringTools.UI.Search
             try
             {
                 var res = RegexTree.Parse(_s.Query, _s.EngineOptions);
-                File.WriteAllText(d.FileName, html ? RegexTree.ToHtml(res, _s.EngineOptions, _detailed) : RegexTree.ToMarkdown(res, _s.EngineOptions, _detailed), new UTF8Encoding(false));
+                File.WriteAllText(d.FileName, html ? RegexTree.ToHtml(res, _s.EngineOptions, _detailed, _s.Sample ?? DefaultSample()) : RegexTree.ToMarkdown(res, _s.EngineOptions, _detailed, _s.Sample ?? DefaultSample()), new UTF8Encoding(false));
                 SetTreeStatus("Exported the " + (_detailed ? "detailed" : "brief") + " analysis to " + d.FileName, false);
             }
             catch (Exception ex)

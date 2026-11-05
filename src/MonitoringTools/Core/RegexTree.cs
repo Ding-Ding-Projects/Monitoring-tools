@@ -793,7 +793,34 @@ namespace MonitoringTools.Core
 
         private static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
-        public static string ToMarkdown(Result r, RegexOptions options, bool detailed)
+        /// <summary>
+        /// Match results and timing of the pattern on a sample, as plain lines for an analysis export. The matches are the real engine's; the timing
+        /// is a short measured run (one pass and a growth run), so it is a rough guide and not a benchmark report.
+        /// </summary>
+        public static List<string> ResultLines(Result r, RegexOptions options, string sample)
+        {
+            var lines = new List<string>();
+            if (sample == null) return lines;
+            if (sample.Length > 20000) sample = sample[..20000];
+            var rx = RegexKit.TryCreate(r.Pattern, options, out var err);
+            if (rx == null) { lines.Add("No results: " + err); return lines; }
+            var run = RegexKit.Test(rx, sample, 50);
+            lines.Add($"{run.Matches.Count} match(es) in a sample of {sample.Length} character(s), {run.Milliseconds:0.00} ms for one pass" + (run.TimedOut ? ", stopped at the time limit" : "") + (run.Truncated ? ", first 50 shown" : "") + ".");
+            foreach (var m in run.Matches)
+            {
+                var v = m.Value.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
+                var groups = string.Join("; ", m.Groups.Skip(1).Select(g => g.Name + "=" + (g.Success ? "\"" + g.Value.Replace("\n", "\\n") + "\"" : "none")));
+                lines.Add($"at {m.Index}, length {m.Length}: \"{(v.Length > 80 ? v[..80] + "..." : v)}\"" + (groups.Length > 0 ? " [" + groups + "]" : ""));
+            }
+            if (sample.Length > 0)
+            {
+                var bench = RegexBench.Run(rx, "export", sample, default, null);
+                lines.Add("Timing: " + (bench.TimedOut ? "hit the time limit" : $"{bench.MsPerRun:0.000} ms per pass") + "; growth: " + string.Join(", ", bench.Growth.Select(g => $"{g.Factor}x = {(g.TimedOut ? "limit" : g.Ms.ToString("0.00") + " ms")}")) + ". " + bench.Verdict);
+            }
+            return lines;
+        }
+
+        public static string ToMarkdown(Result r, RegexOptions options, bool detailed, string sample = null)
         {
             var sb = new StringBuilder();
             sb.AppendLine("# Regular expression analysis").AppendLine();
@@ -815,10 +842,16 @@ namespace MonitoringTools.Core
             }
             walk(r.Root, 0);
             sb.AppendLine().AppendLine("Spans are zero-based character offsets, start inclusive and end exclusive. The tree comes from this app's parser for the .NET flavour and is cross-checked by compiling the pattern with the real engine.");
+            var results = ResultLines(r, options, sample);
+            if (results.Count > 0)
+            {
+                sb.AppendLine().AppendLine("## Match results and timing").AppendLine();
+                foreach (var l in results) sb.Append("- ").AppendLine(l);
+            }
             return sb.ToString();
         }
 
-        public static string ToHtml(Result r, RegexOptions options, bool detailed)
+        public static string ToHtml(Result r, RegexOptions options, bool detailed, string sample = null)
         {
             string h(string s) => WebUtility.HtmlEncode(s ?? "");
             var sb = new StringBuilder();
@@ -842,6 +875,13 @@ namespace MonitoringTools.Core
                 sb.Append("</ul>");
             }
             if (r.Root.Children.Count == 0) sb.Append("<p>Nothing to show.</p>"); else walk(r.Root);
+            var results = ResultLines(r, options, sample);
+            if (results.Count > 0)
+            {
+                sb.Append("<h2>Match results and timing</h2><ul>");
+                foreach (var l in results) sb.Append("<li>").Append(h(l)).Append("</li>");
+                sb.Append("</ul>");
+            }
             sb.AppendLine("<p class=\"span\">Spans are zero-based character offsets, start inclusive and end exclusive. The tree comes from the app's parser for the .NET flavour and is cross-checked by compiling the pattern with the real engine.</p></body></html>");
             return sb.ToString();
         }
@@ -885,6 +925,98 @@ namespace MonitoringTools.Core
             if (cls == null || cls.Kind != NodeKind.CharClass || string.IsNullOrEmpty(members)) return null;
             var tail = pattern.Substring(cls.BodyEnd, cls.End - cls.BodyEnd); // the subtraction (if any) and the closing bracket
             return pattern.Substring(0, cls.Start) + "[" + (negated ? "^" : "") + members + tail + pattern.Substring(cls.End);
+        }
+
+        // ---------------------------------------------------------------- guided editing: anchors, escapes, comments, balancing groups, restructuring
+
+        public static readonly (string Text, string Meaning)[] AnchorChoices =
+        {
+            ("^", "start of the text, or of each line with Multiline"), ("$", "end of the text, or of each line with Multiline"), (@"\A", "start of the text only"),
+            (@"\z", "very end of the text"), (@"\Z", "end of the text, or before a final line break"), (@"\b", "a word boundary"), (@"\B", "not a word boundary"), (@"\G", "where the previous match ended"),
+        };
+
+        public static readonly (string Text, string Meaning)[] ShorthandChoices =
+        {
+            (@"\d", "a digit"), (@"\D", "not a digit"), (@"\w", "a word character"), (@"\W", "not a word character"), (@"\s", "whitespace"), (@"\S", "not whitespace"),
+        };
+
+        public static bool IsAnchorEditable(Node n) => n != null && n.Kind == NodeKind.Anchor && n.End > n.Start;
+        public static bool IsShorthandEditable(Node n) => n != null && n.Kind == NodeKind.Shorthand;
+        public static bool IsEscapeEditable(Node n) => n != null && n.Kind == NodeKind.Escape;
+
+        /// <summary>Replaces the text of one node with new text and returns the pattern, or null when the result is not a pattern .NET accepts.</summary>
+        public static string ApplyText(string pattern, Node node, string text, RegexOptions options = RegexOptions.None)
+        {
+            if (node == null || text == null || node.Start < 0 || node.End > pattern.Length || node.Kind == NodeKind.Pattern) return null;
+            var result = pattern.Substring(0, node.Start) + text + pattern.Substring(node.End);
+            if (result.Length > RegexKit.MaxPatternLength) return null;
+            try { _ = new Regex(result, options & ~(RegexOptions.NonBacktracking | RegexOptions.ECMAScript), RegexKit.Timeout); }
+            catch (Exception ex) when (ex is ArgumentException || ex is NotSupportedException) { return null; }
+            return result;
+        }
+
+        public static string ApplyAnchor(string pattern, Node anchor, string choice, RegexOptions options = RegexOptions.None) =>
+            anchor != null && anchor.Kind == NodeKind.Anchor && AnchorChoices.Any(a => a.Text == choice) ? ApplyText(pattern, anchor, choice, options) : null;
+
+        public static string ApplyShorthand(string pattern, Node node, string choice, RegexOptions options = RegexOptions.None) =>
+            node != null && node.Kind == NodeKind.Shorthand && ShorthandChoices.Any(a => a.Text == choice) ? ApplyText(pattern, node, choice, options) : null;
+
+        /// <summary>Replaces a single escape such as \. or \t or \x41 with another escape or a literal character. Only a backslash escape or one character is accepted.</summary>
+        public static string ApplyEscape(string pattern, Node node, string text, RegexOptions options = RegexOptions.None)
+        {
+            if (node == null || node.Kind != NodeKind.Escape || string.IsNullOrEmpty(text)) return null;
+            if (!(text.Length == 1 && (char.IsLetterOrDigit(text[0]) || text[0] == ' ') || Regex.IsMatch(text, @"^\\(?:[^pPkxucA-Za-z0-9]|[tnrfvae]|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|c[A-Za-z]|[0-7]{2,3}|p\{[^}]+\}|P\{[^}]+\})$", RegexOptions.CultureInvariant))) return null;
+            return ApplyText(pattern, node, text, options);
+        }
+
+        /// <summary>The note inside a (?#...) comment, or null for a # comment or any other node.</summary>
+        public static string CommentText(string pattern, Node node)
+        {
+            if (node == null || node.Kind != NodeKind.Comment) return null;
+            var t = node.Text(pattern);
+            return t.StartsWith("(?#", StringComparison.Ordinal) && t.EndsWith(")", StringComparison.Ordinal) ? t.Substring(3, t.Length - 4) : null;
+        }
+
+        /// <summary>Rewrites the note of a (?#...) comment. A closing parenthesis cannot appear in it; null is returned for that.</summary>
+        public static string ApplyComment(string pattern, Node node, string note, RegexOptions options = RegexOptions.None)
+        {
+            if (CommentText(pattern, node) == null || note == null || note.Contains(')')) return null;
+            return ApplyText(pattern, node, "(?#" + note + ")", options);
+        }
+
+        /// <summary>Rewrites the names of a balancing group (?&lt;name-other&gt;...). The name may be empty; the other name may not.</summary>
+        public static string ApplyBalancing(string pattern, Node group, string name, string other, RegexOptions options = RegexOptions.None)
+        {
+            if (group == null || group.Kind != NodeKind.Group || group.Group != GroupKind.Balancing) return null;
+            if (!Regex.IsMatch(name ?? "", @"^\w*$") || !Regex.IsMatch(other ?? "", @"^\w+$")) return null;
+            var result = pattern.Substring(0, group.Start) + "(?<" + name + "-" + other + ">" + pattern.Substring(group.BodyStart);
+            try { _ = new Regex(result, options & ~(RegexOptions.NonBacktracking | RegexOptions.ECMAScript), RegexKit.Timeout); }
+            catch (Exception ex) when (ex is ArgumentException || ex is NotSupportedException) { return null; }
+            return result;
+        }
+
+        /// <summary>Sibling nodes that can be reordered: same parent, neither one a conditional's condition.</summary>
+        public static bool CanReorder(Node moving, Node target) =>
+            moving != null && target != null && moving != target && moving.Parent != null && moving.Parent == target.Parent
+            && moving.Kind != NodeKind.Condition && target.Kind != NodeKind.Condition && moving.Kind != NodeKind.Pattern;
+
+        /// <summary>
+        /// Moves one piece of the pattern in front of (or, with after, behind) a sibling piece. The text of every piece stays exactly as it was; only
+        /// the order changes. Returns null when the two are not siblings or the reordered text is not a pattern .NET accepts.
+        /// </summary>
+        public static string Reorder(string pattern, Node moving, Node target, bool after, RegexOptions options = RegexOptions.None)
+        {
+            if (!CanReorder(moving, target)) return null;
+            var seg = pattern.Substring(moving.Start, moving.End - moving.Start);
+            var without = pattern.Remove(moving.Start, seg.Length);
+            int at = after ? target.End : target.Start;
+            if (at > moving.Start) at -= seg.Length;
+            if (at < 0 || at > without.Length) return null;
+            var result = without.Insert(at, seg);
+            if (result == pattern) return null;
+            try { _ = new Regex(result, options & ~(RegexOptions.NonBacktracking | RegexOptions.ECMAScript), RegexKit.Timeout); }
+            catch (Exception ex) when (ex is ArgumentException || ex is NotSupportedException) { return null; }
+            return result;
         }
 
         public static readonly GroupKind[] EditableGroupKinds =

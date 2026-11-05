@@ -304,45 +304,9 @@ namespace MonitoringTools.Core
 
         // ---------------------------------------------------------------- code
 
-        public static readonly string[] CodeLanguages = { "C#", "PowerShell", "Python" };
+        public static string[] CodeLanguages => RegexCode.Languages;
 
-        public static string Code(string language, string pattern, RegexOptions o)
-        {
-            pattern ??= "";
-            switch (language)
-            {
-                case "PowerShell":
-                {
-                    var flags = new List<string>();
-                    if ((o & RegexOptions.IgnoreCase) != 0) flags.Add("IgnoreCase");
-                    foreach (var (f, _, _) in OptionDefs) if ((o & f) != 0) flags.Add(f.ToString());
-                    var lit = "'" + pattern.Replace("'", "''") + "'";
-                    var opt = flags.Count == 0 ? "'None'" : "'" + string.Join(", ", flags) + "'";
-                    return $"$rx = [regex]::new({lit}, {opt}, [timespan]::FromMilliseconds(200))\n$rx.Matches($text) | ForEach-Object {{ $_.Value }}";
-                }
-                case "Python":
-                {
-                    var flags = new List<string>();
-                    if ((o & RegexOptions.IgnoreCase) != 0) flags.Add("re.IGNORECASE");
-                    if ((o & RegexOptions.Multiline) != 0) flags.Add("re.MULTILINE");
-                    if ((o & RegexOptions.Singleline) != 0) flags.Add("re.DOTALL");
-                    if ((o & RegexOptions.IgnorePatternWhitespace) != 0) flags.Add("re.VERBOSE");
-                    var note = Regex.IsMatch(pattern, @"\(\?<[A-Za-z_]") ? "\n# Python names groups with (?P<name>…); this pattern was converted." : "";
-                    var py = Regex.Replace(pattern, @"\(\?<([A-Za-z_]\w*)>", "(?P<$1>");
-                    var unsupported = (o & (RegexOptions.RightToLeft | RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture)) != 0
-                        ? "\n# Right to left, non-backtracking and explicit capture have no Python equivalent and were left out." : "";
-                    return $"import re{note}{unsupported}\nrx = re.compile(r\"{py.Replace("\"", "\\\"")}\"{(flags.Count > 0 ? ", " + string.Join(" | ", flags) : "")})\nfor m in rx.finditer(text):\n    print(m.group(0))";
-                }
-                default:
-                {
-                    var flags = new List<string>();
-                    if ((o & RegexOptions.IgnoreCase) != 0) flags.Add("RegexOptions.IgnoreCase");
-                    foreach (var (f, _, _) in OptionDefs) if ((o & f) != 0) flags.Add("RegexOptions." + f);
-                    var lit = "@\"" + pattern.Replace("\"", "\"\"") + "\"";
-                    return $"var rx = new Regex({lit},\n    {(flags.Count == 0 ? "RegexOptions.None" : string.Join(" | ", flags))},\n    TimeSpan.FromMilliseconds(200));\nforeach (Match m in rx.Matches(text))\n    Console.WriteLine(m.Value);";
-                }
-            }
-        }
+        public static string Code(string language, string pattern, RegexOptions o) => RegexCode.Render(language, "Match", pattern, o, "");
 
         /// <summary>Escapes literal text so it can be pasted into a pattern.</summary>
         public static string Escape(string literal) => Regex.Escape(literal ?? "");

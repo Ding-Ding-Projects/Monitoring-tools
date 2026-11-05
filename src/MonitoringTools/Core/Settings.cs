@@ -144,5 +144,16 @@ namespace MonitoringTools.Core
         public string Pattern { get; set; } = "";
         public int Options { get; set; }
         public string Replacement { get; set; } = "";
+        /// <summary>A line about what the pattern is for, searched together with the name and the pattern.</summary>
+        public string Description { get; set; } = "";
+        /// <summary>Named values with defaults. The pattern holds {{name}} where a value goes; using the entry fills them in.</summary>
+        public List<RegexParam> Parameters { get; set; } = new List<RegexParam>();
+    }
+
+    /// <summary>One parameter of a saved pattern: a name used as {{name}} in the pattern and the value to use when none is given.</summary>
+    public sealed class RegexParam
+    {
+        public string Name { get; set; } = "";
+        public string Default { get; set; } = "";
     }
 }
