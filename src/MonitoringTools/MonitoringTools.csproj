@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
@@ -51,5 +52,8 @@
   <!-- Stamps the build time into the app so the front screen can show when this exact build was made. -->
   <ItemGroup>
     <AssemblyMetadata Include="BuildTimeUtc" Value="$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ZXing.Net" Version="0.16.10" />
   </ItemGroup>
 </Project>

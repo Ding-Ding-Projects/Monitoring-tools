@@ -12,7 +12,7 @@ namespace MonitoringTools.Core
 {
     /// <summary>
     /// Keeps the installed service current without asking anyone to download anything. The agent looks for a
-    /// newer GitHub release a little after start and every six hours, downloads the installer in the background,
+    /// newer GitHub release a little after start and every hour, downloads the installer in the background,
     /// checks its SHA-256 against the digest GitHub publishes and its own version against the release, and then,
     /// at a quiet moment (no conversion, no Minecraft server started here, no game), runs it with
     /// <c>--update-install</c>. That process replaces the installed exe and starts the service again by itself,
@@ -25,7 +25,7 @@ namespace MonitoringTools.Core
         private const string LatestUrl = "https://api.github.com/repos/Ding-Ding-Projects/Monitoring-tools/releases/latest";
         private const string AssetName = "MonitoringTools-Setup.exe";
         private static readonly TimeSpan FirstCheck = TimeSpan.FromSeconds(90);
-        private static readonly TimeSpan Every = TimeSpan.FromHours(6);
+        private static readonly TimeSpan Every = TimeSpan.FromHours(1);
         private static readonly TimeSpan RetryWhenBusy = TimeSpan.FromMinutes(10);
 
         public sealed record Release(Version Version, string Url, string Sha256);

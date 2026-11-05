@@ -816,7 +816,12 @@ namespace MonitoringTools.UI
                 {
                     Settings.Current.ApplyCopiedWordingFile = true;
                     if (App.TryApplyCopiedWording(new MonitoringTools.Clip.ClipItem { Kind = MonitoringTools.Clip.ClipKind.Files, Files = new[] { other } })) return "an unrelated JSON file was taken";
+                    // No window of ours is active when a path is copied in Explorer: deactivate everything first, then the
+                    // celebration must still cover the screen.
+                    foreach (var w in Application.Current.Windows.OfType<Window>().Where(w => w.GetType().Name == "CelebrationWindow").ToList()) w.Close();
                     if (!App.TryApplyCopiedWording(new MonitoringTools.Clip.ClipItem { Kind = MonitoringTools.Clip.ClipKind.Files, Files = new[] { good } })) return "the wording file was not taken";
+                    if (!Application.Current.Windows.OfType<Window>().Any(w => w.GetType().Name == "CelebrationWindow" && w.IsVisible)) return "no celebration was shown for a copied path";
+                    foreach (var w in Application.Current.Windows.OfType<Window>().Where(w => w.GetType().Name == "CelebrationWindow").ToList()) w.Close();
                     if (PersonalWording.Apply("Clipboard history") != "Copy pile") return "the wording was not applied";
                     PersonalWording.Clear();
                     Settings.Current.ApplyCopiedWordingFile = false;
@@ -847,6 +852,7 @@ namespace MonitoringTools.UI
             await Lane4ChecksAsync(dir);
             await UpdateChecksAsync(dir);
             TotpQrChecks();
+            ClipCodeChecks(dir);
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>

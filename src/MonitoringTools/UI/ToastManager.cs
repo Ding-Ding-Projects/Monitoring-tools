@@ -301,6 +301,14 @@ namespace MonitoringTools.UI
             var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             info.Children.Add(Ui.Mono($"{img.PixelWidth} × {img.PixelHeight} px", Ui.Res("B.Text"), 13));
             info.Children.Add(Ui.Text("Bitmap on the clipboard. Drag the preview out to drop it as a PNG file."));
+            foreach (var code in CodeScanner.Scan(img).Take(3))
+            {
+                info.Children.Add(new TextBlock { Text = code.Kind, FontSize = 12, Foreground = Ui.Res("B.Mint"), Margin = new Thickness(0, 6, 0, 0), FontFamily = Ui.Font("F.Body") });
+                var body = Ui.Mono(ActionProvider.Preview(code.Text), Ui.Res("B.Text"), 13);
+                body.TextWrapping = TextWrapping.Wrap; body.MaxHeight = 60;
+                Core.Language.SetLiteral(body, true);   // the code's own text is data, never translated
+                info.Children.Add(body);
+            }
             Grid.SetColumn(info, 1);
             row.Children.Add(info);
             w.SetBody(row);

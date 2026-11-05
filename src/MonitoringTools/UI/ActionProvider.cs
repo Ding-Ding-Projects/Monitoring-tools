@@ -103,6 +103,25 @@ namespace MonitoringTools.UI
         {
             var full = url.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? "https://" + url : url;
             l.Add(A("Open", Icons.Link, () => Markdown.Open(full), primary: true, done: "Opened"));
+            if (RepoActions.GitHubRepo(full) is { } repo)
+            {
+                var folder = RepoActions.CloneFolder;
+                l.Add(new ToastAction
+                {
+                    Label = "Clone to " + Path.GetFileName(folder.TrimEnd('\\')), Icon = Icons.Folder, HandsOff = true,
+                    Tip = $"Clones {repo.Owner}/{repo.Name} into {Path.Combine(folder, repo.Name)}. Change the default folder on the Tools page.",
+                    Run = () => CloneWithProgress(repo.Owner, repo.Name, folder),
+                });
+                l.Add(new ToastAction
+                {
+                    Label = "Clone to…", Icon = Icons.Folder, HandsOff = true, Tip = "Choose the folder to clone into this time.",
+                    Run = () =>
+                    {
+                        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = $"Clone {repo.Owner}/{repo.Name} into…", InitialDirectory = Directory.Exists(folder) ? folder : null };
+                        if (dlg.ShowDialog() == true) CloneWithProgress(repo.Owner, repo.Name, dlg.FolderName);
+                    },
+                });
+            }
             l.Add(A("Open private", null, () => OpenPrivate(full), done: "Opened"));
             if (Uri.TryCreate(full, UriKind.Absolute, out var u))
             {
@@ -243,6 +262,8 @@ namespace MonitoringTools.UI
                 return;
             }
 
+            if (kind == FileKind.Folder) FolderRepo(f, l, primary: !item.HadQuotes);
+
             bool encrypted = kind != FileKind.Folder && FileOps.IsEncrypted(f);
             if (encrypted)
                 l.Add(new ToastAction { Label = "Decrypt…", Icon = Icons.Shield, Primary = true, HandsOff = true, Run = () => FileToolsWindow.Open(files, "encrypt") });
@@ -366,7 +387,21 @@ namespace MonitoringTools.UI
                     Run = () => RegisterAuthenticator(otp, name),
                 });
             }
-            l.Add(A("Save PNG", Icons.Image, () => Reveal(Converter.SaveBitmap(img, "png")), primary: otp == null, done: "Saved"));
+            var codes = CodeScanner.Scan(img);
+            foreach (var c in codes.Take(3))
+            {
+                var code = c;
+                var what = code.IsQr ? "QR" : code.Kind.EndsWith("barcode") ? "barcode" : "code";
+                l.Add(new ToastAction
+                {
+                    Label = $"Copy {what} text", Icon = Icons.Clipboard, Primary = otp == null && code == codes[0], Done = "Copied",
+                    Tip = $"Copies what the {code.Kind} holds: {Preview(code.Text)}",
+                    Run = () => ClipboardWatcher.SetText(code.Text),
+                });
+                if (Uri.TryCreate(code.Text.Trim(), UriKind.Absolute, out var link) && (link.Scheme == Uri.UriSchemeHttps || link.Scheme == Uri.UriSchemeHttp))
+                    l.Add(new ToastAction { Label = "Open link", Icon = Icons.Globe, HandsOff = true, Tip = "Opens " + link, Run = () => Process.Start(new ProcessStartInfo(link.ToString()) { UseShellExecute = true }) });
+            }
+            l.Add(A("Save PNG", Icons.Image, () => Reveal(Converter.SaveBitmap(img, "png")), primary: otp == null && codes.Count == 0, done: "Saved"));
             l.Add(A("Save JPG", null, () => Reveal(Converter.SaveBitmap(img, "jpg")), done: "Saved"));
             l.Add(A("Save + copy as file", Icons.Clipboard, () => { var p = Converter.SaveBitmap(img, "png"); ClipboardWatcher.SetFiles(p); }, done: "Copied"));
             l.Add(A("Open in Paint", null, () =>
@@ -382,16 +417,72 @@ namespace MonitoringTools.UI
             }
         }
 
+        /// <summary>Clones with a progress toast, then offers to show the folder or open it in Desktop Material.</summary>
+        internal static void CloneWithProgress(string owner, string name, string parent)
+        {
+            App.Toasts.ShowTask("Cloning " + owner + "/" + name, parent, async () =>
+            {
+                var r = await System.Threading.Tasks.Task.Run(() => RepoActions.Clone(owner, name, parent));
+                if (!r.Ok) return (false, "Clone failed", r.Message);
+                var dm = RepoActions.DesktopMaterialExe();
+                var actions = new List<ToastAction> { new ToastAction { Label = "Show in folder", Icon = Icons.Folder, HandsOff = true, Run = () => Reveal(r.Folder) } };
+                if (dm != null) actions.Insert(0, new ToastAction { Label = "Open in Desktop Material", Icon = Icons.Folder, Primary = true, HandsOff = true, Run = () => RepoActions.OpenInDesktopMaterial(dm, r.Folder) });
+                App.Toasts.ShowNotice(r.Message == "already there" ? "Already cloned" : "Cloned", r.Folder, App.Toasts.Mint, 6, actions, Icons.Folder);
+                return (true, r.Message == "already there" ? "Already cloned" : "Cloned", r.Folder);
+            });
+        }
+
+        /// <summary>A copied folder: open its Git repository in Desktop Material (added to its list if missing), or start a
+        /// repository when the folder is not in one.</summary>
+        private static void FolderRepo(string folder, List<ToastAction> l, bool primary)
+        {
+            var root = RepoActions.RepoRoot(folder);
+            var dm = RepoActions.DesktopMaterialExe();
+            if (root != null)
+            {
+                if (dm != null)
+                    l.Add(new ToastAction
+                    {
+                        Label = "Open in Desktop Material", Icon = Icons.Folder, Primary = primary, HandsOff = true,
+                        Tip = $"Opens {Path.GetFileName(root)} in Desktop Material. It is added to Desktop Material's list first if it is not there yet.",
+                        Run = () => RepoActions.OpenInDesktopMaterial(dm, root),
+                    });
+                return;
+            }
+            l.Add(new ToastAction
+            {
+                Label = "Start a Git repository", Icon = Icons.Plus, Primary = primary, Done = "Started",
+                Tip = $"Runs git init in {Path.GetFileName(folder.TrimEnd('\\'))} with the bundled Git, on a main branch. Nothing is committed.",
+                Run = () =>
+                {
+                    var err = RepoActions.Init(folder);
+                    if (err != null) { App.Toasts?.ShowNotice("Repository not started", err, App.Toasts.Amber, 6, icon: Icons.Folder); return; }
+                    var actions = dm == null ? null : new List<ToastAction> { new ToastAction { Label = "Open in Desktop Material", Icon = Icons.Folder, Primary = true, HandsOff = true, Run = () => RepoActions.OpenInDesktopMaterial(dm, folder) } };
+                    App.Toasts?.ShowNotice("Git repository started", Path.GetFileName(folder.TrimEnd('\\')) + " is now a Git repository on the main branch.", App.Toasts.Mint, 5, actions, Icons.Folder);
+                },
+            });
+        }
+
+        /// <summary>A short one-line view of a code's text for tooltips and the toast. An authenticator setup link is never
+        /// shown, because its text holds the secret.</summary>
+        internal static string Preview(string text)
+        {
+            text = (text ?? "").Trim();
+            if (text.StartsWith("otpauth://", StringComparison.OrdinalIgnoreCase)) return "an authenticator setup link (secret hidden)";
+            var one = string.Join(" ", text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
+            return one.Length > 120 ? one.Substring(0, 117) + "…" : one;
+        }
+
         /// <summary>The authenticator account in a copied QR code picture, or null. Large pictures are skipped so a
         /// screenshot never stalls the toast.</summary>
         internal static OtpParams AuthenticatorQr(System.Windows.Media.Imaging.BitmapSource img)
         {
             try
             {
-                if (img == null || (long)img.PixelWidth * img.PixelHeight > 8_000_000) return null;
-                if (!QrDecoder.TryDecode(img, out var text, out _) || text == null) return null;
-                text = text.Trim();
-                if (!text.StartsWith("otpauth://totp/", StringComparison.OrdinalIgnoreCase)) return null;
+                if (img == null) return null;
+                var text = CodeScanner.Scan(img).Where(c => c.IsQr).Select(c => c.Text.Trim())
+                    .FirstOrDefault(t => t.StartsWith("otpauth://totp/", StringComparison.OrdinalIgnoreCase));
+                if (text == null) return null;
                 return Totp.TryParseUri(text, out var p, out _) ? p : null;
             }
             catch { return null; }

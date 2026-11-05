@@ -26,8 +26,30 @@ namespace MonitoringTools.UI
                 "Annotate pictures, publish a folder to GitHub and choose which editor opens your files. Each control says what it does and what it starts as.");
             root.Children.Add(ToolsDrawCard());
             root.Children.Add(ToolsPublishCard());
+            root.Children.Add(ToolsCloneCard());
             root.Children.Add(ToolsEditorCard());
             return root;
+        }
+
+        /// <summary>Where Clone puts GitHub repositories copied as links.</summary>
+        private FrameworkElement ToolsCloneCard()
+        {
+            var sp = new StackPanel();
+            sp.Children.Add(CardTitle("Clone GitHub repositories",
+                "Copy a GitHub link and its toast offers Clone (into the folder below) and Clone to… (choose a folder that time). Private repositories work when the GitHub CLI is signed in."));
+            var path = Ui.Mono(RepoActions.CloneFolder, Ui.Res("B.TextSoft"), 13);
+            path.Margin = new Thickness(0, 4, 0, 8);
+            Core.Language.SetLiteral(path, true);
+            sp.Children.Add(path);
+            var row = new WrapPanel();
+            row.Children.Add(Ui.Button("Change clone folder…", () =>
+            {
+                var dlg = new Microsoft.Win32.OpenFolderDialog { Title = "Clone GitHub repositories into…", InitialDirectory = Directory.Exists(RepoActions.CloneFolder) ? RepoActions.CloneFolder : null };
+                if (dlg.ShowDialog() == true) { Settings.Current.CloneFolder = dlg.FolderName; Settings.Save(); Navigate("tools", animate: false); }
+            }, "Btn.Accent", Icons.Folder));
+            row.Children.Add(Ui.Button("Use Documents\\GitHub", () => { Settings.Current.CloneFolder = ""; Settings.Save(); Navigate("tools", animate: false); }, "Btn.Ghost", Icons.Restart));
+            sp.Children.Add(row);
+            return Card(sp);
         }
 
         private static TextBlock ToolsNote(string text, string brush = "B.TextMute")

@@ -65,6 +65,8 @@ namespace MonitoringTools.Core
         public bool RunElevated { get; set; } = false;
         /// <summary>Download and install new releases in the background, at a quiet moment.</summary>
         public bool AutoUpdate { get; set; } = true;
+        /// <summary>Where Clone puts GitHub repositories copied as links. Empty means DocumentsGitHub.</summary>
+        public string CloneFolder { get; set; } = "";
 
         public static readonly string[] GameDefaults =
         {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -29,9 +30,56 @@ namespace MonitoringTools.Core
             var name = Path.GetFileName(path);
             if (ComposeName.IsMatch(name)) return DockerFileKind.Compose;
             if (name.Equals("Dockerfile", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("Containerfile", StringComparison.OrdinalIgnoreCase)
                 || name.EndsWith(".Dockerfile", StringComparison.OrdinalIgnoreCase)
                 || name.StartsWith("Dockerfile.", StringComparison.OrdinalIgnoreCase)) return DockerFileKind.Dockerfile;
-            return DockerFileKind.None;
+            // Any other name: read the start of the file. Names vary (Dockerfile_prod, stack.yml, docker-compose-dev.yml).
+            return Sniff(path);
+        }
+
+        private static readonly Regex DockerInstruction = new Regex(@"^(FROM|ARG|RUN|CMD|LABEL|EXPOSE|ENV|ADD|COPY|ENTRYPOINT|VOLUME|USER|WORKDIR|ONBUILD|STOPSIGNAL|HEALTHCHECK|SHELL|MAINTAINER)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex ComposeService = new Regex(@"^[ \t]+(image|build)[ \t]*:", RegexOptions.Multiline | RegexOptions.Compiled);
+
+        /// <summary>Recognises a Dockerfile or a Compose file by what it says. Only small text files are read.</summary>
+        internal static DockerFileKind Sniff(string path)
+        {
+            try
+            {
+                var info = new FileInfo(path);
+                if (info.Length == 0 || info.Length > 512 * 1024) return DockerFileKind.None;
+                var ext = info.Extension.ToLowerInvariant();
+                if (ext is ".exe" or ".dll" or ".png" or ".jpg" or ".zip" or ".json" or ".md" or ".cs" or ".js" or ".ts" or ".py") return DockerFileKind.None;
+                string text;
+                using (var r = new StreamReader(path, true)) { var buf = new char[65536]; int n = r.ReadBlock(buf, 0, buf.Length); text = new string(buf, 0, n); }
+                if (text.IndexOf('\0') >= 0) return DockerFileKind.None;
+
+                if (ext is ".yml" or ".yaml" or "")
+                {
+                    // Compose: a top-level services: key with entries that have an image or a build, and none of the keys
+                    // that make it a workflow or a Kubernetes manifest instead.
+                    bool services = Regex.IsMatch(text, @"^services[ \t]*:", RegexOptions.Multiline);
+                    bool other = Regex.IsMatch(text, @"^(jobs|apiVersion|kind|steps|stages)[ \t]*:", RegexOptions.Multiline);
+                    if (services && !other && ComposeService.IsMatch(text)) return DockerFileKind.Compose;
+                    if (ext != "") return DockerFileKind.None;
+                }
+
+                // Dockerfile: the first instruction (after comments, blank lines and parser directives) is FROM, or ARG
+                // lines followed by FROM, and nearly every instruction line is a Dockerfile instruction.
+                var lines = text.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0 && !l.StartsWith("#")).ToList();
+                if (lines.Count == 0) return DockerFileKind.None;
+                int i = 0;
+                while (i < lines.Count && lines[i].StartsWith("ARG ", StringComparison.OrdinalIgnoreCase)) i++;
+                if (i >= lines.Count || !lines[i].StartsWith("FROM ", StringComparison.OrdinalIgnoreCase)) return DockerFileKind.None;
+                // continuation lines (after a trailing backslash) are not instructions
+                int instructions = 0, starts = 0; bool cont = false;
+                foreach (var l in lines)
+                {
+                    if (!cont) { starts++; if (DockerInstruction.IsMatch(l)) instructions++; }
+                    cont = l.EndsWith("\\");
+                }
+                return instructions >= Math.Max(1, starts * 0.8) ? DockerFileKind.Dockerfile : DockerFileKind.None;
+            }
+            catch { return DockerFileKind.None; }
         }
 
         public static string ImageNameFor(string dockerfile)
