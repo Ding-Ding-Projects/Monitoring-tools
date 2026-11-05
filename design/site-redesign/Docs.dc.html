@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Monitoring Tools docs</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--pb:#8CF8CF;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;--grid:rgba(111,219,180,.07);font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);min-height:100%}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px;box-sizing:border-box}
+.mono{font-family:"Roboto Mono",monospace}
+.icon{width:20px;height:20px;flex:none}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes unfold{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@keyframes caret{50%{opacity:0}}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes hl{from{background-size:0 100%}to{background-size:100% 100%}}
+.r{opacity:0;animation:rise .8s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--d,0) * 80ms + 80ms)}
+.grid{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:48px 48px}
+.bar{border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--ink) 72%,transparent);backdrop-filter:blur(16px)}
+.nav{display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--s1)}
+.nav a{display:grid;place-items:center;min-height:40px;padding:0 18px;border-radius:999px;color:var(--onv);text-decoration:none;font:500 14px Roboto}
+.nav a[aria-current=page]{background:var(--p);color:var(--onp)}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+.chip{min-height:38px;padding:0 16px;border-radius:999px;border:0;box-shadow:inset 0 0 0 1px var(--line);background:transparent;color:var(--onv);font:500 14px Roboto;cursor:pointer;transition:all .35s cubic-bezier(.3,1.4,.5,1)}
+.chip[aria-pressed=true]{background:var(--on);color:var(--ink);box-shadow:none}
+.tok{font:500 13px "Roboto Mono",monospace;padding:7px 11px;border-radius:10px;background:var(--s3);color:var(--on);opacity:0;animation:rise .5s cubic-bezier(.3,1.4,.5,1) forwards;animation-delay:calc(var(--i) * 90ms + 200ms)}
+.cat{position:relative;display:flex;flex-direction:column;gap:12px;padding:24px;border-radius:28px;background:var(--s1);text-decoration:none;color:var(--on);min-height:200px;box-sizing:border-box;overflow:hidden;opacity:0;animation:rise .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i) * 60ms + 300ms);transition:transform .45s cubic-bezier(.3,1.4,.5,1),background .3s}
+.cat::before{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--p);opacity:0;transition:opacity .3s}
+.cat:hover{transform:translateY(-4px);background:var(--s2)}.cat:hover::before{opacity:1}
+.glyph{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--s3);color:var(--p);transition:border-radius .45s cubic-bezier(.3,1.4,.5,1),background .3s,color .3s}
+.cat:hover .glyph{border-radius:50%;background:var(--p);color:var(--onp)}
+.step{width:100%;min-height:124px;text-align:left;display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:22px;border:0;cursor:pointer;font:500 14px/1.35 Roboto;transition:background .35s,transform .35s cubic-bezier(.3,1.4,.5,1)}
+.step:active{transform:scale(.97)}
+.mark{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:600 13px "Roboto Mono"}
+.mark.on{animation:pop .45s cubic-bezier(.3,1.4,.5,1)}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;cursor:pointer;font:600 14px Roboto;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),background .3s}
+.btn:hover{border-radius:14px}
+.hit{background:linear-gradient(rgba(111,219,180,.28),rgba(111,219,180,.28)) no-repeat;background-size:0 100%;animation:hl .6s .6s forwards;border-radius:4px;padding:0 2px}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+@media (max-width:760px){
+.mt .wrap{padding-left:20px!important;padding-right:20px!important}
+.mt [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+.mt h1{font-size:46px!important;line-height:1!important}
+.mt h2{font-size:30px!important}
+.mt [style*="margin-right:-240px"]{margin-right:-20px!important}
+.mt [style*="columns:4"]{columns:1!important}
+.mt nav,.mt [role=tablist]{overflow-x:auto;max-width:100%}
+.mt [style*="max-width:360px"],.mt [style*="max-width:980px"]{max-width:none!important;flex-basis:100%!important}
+.mt [style*="padding:44px"],.mt [style*="padding:48px"],.mt [style*="padding:72px 64px"],.mt [style*="padding:48px 64px"]{padding:24px 20px!important}
+.mt .wire,.mt aside,.mt .handle{display:none!important}
+.mt [aria-label="Three real toasts, one after another"]{position:relative!important;right:auto!important;bottom:auto!important;margin-top:16px}
+.mt .strip{flex-wrap:nowrap;overflow-x:auto}
+.mt{overflow-x:clip}
+.mt .row{grid-template-columns:minmax(0,1fr)!important}
+.mt .dl{grid-template-columns:minmax(0,1fr) auto!important}
+.mt .barrow{grid-template-columns:110px minmax(0,1fr) 64px!important}
+.mt main{padding:24px 20px 64px!important;box-sizing:border-box}
+.mt code{word-break:break-all}
+.mt [style*="repeat(4,minmax(0,1fr))"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.mt img[style*="left:-110px"]{left:-8px!important;width:200px!important}
+}
+</style>
+</helmet>
+<div class="mt">
+<header class="bar">
+<div class="wrap" style="display:flex;align-items:center;gap:20px;min-height:76px;flex-wrap:wrap">
+<a href="Main.dc.html" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--on);font:700 18px Roboto"><span style="width:36px;height:36px;border-radius:12px;background:var(--p);color:var(--onp);display:grid;place-items:center"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"></path></svg></span>Monitoring Tools</a>
+<nav class="nav" aria-label="Site"><a href="Main.dc.html">Home</a><a href="#" aria-current="page">Docs</a><a href="Gallery.dc.html">Gallery</a><a href="Releases.dc.html">Releases</a><a href="Settings.dc.html">Settings</a></nav>
+</div>
+</header>
+
+<section class="grid" style="border-bottom:1px solid var(--line)">
+<div class="wrap" style="padding-top:72px;padding-bottom:56px;display:flex;flex-direction:column;gap:24px">
+<span class="r tag" style="--d:0">Documentation · release v1.0.57</span>
+<h1 class="r" style="--d:1;margin:0;font:800 80px/.95 Roboto;letter-spacing:-.045em;max-width:14ch">What do you want to <span style="color:var(--p)">get done?</span></h1>
+<div class="r" style="--d:2;border-radius:30px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);max-width:980px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:12px;min-height:68px;padding:0 10px 0 24px">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--p);width:22px;height:22px"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"></path></svg>
+<label for="dq" style="position:absolute;left:-9999px">Search the docs</label>
+<input id="dq" value="^(convert|push)\b.*media" class="mono" style="flex:1;min-width:0;border:0;background:transparent;font-size:17px;color:var(--on);outline:none">
+<span class="mono" style="font-size:12px;color:var(--p);padding:6px 10px;border-radius:999px;background:rgba(111,219,180,.12)">3 matches</span>
+<button class="btn" style="background:{{bBg}};color:{{bInk}}" aria-expanded="{{builderOpenS}}" onClick="{{toggleBuilder}}"><span class="mono">.*</span> Builder</button>
+</div>
+<sc-if value="{{builderOpen}}" hint-placeholder-val="{{ true }}">
+<div style="border-top:1px solid var(--line);padding:22px 24px;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:28px;animation:unfold .45s cubic-bezier(.2,.8,.2,1)">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div role="tablist" aria-label="Regex builder" style="display:flex;gap:6px;flex-wrap:wrap">
+<sc-for list="{{rxTabs}}" as="t" hint-placeholder-count="5"><button class="chip" role="tab" aria-selected="{{t.on}}" aria-pressed="{{t.on}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for>
+</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<span class="tok" style="--i:0">^</span><span class="tok" style="--i:1;background:var(--p);color:var(--onp)">(convert|push)</span><span class="tok" style="--i:2">\b</span><span class="tok" style="--i:3">.*</span><span class="tok" style="--i:4">media</span><span class="mono" style="width:2px;height:22px;background:var(--p);animation:caret 1s steps(1) infinite"></span>
+</div>
+<div style="display:flex;gap:18px;flex-wrap:wrap;font:400 14px Roboto;color:var(--onv)"><label><input type="checkbox" checked> Ignore case</label><label><input type="checkbox"> Multiline</label><label><input type="checkbox"> Dot matches newline</label><label><input type="checkbox" checked> Unicode</label></div>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font:400 15px Roboto">
+<li><span class="hit">Convert media</span> with a quick command</li>
+<li><span class="hit">Push</span> a repository, with media files skipped</li>
+<li><span class="hit">Convert</span> a folder of media in one go</li>
+</ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;font:400 14px/1.55 Roboto;color:var(--onv);padding:18px;border-radius:20px;background:var(--s2)">
+<span class="tag" style="color:var(--sky)">Explain</span>
+<p style="margin:0;color:var(--on)">From the start of a title, "convert" or "push" as a whole word, then anything, then "media".</p>
+<p style="margin:0">Runs in your browser, stopped after 50 ms. The app's own builder uses .NET; the differences are in the Search article.</p>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+</section>
+
+<section class="wrap" style="padding-top:56px;padding-bottom:24px">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr);gap:32px;align-items:center;padding:32px;border-radius:32px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line)">
+<div style="display:flex;flex-direction:column;gap:10px">
+<span class="tag" style="color:var(--sky)">Guided start</span>
+<p style="margin:0;font:700 30px/1.1 Roboto;letter-spacing:-.02em">Install to first quick command, in five steps</p>
+<div style="height:6px;border-radius:999px;background:var(--s3);overflow:hidden"><div style="height:100%;width:{{pct}}%;background:var(--p);border-radius:999px;transition:width .6s cubic-bezier(.3,1.4,.5,1)"></div></div>
+<p class="mono" style="margin:0;font-size:12px;color:var(--onv)">{{done}} of 5 · kept in this browser only</p>
+</div>
+<ol style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+<li><button class="step" onClick="{{s.toggle}}" aria-pressed="{{s.doneS}}" style="background:{{s.bg}};color:{{s.ink}}"><span class="{{s.markCls}}" style="background:{{s.dot}};color:{{s.dotInk}}">{{s.mark}}</span>{{s.label}}</button></li>
+</sc-for>
+</ol>
+</div>
+</section>
+
+<section class="wrap" style="padding-top:56px;padding-bottom:96px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap">
+<h2 style="margin:0;font:700 48px/1 Roboto;letter-spacing:-.03em">Browse by area</h2>
+<div role="group" aria-label="Filter areas" style="display:flex;gap:8px;flex-wrap:wrap"><button class="chip" aria-pressed="true">Most used</button><button class="chip">All 17</button><button class="chip">Everyday</button><button class="chip">Power tools</button><button class="chip">Make it yours</button><button class="chip">Safety</button></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="8">
+<a class="cat" href="Article.dc.html" style="--i:{{c.i}}">
+<span class="glyph"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{c.icon}}"></path></svg></span>
+<span style="font:600 18px Roboto">{{c.label}}</span>
+<span style="font:400 14px/1.45 Roboto;color:var(--onv)">{{c.intro}}</span>
+<span class="mono" style="margin-top:auto;font-size:12px;color:var(--p)">{{c.n}} articles → {{c.first}}</span>
+</a>
+</sc-for>
+</div>
+<button class="btn" style="align-self:flex-start;background:var(--s2);color:var(--on);box-shadow:inset 0 0 0 1px var(--line)">Show the other 9 areas</button>
+<p style="margin:6px 0 0;font:400 14px Roboto;color:var(--onv)">Every article is complete on this site; each also links its source file on GitHub as an optional extra.</p>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1770}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { builder: true, tab: 0, done: [true, true, false, false, false] }; }
+  renderVals() {
+    const labels = ['Install and find the tray icon','Copy something and meet the toast','Try :mp4 on a video path','Open the control centre','Pick a theme and language'];
+    const done = this.state.done;
+    const steps = labels.map((label, i) => ({ label, mark: done[i] ? '✓' : String(i+1), doneS: String(done[i]), markCls: done[i] ? 'mark on' : 'mark', bg: done[i] ? 'var(--p)' : 'var(--s2)', ink: done[i] ? 'var(--onp)' : 'var(--on)', dot: done[i] ? 'var(--onp)' : 'var(--s3)', dotInk: done[i] ? 'var(--p)' : 'var(--on)', toggle: () => { const d = done.slice(); d[i] = !d[i]; this.setState({ done: d }); } }));
+    const n = done.filter(Boolean).length;
+    const cats = [
+      ['Clipboard','What the toast shows, and getting old copies back.',4,'Clipboard toasts','M9 4h6v3H9zM6 6h12v15H6z'],
+      ['Quick commands','Type a suffix after a copied path and the work happens.',5,'Convert media','M4 17l6-5-6-5M12 19h8'],
+      ['Network','Why the internet dropped, and the repairs.',4,'Internet watch','M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01'],
+      ['Files and Docker','Move, encrypt, hash and inspect files; compose files.',7,'File tools','M4 6h6l2 2h8v11H4z'],
+      ['Search','Search bars everywhere and the full regex builder.',4,'Regex builder','M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4'],
+      ['Minecraft servers','Create, run and back up servers; generate worlds.',14,'Create a server','M5 5h14v14H5zM5 12h14M12 5v14'],
+      ['Appearance','Theme, colour seed, density, text size, motion.',12,'Theme','M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.2-1.6-.4-1 .3-2 1.4-2H17a4 4 0 0 0 4-4c0-5-4-10.4-9-10.4z'],
+      ['Safety','The authenticator, element locks, the unlock ladder.',7,'Element locks','M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z']
+    ].map(([label,intro,c,first,icon], i) => ({label,intro,n:c,first,icon,i}));
+    const tabs = ['Build','Test','Replace','Explain','Library'];
+    return {
+      builderOpen: this.state.builder, builderOpenS: String(this.state.builder),
+      bBg: this.state.builder ? 'var(--p)' : 'var(--s3)', bInk: this.state.builder ? 'var(--onp)' : 'var(--on)',
+      toggleBuilder: () => this.setState({ builder: !this.state.builder }),
+      rxTabs: tabs.map((label, i) => ({ label, on: String(i === this.state.tab), pick: () => this.setState({ tab: i }) })),
+      steps, done: n, pct: n * 20, cats
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Monitoring Tools home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}a:hover{color:#8CF8CF}
+@property --n{syntax:'<integer>';inherits:false;initial-value:0}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--pb:#8CF8CF;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;--grid:rgba(111,219,180,.07);font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);overflow:hidden}
+.mt.light{--ink:#F3F8F5;--s:#FFFFFF;--s1:#EAF2EE;--s2:#E1EBE6;--s3:#D3E0D9;--line:#C3D2CA;--on:#0E1612;--onv:#46524C;--p:#006C4F;--pb:#00513A;--onp:#FFFFFF;--amb:#8A5300;--sky:#1F5FA8;--grid:rgba(0,108,79,.07)}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px;box-sizing:border-box}
+.mono{font-family:"Roboto Mono",monospace}
+.icon{width:20px;height:20px;flex:none}
+/* motion */
+@keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes draw{from{stroke-dashoffset:1600}to{stroke-dashoffset:0}}
+@keyframes scan{0%{transform:translateX(-10%)}100%{transform:translateX(110%)}}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(111,219,180,.55)}50%{box-shadow:0 0 0 7px rgba(111,219,180,0)}}
+@keyframes toast{0%,6%{opacity:0;transform:translate(40px,24px) scale(.96)}14%,70%{opacity:1;transform:none}80%,100%{opacity:0;transform:translate(0,12px) scale(.98)}}
+@keyframes count{from{--n:0}}
+@keyframes ladder{0%,12%{background:var(--s3);color:var(--onv)}18%,100%{background:var(--p);color:var(--onp)}}
+@keyframes ladderFail{0%,40%{background:var(--s3);color:var(--onv)}46%,100%{background:var(--amb);color:#2B1700}}
+@keyframes stack{0%,38%{transform:translateY(0)}48%,88%{transform:translateY(-342px)}98%,100%{transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.r{opacity:0;animation:rise .9s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--d,0) * 90ms + 120ms)}
+.bar{position:sticky;top:0;z-index:9;background:color-mix(in srgb,var(--ink) 72%,transparent);backdrop-filter:blur(16px) saturate(1.4);border-bottom:1px solid var(--line)}
+.nav{position:relative;display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--s1)}
+.nav a{position:relative;z-index:1;display:grid;place-items:center;min-height:40px;padding:0 18px;border-radius:999px;color:var(--onv);text-decoration:none;font:500 14px Roboto;transition:color .3s}
+.nav a[aria-current=page]{color:var(--onp)}
+.pill{position:absolute;top:4px;bottom:4px;border-radius:999px;background:var(--p);transition:left .5s cubic-bezier(.3,1.4,.5,1),width .5s cubic-bezier(.3,1.4,.5,1)}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 26px;border-radius:999px;font:600 15px/1 Roboto;text-decoration:none;border:0;cursor:pointer;box-sizing:border-box;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),transform .35s cubic-bezier(.3,1.4,.5,1),background .25s}
+.btn:hover{border-radius:18px}
+.btn:active{transform:scale(.96);border-radius:12px}
+.btn .arr{transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
+.btn:hover .arr{transform:translateY(3px)}
+.go{background:var(--p);color:var(--onp);box-shadow:0 0 0 1px var(--pb),0 10px 40px -8px rgba(111,219,180,.55)}
+.go:hover{background:var(--pb)}
+.ghost{background:transparent;color:var(--on);box-shadow:inset 0 0 0 1px var(--line)}
+.ghost:hover{background:var(--s2)}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--s1)}
+.seg button{min-height:38px;min-width:44px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--onv);font:500 13px Roboto;cursor:pointer;transition:background .3s,color .3s}
+.seg button[aria-pressed=true]{background:var(--s3);color:var(--on)}
+.kbd{font:500 11px "Roboto Mono",monospace;padding:3px 7px;border-radius:6px;background:var(--s2);color:var(--onv);box-shadow:inset 0 -1px 0 var(--line)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--p);animation:breathe 2.4s ease-in-out infinite}
+.grid{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:48px 48px}
+.panel{position:relative;background:var(--s1);border-radius:32px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .4s}
+.panel:hover{transform:translateY(-4px);box-shadow:inset 0 0 0 1px var(--p),0 30px 60px -30px rgba(111,219,180,.35)}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+.chip{min-height:38px;padding:0 16px;border-radius:999px;border:0;box-shadow:inset 0 0 0 1px var(--line);background:transparent;color:var(--onv);font:500 14px Roboto;cursor:pointer;transition:all .35s cubic-bezier(.3,1.4,.5,1)}
+.chip[aria-pressed=true]{background:var(--on);color:var(--ink);box-shadow:none}
+.task{display:flex;flex-direction:column;gap:12px;padding:26px;border-radius:28px;background:var(--s1);color:var(--on);text-decoration:none;min-height:190px;box-sizing:border-box;opacity:0;animation:slideIn .6s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i) * 70ms);transition:background .3s,transform .45s cubic-bezier(.3,1.4,.5,1)}
+.task:hover{background:var(--s2);transform:translateY(-3px)}
+.task .go2{margin-top:auto;display:flex;align-items:center;gap:8px;font:600 14px Roboto;color:var(--p)}
+.task .go2 svg{transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
+.task:hover .go2 svg{transform:translateX(5px)}
+.area{position:relative;display:flex;gap:14px;align-items:center;padding:16px 18px;border-radius:20px;text-decoration:none;color:var(--on);overflow:hidden;transition:background .3s}
+.area::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--p);transform:scaleX(0);transform-origin:left;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.area:hover{background:var(--s1)}.area:hover::after{transform:scaleX(1)}
+.glyph{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:var(--s2);color:var(--p);flex:none;transition:border-radius .4s cubic-bezier(.3,1.4,.5,1),background .3s}
+.area:hover .glyph{border-radius:50%;background:var(--p);color:var(--onp)}
+.num{animation:count 2.2s cubic-bezier(.2,.8,.2,1) .5s both;counter-reset:n var(--n)}
+.num::after{content:counter(n)}
+.shot{display:block;border-radius:18px}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+@media (max-width:760px){
+.mt .wrap{padding-left:20px!important;padding-right:20px!important}
+.mt [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+.mt h1{font-size:46px!important;line-height:1!important}
+.mt h2{font-size:30px!important}
+.mt [style*="margin-right:-240px"]{margin-right:-20px!important}
+.mt [style*="columns:4"]{columns:1!important}
+.mt nav,.mt [role=tablist]{overflow-x:auto;max-width:100%}
+.mt [style*="max-width:360px"],.mt [style*="max-width:980px"]{max-width:none!important;flex-basis:100%!important}
+.mt [style*="padding:44px"],.mt [style*="padding:48px"],.mt [style*="padding:72px 64px"],.mt [style*="padding:48px 64px"]{padding:24px 20px!important}
+.mt .wire,.mt aside,.mt .handle{display:none!important}
+.mt [aria-label="Three real toasts, one after another"]{position:relative!important;right:auto!important;bottom:auto!important;margin-top:16px}
+.mt .strip{flex-wrap:nowrap;overflow-x:auto}
+.mt{overflow-x:clip}
+.mt .row{grid-template-columns:minmax(0,1fr)!important}
+.mt .dl{grid-template-columns:minmax(0,1fr) auto!important}
+.mt .barrow{grid-template-columns:110px minmax(0,1fr) 64px!important}
+.mt main{padding:24px 20px 64px!important;box-sizing:border-box}
+.mt code{word-break:break-all}
+.mt [style*="repeat(4,minmax(0,1fr))"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.mt img[style*="left:-110px"]{left:-8px!important;width:200px!important}
+}
+</style>
+</helmet>
+<div class="mt {{themeClass}}">
+
+<header class="bar">
+<div class="wrap" style="display:flex;align-items:center;gap:20px;min-height:76px;flex-wrap:wrap">
+<a href="#" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--on);font:700 18px Roboto;letter-spacing:-.01em">
+<span style="width:36px;height:36px;border-radius:12px;background:var(--p);color:var(--onp);display:grid;place-items:center"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"></path></svg></span>
+Monitoring Tools</a>
+<nav class="nav" aria-label="Site">
+<span class="pill" aria-hidden="true" style="left:{{pillLeft}}px;width:{{pillW}}px"></span>
+<sc-for list="{{navItems}}" as="n" hint-placeholder-count="5"><a href="#" aria-current="{{n.cur}}" onClick="{{n.go}}">{{n.label}}</a></sc-for>
+</nav>
+<div style="flex:1 1 220px;display:flex;align-items:center;gap:10px;min-height:46px;padding:0 6px 0 16px;border-radius:999px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);max-width:360px;margin-left:auto">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--onv)"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"></path></svg>
+<label for="q" style="position:absolute;left:-9999px">Search the site</label>
+<input id="q" placeholder="Search 107 articles" style="flex:1;min-width:0;border:0;background:transparent;font:400 14px Roboto;color:var(--on);outline:none">
+<span class="kbd">Ctrl⇧F</span>
+<button aria-label="Regex builder for this search" style="min-height:36px;min-width:40px;border:0;border-radius:999px;background:var(--s3);color:var(--p);font:600 13px 'Roboto Mono';cursor:pointer">.*</button>
+</div>
+<div class="seg" role="group" aria-label="Language">
+<button aria-pressed="{{langEn}}" onClick="{{setEn}}">EN</button>
+<button aria-pressed="{{langYue}}" onClick="{{setYue}}">粵</button>
+<button aria-pressed="{{langBoth}}" onClick="{{setBoth}}">Both</button>
+</div>
+<button onClick="{{toggleTheme}}" aria-label="Switch light and dark" style="width:46px;height:46px;border:0;border-radius:50%;background:var(--s1);color:var(--on);display:grid;place-items:center;cursor:pointer;box-shadow:inset 0 0 0 1px var(--line)">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"></path></svg>
+</button>
+</div>
+</header>
+
+<section class="grid" style="position:relative;border-bottom:1px solid var(--line)">
+<svg viewBox="0 0 1440 200" preserveAspectRatio="none" aria-hidden="true" style="position:absolute;left:0;right:0;bottom:-30px;width:100%;height:160px;pointer-events:none">
+<path d="M0 120 H260 l24 -70 l34 150 l30 -110 l20 30 H640 l18 -40 l26 90 l22 -50 H1000 l24 -70 l34 150 l30 -110 l20 30 H1440" fill="none" stroke="var(--p)" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="1600" style="animation:draw 2.6s cubic-bezier(.6,0,.2,1) .2s both;opacity:.55"></path>
+</svg>
+<div style="position:absolute;top:0;bottom:0;width:180px;background:linear-gradient(90deg,transparent,rgba(111,219,180,.08),transparent);animation:scan 6s linear infinite;pointer-events:none" aria-hidden="true"></div>
+<div class="wrap" style="position:relative;display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:40px;padding-top:88px">
+<div style="display:flex;flex-direction:column;gap:28px;padding-bottom:110px">
+<p class="r mono" style="--d:0;margin:0;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--onv)"><span class="dot"></span><span style="color:var(--p)">LIVE</span> gateway 5 ms · dns 16 ms · release v1.0.57</p>
+<h1 class="r" style="--d:1;margin:0;font:800 104px/.92 Roboto;letter-spacing:-.045em">{{heroA}}<br><span style="color:var(--p)">{{heroB}}</span></h1>
+<sc-if value="{{showSecond}}" hint-placeholder-val="{{ false }}"><p class="r" style="--d:2;margin:-10px 0 0;font:600 30px/1.2 Roboto;color:var(--onv)">靜靜雞幫你睇實部電腦。</p></sc-if>
+<p class="r" style="--d:2;margin:0;font:400 20px/1.55 Roboto;color:var(--onv);max-width:32ch">A Windows tray app that shows what you copied, tells you why the internet dropped, and turns a copied path into a finished conversion.</p>
+<div class="r" style="--d:3;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+<a class="btn go" href="#" style="min-height:60px;padding:0 30px;font-size:16px">
+<svg class="icon arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>
+Download installer</a>
+<a class="btn ghost" href="Docs.dc.html" style="min-height:60px">Read the docs</a>
+<span class="mono" style="font-size:12px;color:var(--onv);line-height:1.5">v1.0.57<br>Windows x64</span>
+</div>
+<p class="r" style="--d:4;margin:0;font:400 13px/1.5 Roboto;color:var(--onv);max-width:46ch">This site explains and downloads the app. It is not the app, and nothing on it runs on your computer.</p>
+</div>
+<div class="r" style="--d:2;position:relative;align-self:end;margin-right:-240px">
+<div style="border-radius:22px 22px 0 0;padding:10px 10px 0;background:linear-gradient(var(--s3),var(--s1));box-shadow:0 0 0 1px var(--line),0 -20px 80px -20px rgba(111,219,180,.35)">
+<img class="shot" src="../../docs/screenshots/control-overview.png" alt="Control centre overview: internet online, six copies today, game mode standing by, and a live latency chart" style="width:900px;max-width:none;border-radius:14px 14px 0 0">
+</div>
+<img src="../../docs/screenshots/toast-markdown.png" alt="Clipboard toast for copied Markdown, sliding into the corner" style="position:absolute;left:-110px;bottom:54px;width:290px;border-radius:16px;box-shadow:0 0 0 1px var(--line),0 24px 60px rgba(0,0,0,.45);animation:toast 7s cubic-bezier(.2,.8,.2,1) 1.4s infinite both">
+</div>
+</div>
+</section>
+
+<section style="border-bottom:1px solid var(--line);background:var(--s)">
+<div class="wrap" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr))">
+<div style="padding:30px 0;border-right:1px solid var(--line)"><p class="tag" style="margin:0">Areas</p><p class="num mono" style="--n:17;margin:8px 0 0;font:600 40px 'Roboto Mono';letter-spacing:-.02em"></p></div>
+<div style="padding:30px 0 30px 32px;border-right:1px solid var(--line)"><p class="tag" style="margin:0">Articles</p><p class="num mono" style="--n:107;margin:8px 0 0;font:600 40px 'Roboto Mono';letter-spacing:-.02em"></p></div>
+<div style="padding:30px 0 30px 32px;border-right:1px solid var(--line)"><p class="tag" style="margin:0">Lines at v1.0.57</p><p class="mono" style="margin:8px 0 0;font:600 40px 'Roboto Mono';letter-spacing:-.02em">112,943</p></div>
+<div style="padding:30px 0 30px 32px"><p class="tag" style="margin:0">Needs internet</p><p class="mono" style="margin:8px 0 0;font:600 40px 'Roboto Mono';letter-spacing:-.02em">never</p></div>
+</div>
+</section>
+
+<section class="wrap" style="padding-top:120px;padding-bottom:40px">
+<div style="display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:20px">
+<div class="panel" style="min-height:560px;padding:44px;display:flex;flex-direction:column;gap:18px">
+<span class="tag">01 · Clipboard toasts</span>
+<h2 style="margin:0;font:700 48px/1 Roboto;letter-spacing:-.03em;max-width:300px">Copy anything. Get the next step.</h2>
+<p style="margin:0;font:400 17px/1.55 Roboto;color:var(--onv);max-width:290px">Bottom right, three seconds, always on top. Hover and the actions fit what you copied: open it, convert it, strip the quotes, move the files.</p>
+<div style="position:absolute;right:40px;bottom:-24px;width:300px;height:400px;overflow:hidden" aria-label="Three real toasts, one after another">
+<div style="display:flex;flex-direction:column;gap:16px;animation:stack 9s cubic-bezier(.7,0,.2,1) infinite">
+<img src="../../docs/screenshots/toast-markdown.png" alt="Toast for copied Markdown" style="width:300px;border-radius:16px;box-shadow:0 0 0 1px var(--line)">
+<img src="../../docs/screenshots/toast-folder.png" alt="Toast for a folder with batch conversion chips" style="width:300px;border-radius:16px;box-shadow:0 0 0 1px var(--line)">
+</div>
+</div>
+<div style="margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;max-width:46%"><span class="kbd" style="font-size:13px;padding:6px 10px">:mp4</span><span class="kbd" style="font-size:13px;padding:6px 10px">:gif</span><span class="kbd" style="font-size:13px;padding:6px 10px">:push</span><span class="kbd" style="font-size:13px;padding:6px 10px">remove quotes</span></div>
+</div>
+<div class="panel" style="min-height:560px;padding:44px;display:flex;flex-direction:column;gap:18px">
+<span class="tag" style="color:var(--amb)">02 · Internet watch</span>
+<h2 style="margin:0;font:700 40px/1.02 Roboto;letter-spacing:-.03em">It names the step that broke.</h2>
+<ol style="list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px" aria-label="Probe ladder illustration">
+<li class="mono" style="display:flex;justify-content:space-between;padding:14px 18px;border-radius:16px;font-size:14px;animation:ladder 6s infinite"><span>Adapter</span><span>ok</span></li>
+<li class="mono" style="display:flex;justify-content:space-between;padding:14px 18px;border-radius:16px;font-size:14px;animation:ladder 6s .5s infinite"><span>Router</span><span>4 ms</span></li>
+<li class="mono" style="display:flex;justify-content:space-between;padding:14px 18px;border-radius:16px;font-size:14px;animation:ladderFail 6s 1s infinite"><span>DNS</span><span>failing</span></li>
+<li class="mono" style="display:flex;justify-content:space-between;padding:14px 18px;border-radius:16px;font-size:14px;background:var(--s3);color:var(--onv)"><span>Internet</span><span>waiting</span></li>
+</ol>
+<p style="margin:0;font:400 15px/1.5 Roboto;color:var(--onv)">Then one press: release and renew, or switch to Google or your saved DNS. Illustration of the app's checks.</p>
+</div>
+</div>
+</section>
+
+<section class="wrap" style="padding-top:80px;padding-bottom:40px;display:flex;flex-direction:column;gap:30px">
+<div style="display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap">
+<div><span class="tag">Start from the job</span><h2 style="margin:10px 0 0;font:700 56px/1 Roboto;letter-spacing:-.035em">I want to…</h2></div>
+<div role="group" aria-label="Filter tasks" style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="6"><button class="chip" aria-pressed="{{g.on}}" onClick="{{g.pick}}">{{g.label}}</button></sc-for>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
+<sc-for list="{{tasks}}" as="t" hint-placeholder-count="6">
+<a class="task" href="Article.dc.html" style="--i:{{t.i}}">
+<span class="tag" style="color:var(--onv)">{{t.group}}</span>
+<span style="font:600 22px/1.25 Roboto;letter-spacing:-.01em">{{t.title}}</span>
+<span style="font:400 15px/1.5 Roboto;color:var(--onv)">{{t.blurb}}</span>
+<span class="go2">Read how<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+</a>
+</sc-for>
+</div>
+</section>
+
+<section class="wrap" style="padding-top:80px;padding-bottom:40px;display:flex;flex-direction:column;gap:24px">
+<div><span class="tag">Every feature, none left out</span><h2 style="margin:10px 0 0;font:700 56px/1 Roboto;letter-spacing:-.035em">17 areas. 107 articles.</h2></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 16px;border-top:1px solid var(--line);padding-top:16px">
+<sc-for list="{{areas}}" as="a" hint-placeholder-count="9">
+<a class="area" href="Docs.dc.html">
+<span class="glyph"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{a.icon}}"></path></svg></span>
+<span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font:600 16px Roboto">{{a.label}}</span><span style="font:400 13px/1.4 Roboto;color:var(--onv)">{{a.blurb}}</span></span>
+<span class="mono" style="margin-left:auto;font-size:13px;color:var(--p)">{{a.n}}</span>
+</a>
+</sc-for>
+<a class="area" href="Docs.dc.html" style="color:var(--p)"><span class="glyph" style="background:transparent;box-shadow:inset 0 0 0 1px var(--line)"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span style="font:600 16px Roboto">Browse all 107 articles</span></a>
+</div>
+</section>
+
+<section class="wrap" style="padding-top:80px;padding-bottom:120px">
+<a href="Diagram.dc.html" class="panel grid" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:32px;align-items:center;text-decoration:none;color:var(--on);padding:48px">
+<span style="display:flex;flex-direction:column;gap:12px"><span class="tag" style="color:var(--sky)">Interactive diagram</span><span style="font:700 36px/1.1 Roboto;letter-spacing:-.025em;max-width:22ch">Step through what happens when you copy a file path.</span><span style="font:400 15px Roboto;color:var(--onv)">Pause, replay, pick any step. An illustration; it does not run the app.</span></span>
+<span class="btn go">Open the diagram<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+</a>
+</section>
+
+<footer style="border-top:1px solid var(--line);background:var(--s)">
+<div class="wrap mono" style="display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;padding-top:28px;padding-bottom:28px;font-size:12px;color:var(--onv)">
+<span>Documents release v1.0.57 · nothing unreleased is shown as shipped</span>
+<span style="display:flex;gap:20px"><a href="#">Source on GitHub</a><a href="Releases.dc.html">Changelog</a><a href="#">Security</a></span>
+</div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"light":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":3720}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { lang: 'en', light: null, group: 'all', nav: 0 }; }
+  renderVals() {
+    const light = this.state.light === null ? !!this.props.light : this.state.light;
+    const lang = this.state.lang;
+    const navLabels = ['Home','Docs','Gallery','Releases','Settings'];
+    const widths = [74, 66, 80, 88, 84];
+    let left = 4; for (let i = 0; i < this.state.nav; i++) left += widths[i] + 2;
+    const tasks = [
+      {k:'files', group:'Files', title:'Convert a video, picture or song', blurb:'Copy its path, add :mp4 or another format, and the new file lands beside it.'},
+      {k:'files', group:'Files', title:'Commit and push a repository', blurb:'Copy a repository path with :push. One prompt for the message, then done.'},
+      {k:'clip', group:'Clipboard', title:'Get back something I copied', blurb:'The searchable history keeps text, links, files and images.'},
+      {k:'net', group:'Network', title:'Work out why the internet dropped', blurb:'Adapter, router, DNS, then the wider internet, checked in order.'},
+      {k:'search', group:'Search', title:'Search with a regular expression', blurb:'Every search bar opens a full regex builder anchored to it.'},
+      {k:'yours', group:'Make it yours', title:'Keep popups away while I play', blurb:'Game mode holds toasts and dialogs while a game runs. On by default.'}
+    ];
+    const g = this.state.group;
+    const shown = tasks.filter(t => g==='all' || t.k===g).map((t, i) => ({ ...t, i }));
+    return {
+      themeClass: light ? 'light' : '',
+      toggleTheme: () => this.setState({ light: !light }),
+      navItems: navLabels.map((label, i) => ({ label, cur: i === this.state.nav ? 'page' : 'false', go: () => this.setState({ nav: i }) })),
+      pillLeft: left, pillW: widths[this.state.nav],
+      langEn: String(lang==='en'), langYue: String(lang==='yue'), langBoth: String(lang==='both'),
+      setEn: () => this.setState({lang:'en'}), setYue: () => this.setState({lang:'yue'}), setBoth: () => this.setState({lang:'both'}),
+      heroA: lang==='yue' ? '部電腦，' : 'Your PC,', heroB: lang==='yue' ? '靜靜雞睇實。' : 'watched quietly.',
+      showSecond: lang==='both',
+      groups: [['all','All'],['files','Files'],['clip','Clipboard'],['net','Network'],['search','Search'],['yours','Make it yours']].map(([k,label]) => ({ label, on: String(g===k), pick: () => this.setState({ group: k }) })),
+      tasks: shown,
+      areas: [
+        ['Clipboard','Toasts and the searchable history',4,'M9 4h6v3H9zM6 6h12v15H6z'],
+        ['Quick commands','Convert media, push a repo, run scripts',5,'M4 17l6-5-6-5M12 19h8'],
+        ['Network','Internet watch, DNS profiles, public IP',4,'M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01'],
+        ['Files and Docker','File tools and Docker actions',7,'M4 6h6l2 2h8v11H4z'],
+        ['Search','Search bars and the regex builder',4,'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4'],
+        ['Minecraft servers','Create, manage, generate worlds',14,'M5 5h14v14H5zM5 12h14M12 5v14'],
+        ['Appearance','Theme, colour, density, motion',12,'M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.2-1.6-.4-1 .3-2 1.4-2H17a4 4 0 0 0 4-4c0-5-4-10.4-9-10.4z'],
+        ['Appearance editor','Per-element editors, colour picker',6,'M4 20h4L19 9l-4-4L4 16zM14 6l4 4'],
+        ['Safety','Authenticator, locks, unlock ladder',7,'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z'],
+        ['Language and voice','English, Cantonese, both; humour',9,'M4 5h10M9 3v2M6 5c1 5 4 8 8 9M12 5c-1 5-4 8-8 9M14 20l4-9 4 9'],
+        ['The app itself','How it runs, tray icon, palette',10,'M3 12h4l3-7 4 14 3-7h4'],
+        ['Modes','School, ADHD helpers, schedules',6,'M12 3v9l6 3M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18z'],
+        ['Records','Changelog, exports, history',5,'M6 3h9l4 4v14H6zM14 3v5h5'],
+        ['Tools','Drawing, editor hand-off, publishing',7,'M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5L15 12l-3-3z'],
+        ['Ollama','Manage local AI models',3,'M12 3l8 4.5v9L12 21l-8-4.5v-9z'],
+        ['Tabs','The browser-style tab strip',2,'M3 8h6l1.5-2H21v12H3z'],
+        ['Game mode','Popups wait while you play',2,'M6 9h4M8 7v4M15 10h.01M18 8h.01M5 5h14a3 3 0 0 1 3 3l-1 8a3 3 0 0 1-5 1.5L14 16h-4l-2 1.5A3 3 0 0 1 3 16L2 8a3 3 0 0 1 3-3z']
+      ].map(([label,blurb,n,icon]) => ({label,blurb,n,icon}))
+    };
+  }
+}
+</script>
+</body>
+</html>

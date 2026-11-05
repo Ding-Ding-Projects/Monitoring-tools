@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Monitoring Tools home on a phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--pb:#8CF8CF;--onp:#00281C;--amb:#FFB95F;--grid:rgba(111,219,180,.07);font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink)}
+.mono{font-family:"Roboto Mono",monospace}
+.icon{width:22px;height:22px;flex:none}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes draw{from{stroke-dashoffset:900}to{stroke-dashoffset:0}}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(111,219,180,.55)}50%{box-shadow:0 0 0 7px rgba(111,219,180,0)}}
+@keyframes sheet{from{opacity:0;transform:translateY(-12px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes toast{0%,6%{opacity:0;transform:translateY(30px)}14%,72%{opacity:1;transform:none}82%,100%{opacity:0;transform:translateY(10px)}}
+.r{opacity:0;animation:rise .8s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--d,0) * 90ms + 100ms)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--p);animation:breathe 2.4s ease-in-out infinite}
+.grid{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;border-radius:999px;font:600 16px Roboto;text-decoration:none;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),transform .35s cubic-bezier(.3,1.4,.5,1)}
+.btn:active{transform:scale(.97);border-radius:16px}
+.go{background:var(--p);color:var(--onp);box-shadow:0 10px 30px -8px rgba(111,219,180,.5)}
+.ghost{color:var(--on);box-shadow:inset 0 0 0 1px var(--line)}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+.row{display:flex;gap:12px;align-items:center;min-height:56px;padding:0 16px;border-radius:18px;text-decoration:none;color:var(--on)}
+.ib{width:48px;height:48px;border:0;border-radius:50%;background:transparent;color:var(--on);display:grid;place-items:center;cursor:pointer}
+.card{display:flex;flex-direction:column;gap:8px;padding:20px;border-radius:24px;background:var(--s1);text-decoration:none;color:var(--on)}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="mt" style="width:390px;height:2160px;overflow:hidden;position:relative">
+<header style="display:flex;align-items:center;gap:4px;height:64px;padding:0 6px 0 16px;border-bottom:1px solid var(--line)">
+<span style="width:32px;height:32px;border-radius:10px;background:var(--p);color:var(--onp);display:grid;place-items:center"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:18px;height:18px"><path d="M3 12h4l3-7 4 14 3-7h4"></path></svg></span>
+<span style="font:700 16px Roboto;flex:1;margin-left:8px">Monitoring Tools</span>
+<button class="ib" aria-label="Search and regex builder"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"></path></svg></button>
+<button class="ib" aria-label="Open menu" aria-expanded="{{menuOpen}}" onClick="{{toggleMenu}}"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="{{menuIcon}}"></path></svg></button>
+</header>
+<sc-if value="{{menuOn}}" hint-placeholder-val="{{ false }}">
+<nav aria-label="Site" style="position:absolute;top:72px;left:12px;right:12px;z-index:3;background:var(--s2);border-radius:28px;padding:8px;box-shadow:0 0 0 1px var(--line),0 24px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;animation:sheet .4s cubic-bezier(.3,1.3,.5,1)">
+<a class="row" href="Main.dc.html" style="background:var(--p);color:var(--onp)">Home</a>
+<a class="row" href="Docs.dc.html">Docs</a>
+<a class="row" href="Gallery.dc.html">Gallery</a>
+<a class="row" href="Releases.dc.html">Releases</a>
+<a class="row" href="Settings.dc.html">Settings, language, appearance</a>
+</nav>
+</sc-if>
+<section class="grid" style="position:relative;padding:36px 20px 40px;display:flex;flex-direction:column;gap:18px;border-bottom:1px solid var(--line)">
+<p class="r mono" style="--d:0;margin:0;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--onv)"><span class="dot"></span><span style="color:var(--p)">LIVE</span> release v1.0.57</p>
+<h1 class="r" style="--d:1;margin:0;font:800 56px/.92 Roboto;letter-spacing:-.045em">Your PC,<br><span style="color:var(--p)">watched quietly.</span></h1>
+<p class="r" style="--d:2;margin:0;font:400 17px/1.5 Roboto;color:var(--onv)">A Windows tray app that shows what you copied, tells you why the internet dropped, and turns a copied path into a finished conversion.</p>
+<a class="r btn go" href="#" style="--d:3">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Download for Windows</a>
+<p class="r mono" style="--d:3;margin:-6px 0 0;text-align:center;font-size:12px;color:var(--onv)">v1.0.57 · Windows x64 · install it on your PC</p>
+<a class="r btn ghost" href="Docs.dc.html" style="--d:4">Read the docs</a>
+<p class="r" style="--d:4;margin:0;font:400 13px/1.45 Roboto;color:var(--onv)">This site explains and downloads the app. It is not the app.</p>
+<svg viewBox="0 0 390 80" aria-hidden="true" style="position:absolute;left:0;bottom:-40px;width:390px;height:80px"><path d="M0 50 H120 l14 -34 l20 70 l18 -52 l12 16 H390" fill="none" stroke="var(--p)" stroke-width="2.2" stroke-dasharray="900" style="animation:draw 2.2s cubic-bezier(.6,0,.2,1) .3s both;opacity:.6"></path></svg>
+</section>
+<div style="margin:36px 0 0 20px;position:relative;height:330px">
+<div style="height:300px;overflow:hidden;border-radius:18px 0 0 0;padding:8px 0 0 8px;background:var(--s3)"><img src="../../docs/screenshots/control-overview.png" alt="Control centre overview" style="width:560px;display:block;border-radius:12px 0 0 0"></div>
+<img src="../../docs/screenshots/toast-link.png" alt="Toast for a link with tracking parameters" style="position:absolute;right:20px;bottom:-10px;width:220px;border-radius:14px;box-shadow:0 0 0 1px var(--line),0 20px 50px rgba(0,0,0,.6);animation:toast 7s cubic-bezier(.2,.8,.2,1) 1s infinite both">
+</div>
+<section style="padding:44px 20px 0;display:flex;flex-direction:column;gap:12px">
+<span class="tag">Start from the job</span>
+<p style="margin:0 0 6px;font:700 34px/1 Roboto;letter-spacing:-.03em">I want to…</p>
+<div style="display:flex;gap:8px;overflow-x:auto;margin-right:-20px;padding-right:20px">
+<span style="display:grid;place-items:center;min-height:40px;padding:0 16px;border-radius:999px;background:var(--on);color:var(--ink);font:500 14px Roboto;white-space:nowrap">All</span>
+<span style="display:grid;place-items:center;min-height:40px;padding:0 16px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);color:var(--onv);font:500 14px Roboto;white-space:nowrap">Files</span>
+<span style="display:grid;place-items:center;min-height:40px;padding:0 16px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);color:var(--onv);font:500 14px Roboto;white-space:nowrap">Clipboard</span>
+<span style="display:grid;place-items:center;min-height:40px;padding:0 16px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);color:var(--onv);font:500 14px Roboto;white-space:nowrap">Network</span>
+<span style="display:grid;place-items:center;min-height:40px;padding:0 16px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);color:var(--onv);font:500 14px Roboto;white-space:nowrap">Search</span>
+</div>
+<a class="card" href="Article.dc.html"><span class="tag" style="color:var(--onv)">Files</span><span style="font:600 19px/1.3 Roboto">Convert a video, picture or song</span><span style="font:400 15px/1.45 Roboto;color:var(--onv)">Copy its path with :mp4 and the new file lands beside it.</span></a>
+<a class="card" href="Article.dc.html"><span class="tag" style="color:var(--onv)">Network</span><span style="font:600 19px/1.3 Roboto">Work out why the internet dropped</span><span style="font:400 15px/1.45 Roboto;color:var(--onv)">Adapter, router, DNS, then the wider internet.</span></a>
+<a class="card" href="Article.dc.html"><span class="tag" style="color:var(--onv)">Clipboard</span><span style="font:600 19px/1.3 Roboto">Get back something I copied</span><span style="font:400 15px/1.45 Roboto;color:var(--onv)">The history keeps text, links, files and images.</span></a>
+</section>
+<section style="padding:44px 20px 0;display:flex;flex-direction:column;gap:2px">
+<span class="tag" style="margin-bottom:8px">17 areas · 107 articles</span>
+<a class="row" href="Docs.dc.html" style="background:var(--s1)">Clipboard<span class="mono" style="margin-left:auto;color:var(--p);font-size:13px">4</span></a>
+<a class="row" href="Docs.dc.html">Quick commands<span class="mono" style="margin-left:auto;color:var(--p);font-size:13px">5</span></a>
+<a class="row" href="Docs.dc.html" style="background:var(--s1)">Network<span class="mono" style="margin-left:auto;color:var(--p);font-size:13px">4</span></a>
+<a class="row" href="Docs.dc.html">Minecraft servers<span class="mono" style="margin-left:auto;color:var(--p);font-size:13px">14</span></a>
+<a class="row" href="Docs.dc.html" style="background:var(--s1)">Appearance<span class="mono" style="margin-left:auto;color:var(--p);font-size:13px">12</span></a>
+<a class="btn ghost" href="Docs.dc.html" style="margin-top:14px">All 17 areas</a>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2160}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { menu: false }; }
+  renderVals() {
+    const m = this.state.menu;
+    return { menuOn: m, menuOpen: String(m), menuIcon: m ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16', toggleMenu: () => this.setState({ menu: !m }) };
+  }
+}
+</script>
+</body>
+</html>

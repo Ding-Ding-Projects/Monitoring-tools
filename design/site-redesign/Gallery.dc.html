@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gallery of real captures</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--onp:#00281C;--sky:#9CCBFF;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);min-height:100vh;position:relative}
+.wrap{max-width:1320px;margin:0 auto;padding:0 40px;box-sizing:border-box}
+.mono{font-family:"Roboto Mono",monospace}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+@keyframes rise{from{opacity:0;transform:translateY(26px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes zoom{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.chip{min-height:40px;padding:0 16px;border-radius:999px;border:0;box-shadow:inset 0 0 0 1px var(--line);background:transparent;color:var(--onv);font:500 14px Roboto;cursor:pointer;transition:all .35s cubic-bezier(.3,1.4,.5,1)}
+.chip[aria-pressed=true]{background:var(--on);color:var(--ink);box-shadow:none}
+.shot{break-inside:avoid;margin:0 0 16px;display:block;width:100%;border:0;padding:8px;border-radius:24px;background:var(--s1);cursor:zoom-in;text-align:left;color:var(--on);opacity:0;animation:rise .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i) * 60ms + 100ms);transition:transform .5s cubic-bezier(.3,1.4,.5,1),background .3s;box-sizing:border-box}
+.shot:hover{transform:translateY(-4px);background:var(--s2)}
+.shot img{display:block;width:100%;border-radius:17px;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.shot:hover img{transform:scale(1.015)}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+@media (max-width:760px){
+.mt .wrap{padding-left:20px!important;padding-right:20px!important}
+.mt [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+.mt h1{font-size:46px!important;line-height:1!important}
+.mt h2{font-size:30px!important}
+.mt [style*="margin-right:-240px"]{margin-right:-20px!important}
+.mt [style*="columns:4"]{columns:1!important}
+.mt nav,.mt [role=tablist]{overflow-x:auto;max-width:100%}
+.mt [style*="max-width:360px"],.mt [style*="max-width:980px"]{max-width:none!important;flex-basis:100%!important}
+.mt [style*="padding:44px"],.mt [style*="padding:48px"],.mt [style*="padding:72px 64px"],.mt [style*="padding:48px 64px"]{padding:24px 20px!important}
+.mt .wire,.mt aside,.mt .handle{display:none!important}
+.mt [aria-label="Three real toasts, one after another"]{position:relative!important;right:auto!important;bottom:auto!important;margin-top:16px}
+.mt .strip{flex-wrap:nowrap;overflow-x:auto}
+.mt{overflow-x:clip}
+.mt .row{grid-template-columns:minmax(0,1fr)!important}
+.mt .dl{grid-template-columns:minmax(0,1fr) auto!important}
+.mt .barrow{grid-template-columns:110px minmax(0,1fr) 64px!important}
+.mt main{padding:24px 20px 64px!important;box-sizing:border-box}
+.mt code{word-break:break-all}
+.mt [style*="repeat(4,minmax(0,1fr))"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.mt img[style*="left:-110px"]{left:-8px!important;width:200px!important}
+}
+</style>
+</helmet>
+<div class="mt">
+<section class="wrap" style="padding-top:64px;padding-bottom:28px;display:flex;flex-direction:column;gap:20px">
+<span class="tag">Gallery · real captures of the built app</span>
+<div style="display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap">
+<h1 style="margin:0;font:800 72px/.95 Roboto;letter-spacing:-.045em">See it <span style="color:var(--p)">before you install.</span></h1>
+<p class="mono" style="margin:0;font-size:12px;line-height:1.6;color:var(--onv);max-width:44ch">Every picture is a capture of the real app, rendered by the release workflow on Windows. No mockups. {{count}} shown of 172.</p>
+</div>
+<div role="group" aria-label="Filter captures" style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="6"><button class="chip" aria-pressed="{{f.on}}" onClick="{{f.pick}}">{{f.label}} <span class="mono" style="opacity:.6;font-size:12px">{{f.n}}</span></button></sc-for>
+</div>
+</section>
+<section class="wrap" style="padding-bottom:96px">
+<div style="columns:4 280px;column-gap:16px">
+<sc-for list="{{shots}}" as="s" hint-placeholder-count="8">
+<button class="shot" onClick="{{s.open}}" style="--i:{{s.i}}" aria-label="Open larger: {{s.cap}}">
+<img src="{{s.src}}" alt="{{s.cap}}">
+<span style="display:flex;justify-content:space-between;gap:12px;padding:12px 8px 6px"><span style="font:500 14px/1.35 Roboto">{{s.cap}}</span><span class="mono" style="font-size:11px;color:var(--p);white-space:nowrap">{{s.kind}}</span></span>
+</button>
+</sc-for>
+</div>
+</section>
+<sc-if value="{{boxOn}}" hint-placeholder-val="{{ false }}">
+<div role="dialog" aria-label="Capture, larger" style="position:fixed;inset:0;z-index:10;background:rgba(3,6,5,.86);backdrop-filter:blur(8px);display:grid;place-items:center;padding:48px;animation:fade .3s">
+<figure style="margin:0;max-width:1100px;display:flex;flex-direction:column;gap:14px;animation:zoom .45s cubic-bezier(.3,1.3,.5,1)">
+<img src="{{boxSrc}}" alt="{{boxCap}}" style="max-width:100%;max-height:70vh;border-radius:20px;box-shadow:0 40px 100px rgba(0,0,0,.7)">
+<figcaption style="display:flex;justify-content:space-between;align-items:center;gap:16px"><span style="font:500 16px Roboto">{{boxCap}}</span><button onClick="{{close}}" style="min-height:44px;padding:0 20px;border:0;border-radius:999px;background:var(--p);color:var(--onp);font:600 14px Roboto;cursor:pointer">Close <span class="mono" style="opacity:.7">Esc</span></button></figcaption>
+</figure>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1880}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { f: 'all', box: -1 }; }
+  renderVals() {
+    const A = [
+      ['5977b74bd2dc98464f06cfb24bbf9de2','Control centre: overview','centre'],
+      ['0d662cd798514f07534713fe7d9a0b81','Markdown copied, hovered','toast'],
+      ['02dbe970cf08cd5991ee925396179749','Internet connection lost','dialog'],
+      ['48d5b1ae7e1b4e450e8e96a609661fda','Folder with batch conversion chips','toast'],
+      ['51d83b5069cc78f99df410c69f7fca88','Command palette (Ctrl+Shift+F)','dialog'],
+      ['d01c7845ebbd10067a66b6d8b564fd3b','Control centre: network','centre'],
+      ['a1d22d4faee7f4b6f36fd319a73a96f8','Link with tracking parameters','toast'],
+      ['f15d1fdd3acae117357370b07eca09e0','Tray right-click menu','tray'],
+      ['cbd4d12480bf76ab0ca23a33d141ee0e','The Convert to dialog','dialog'],
+      ['de81a70e3d3cbccd7a48550ac78c52c2','Image file with a rich preview','toast'],
+      ['68ca4e438ad562a2b9c9747834fa32c3','Appearance in the light theme on the Violet seed','theme'],
+      ['810453743f036c1529b6692fa5142f8a','Setup wizard: start-up','dialog'],
+      ['29d6901b15f46860c59fbce2da98a2bb','Overview in bilingual mode','theme'],
+      ['a891f1c24c237b96d6492820ab5b8ba0','Regex builder: matches and capture groups','centre'],
+      ['fcec7e5133cf0dd39868e6c459e31c42','Control centre: safety','centre'],
+      ['083011a7332530335a04ce11a97c135b','Colour picker','dialog']
+    ];
+    const names = {"5977b74bd2dc98464f06cfb24bbf9de2": "control-overview", "0d662cd798514f07534713fe7d9a0b81": "toast-markdown", "48d5b1ae7e1b4e450e8e96a609661fda": "toast-folder", "51d83b5069cc78f99df410c69f7fca88": "command-palette", "02dbe970cf08cd5991ee925396179749": "offline-dialog", "f15d1fdd3acae117357370b07eca09e0": "tray-menu", "a891f1c24c237b96d6492820ab5b8ba0": "search-builder-test", "68ca4e438ad562a2b9c9747834fa32c3": "theme-light-violet", "29d6901b15f46860c59fbce2da98a2bb": "lang-bilingual-overview", "a1d22d4faee7f4b6f36fd319a73a96f8": "toast-link", "d01c7845ebbd10067a66b6d8b564fd3b": "control-network", "810453743f036c1529b6692fa5142f8a": "setup-start", "cbd4d12480bf76ab0ca23a33d141ee0e": "convert-dialog", "8d4d15354df46acc7fe9d7542cba0b2f": "appearance-editor-colour", "fcec7e5133cf0dd39868e6c459e31c42": "control-safety", "de81a70e3d3cbccd7a48550ac78c52c2": "toast-image-file", "083011a7332530335a04ce11a97c135b": "colour-picker"};
+    const kinds = { all: 'All', toast: 'Toasts', centre: 'Control centre', dialog: 'Dialogs', tray: 'Tray', theme: 'Themes and languages' };
+    const f = this.state.f;
+    const shown = A.filter(a => f === 'all' || a[2] === f);
+    const box = this.state.box >= 0 ? A[this.state.box] : null;
+    return {
+      count: shown.length,
+      filters: Object.keys(kinds).map(k => ({ label: kinds[k], n: k === 'all' ? A.length : A.filter(a => a[2] === k).length, on: String(k === f), pick: () => this.setState({ f: k }) })),
+      shots: shown.map((a, i) => ({ src: '../../docs/screenshots/' + names[a[0]] + '.png', cap: a[1], kind: kinds[a[2]], i, open: () => this.setState({ box: A.indexOf(a) }) })),
+      boxOn: !!box, boxSrc: box ? '../../docs/screenshots/' + names[box[0]] + '.png' : '', boxCap: box ? box[1] : '', close: () => this.setState({ box: -1 })
+    };
+  }
+}
+</script>
+</body>
+</html>

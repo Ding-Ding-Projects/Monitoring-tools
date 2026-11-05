@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Releases</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--pb:#8CF8CF;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;--vio:#CFBCFF;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);min-height:100vh}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px;box-sizing:border-box}
+.mono{font-family:"Roboto Mono",monospace}
+.icon{width:18px;height:18px;flex:none}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes tick{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1)}}
+@keyframes steam{0%{transform:translateY(0) scaleX(1);opacity:0}30%{opacity:.7}100%{transform:translateY(-28px) scaleX(1.6);opacity:0}}
+.r{opacity:0;animation:rise .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--d,0) * 70ms + 80ms)}
+.panel{padding:30px;border-radius:30px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:16px}
+.dl{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:16px;align-items:center;padding:14px 16px;border-radius:18px;background:var(--s2);transition:background .3s}
+.dl:hover{background:var(--s3)}
+.copy{min-height:40px;min-width:92px;padding:0 14px;border:0;border-radius:999px;background:var(--s3);color:var(--on);font:500 12px "Roboto Mono";cursor:pointer;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),background .3s}
+.copy:hover{border-radius:12px}
+.barrow{display:grid;grid-template-columns:170px minmax(0,1fr) 90px;gap:14px;align-items:center;font:400 14px Roboto}
+.bar{height:12px;border-radius:6px;transform-origin:left;animation:grow 1.2s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 120ms + 400ms)}
+.ev{display:grid;grid-template-columns:110px 18px minmax(0,1fr);gap:16px;align-items:start}
+.node{width:14px;height:14px;border-radius:50%;margin-top:4px;box-shadow:0 0 0 4px var(--ink)}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+@media (max-width:760px){
+.mt .wrap{padding-left:20px!important;padding-right:20px!important}
+.mt [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+.mt h1{font-size:46px!important;line-height:1!important}
+.mt h2{font-size:30px!important}
+.mt [style*="margin-right:-240px"]{margin-right:-20px!important}
+.mt [style*="columns:4"]{columns:1!important}
+.mt nav,.mt [role=tablist]{overflow-x:auto;max-width:100%}
+.mt [style*="max-width:360px"],.mt [style*="max-width:980px"]{max-width:none!important;flex-basis:100%!important}
+.mt [style*="padding:44px"],.mt [style*="padding:48px"],.mt [style*="padding:72px 64px"],.mt [style*="padding:48px 64px"]{padding:24px 20px!important}
+.mt .wire,.mt aside,.mt .handle{display:none!important}
+.mt [aria-label="Three real toasts, one after another"]{position:relative!important;right:auto!important;bottom:auto!important;margin-top:16px}
+.mt .strip{flex-wrap:nowrap;overflow-x:auto}
+.mt{overflow-x:clip}
+.mt p.mono[style*="nowrap"]{font-size:13px!important}
+.mt [style*="flex:1;padding:22px"]{padding:16px 12px!important}
+.mt .row{grid-template-columns:minmax(0,1fr)!important}
+.mt .dl{grid-template-columns:minmax(0,1fr) auto!important}
+.mt .barrow{grid-template-columns:110px minmax(0,1fr) 64px!important}
+.mt main{padding:24px 20px 64px!important;box-sizing:border-box}
+.mt code{word-break:break-all}
+.mt [style*="repeat(4,minmax(0,1fr))"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.mt img[style*="left:-110px"]{left:-8px!important;width:200px!important}
+}
+</style>
+</helmet>
+<div class="mt">
+<section class="wrap" style="padding-top:64px;padding-bottom:32px;display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:24px;align-items:end">
+<div style="display:flex;flex-direction:column;gap:14px">
+<span class="r tag" style="--d:0">Latest release · published 2026-11-05 18:10 UTC</span>
+<h1 class="r" style="--d:1;margin:0;font:800 96px/.9 Roboto;letter-spacing:-.05em">v1.0.57</h1>
+<p class="r" style="--d:2;margin:0;font:600 26px/1.2 Roboto;color:var(--amb)">Steamed Custard Bao · 奶黃包</p>
+<p class="r" style="--d:3;margin:0;font:400 16px/1.55 Roboto;color:var(--onv);max-width:52ch">Every push to main builds on Windows and publishes the next release. Each release takes a different dim sum dish as its code name, in release order.</p>
+</div>
+<div class="r panel" style="--d:3;flex-direction:row;gap:0;padding:0;overflow:hidden">
+<div style="flex:1;padding:22px;border-right:1px solid var(--line)"><span class="tag" style="color:var(--onv)">Started</span><p class="mono" style="margin:8px 0 0;font-size:17px;white-space:nowrap">17:56:30</p></div>
+<div style="flex:1;padding:22px;border-right:1px solid var(--line)"><span class="tag" style="color:var(--onv)">Finished</span><p class="mono" style="margin:8px 0 0;font-size:17px;white-space:nowrap">18:10:27</p></div>
+<div style="flex:1;padding:22px;position:relative"><span class="tag">Took</span><p class="mono" style="margin:8px 0 0;font-size:17px;white-space:nowrap;color:var(--p)">13 m 58 s</p></div>
+</div>
+</section>
+
+<section class="wrap" style="padding-bottom:24px;display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:20px;align-items:start">
+<div class="panel r" style="--d:4">
+<span class="tag">Downloads</span>
+<sc-for list="{{files}}" as="f" hint-placeholder-count="4">
+<div class="dl">
+<span style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font:600 15px Roboto">{{f.name}}</span><span style="font:400 13px Roboto;color:var(--onv)">{{f.what}}</span><span class="mono" style="font-size:11px;color:var(--onv);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">sha256 {{f.sha}}</span></span>
+<span class="mono" style="font-size:13px;color:var(--onv)">{{f.size}}</span>
+<button class="copy" onClick="{{f.copy}}" aria-label="Copy SHA-256 of {{f.name}}" style="background:{{f.bg}};color:{{f.ink}}"><sc-if value="{{f.done}}" hint-placeholder-val="{{ false }}"><span style="display:inline-block;animation:tick .4s cubic-bezier(.3,1.4,.5,1)">✓ Copied</span></sc-if><sc-if value="{{f.notDone}}" hint-placeholder-val="{{ true }}">Copy hash</sc-if></button>
+</div>
+</sc-for>
+<p style="margin:0;font:400 13px/1.5 Roboto;color:var(--onv)">The installed app checks the same SHA-256 before it updates itself.</p>
+</div>
+<div class="panel r" style="--d:5">
+<span class="tag" style="color:var(--sky)">Lines at v1.0.57 · counted by the workflow</span>
+<p class="mono" style="margin:0;font:600 48px 'Roboto Mono';letter-spacing:-.03em">112,943</p>
+<sc-for list="{{lines}}" as="l" hint-placeholder-count="5">
+<div class="barrow"><span>{{l.label}}</span><span style="height:12px;border-radius:6px;background:var(--s2);overflow:hidden"><span class="bar" style="display:block;width:{{l.w}}%;background:{{l.c}};--i:{{l.i}}"></span></span><span class="mono" style="text-align:right;font-size:13px;color:var(--onv)">{{l.n}}</span></div>
+</sc-for>
+<p style="margin:0;font:400 13px/1.5 Roboto;color:var(--onv)">Grand total with excluded rows 129,873. Agent-written surviving lines 112,943 of 112,943, by git blame. Command: <span class="mono" style="color:var(--on)">node scripts/line-counts.mjs</span></p>
+<div style="padding:18px;border-radius:20px;background:var(--s2);display:flex;flex-direction:column;gap:6px">
+<span class="tag" style="color:var(--amb)">How long by hand · an estimate</span>
+<p style="margin:0;font:600 20px Roboto">About 1,966 to 4,894 working days</p>
+<p style="margin:0;font:400 13px/1.5 Roboto;color:var(--onv)">Code lines ÷ 50 to 20 a day, plus documentation lines ÷ 150 to 75 a day. Not measured; nobody built it by hand.</p>
+</div>
+</div>
+</section>
+
+<section class="wrap" style="padding-top:24px;padding-bottom:96px">
+<div class="panel r" style="--d:6">
+<span class="tag">Changelog</span>
+<div style="position:relative;display:flex;flex-direction:column;gap:22px">
+<span style="position:absolute;left:134px;top:8px;bottom:8px;width:2px;background:var(--line)"></span>
+<sc-for list="{{events}}" as="e" hint-placeholder-count="4">
+<div class="ev">
+<span class="mono" style="font-size:14px;color:{{e.c}};padding-top:1px">v{{e.v}}</span>
+<span class="node" style="background:{{e.c}};position:relative;left:2px"></span>
+<span style="display:flex;flex-direction:column;gap:4px"><span style="font:500 15px/1.45 Roboto">{{e.text}}</span><span class="mono" style="font-size:11px;color:var(--onv)">{{e.date}}</span></span>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1360}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { copied: -1 }; }
+  renderVals() {
+    const F = [
+      ['MonitoringTools-Setup.exe','Installer for Windows x64, everything bundled','203 MB','85df08f087b7a0a60ce2c751c5704728dc12e8dd55b49cd1824b0304011cef8f'],
+      ['MonitoringTools-win-x64.zip','The same app as a portable zip','197 MB','a19f0626097082656d71c7afce9ffe90e35fa96f2c7d1da72e10d35cc1a11725'],
+      ['MonitoringTools-Site.exe','This site and its docs as an offline app','149 MB','8e5159fa04449d5a034a45cd9dd48438772e3acba0a307188f3fc3a4a339c9a3'],
+      ['MonitoringTools-BuildTool.exe','Desktop front end for build.bat','105 MB','1aa74d4c95ef92cfcd805b127a60d2161cf70f0d35cfd6066118b473368d1c29']
+    ];
+    const L = [['Source',89876,'var(--p)'],['Tests',12281,'var(--sky)'],['Documentation',7653,'var(--vio)'],['Styles and markup',1595,'var(--amb)'],['Config and data',1538,'var(--onv)']];
+    const E = [
+      ['1.0.57','Let the release workflow retry past leftover changes','2026-11-05','var(--p)'],
+      ['1.0.56','Noted the second full self-test after the locks merge','2026-11-05','var(--onv)'],
+      ['1.0.55','Read RAR4 and RAR5 archives through the bundled 7-Zip','2026-11-05','var(--onv)'],
+      ['1.0.54','A Hold button keeps a toast until it is closed','2026-11-05','var(--onv)']
+    ];
+    return {
+      files: F.map((f, i) => ({ name: f[0], what: f[1], size: f[2], sha: f[3], done: this.state.copied === i, notDone: this.state.copied !== i, bg: this.state.copied === i ? 'var(--p)' : 'var(--s3)', ink: this.state.copied === i ? 'var(--onp)' : 'var(--on)', copy: () => this.setState({ copied: i }) })),
+      lines: L.map((l, i) => ({ label: l[0], n: l[1].toLocaleString('en-US'), w: Math.max(1.5, l[1] / 89876 * 100), c: l[2], i })),
+      events: E.map(e => ({ v: e[0], text: e[1], date: e[2], c: e[3] }))
+    };
+  }
+}
+</script>
+</body>
+</html>

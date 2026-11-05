@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Convert media, article</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--pb:#8CF8CF;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;--vio:#CFBCFF;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);min-height:100%}
+.mono{font-family:"Roboto Mono",monospace}
+.icon{width:18px;height:18px;flex:none}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes tabIn{from{opacity:0;transform:translateY(8px) scaleX(.9)}to{opacity:1;transform:none}}
+@keyframes grip{0%,100%{opacity:.4}50%{opacity:1}}
+.r{opacity:0;animation:rise .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--d,0) * 80ms + 80ms)}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+.tab{position:relative;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 10px 0 14px;border-radius:14px 14px 0 0;background:transparent;color:var(--onv);font:500 13px Roboto;border:0;cursor:pointer;animation:tabIn .45s cubic-bezier(.3,1.4,.5,1) both;animation-delay:calc(var(--i) * 60ms);transition:background .25s,color .25s}
+.tab:hover{background:var(--s1)}
+.tab[aria-selected=true]{background:var(--s1);color:var(--on)}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2px;border-radius:2px;background:var(--p)}
+.grp{width:4px;height:18px;border-radius:2px}
+.x{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;color:var(--onv)}
+.toc a{display:block;padding:9px 14px;border-radius:12px;color:var(--onv);text-decoration:none;font:500 14px/1.35 Roboto;transition:background .25s,color .25s,transform .35s cubic-bezier(.3,1.4,.5,1)}
+.toc a:hover{background:var(--s2);color:var(--on);transform:translateX(3px)}
+.toc a[aria-current=true]{background:rgba(111,219,180,.12);color:var(--p)}
+.handle{width:14px;margin:0 -7px;cursor:col-resize;display:grid;place-items:center;position:relative;z-index:2;touch-action:none}
+.handle span{width:4px;height:56px;border-radius:4px;background:var(--line);transition:background .25s,height .35s cubic-bezier(.3,1.4,.5,1)}
+.handle:hover span,.handle[data-drag=true] span{background:var(--p);height:96px}
+.prose p,.prose li{font:400 17px/1.7 Roboto;color:var(--onv)}
+.prose h2{font:700 30px/1.15 Roboto;letter-spacing:-.02em;margin:48px 0 12px;color:var(--on)}
+.prose code{font:500 15px "Roboto Mono";padding:2px 7px;border-radius:7px;background:var(--s3);color:var(--pb)}
+.sug{display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:24px;background:var(--s1);text-decoration:none;color:var(--on);transition:transform .45s cubic-bezier(.3,1.4,.5,1),background .3s}
+.sug:hover{transform:translateY(-4px);background:var(--s2)}
+.menu{position:absolute;z-index:6;min-width:280px;padding:6px;border-radius:20px;background:var(--s2);box-shadow:0 0 0 1px var(--line),0 24px 60px rgba(0,0,0,.6);animation:tabIn .3s cubic-bezier(.3,1.4,.5,1)}
+.menu button{display:flex;width:100%;align-items:center;gap:12px;min-height:40px;padding:0 12px;border:0;border-radius:12px;background:transparent;color:var(--on);font:400 14px Roboto;cursor:pointer;text-align:left}
+.menu button:hover{background:var(--s3)}
+.kbd{margin-left:auto;font:500 11px "Roboto Mono";padding:3px 7px;border-radius:6px;background:var(--s3);color:var(--onv)}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+@media (max-width:760px){
+.mt .wrap{padding-left:20px!important;padding-right:20px!important}
+.mt [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+.mt h1{font-size:46px!important;line-height:1!important}
+.mt h2{font-size:30px!important}
+.mt [style*="margin-right:-240px"]{margin-right:-20px!important}
+.mt [style*="columns:4"]{columns:1!important}
+.mt nav,.mt [role=tablist]{overflow-x:auto;max-width:100%}
+.mt [style*="max-width:360px"],.mt [style*="max-width:980px"]{max-width:none!important;flex-basis:100%!important}
+.mt [style*="padding:44px"],.mt [style*="padding:48px"],.mt [style*="padding:72px 64px"],.mt [style*="padding:48px 64px"]{padding:24px 20px!important}
+.mt .wire,.mt aside,.mt .handle{display:none!important}
+.mt [aria-label="Three real toasts, one after another"]{position:relative!important;right:auto!important;bottom:auto!important;margin-top:16px}
+.mt .strip{flex-wrap:nowrap;overflow-x:auto}
+.mt{overflow-x:clip}
+.mt .row{grid-template-columns:minmax(0,1fr)!important}
+.mt .dl{grid-template-columns:minmax(0,1fr) auto!important}
+.mt .barrow{grid-template-columns:110px minmax(0,1fr) 64px!important}
+.mt main{padding:24px 20px 64px!important;box-sizing:border-box}
+.mt code{word-break:break-all}
+.mt [style*="repeat(4,minmax(0,1fr))"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.mt img[style*="left:-110px"]{left:-8px!important;width:200px!important}
+}
+</style>
+</helmet>
+<div class="mt" style="user-select:{{sel}}" onPointerMove="{{onMove}}" onPointerUp="{{onUp}}">
+<div style="position:sticky;top:0;z-index:5;background:var(--ink)">
+<div style="height:3px;background:var(--s2)"><div style="height:100%;width:38%;background:var(--p);transition:width .3s"></div></div>
+<div style="display:flex;align-items:center;gap:16px;padding:10px 24px 0;border-bottom:1px solid var(--line)">
+<a href="Main.dc.html" aria-label="Monitoring Tools home" style="width:34px;height:34px;border-radius:11px;background:var(--p);color:var(--onp);display:grid;place-items:center;margin-bottom:8px"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"></path></svg></a>
+<div role="tablist" aria-label="Open pages" style="display:flex;gap:2px;align-items:flex-end;flex:1;min-width:0;overflow-x:auto">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+<button class="tab" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" onContextMenu="{{t.menu}}" style="--i:{{t.i}}"><span class="grp" style="background:{{t.color}}"></span><sc-if value="{{t.pinned}}" hint-placeholder-val="{{ false }}"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-label="Pinned" style="width:14px;height:14px;color:var(--p)"><path d="M14 3l7 7-3 1-4 4 1 5-2 1-4-4-5 5-1-1 5-5-4-4 1-2 5 1 4-4z"></path></svg></sc-if>{{t.label}}<span class="x" aria-hidden="true">×</span></button>
+</sc-for>
+<button class="tab" aria-label="New tab" style="--i:5;padding:0 14px">+</button>
+</div>
+<button aria-label="Search open tabs" style="margin-bottom:8px;min-height:36px;padding:0 12px;border:0;border-radius:999px;background:var(--s1);color:var(--onv);font:500 12px 'Roboto Mono';cursor:pointer">Tabs ▾ 4</button>
+</div>
+</div>
+
+<div style="display:flex;align-items:stretch;min-height:1600px">
+<aside aria-label="On this page" class="toc" style="width:{{tocW}}px;flex:none;padding:32px 20px;box-sizing:border-box;border-right:1px solid var(--line);position:relative">
+<div style="position:sticky;top:96px;display:flex;flex-direction:column;gap:4px">
+<span class="tag" style="padding:0 14px 10px">On this page</span>
+<a href="#" aria-current="true">Convert a video</a>
+<a href="#">Choose from the full list</a>
+<a href="#">Formats</a>
+<a href="#">A whole folder</a>
+<a href="#">When it fails</a>
+<a href="#">Security</a>
+<a href="#">How it is checked</a>
+<p class="mono" style="margin:18px 14px 0;font-size:11px;color:var(--onv)">Panel {{tocW}} px · drag the edge</p>
+<p class="mono" style="margin:6px 14px 0;font-size:11px;color:var(--onv)">Right-click a tab for its menu</p>
+</div>
+</aside>
+<div class="handle" role="separator" aria-orientation="vertical" aria-label="Resize the contents panel" aria-valuenow="{{tocW}}" aria-valuemin="200" aria-valuemax="420" tabindex="0" data-drag="{{dragS}}" onPointerDown="{{onDown}}"><span></span></div>
+
+<main style="flex:999 1 560px;min-width:0;padding:48px 64px 96px;box-sizing:border-box">
+<div style="max-width:760px">
+<nav aria-label="Breadcrumb" class="r mono" style="--d:0;font-size:12px;color:var(--onv);display:flex;gap:8px"><a href="Docs.dc.html">Docs</a>/<a href="Docs.dc.html">Quick commands</a>/<span>Convert media</span></nav>
+<h1 class="r" style="--d:1;margin:18px 0 0;font:800 72px/.95 Roboto;letter-spacing:-.045em">Convert media</h1>
+<p class="r" style="--d:2;margin:20px 0 0;font:400 21px/1.55 Roboto;color:var(--on)">Copy a file path, add <code class="mono" style="font-size:18px;padding:2px 8px;border-radius:8px;background:var(--s3);color:var(--pb)">:format</code> on the end, and the converted file appears next to the original with the same name.</p>
+<div class="r" style="--d:3;display:flex;gap:8px;flex-wrap:wrap;margin-top:20px"><span class="mono" style="font-size:12px;padding:6px 12px;border-radius:999px;background:var(--s2);color:var(--onv)">4 min read</span><span class="mono" style="font-size:12px;padding:6px 12px;border-radius:999px;background:rgba(111,219,180,.12);color:var(--p)">Shipped in v1.0.57</span><span class="mono" style="font-size:12px;padding:6px 12px;border-radius:999px;background:var(--s2);color:var(--onv)">46 formats</span></div>
+<figure class="r" style="--d:4;margin:36px 0 0;border-radius:24px;overflow:hidden;background:var(--s3);padding:10px 10px 0">
+<img src="../../docs/screenshots/convert-dialog.png" alt="The Convert to dialog listing formats grouped by Video, Audio and Pictures" style="width:100%;display:block;border-radius:16px 16px 0 0">
+</figure>
+<figcaption class="mono" style="margin-top:10px;font-size:12px;color:var(--onv)">Real capture of the Convert to dialog, release v1.0.57.</figcaption>
+<div class="prose">
+<h2>Convert a video</h2>
+<ol style="margin:0;padding-left:22px">
+<li>Copy the file's path, for example <code>D:\Footage\clip.mov</code>.</li>
+<li>Make the copied text end in <code>:mp4</code> and copy that.</li>
+<li>A toast reports progress, then the result.</li>
+</ol>
+<div style="margin:24px 0 0;padding:20px 22px;border-radius:20px;background:rgba(156,203,255,.08);box-shadow:inset 0 0 0 1px rgba(156,203,255,.25);display:flex;gap:14px">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--sky);margin-top:3px"><path d="M12 8v5M12 16h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"></path></svg>
+<p style="margin:0;font:400 15px/1.6 Roboto;color:var(--on)">An existing file is never overwritten. A number is added instead, and the line above the buttons names the exact file that will be written.</p>
+</div>
+<h2>Choose from the full list</h2>
+<p>Press Convert on the toast of a copied video, audio or picture file. A dialog lists every format the file can become, grouped into Video, Audio, and Pictures and animations.</p>
+</div>
+<section aria-label="Suggested articles" style="margin-top:64px;padding-top:28px;border-top:1px solid var(--line)">
+<span class="tag">Suggested next</span>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px">
+<a class="sug" href="#"><span class="mono" style="font-size:11px;color:var(--sky)">Prerequisite</span><span style="font:600 17px Roboto">Quick commands</span><span style="font:400 14px/1.45 Roboto;color:var(--onv)">How suffixes on a copied path work.</span></a>
+<a class="sug" href="#"><span class="mono" style="font-size:11px;color:var(--p)">Related</span><span style="font:600 17px Roboto">Clipboard toasts</span><span style="font:400 14px/1.45 Roboto;color:var(--onv)">The format chips on a media toast.</span></a>
+<a class="sug" href="#"><span class="mono" style="font-size:11px;color:var(--amb)">Next step</span><span style="font:600 17px Roboto">Custom shortcuts</span><span style="font:400 14px/1.45 Roboto;color:var(--onv)">Run your own script on a copied path.</span></a>
+</div>
+<p class="mono" style="margin:20px 0 0;font-size:12px;color:var(--onv)">Source file: docs/features/commands/convert-media.md on GitHub (optional)</p>
+</section>
+</div>
+</main>
+</div>
+
+<sc-if value="{{menuOn}}" hint-placeholder-val="{{ false }}">
+<div class="menu" role="menu" aria-label="Tab actions" style="left:{{menuX}}px;top:62px">
+<div style="padding:6px 6px 8px"><input aria-label="Filter actions" placeholder="Filter actions" style="width:100%;box-sizing:border-box;min-height:36px;padding:0 12px;border:0;border-radius:10px;background:var(--s3);color:var(--on);font:400 13px Roboto;outline:none"></div>
+<button role="menuitem" onClick="{{closeMenu}}">Pin tab<span class="kbd">Ctrl P</span></button>
+<button role="menuitem" onClick="{{closeMenu}}">Add to group<span class="kbd">Ctrl G</span></button>
+<button role="menuitem" onClick="{{closeMenu}}">Duplicate<span class="kbd">Ctrl Shift D</span></button>
+<button role="menuitem" onClick="{{closeMenu}}">Move to new window<span class="kbd">Ctrl Shift N</span></button>
+<button role="menuitem" onClick="{{closeMenu}}">Edit appearance…<span class="kbd">Ctrl E</span></button>
+<button role="menuitem" onClick="{{closeMenu}}" style="color:#FFB4AB">Close tab<span class="kbd">Ctrl W</span></button>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2040}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { w: 280, drag: false, tab: 1, menu: -1 }; }
+  renderVals() {
+    const list = [['Home', 'var(--line)', true], ['Convert media', 'var(--p)', false], ['Quick commands', 'var(--p)', false], ['Internet watch', 'var(--amb)', false]];
+    const tabs = list.map(([label, color, pinned], i) => ({ label, color, pinned, i, on: String(i === this.state.tab), pick: () => this.setState({ tab: i, menu: -1 }), menu: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ menu: i }); } }));
+    return {
+      tabs, tocW: this.state.w, dragS: String(this.state.drag), sel: this.state.drag ? 'none' : 'auto',
+      onDown: (e) => { this.setState({ drag: true, x0: e.clientX, w0: this.state.w }); },
+      onMove: (e) => { if (!this.state.drag) return; const w = Math.max(200, Math.min(420, this.state.w0 + e.clientX - this.state.x0)); this.setState({ w }); },
+      onUp: () => { if (this.state.drag) this.setState({ drag: false }); },
+      menuOn: this.state.menu >= 0, menuX: 90 + Math.max(0, this.state.menu) * 150, closeMenu: () => this.setState({ menu: -1 })
+    };
+  }
+}
+</script>
+</body>
+</html>

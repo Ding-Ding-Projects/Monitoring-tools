@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>What happens when you copy a file path</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--pb:#8CF8CF;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;--grid:rgba(111,219,180,.07);font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);min-height:100vh}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px;box-sizing:border-box}
+.mono{font-family:"Roboto Mono",monospace}
+.icon{width:20px;height:20px;flex:none}
+.grid{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:48px 48px}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+@keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.6);opacity:0}}
+@keyframes flow{to{background-position:28px 0}}
+@keyframes swap{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.node{position:relative;display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:22px;border:0;text-align:left;cursor:pointer;min-height:132px;box-sizing:border-box;font:inherit;transition:background .4s,color .4s,transform .5s cubic-bezier(.3,1.4,.5,1),box-shadow .4s}
+.node:hover{transform:translateY(-3px)}
+.num{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:600 12px "Roboto Mono";transition:background .4s,color .4s}
+.wire{height:3px;border-radius:3px;align-self:center;background-image:linear-gradient(90deg,var(--p) 50%,transparent 50%);background-size:14px 3px;transition:opacity .4s}
+.wire.live{animation:flow .6s linear infinite}
+.ring{position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:var(--p);animation:ping 1.4s cubic-bezier(0,0,.2,1) infinite}
+.ctl{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 20px;border-radius:999px;border:0;cursor:pointer;font:600 14px Roboto;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),background .3s}
+.ctl:hover{border-radius:14px}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--s1)}
+.seg button{min-height:40px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--onv);font:500 13px Roboto;cursor:pointer;transition:background .3s,color .3s}
+.seg button[aria-pressed=true]{background:var(--s3);color:var(--on)}
+.explain{animation:swap .45s cubic-bezier(.2,.8,.2,1)}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important}}
+@media (max-width:760px){
+.mt .wrap{padding-left:20px!important;padding-right:20px!important}
+.mt [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+.mt h1{font-size:46px!important;line-height:1!important}
+.mt h2{font-size:30px!important}
+.mt [style*="margin-right:-240px"]{margin-right:-20px!important}
+.mt [style*="columns:4"]{columns:1!important}
+.mt nav,.mt [role=tablist]{overflow-x:auto;max-width:100%}
+.mt [style*="max-width:360px"],.mt [style*="max-width:980px"]{max-width:none!important;flex-basis:100%!important}
+.mt [style*="padding:44px"],.mt [style*="padding:48px"],.mt [style*="padding:72px 64px"],.mt [style*="padding:48px 64px"]{padding:24px 20px!important}
+.mt .wire,.mt aside,.mt .handle{display:none!important}
+.mt [aria-label="Three real toasts, one after another"]{position:relative!important;right:auto!important;bottom:auto!important;margin-top:16px}
+.mt .strip{flex-wrap:nowrap;overflow-x:auto}
+.mt{overflow-x:clip}
+.mt .row{grid-template-columns:minmax(0,1fr)!important}
+.mt .dl{grid-template-columns:minmax(0,1fr) auto!important}
+.mt .barrow{grid-template-columns:110px minmax(0,1fr) 64px!important}
+.mt main{padding:24px 20px 64px!important;box-sizing:border-box}
+.mt code{word-break:break-all}
+.mt [style*="repeat(4,minmax(0,1fr))"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.mt img[style*="left:-110px"]{left:-8px!important;width:200px!important}
+}
+</style>
+</helmet>
+<div class="mt grid">
+<section class="wrap" style="padding-top:64px;padding-bottom:72px;display:flex;flex-direction:column;gap:32px">
+<div style="display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap">
+<div style="display:flex;flex-direction:column;gap:12px">
+<span class="tag" style="color:var(--sky)">Interactive diagram · illustration, not the running app</span>
+<h1 style="margin:0;font:800 64px/.95 Roboto;letter-spacing:-.04em;max-width:16ch">What happens when you copy a <span style="color:var(--p)">file path</span></h1>
+</div>
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+<div class="seg" role="group" aria-label="What you do with the toast">
+<button aria-pressed="{{hoverYes}}" onClick="{{setHover}}">I hover the toast</button>
+<button aria-pressed="{{hoverNo}}" onClick="{{setNoHover}}">I ignore it</button>
+</div>
+<button class="ctl" style="background:var(--s3);color:var(--on)" onClick="{{toggle}}" aria-label="{{playLabel}}"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="{{playIcon}}"></path></svg>{{playLabel}}</button>
+<button class="ctl" style="background:var(--p);color:var(--onp)" onClick="{{replay}}"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4"></path></svg>Replay</button>
+</div>
+</div>
+
+<ol aria-label="Workflow steps" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 28px 1fr 28px 1fr 28px 1fr 28px 1fr 28px 1fr;align-items:stretch">
+<sc-for list="{{nodes}}" as="n" hint-placeholder-count="6">
+<li style="display:contents">
+<button class="node" aria-current="{{n.cur}}" onClick="{{n.pick}}" style="background:{{n.bg}};color:{{n.ink}};box-shadow:{{n.shadow}};opacity:{{n.op}}">
+<sc-if value="{{n.isCur}}" hint-placeholder-val="{{ false }}"><span class="ring" aria-hidden="true"></span></sc-if>
+<span class="num" style="background:{{n.numBg}};color:{{n.numInk}};position:relative">{{n.k}}</span>
+<span style="font:600 15px/1.3 Roboto">{{n.title}}</span>
+<span class="mono" style="font-size:11px;opacity:.75">{{n.where}}</span>
+</button>
+<sc-if value="{{n.wire}}" hint-placeholder-val="{{ true }}"><span class="{{n.wireCls}}" aria-hidden="true" style="opacity:{{n.wireOp}}"></span></sc-if>
+</li>
+</sc-for>
+</ol>
+
+<div style="display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:20px">
+<div class="explain" style="padding:36px;border-radius:32px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:14px;min-height:300px;box-sizing:border-box">
+<span class="tag">Step {{curK}} of 6 · {{curWhere}}</span>
+<h2 style="margin:0;font:700 36px/1.1 Roboto;letter-spacing:-.025em">{{curTitle}}</h2>
+<p style="margin:0;font:400 18px/1.6 Roboto;color:var(--onv);max-width:52ch">{{curText}}</p>
+<div style="margin-top:auto;display:flex;gap:6px" aria-hidden="true"><sc-for list="{{dots}}" as="d" hint-placeholder-count="6"><span style="height:6px;width:{{d.w}}px;border-radius:6px;background:{{d.c}};transition:width .45s cubic-bezier(.3,1.4,.5,1),background .3s"></span></sc-for></div>
+</div>
+<div style="padding:28px;border-radius:32px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:12px">
+<span class="tag" style="color:var(--onv)">Text version</span>
+<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font:400 14px/1.5 Roboto;color:var(--onv)">
+<li>You copy <code class="mono" style="color:var(--pb)">D:\Footage\clip.mov:mp4</code>.</li>
+<li>The clipboard watcher sees new text.</li>
+<li>It is recognised as a media path with a quick command.</li>
+<li>A toast shows bottom right for 3 s; hovering keeps it open.</li>
+<li>The bundled FFmpeg converts beside the original.</li>
+<li>The toast reports the new file; nothing is overwritten.</li>
+</ol>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":820}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { step: 2, play: true, hover: true }; }
+  componentDidMount(){ this.t = setInterval(() => { if (this.state.play) this.setState({ step: (this.state.step + 1) % 6 }); }, 2600); }
+  componentWillUnmount(){ clearInterval(this.t); }
+  renderVals() {
+    const hv = this.state.hover;
+    const S = [
+      ['You copy a path','Your clipboard','You copy D:\\Footage\\clip.mov with :mp4 on the end. Nothing else to open or click.'],
+      ['The watcher notices','Clipboard watcher','The app listens for clipboard changes the way Windows tells it to. It reads the new text once and never sends it anywhere.'],
+      ['It reads what you copied','Content check','The text is a real file path, the file is a video, and it ends in a known quick command. So this is a conversion, not plain text.'],
+      [hv ? 'The toast waits for you' : 'The toast shows, then goes', 'Toast, bottom right', hv ? 'A toast appears bottom right, always on top. Because you hover it, it stays and shows the actions for a video: other formats, open, show in folder.' : 'A toast appears bottom right for 3 seconds and fades. The conversion carries on without it; you can find it later in Activity.'],
+      ['FFmpeg converts it','Bundled FFmpeg','The bundled FFmpeg writes clip.mp4 beside the original. It runs offline and the toast shows progress.'],
+      ['You get the result','Result toast','The toast names the new file and its size. An existing file is never overwritten; a number is added instead.']
+    ];
+    const cur = this.state.step;
+    const nodes = S.map(([title, where], i) => {
+      const done = i < cur, now = i === cur;
+      return { k: i + 1, title, where, isCur: now, cur: String(now),
+        bg: now ? 'var(--p)' : done ? 'var(--s3)' : 'var(--s1)', ink: now ? 'var(--onp)' : 'var(--on)',
+        shadow: now ? '0 20px 50px -18px rgba(111,219,180,.7)' : 'inset 0 0 0 1px var(--line)', op: (!hv && i === 3) ? (now ? 1 : .85) : 1,
+        numBg: now ? 'var(--onp)' : done ? 'var(--p)' : 'var(--s3)', numInk: now ? 'var(--p)' : done ? 'var(--onp)' : 'var(--onv)',
+        wire: i < 5, wireCls: i === cur ? 'wire live' : 'wire', wireOp: i < cur ? 1 : i === cur ? 1 : .25,
+        pick: () => this.setState({ step: i, play: false }) };
+    });
+    return {
+      nodes, curK: cur + 1, curTitle: S[cur][0], curWhere: S[cur][1], curText: S[cur][2],
+      dots: S.map((_, i) => ({ w: i === cur ? 36 : 10, c: i <= cur ? 'var(--p)' : 'var(--s3)' })),
+      playLabel: this.state.play ? 'Pause' : 'Play', playIcon: this.state.play ? 'M7 5h4v14H7zM13 5h4v14h-4z' : 'M8 5l11 7-11 7z',
+      toggle: () => this.setState({ play: !this.state.play }), replay: () => this.setState({ step: 0, play: true }),
+      hoverYes: String(hv), hoverNo: String(!hv), setHover: () => this.setState({ hover: true }), setNoHover: () => this.setState({ hover: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

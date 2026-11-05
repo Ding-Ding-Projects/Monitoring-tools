@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Locks, codes, notifications and dim sum</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--pb:#8CF8CF;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;--vio:#CFBCFF;--err:#FFB4AB;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);min-height:100vh;position:relative;overflow:hidden}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px;box-sizing:border-box}
+.mono{font-family:"Roboto Mono",monospace}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+@keyframes unlock{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes ring{from{stroke-dashoffset:0}to{stroke-dashoffset:176}}
+@keyframes note{0%{opacity:0;transform:translateX(60px)}12%,80%{opacity:1;transform:none}92%,100%{opacity:0;transform:translateX(0) translateY(10px)}}
+@keyframes bao{0%{transform:translateY(40px) scale(.6) rotate(-8deg);opacity:0}55%{transform:translateY(-8px) scale(1.08) rotate(3deg);opacity:1}100%{transform:none;opacity:1}}
+@keyframes steam{0%{transform:translateY(0) scaleX(1);opacity:0}30%{opacity:.8}100%{transform:translateY(-34px) scaleX(1.8);opacity:0}}
+.r{opacity:0;animation:rise .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--d,0) * 70ms + 80ms)}
+.panel{padding:28px;border-radius:30px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden}
+.key{min-height:52px;border:0;border-radius:16px;background:var(--s2);color:var(--on);font:500 18px "Roboto Mono";cursor:pointer;transition:background .2s,transform .3s cubic-bezier(.3,1.4,.5,1),border-radius .3s}
+.key:hover{background:var(--s3)}.key:active{transform:scale(.92);border-radius:26px}
+.pinDot{width:14px;height:14px;border-radius:50%;transition:background .25s,transform .35s cubic-bezier(.3,1.4,.5,1)}
+.rung{display:grid;grid-template-columns:36px minmax(0,1fr);gap:14px;align-items:start}
+.rnum{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font:600 13px "Roboto Mono"}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:999px;border:0;cursor:pointer;font:600 14px Roboto;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),transform .3s}
+.btn:hover{border-radius:14px}.btn:active{transform:scale(.96)}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+@media (max-width:760px){
+.mt .wrap{padding-left:20px!important;padding-right:20px!important}
+.mt [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+.mt h1{font-size:46px!important;line-height:1!important}
+.mt h2{font-size:30px!important}
+.mt [style*="margin-right:-240px"]{margin-right:-20px!important}
+.mt [style*="columns:4"]{columns:1!important}
+.mt nav,.mt [role=tablist]{overflow-x:auto;max-width:100%}
+.mt [style*="max-width:360px"],.mt [style*="max-width:980px"]{max-width:none!important;flex-basis:100%!important}
+.mt [style*="padding:44px"],.mt [style*="padding:48px"],.mt [style*="padding:72px 64px"],.mt [style*="padding:48px 64px"]{padding:24px 20px!important}
+.mt .wire,.mt aside,.mt .handle{display:none!important}
+.mt [aria-label="Three real toasts, one after another"]{position:relative!important;right:auto!important;bottom:auto!important;margin-top:16px}
+.mt .strip{flex-wrap:nowrap;overflow-x:auto}
+.mt{overflow-x:clip}
+.mt .row{grid-template-columns:minmax(0,1fr)!important}
+.mt .dl{grid-template-columns:minmax(0,1fr) auto!important}
+.mt .barrow{grid-template-columns:110px minmax(0,1fr) 64px!important}
+.mt main{padding:24px 20px 64px!important;box-sizing:border-box}
+.mt code{word-break:break-all}
+.mt [style*="repeat(4,minmax(0,1fr))"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.mt img[style*="left:-110px"]{left:-8px!important;width:200px!important}
+}
+</style>
+</helmet>
+<div class="mt">
+<section class="wrap" style="padding-top:64px;padding-bottom:28px;display:flex;flex-direction:column;gap:12px">
+<span class="r tag" style="--d:0">Safety, notifications and one surprise</span>
+<h1 class="r" style="--d:1;margin:0;font:800 64px/.95 Roboto;letter-spacing:-.04em;max-width:20ch">Lock what matters. <span style="color:var(--p)">Never get stuck.</span></h1>
+<p class="r" style="--d:2;margin:0;font:400 15px/1.55 Roboto;color:var(--onv);max-width:70ch">On this site, locks and codes are toys kept in your browser to show how the app's real ones behave. They protect nothing, and clearing the site's data removes them.</p>
+</section>
+
+<section class="wrap" style="padding-bottom:96px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start">
+<div class="panel r" style="--d:3">
+<span class="tag">Toy lock on an element</span>
+<div style="padding:20px;border-radius:22px;background:var(--s2);display:flex;flex-direction:column;gap:14px;animation:{{lockAnim}}">
+<div style="display:flex;align-items:center;gap:10px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="color:{{lockColor}};transition:color .3s"><path d="{{lockIcon}}"></path></svg><span style="font:600 16px Roboto">Game mode setting</span><span class="mono" style="margin-left:auto;font-size:11px;color:{{lockColor}}">{{lockText}}</span></div>
+<div style="display:flex;justify-content:center;gap:14px" aria-label="{{entered}} of 4 digits entered"><sc-for list="{{dots}}" as="d" hint-placeholder-count="4"><span class="pinDot" style="background:{{d.c}};transform:scale({{d.s}})"></span></sc-for></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"><sc-for list="{{keys}}" as="k" hint-placeholder-count="12"><button class="key" onClick="{{k.press}}" aria-label="{{k.aria}}">{{k.label}}</button></sc-for></div>
+</div>
+<p class="mono" style="margin:0;font-size:11px;color:var(--onv)">Example code for this design: 2468. Wrong codes shake; the right one springs open.</p>
+</div>
+
+<div class="panel r" style="--d:4">
+<span class="tag" style="color:var(--amb)">The unlock ladder</span>
+<p style="margin:0;font:400 14px/1.5 Roboto;color:var(--onv)">Forgot the code? Play your way out, the same rungs as the app.</p>
+<sc-for list="{{rungs}}" as="g" hint-placeholder-count="4">
+<button onClick="{{g.pick}}" class="rung" style="border:0;background:transparent;color:var(--on);text-align:left;padding:0;cursor:pointer">
+<span class="rnum" style="background:{{g.bg}};color:{{g.ink}};transition:background .35s,color .35s">{{g.n}}</span>
+<span style="display:flex;flex-direction:column;gap:3px;padding-top:2px"><span style="font:600 15px Roboto">{{g.title}}</span><span style="font:400 13px/1.45 Roboto;color:var(--onv)">{{g.body}}</span></span>
+</button>
+</sc-for>
+<div style="height:6px;border-radius:6px;background:var(--s3);overflow:hidden"><div style="height:100%;width:{{ladderPct}}%;background:var(--amb);border-radius:6px;transition:width .6s cubic-bezier(.3,1.4,.5,1)"></div></div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<div class="panel r" style="--d:5;flex-direction:row;align-items:center;gap:18px">
+<svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true" style="flex:none;transform:rotate(-90deg)"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--s3)" stroke-width="5"></circle><circle cx="32" cy="32" r="28" fill="none" stroke="var(--p)" stroke-width="5" stroke-linecap="round" stroke-dasharray="176" style="animation:ring 30s linear infinite"></circle></svg>
+<span style="display:flex;flex-direction:column;gap:4px"><span class="tag" style="color:var(--sky)">Authenticator</span><span class="mono" style="font:600 30px 'Roboto Mono';letter-spacing:.08em">482 913</span><span style="font:400 12px Roboto;color:var(--onv)">Example code, not a real account. Scan a QR to add one.</span></span>
+</div>
+<div class="panel r" style="--d:6;min-height:230px">
+<span class="tag" style="color:var(--vio)">Notifications that never block</span>
+<p style="margin:0;font:400 14px/1.5 Roboto;color:var(--onv)">They slide in at the corner, wait their turn, and stay in the notification centre afterwards.</p>
+<div style="position:absolute;right:16px;bottom:16px;left:16px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:18px;background:var(--s3);box-shadow:0 12px 30px rgba(0,0,0,.45);animation:note 6s cubic-bezier(.2,.8,.2,1) infinite"><span style="width:10px;height:10px;border-radius:50%;background:var(--p)"></span><span style="font:500 14px Roboto">Settings exported</span><span class="mono" style="margin-left:auto;font-size:11px;color:var(--onv)">Undo</span></div>
+<div style="display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:18px;background:var(--s3);box-shadow:0 12px 30px rgba(0,0,0,.45);animation:note 6s cubic-bezier(.2,.8,.2,1) 1.2s infinite"><span style="width:10px;height:10px;border-radius:50%;background:var(--amb)"></span><span style="font:500 14px Roboto">Tab group restored</span><span class="mono" style="margin-left:auto;font-size:11px;color:var(--onv)">View</span></div>
+</div>
+</div>
+<div class="panel r" style="--d:7;flex-direction:row;align-items:center;gap:18px;background:linear-gradient(var(--s1),var(--s1))">
+<div style="position:relative;width:72px;height:72px;flex:none" aria-hidden="true">
+<sc-if value="{{baoOn}}" hint-placeholder-val="{{ true }}">
+<span style="position:absolute;left:18px;top:-6px;width:8px;height:22px;border-radius:8px;background:rgba(255,255,255,.35);animation:steam 2s ease-out infinite"></span>
+<span style="position:absolute;left:38px;top:-10px;width:8px;height:22px;border-radius:8px;background:rgba(255,255,255,.3);animation:steam 2s ease-out .7s infinite"></span>
+<span style="position:absolute;inset:12px 4px 4px;border-radius:50% 50% 44% 44%;background:#FFF3DC;box-shadow:inset 0 -8px 0 #F2DDB5;animation:bao .7s cubic-bezier(.3,1.4,.5,1)"></span>
+</sc-if>
+</div>
+<span style="display:flex;flex-direction:column;gap:6px;flex:1"><span class="tag" style="color:var(--amb)">Dim sum surprise</span><span style="font:500 14px/1.4 Roboto">{{baoText}}</span></span>
+<button class="btn" style="background:var(--amb);color:#2B1700" onClick="{{bao}}">{{baoBtn}}</button>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1020}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { pin: '', status: 'locked', n: 0, rung: 1, bao: true };}
+  renderVals() {
+    const st = this.state;
+    const press = (d) => () => {
+      if (st.status === 'open') return;
+      if (d === 'del') return this.setState({ pin: st.pin.slice(0, -1), status: 'locked' });
+      if (d === 'ok' || st.pin.length >= 4) return;
+      const pin = st.pin + d;
+      if (pin.length < 4) return this.setState({ pin, status: 'locked' });
+      if (pin === '2468') this.setState({ pin, status: 'open', n: st.n + 1 });
+      else { this.setState({ pin, status: 'wrong', n: st.n + 1 }); setTimeout(() => this.setState({ pin: '', status: 'locked' }), 650); }
+    };
+    const labels = ['1','2','3','4','5','6','7','8','9','del','0','ok'];
+    const s = st.status;
+    const R = [['Dim sum','One dish described in words, four choices. Five wrong picks send you to the sums.'],['Ten easy sums','Every answer must be right. One wrong sum drops you to whack-a-mole.'],['Whack-a-mole','A 15 second round on a 3 by 3 grid. A lost round drops you to the clock.'],['The clock','The ladder waits a while before it is offered again.']];
+    return {
+      lockAnim: s === 'wrong' ? 'shake .5s' : s === 'open' ? 'unlock .5s cubic-bezier(.3,1.4,.5,1)' : 'none',
+      lockColor: s === 'open' ? 'var(--p)' : s === 'wrong' ? 'var(--err)' : 'var(--amb)',
+      lockText: s === 'open' ? 'Unlocked' : s === 'wrong' ? 'Wrong code' : 'Locked',
+      lockIcon: s === 'open' ? 'M7 11V7a5 5 0 0 1 9.6-2M5 11h14v10H5z' : 'M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z',
+      entered: st.pin.length,
+      dots: [0,1,2,3].map(i => ({ c: i < st.pin.length ? (s === 'wrong' ? 'var(--err)' : 'var(--p)') : '#4A5751', s: i < st.pin.length ? 1.15 : 1 })),
+      keys: labels.map(l => ({ label: l === 'del' ? '⌫' : l === 'ok' ? '↵' : l, aria: l === 'del' ? 'Delete' : l === 'ok' ? 'Enter' : 'Digit ' + l, press: press(l) })),
+      rungs: R.map((r, i) => ({ n: i + 1, title: r[0], body: r[1], bg: i < st.rung ? 'var(--amb)' : 'var(--s3)', ink: i < st.rung ? '#2B1700' : 'var(--onv)', pick: () => this.setState({ rung: i + 1 }) })),
+      ladderPct: st.rung * 25,
+      baoOn: st.bao, baoText: st.bao ? 'Steamed Custard Bao, the code name of v1.0.57. Turns up now and then; off in Settings.' : 'No dim sum right now. Press for a fresh one.',
+      baoBtn: st.bao ? 'Hide' : 'Steam one', bao: () => this.setState({ bao: !st.bao })
+    };
+  }
+}
+</script>
+</body>
+</html>

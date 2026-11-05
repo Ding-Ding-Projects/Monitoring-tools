@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Command palette</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--pb:#8CF8CF;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;--grid:rgba(111,219,180,.07);font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);min-height:100vh;position:relative;overflow:hidden}
+.mono{font-family:"Roboto Mono",monospace}
+.icon{width:18px;height:18px;flex:none}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+@keyframes type{from{width:0}to{width:14ch}}
+@keyframes caret{50%{border-color:transparent}}
+@keyframes pop{from{opacity:0;transform:translateY(-14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes res{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+@keyframes spot{0%{box-shadow:0 0 0 0 rgba(111,219,180,.8),0 0 0 4px var(--ink)}70%{box-shadow:0 0 0 22px rgba(111,219,180,0),0 0 0 4px var(--ink)}100%{box-shadow:0 0 0 0 rgba(111,219,180,0),0 0 0 4px var(--ink)}}
+.grid{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:48px 48px}
+.res{display:flex;align-items:center;gap:14px;min-height:56px;padding:0 14px;border-radius:16px;color:var(--on);text-decoration:none;opacity:0;animation:res .45s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i) * 70ms + 1.3s);transition:background .25s}
+.res[aria-selected=true]{background:var(--s3)}
+.res:hover{background:var(--s2)}
+.ico{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--s3);color:var(--p);flex:none}
+.res[aria-selected=true] .ico{background:var(--p);color:var(--onp)}
+.kbd{font:500 11px "Roboto Mono";padding:3px 7px;border-radius:6px;background:var(--s3);color:var(--onv);box-shadow:inset 0 -1px 0 var(--line)}
+mark{background:rgba(111,219,180,.25);color:var(--pb);border-radius:4px;padding:0 1px}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;opacity:1!important;width:auto!important}}
+@media (max-width:760px){
+.mt .wrap{padding-left:20px!important;padding-right:20px!important}
+.mt [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+.mt h1{font-size:46px!important;line-height:1!important}
+.mt h2{font-size:30px!important}
+.mt [style*="margin-right:-240px"]{margin-right:-20px!important}
+.mt [style*="columns:4"]{columns:1!important}
+.mt nav,.mt [role=tablist]{overflow-x:auto;max-width:100%}
+.mt [style*="max-width:360px"],.mt [style*="max-width:980px"]{max-width:none!important;flex-basis:100%!important}
+.mt [style*="padding:44px"],.mt [style*="padding:48px"],.mt [style*="padding:72px 64px"],.mt [style*="padding:48px 64px"]{padding:24px 20px!important}
+.mt .wire,.mt aside,.mt .handle{display:none!important}
+.mt [aria-label="Three real toasts, one after another"]{position:relative!important;right:auto!important;bottom:auto!important;margin-top:16px}
+.mt .strip{flex-wrap:nowrap;overflow-x:auto}
+.mt{overflow-x:clip}
+.mt .row{grid-template-columns:minmax(0,1fr)!important}
+.mt .dl{grid-template-columns:minmax(0,1fr) auto!important}
+.mt .barrow{grid-template-columns:110px minmax(0,1fr) 64px!important}
+.mt main{padding:24px 20px 64px!important;box-sizing:border-box}
+.mt code{word-break:break-all}
+.mt [style*="repeat(4,minmax(0,1fr))"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.mt img[style*="left:-110px"]{left:-8px!important;width:200px!important}
+}
+</style>
+</helmet>
+<div class="mt grid">
+<div aria-hidden="true" style="position:absolute;inset:0;padding:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;opacity:.35;filter:blur(2px)">
+<div style="border-radius:28px;background:var(--s1)"></div><div style="border-radius:28px;background:var(--s1)"></div><div style="border-radius:28px;background:var(--s1)"></div>
+</div>
+<div style="position:absolute;inset:0;background:rgba(3,6,5,.55);backdrop-filter:blur(4px)" aria-hidden="true"></div>
+
+<div style="position:relative;display:grid;grid-template-columns:minmax(0,640px) minmax(0,1fr);gap:48px;padding:72px 64px;align-items:start;max-width:1400px;margin:0 auto">
+<div role="dialog" aria-label="Command palette" style="border-radius:30px;background:var(--s1);box-shadow:0 0 0 1px var(--line),0 40px 100px rgba(0,0,0,.7);overflow:hidden;animation:pop .5s cubic-bezier(.3,1.3,.5,1) .2s both">
+<div style="display:flex;align-items:center;gap:12px;min-height:68px;padding:0 12px 0 22px;border-bottom:1px solid var(--line)">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--p);width:22px;height:22px"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"></path></svg>
+<span class="mono" style="font-size:18px;overflow:hidden;white-space:nowrap;border-right:2px solid var(--p);animation:type 1s steps(14) .6s both,caret 1s steps(1) infinite;width:14ch">download butt</span>
+<span style="flex:1"></span>
+<button aria-label="Regex builder for the palette" style="min-height:36px;min-width:40px;border:0;border-radius:999px;background:var(--s3);color:var(--p);font:600 13px 'Roboto Mono';cursor:pointer">.*</button>
+<span class="kbd">Esc</span>
+</div>
+<div style="display:flex;gap:6px;padding:12px 16px 4px;flex-wrap:wrap"><span class="kbd" style="background:var(--p);color:var(--onp)">All</span><span class="kbd">Pages</span><span class="kbd">Elements</span><span class="kbd">Settings</span><span class="kbd">Articles</span><span class="kbd">Tabs</span></div>
+<div role="listbox" aria-label="Results" style="padding:8px;display:flex;flex-direction:column;gap:2px">
+<sc-for list="{{results}}" as="r" hint-placeholder-count="5">
+<a class="res" role="option" href="#" aria-selected="{{r.on}}" onClick="{{r.pick}}" style="--i:{{r.i}}">
+<span class="ico"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="{{r.icon}}"></path></svg></span>
+<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font:500 15px Roboto">{{r.title}}</span><span class="mono" style="font-size:11px;color:var(--onv)">{{r.where}}</span></span>
+<span class="kbd" style="margin-left:auto">{{r.kind}}</span>
+</a>
+</sc-for>
+</div>
+<div class="mono" style="display:flex;gap:16px;padding:12px 22px;border-top:1px solid var(--line);font-size:11px;color:var(--onv)"><span>↑↓ move</span><span>Enter jump there</span><span>Ctrl Enter open in new tab</span><span style="margin-left:auto">Ctrl Shift F</span></div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:20px;padding-top:24px">
+<span class="tag">Teleport to the exact element</span>
+<h1 style="margin:0;font:800 56px/.98 Roboto;letter-spacing:-.04em">Ctrl Shift F takes you <span style="color:var(--p)">to the thing</span>, not just the page.</h1>
+<p style="margin:0;font:400 17px/1.6 Roboto;color:var(--onv);max-width:46ch">Pick a result and the site scrolls there, opens any tab or panel on the way, and rings the element so your eye lands on it.</p>
+<div style="position:relative;margin-top:24px;padding:28px;border-radius:28px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden">
+<p class="mono" style="margin:0 0 14px;font-size:11px;color:var(--onv)">Home › hero › {{target}}</p>
+<span style="display:inline-flex;align-items:center;gap:10px;min-height:56px;padding:0 26px;border-radius:999px;background:var(--p);color:var(--onp);font:600 15px Roboto;animation:spot 1.6s cubic-bezier(.2,.8,.2,1) 1.8s infinite;position:relative;z-index:1">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>{{targetLabel}}</span>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":640}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { sel: 0 }; }
+  renderVals() {
+    const R = [
+      ['Download installer button','Element · Home › hero','Element','M12 4v11M7 10l5 5 5-5M5 20h14','Download installer'],
+      ['Download for Windows (phone layout)','Element · Home › hero','Element','M12 4v11M7 10l5 5 5-5M5 20h14','Download for Windows'],
+      ['Downloads and checksums','Page · Releases','Page','M6 3h9l4 4v14H6z','Downloads and checksums'],
+      ['Update in the background','Article · The app itself','Article','M4 12a8 8 0 1 0 3-6.2M4 4v4h4','Update in the background'],
+      ['Install and uninstall','Article · The app itself','Article','M3 12h4l3-7 4 14 3-7h4','Install and uninstall']
+    ];
+    const s = this.state.sel;
+    return {
+      results: R.map((r, i) => ({ title: r[0], where: r[1], kind: r[2], icon: r[3], i, on: String(i === s), pick: () => this.setState({ sel: i }) })),
+      target: R[s][2] === 'Element' ? 'button' : R[s][1], targetLabel: R[s][4]
+    };
+  }
+}
+</script>
+</body>
+</html>

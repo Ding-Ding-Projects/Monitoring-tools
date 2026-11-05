@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Site settings and appearance</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);min-height:100vh}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px;box-sizing:border-box}
+.mono{font-family:"Roboto Mono",monospace}
+.icon{width:18px;height:18px;flex:none}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes wobble{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+.r{opacity:0;animation:rise .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--d,0) * 70ms + 80ms)}
+.group{padding:28px;border-radius:30px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:18px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center}
+.lbl{display:flex;flex-direction:column;gap:3px}
+.lbl b{font:600 15px Roboto}.lbl span{font:400 13px/1.4 Roboto;color:var(--onv)}
+.info{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--s3);color:var(--onv);font:600 11px Roboto;margin-left:6px;vertical-align:1px}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--s2)}
+.seg button{min-height:40px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--onv);font:500 13px Roboto;cursor:pointer;transition:background .3s,color .3s}
+.seg button[aria-pressed=true]{background:var(--acc);color:var(--onp)}
+.sw{width:44px;height:44px;border-radius:50%;border:0;cursor:pointer;transition:transform .4s cubic-bezier(.3,1.4,.5,1),border-radius .4s cubic-bezier(.3,1.4,.5,1),box-shadow .3s}
+.sw:hover{transform:scale(1.1)}
+.sw[aria-pressed=true]{border-radius:14px;box-shadow:0 0 0 3px var(--ink),0 0 0 5px currentColor}
+input[type=range]{width:220px;accent-color:var(--acc)}
+.tg{position:relative;width:52px;height:32px;border-radius:999px;border:0;cursor:pointer;transition:background .3s}
+.tg i{position:absolute;top:4px;width:24px;height:24px;border-radius:50%;transition:left .4s cubic-bezier(.3,1.4,.5,1),width .3s,background .3s}
+.tg:active i{width:30px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;cursor:pointer;font:600 14px Roboto;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),background .3s}
+.btn:hover{border-radius:14px}
+.prev{transition:font-size .4s cubic-bezier(.2,.8,.2,1)}
+.joke{animation:rise .45s cubic-bezier(.2,.8,.2,1)}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+@media (max-width:760px){
+.mt .wrap{padding-left:20px!important;padding-right:20px!important}
+.mt [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+.mt h1{font-size:46px!important;line-height:1!important}
+.mt h2{font-size:30px!important}
+.mt [style*="margin-right:-240px"]{margin-right:-20px!important}
+.mt [style*="columns:4"]{columns:1!important}
+.mt nav,.mt [role=tablist]{overflow-x:auto;max-width:100%}
+.mt [style*="max-width:360px"],.mt [style*="max-width:980px"]{max-width:none!important;flex-basis:100%!important}
+.mt [style*="padding:44px"],.mt [style*="padding:48px"],.mt [style*="padding:72px 64px"],.mt [style*="padding:48px 64px"]{padding:24px 20px!important}
+.mt .wire,.mt aside,.mt .handle{display:none!important}
+.mt [aria-label="Three real toasts, one after another"]{position:relative!important;right:auto!important;bottom:auto!important;margin-top:16px}
+.mt .strip{flex-wrap:nowrap;overflow-x:auto}
+.mt{overflow-x:clip}
+.mt .row{grid-template-columns:minmax(0,1fr)!important}
+.mt .dl{grid-template-columns:minmax(0,1fr) auto!important}
+.mt .barrow{grid-template-columns:110px minmax(0,1fr) 64px!important}
+.mt main{padding:24px 20px 64px!important;box-sizing:border-box}
+.mt code{word-break:break-all}
+.mt [style*="repeat(4,minmax(0,1fr))"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.mt img[style*="left:-110px"]{left:-8px!important;width:200px!important}
+}
+</style>
+</helmet>
+<div class="mt" style="--acc:{{acc}}">
+<section class="wrap" style="padding-top:64px;padding-bottom:40px;display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap">
+<div style="display:flex;flex-direction:column;gap:12px">
+<span class="r tag" style="--d:0;color:var(--acc)">Settings · this browser only</span>
+<h1 class="r" style="--d:1;margin:0;font:800 72px/.95 Roboto;letter-spacing:-.045em">Make the site <span style="color:var(--acc);transition:color .5s">yours.</span></h1>
+<p class="r" style="--d:2;margin:0;font:400 16px/1.5 Roboto;color:var(--onv);max-width:60ch">Kept in this browser's local storage, never sent anywhere. Clear the site's data in your browser, or press Reset all, to start over. These change the site only, not the app.</p>
+</div>
+<div class="r" style="--d:2;display:flex;gap:8px;flex-wrap:wrap">
+<label for="sq" style="position:absolute;left:-9999px">Search settings</label>
+<div style="display:flex;align-items:center;gap:8px;min-height:48px;padding:0 6px 0 16px;border-radius:999px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);width:300px"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--onv)"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"></path></svg><input id="sq" placeholder="Search settings" style="flex:1;min-width:0;border:0;background:transparent;color:var(--on);font:400 14px Roboto;outline:none"><button aria-label="Regex builder" style="min-height:36px;min-width:40px;border:0;border-radius:999px;background:var(--s3);color:var(--acc);font:600 13px 'Roboto Mono';cursor:pointer">.*</button></div>
+</div>
+</section>
+
+<section class="wrap" style="padding-bottom:96px;display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:20px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:20px">
+
+<div class="group r" style="--d:3">
+<span class="tag" style="color:var(--acc)">Language and voice</span>
+<div class="row"><div class="lbl"><b>Language<span class="info" title="Bilingual shows both languages, English first.">i</span></b><span>Default: English. Bilingual shows Cantonese under each English line.</span></div>
+<div class="seg" role="group" aria-label="Language"><sc-for list="{{langs}}" as="l" hint-placeholder-count="3"><button aria-pressed="{{l.on}}" onClick="{{l.pick}}">{{l.label}}</button></sc-for></div></div>
+<div class="row"><div class="lbl"><b>English humour</b><span>0 is plain. Default 2.</span></div><div style="display:flex;align-items:center;gap:12px"><input type="range" min="0" max="5" value="{{funEn}}" aria-label="English humour level" onInput="{{onFunEn}}"><span class="mono" style="width:16px;color:var(--acc)">{{funEn}}</span></div></div>
+<div class="row"><div class="lbl"><b>Cantonese humour</b><span>Its own slider, separate from English. Default 2.</span></div><div style="display:flex;align-items:center;gap:12px"><input type="range" min="0" max="5" value="{{funYue}}" aria-label="Cantonese humour level" onInput="{{onFunYue}}"><span class="mono" style="width:16px;color:var(--acc)">{{funYue}}</span></div></div>
+<div class="joke" style="padding:16px 18px;border-radius:18px;background:var(--s2);display:flex;gap:12px;align-items:flex-start"><span style="animation:wobble 2.4s ease-in-out infinite;font:600 18px Roboto;color:var(--acc)" aria-hidden="true">“</span><span style="font:400 15px/1.5 Roboto">{{sample}}</span></div>
+</div>
+
+<div class="group r" style="--d:4">
+<span class="tag" style="color:var(--acc)">Colour</span>
+<div class="row"><div class="lbl"><b>Seed colour</b><span>Every colour role is made from this one, in light and dark.</span></div>
+<div style="display:flex;gap:10px"><sc-for list="{{seeds}}" as="c" hint-placeholder-count="5"><button class="sw" aria-label="{{c.name}}" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="background:{{c.hex}};color:{{c.hex}}"></button></sc-for></div></div>
+<div style="display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:stretch">
+<div aria-label="Colour picker: saturation and lightness" style="position:relative;height:150px;border-radius:20px;background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,{{acc}});transition:background .5s">
+<span style="position:absolute;right:26%;top:22%;width:20px;height:20px;border-radius:50%;box-shadow:0 0 0 3px #fff,0 2px 8px rgba(0,0,0,.5);background:{{acc}}"></span>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="height:14px;border-radius:999px;background:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);position:relative" aria-label="Hue"><span style="position:absolute;top:-4px;left:{{hueX}}%;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.5);transition:left .5s cubic-bezier(.3,1.4,.5,1)"></span></div>
+<span class="tag" style="color:var(--onv);margin-top:6px">Colour translator</span>
+<div class="mono" style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px"><span style="color:var(--onv)">HEX</span><span>{{acc}}</span><span style="color:var(--onv)">Name</span><span>{{accName}}</span><span style="color:var(--onv)">HSL</span><span>{{accHsl}}</span><span style="color:var(--onv)">Contrast on ink</span><span style="color:var(--acc)">{{accCr}} · passes</span></div>
+</div>
+</div>
+</div>
+
+<div class="group r" style="--d:5">
+<span class="tag" style="color:var(--acc)">Type, density and motion</span>
+<div class="row"><div class="lbl"><b>Text size</b><span>Default 100 %.</span></div><div class="seg" role="group" aria-label="Text size"><sc-for list="{{sizes}}" as="s" hint-placeholder-count="4"><button aria-pressed="{{s.on}}" onClick="{{s.pick}}">{{s.label}}</button></sc-for></div></div>
+<div class="row"><div class="lbl"><b>Reduce motion</b><span>Default: follow your system. On stops slides, springs and loops.</span></div><button class="tg" role="switch" aria-checked="{{rmS}}" aria-label="Reduce motion" onClick="{{toggleRm}}" style="background:{{tgBg}}"><i style="left:{{tgX}}px;background:{{tgDot}}"></i></button></div>
+<div class="row"><div class="lbl"><b>Edit appearance of one element</b><span>Right-click anything on the site and choose Edit appearance…</span></div><span class="mono" style="font-size:12px;color:var(--onv)">right-click</span></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:20px;position:sticky;top:24px">
+<div class="group r" style="--d:4;overflow:hidden">
+<span class="tag" style="color:var(--onv)">Live preview</span>
+<div style="padding:24px;border-radius:22px;background:var(--s2);display:flex;flex-direction:column;gap:12px">
+<span class="tag" style="color:var(--acc)">Quick commands</span>
+<p class="prev" style="margin:0;font:700 {{h}}px/1.1 Roboto;letter-spacing:-.02em">{{prevTitle}}</p>
+<p class="prev" style="margin:0;font:400 {{b}}px/1.55 Roboto;color:var(--onv)">{{prevBody}}</p>
+<div style="display:flex;gap:8px"><span class="btn" style="background:var(--acc);color:var(--onp);transition:background .5s">Read how</span><span class="btn" style="background:transparent;color:var(--on);box-shadow:inset 0 0 0 1px var(--line)">Later</span></div>
+</div>
+</div>
+<div class="group r" style="--d:5">
+<span class="tag" style="color:var(--acc)">Presets</span>
+<div style="display:flex;flex-direction:column;gap:6px">
+<sc-for list="{{presets}}" as="p" hint-placeholder-count="3"><button onClick="{{p.pick}}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;border:0;border-radius:16px;background:{{p.bg}};color:var(--on);font:500 14px Roboto;cursor:pointer;transition:background .3s"><span style="width:18px;height:18px;border-radius:6px;background:{{p.hex}}"></span>{{p.name}}<span class="mono" style="margin-left:auto;font-size:11px;color:var(--onv)">{{p.note}}</span></button></sc-for>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" style="background:var(--s3);color:var(--on)">Save as preset</button><button class="btn" style="background:var(--s3);color:var(--on)">Export</button><button class="btn" style="background:var(--s3);color:var(--on)">Import</button><button class="btn" style="background:transparent;color:#FFB4AB;box-shadow:inset 0 0 0 1px #5A2A26" onClick="{{resetAll}}">Reset all</button></div>
+</div>
+<div class="group r" style="--d:6">
+<span class="tag" style="color:var(--acc)">What this browser keeps</span>
+<div class="mono" style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;font-size:13px"><span>Settings and presets</span><span style="color:var(--onv)">1.2 KB</span><span>Open tabs, pins, groups</span><span style="color:var(--onv)">0.4 KB</span><span>Toy locks and codes</span><span style="color:var(--onv)">0.3 KB</span><span>Notifications</span><span style="color:var(--onv)">0.6 KB</span></div>
+<p style="margin:0;font:400 13px/1.5 Roboto;color:var(--onv)">Sizes shown are examples for this design. The built site reads the real sizes from local storage.</p>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { lang: 0, fe: 2, fy: 2, seed: 0, size: 1, rm: false, preset: 0 }; }
+  renderVals() {
+    const st = this.state;
+    const seeds = [['Mint','#6FDBB4','hsl(158 60% 65%)',44,'11.8:1'],['Sky','#9CCBFF','hsl(212 100% 81%)',59,'11.7:1'],['Amber','#FFB95F','hsl(34 100% 69%)',9,'11.6:1'],['Violet','#CFBCFF','hsl(257 100% 87%)',71,'11.6:1'],['Coral','#FF8A80','hsl(5 100% 75%)',1,'8.7:1']];
+    const s = seeds[st.seed];
+    const jokes = [
+      ['Your file was converted.','Converted. The original is safe, as always.','Converted. FFmpeg did the heavy lifting; we just pointed.','Done. Your video changed outfits and kept its name.','Done. The old file is untouched, unlike our snack drawer.','Done before your tea went cold. Barely.'],
+      ['檔案轉換好咗。','轉好咗，原本個檔冇郁過。','轉好咗，FFmpeg 出力，我哋負責指路。','搞掂，條片換咗件衫，個名照舊。','搞掂，原本個檔冇人掂過，同我哋啲零食唔同。','搞掂，杯茶仲未凍呀。']
+    ];
+    const langNames = ['English','廣東話','Bilingual'];
+    const en = jokes[0][st.fe], yue = jokes[1][st.fy];
+    const sample = st.lang === 0 ? en : st.lang === 1 ? yue : en + '  ' + yue;
+    const sz = [[0.9,'90 %'],[1,'100 %'],[1.15,'115 %'],[1.3,'130 %']];
+    const k = sz[st.size][0];
+    const presets = [['Night shift','#6FDBB4','default'],['Daylight desk','#9CCBFF','light, 115 %'],['Calm','#CFBCFF','reduce motion']];
+    return {
+      acc: s[1], accName: s[0], accHsl: s[2], hueX: s[3], accCr: s[4],
+      langs: langNames.map((label, i) => ({ label, on: String(i === st.lang), pick: () => this.setState({ lang: i }) })),
+      funEn: st.fe, funYue: st.fy, sample,
+      onFunEn: (e) => this.setState({ fe: Number(e.target.value) }), onFunYue: (e) => this.setState({ fy: Number(e.target.value) }),
+      seeds: seeds.map((c, i) => ({ name: c[0], hex: c[1], on: String(i === st.seed), pick: () => this.setState({ seed: i }) })),
+      sizes: sz.map((z, i) => ({ label: z[1], on: String(i === st.size), pick: () => this.setState({ size: i }) })),
+      h: Math.round(28 * k), b: Math.round(15 * k),
+      prevTitle: st.lang === 1 ? '轉換影片' : 'Convert a video', prevBody: st.lang === 1 ? '複製路徑，加 :mp4，新檔就喺隔籬。' : 'Copy its path with :mp4 and the new file lands beside it.',
+      rmS: String(st.rm), toggleRm: () => this.setState({ rm: !st.rm }), tgBg: st.rm ? s[1] : 'var(--s3)', tgX: st.rm ? 24 : 4, tgDot: st.rm ? 'var(--onp)' : 'var(--onv)',
+      presets: presets.map((p, i) => ({ name: p[0], hex: p[1], note: p[2], bg: i === st.preset ? 'var(--s3)' : 'var(--s2)', pick: () => this.setState({ preset: i, seed: [0,1,3][i], size: i === 1 ? 2 : 1, rm: i === 2 }) })),
+      resetAll: () => this.setState({ lang: 0, fe: 2, fy: 2, seed: 0, size: 1, rm: false, preset: 0 })
+    };
+  }
+}
+</script>
+</body>
+</html>

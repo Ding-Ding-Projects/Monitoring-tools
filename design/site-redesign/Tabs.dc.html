@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tabs and menus</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s:#0C1210;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;--vio:#CFBCFF;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);min-height:100vh}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px;box-sizing:border-box}
+.mono{font-family:"Roboto Mono",monospace}
+.icon{width:16px;height:16px;flex:none}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes menu{from{opacity:0;transform:scale(.94) translateY(-6px);transform-origin:top left}to{opacity:1;transform:none}}
+@keyframes drag{0%,15%{transform:translate(0,0) rotate(0)}30%,55%{transform:translate(176px,-6px) rotate(2deg)}70%,100%{transform:translate(176px,0) rotate(0)}}
+@keyframes makeRoom{0%,15%{transform:none}30%,100%{transform:translateX(-176px)}}
+.r{opacity:0;animation:rise .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--d,0) * 70ms + 80ms)}
+.strip{display:flex;gap:4px;padding:8px;border-radius:22px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);align-items:center}
+.tab{display:flex;align-items:center;gap:8px;min-height:42px;width:172px;padding:0 10px;border-radius:14px;background:var(--s2);color:var(--onv);font:500 13px Roboto;box-sizing:border-box;flex:none;border:0;cursor:pointer;transition:background .3s,color .3s,width .45s cubic-bezier(.3,1.4,.5,1),opacity .3s}
+.tab.on{background:var(--s3);color:var(--on);box-shadow:inset 0 -2px 0 var(--p)}
+.pin{width:42px;padding:0;justify-content:center}
+.chip{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;border-radius:14px;border:0;cursor:pointer;font:600 13px Roboto;flex:none;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1)}
+.chip:hover{border-radius:21px}
+.panel{padding:28px;border-radius:30px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:16px}
+.menu{width:300px;padding:6px;border-radius:20px;background:var(--s2);box-shadow:0 0 0 1px var(--line),0 24px 60px rgba(0,0,0,.6);animation:menu .35s cubic-bezier(.3,1.3,.5,1) .4s both}
+.mi{display:flex;width:100%;align-items:center;gap:12px;min-height:40px;padding:0 12px;border:0;border-radius:12px;background:transparent;color:var(--on);font:400 14px Roboto;text-align:left;cursor:pointer;transition:background .2s}
+.mi:hover,.mi[data-hl=true]{background:var(--s3)}
+.kbd{margin-left:auto;font:500 11px "Roboto Mono";padding:3px 7px;border-radius:6px;background:var(--ink);color:var(--onv)}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--s2)}
+.seg button{min-height:40px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--onv);font:500 13px Roboto;cursor:pointer;transition:background .3s,color .3s}
+.seg button[aria-pressed=true]{background:var(--p);color:var(--onp)}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+@media (max-width:760px){
+.mt .wrap{padding-left:20px!important;padding-right:20px!important}
+.mt [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+.mt h1{font-size:46px!important;line-height:1!important}
+.mt h2{font-size:30px!important}
+.mt [style*="margin-right:-240px"]{margin-right:-20px!important}
+.mt [style*="columns:4"]{columns:1!important}
+.mt nav,.mt [role=tablist]{overflow-x:auto;max-width:100%}
+.mt [style*="max-width:360px"],.mt [style*="max-width:980px"]{max-width:none!important;flex-basis:100%!important}
+.mt [style*="padding:44px"],.mt [style*="padding:48px"],.mt [style*="padding:72px 64px"],.mt [style*="padding:48px 64px"]{padding:24px 20px!important}
+.mt .wire,.mt aside,.mt .handle{display:none!important}
+.mt [aria-label="Three real toasts, one after another"]{position:relative!important;right:auto!important;bottom:auto!important;margin-top:16px}
+.mt .strip{flex-wrap:nowrap;overflow-x:auto}
+.mt{overflow-x:clip}
+.mt .row{grid-template-columns:minmax(0,1fr)!important}
+.mt .dl{grid-template-columns:minmax(0,1fr) auto!important}
+.mt .barrow{grid-template-columns:110px minmax(0,1fr) 64px!important}
+.mt main{padding:24px 20px 64px!important;box-sizing:border-box}
+.mt code{word-break:break-all}
+.mt [style*="repeat(4,minmax(0,1fr))"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.mt img[style*="left:-110px"]{left:-8px!important;width:200px!important}
+}
+</style>
+</helmet>
+<div class="mt">
+<section class="wrap" style="padding-top:64px;padding-bottom:28px;display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap">
+<div style="display:flex;flex-direction:column;gap:12px"><span class="r tag" style="--d:0">Tabs, groups and menus</span><h1 class="r" style="--d:1;margin:0;font:800 64px/.95 Roboto;letter-spacing:-.04em">Keep ten pages open <span style="color:var(--p)">without losing one.</span></h1></div>
+<div class="r seg" role="group" aria-label="Dock the tab strip" style="--d:2"><button aria-pressed="{{topS}}" onClick="{{dockTop}}">Dock on top</button><button aria-pressed="{{leftS}}" onClick="{{dockLeft}}">Dock on the left</button></div>
+</section>
+
+<section class="wrap" style="padding-bottom:28px">
+<div class="r strip" role="tablist" aria-label="Open pages" style="--d:2;flex-direction:{{dir}};align-items:{{align}};width:{{stripW}};overflow:hidden">
+<button class="tab pin" aria-label="Home, pinned"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--p)"><path d="M3 12h4l3-7 4 14 3-7h4"></path></svg></button>
+<button class="tab pin" aria-label="Settings, pinned"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg></button>
+<button class="chip" onClick="{{toggleGroup}}" aria-expanded="{{groupOpenS}}" style="background:rgba(111,219,180,.16);color:var(--p)"><span style="width:8px;height:8px;border-radius:50%;background:var(--p)"></span>Media · 3</button>
+<sc-if value="{{groupOpen}}" hint-placeholder-val="{{ true }}">
+<button class="tab on" role="tab" aria-selected="true" style="animation:drag 4s cubic-bezier(.6,0,.2,1) infinite;position:relative;z-index:2;box-shadow:inset 0 -2px 0 var(--p),0 16px 30px rgba(0,0,0,.5)">Convert media</button>
+<button class="tab" role="tab" aria-selected="false" style="animation:makeRoom 4s cubic-bezier(.6,0,.2,1) infinite">Quick commands</button>
+<button class="tab" role="tab" aria-selected="false">Clipboard toasts</button>
+</sc-if>
+<button class="chip" style="background:rgba(255,185,95,.14);color:var(--amb)"><span style="width:8px;height:8px;border-radius:50%;background:var(--amb)"></span>Network · 2</button>
+<button class="tab" role="tab" aria-selected="false" style="width:120px">Regex builder</button>
+<button class="chip" style="margin-left:auto;background:var(--s3);color:var(--on)" aria-label="4 more tabs">+4 ▾</button>
+</div>
+<p class="mono" style="margin:12px 0 0;font-size:11px;color:var(--onv)">Drag a tab to reorder; the others make room. Order, pins, groups and collapsed groups are kept in this browser.</p>
+</section>
+
+<section class="wrap" style="padding-bottom:80px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start">
+<div class="panel r" style="--d:3">
+<span class="tag" style="color:var(--sky)">Find a tab four ways</span>
+<sc-for list="{{finds}}" as="f" hint-placeholder-count="4">
+<button onClick="{{f.pick}}" style="display:flex;flex-direction:column;gap:4px;padding:14px 16px;border:0;border-radius:18px;background:{{f.bg}};color:var(--on);text-align:left;cursor:pointer;transition:background .3s"><span style="font:600 15px Roboto">{{f.title}}</span><span style="font:400 13px Roboto;color:var(--onv)">{{f.body}}</span></button>
+</sc-for>
+</div>
+<div class="panel r" style="--d:4;position:relative;min-height:420px">
+<span class="tag">Right-click any element</span>
+<p style="margin:0;font:400 15px/1.5 Roboto;color:var(--onv)">Every menu shows the shortcut that does the same thing, and every menu has its own filter.</p>
+<div class="menu" role="menu" aria-label="Menu for the Convert media tab">
+<div style="padding:4px 4px 8px"><input aria-label="Filter actions" value="gr" style="width:100%;box-sizing:border-box;min-height:36px;padding:0 12px;border:0;border-radius:10px;background:var(--s3);color:var(--on);font:400 13px 'Roboto Mono';outline:none"></div>
+<button class="mi" role="menuitem" data-hl="true"><span>Add to <mark style="background:rgba(111,219,180,.25);color:var(--p);border-radius:3px">gr</mark>oup</span><span class="kbd">Ctrl G</span></button>
+<button class="mi" role="menuitem">Ungroup<span class="kbd">Ctrl Shift G</span></button>
+<button class="mi" role="menuitem"><span>Collapse <mark style="background:rgba(111,219,180,.25);color:var(--p);border-radius:3px">gr</mark>oup</span><span class="kbd">Ctrl [</span></button>
+<div style="height:1px;margin:4px 8px;background:var(--line)"></div>
+<button class="mi" role="menuitem">Edit appearance…<span class="kbd">Ctrl E</span></button>
+<button class="mi" role="menuitem">Lock this element…<span class="kbd">Ctrl L</span></button>
+</div>
+</div>
+<div class="panel r" style="--d:5">
+<span class="tag" style="color:var(--vio)">Panels you size yourself</span>
+<p style="margin:0;font:400 15px/1.5 Roboto;color:var(--onv)">Drag any divider. The size is kept for that panel; double-click the divider to put it back.</p>
+<div style="display:flex;height:220px;border-radius:20px;overflow:hidden;background:var(--s2)" aria-label="Resizable panels example">
+<div style="width:{{paneW}}%;transition:width .5s cubic-bezier(.3,1.4,.5,1);padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px"><span class="mono" style="font-size:11px;color:var(--onv)">Contents · {{paneW}} %</span><span style="height:8px;width:70%;border-radius:4px;background:var(--s3)"></span><span style="height:8px;width:52%;border-radius:4px;background:var(--s3)"></span><span style="height:8px;width:64%;border-radius:4px;background:var(--s3)"></span></div>
+<button aria-label="Divider: press to resize" onClick="{{cycle}}" style="width:12px;border:0;background:var(--s1);cursor:col-resize;display:grid;place-items:center"><span style="width:4px;height:48px;border-radius:4px;background:var(--p)"></span></button>
+<div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:8px"><span class="mono" style="font-size:11px;color:var(--onv)">Article</span><span style="height:8px;width:86%;border-radius:4px;background:var(--s3)"></span><span style="height:8px;width:74%;border-radius:4px;background:var(--s3)"></span></div>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":920}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { left: false, group: true, find: 0, pane: 34 }; }
+  renderVals() {
+    const st = this.state;
+    const F = [['Search open tabs','Type part of a title or a regex.'],['Recently closed','Bring back the last 25 you closed.'],['Groups','Jump to a group, expand or collapse it.'],['Every page','Open any page of the site as a new tab.']];
+    const sizes = [26, 34, 44];
+    return {
+      topS: String(!st.left), leftS: String(st.left), dockTop: () => this.setState({ left: false }), dockLeft: () => this.setState({ left: true }),
+      dir: st.left ? 'column' : 'row', align: st.left ? 'stretch' : 'center', stripW: st.left ? '240px' : 'auto',
+      groupOpen: st.group, groupOpenS: String(st.group), toggleGroup: () => this.setState({ group: !st.group }),
+      finds: F.map((f, i) => ({ title: f[0], body: f[1], bg: i === st.find ? 'var(--s3)' : 'var(--s2)', pick: () => this.setState({ find: i }) })),
+      paneW: st.pane, cycle: () => this.setState({ pane: sizes[(sizes.indexOf(st.pane) + 1) % 3] })
+    };
+  }
+}
+</script>
+</body>
+</html>
