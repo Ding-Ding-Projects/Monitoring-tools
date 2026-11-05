@@ -114,6 +114,85 @@ namespace MonitoringTools.UI
                 finally { if (s != null) ServerManager.Servers.Remove(s); cc?.Close(); McDemo.Remove(); }
             });
 
+            if (only is null or "bedrock-zip") await CheckAsync("real file dialogs: Download ZIP on a Bedrock world opens the native Save dialog, which is answered from outside, and the ZIP holds the world's level.dat and db", async () =>
+            {
+                McDemo.Seed();
+                ControlCentreWindow cc = null; ServerDef s = null;
+                var srv = McTemp("dlg-bedrock-zip-server");
+                var zip = Path.Combine(dir, "bedrock-world-real-dialog.zip");
+                try
+                {
+                    try { File.Delete(zip); } catch { }
+                    s = new ServerDef { Id = "probe-bedrock-zip", Name = "Bedrock ZIP probe", Version = "1.26.61.1", Flavour = Flavour.Bedrock, Target = Target.LocalProcess, Port = 19192, FolderPath = srv, BackupDir = McTemp("dlg-bedrock-zip-backups") };
+                    var f = new McLocalFiles(srv);
+                    f.WriteText("server.properties", "level-name=Zip level\n");
+                    f.MakeDir("worlds/Zip level/db");
+                    File.WriteAllText(Path.Combine(srv, "worlds", "Zip level", "level.dat"), "ZIP1");
+                    File.WriteAllText(Path.Combine(srv, "worlds", "Zip level", "levelname.txt"), "Zip level");
+                    File.WriteAllText(Path.Combine(srv, "worlds", "Zip level", "db", "000001.ldb"), "zipdb");
+                    ServerManager.Servers.Add(s);
+                    McState.Set(s, McRunState.Stopped, "probe");
+                    cc = new ControlCentreWindow { Width = 1400, Height = 900 };
+                    cc.Show(); await Task.Delay(700);
+                    cc.Navigate("minecraft", animate: false); await Wave6Flows.Settle(cc, 600);
+                    var mc = cc.MinecraftManager;
+                    mc.Select(s.Id); mc.ShowSection("worlds"); await Wave6Flows.Settle(cc, 900);
+                    ButtonBase btn = null;
+                    if (!await WaitFor(() => (btn = Drive.All<ButtonBase>(mc).FirstOrDefault(b => b.IsVisible && System.Windows.Automation.AutomationProperties.GetName(b) == "Download Zip level as a ZIP")) != null, 15_000)) return "no Download ZIP button for the world";
+                    AnnounceDialog(dir, "bedrock-zip", new { dialog = "Save", title = "Save the world as a ZIP", file = zip });
+                    PressLater(() => Drive.Click(btn));
+                    if (!await WaitFor(() => File.Exists(zip), wait)) return "no ZIP was saved through the native Save dialog within 150 seconds";
+                    await Wave6Flows.Settle(cc, 600);
+                    string[] names;
+                    using (var a = System.IO.Compression.ZipFile.OpenRead(zip)) names = a.Entries.Select(e => e.FullName).ToArray();
+                    NoteForReport("bedrock download zip entries", string.Join(", ", names));
+                    if (!names.Contains("Zip level/level.dat")) return "the ZIP has no Zip level/level.dat: " + string.Join(", ", names);
+                    if (!names.Contains("Zip level/db/000001.ldb")) return "the ZIP has no db folder: " + string.Join(", ", names);
+                    var text = string.Join(" ", Drive.All<TextBlock>(mc).Select(t => t.Text));
+                    return text.Contains("Saved bedrock-world-real-dialog.zip") ? null : "the page did not say it saved: " + text[..Math.Min(300, text.Length)];
+                }
+                finally { if (s != null) ServerManager.Servers.Remove(s); cc?.Close(); McDemo.Remove(); }
+            });
+
+            if (only is null or "bedrock-folder") await CheckAsync("real file dialogs: Import a world on a Bedrock server falls back to the native folder dialog when its Open dialog is cancelled, and the chosen folder lands in the server's worlds folder", async () =>
+            {
+                McDemo.Seed();
+                ControlCentreWindow cc = null; ServerDef s = null;
+                var srv = McTemp("dlg-bedrock-folder-server");
+                var src = Path.Combine(McTemp("dlg-bedrock-folder-src"), "Folder world");
+                try
+                {
+                    Directory.CreateDirectory(Path.Combine(src, "db"));
+                    File.WriteAllText(Path.Combine(src, "level.dat"), "FOLD1");
+                    File.WriteAllText(Path.Combine(src, "levelname.txt"), "Folder world");
+                    File.WriteAllText(Path.Combine(src, "db", "000001.ldb"), "folderdb");
+                    s = new ServerDef { Id = "probe-bedrock-folder", Name = "Bedrock folder probe", Version = "1.26.61.1", Flavour = Flavour.Bedrock, Target = Target.LocalProcess, Port = 19193, FolderPath = srv, BackupDir = McTemp("dlg-bedrock-folder-backups") };
+                    var f = new McLocalFiles(srv);
+                    f.WriteText("server.properties", "level-name=Folder level\n");
+                    f.MakeDir("worlds");
+                    ServerManager.Servers.Add(s);
+                    McState.Set(s, McRunState.Stopped, "probe");
+                    cc = new ControlCentreWindow { Width = 1400, Height = 900 };
+                    cc.Show(); await Task.Delay(700);
+                    cc.Navigate("minecraft", animate: false); await Wave6Flows.Settle(cc, 600);
+                    var mc = cc.MinecraftManager;
+                    mc.Select(s.Id); mc.ShowSection("worlds"); await Wave6Flows.Settle(cc, 900);
+                    var btn = Drive.Find<ButtonBase>(mc, "Import a world…");
+                    if (btn == null) return "no Import a world button";
+                    var target = Path.Combine(srv, "worlds", "Folder level", "level.dat");
+                    AnnounceDialog(dir, "bedrock-folder", new { dialog = "Open then folder", title = "Choose a .mcworld file, or cancel to choose a folder", cancel = true, folderTitle = "Choose a Bedrock world folder (the one with level.dat and db)", folder = src });
+                    PressLater(() => Drive.Click(btn));
+                    if (!await WaitFor(() => File.Exists(target), wait)) return "no world was imported through the native folder dialog within 150 seconds";
+                    await Wave6Flows.Settle(cc, 600);
+                    if (File.ReadAllText(target) != "FOLD1") return "the imported level.dat holds the wrong data";
+                    if (!File.Exists(Path.Combine(srv, "worlds", "Folder level", "db", "000001.ldb"))) return "the imported world lacks its db folder";
+                    if (!File.Exists(Path.Combine(src, "level.dat"))) return "the source folder was changed by the import";
+                    var text = string.Join(" ", Drive.All<TextBlock>(mc).Select(t => t.Text));
+                    return text.Contains("Imported") ? null : "the page did not say it imported: " + text[..Math.Min(300, text.Length)];
+                }
+                finally { if (s != null) ServerManager.Servers.Remove(s); cc?.Close(); McDemo.Remove(); }
+            });
+
             if (only is null or "date") await CheckAsync("real calendar: the Start date picker's popup is opened and a day button in it is clicked from outside, and the stored rule carries that date", async () =>
             {
                 var cc = new ControlCentreWindow { Width = 1180, Height = 820 };

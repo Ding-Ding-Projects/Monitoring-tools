@@ -178,6 +178,7 @@ namespace MonitoringTools.UI
                     cc.Close();
                 }
             });
+            await LockTypeChecksAsync();
         }
     }
 }

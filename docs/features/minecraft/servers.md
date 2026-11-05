@@ -73,6 +73,22 @@ same console pipe as the Java process. The live check started it for real on a D
 (installed in 8 s, "Server started." after 3 s, `list` answered, a backup taken while it ran, stopped); it needs a glibc
 host. The install forces HTTP/1.1 because Debian's curl got an HTTP/2 error from the download address.
 
+The worlds of a Bedrock server are moved in and out through the real Windows file dialogs, and each route is driven
+through those dialogs on a hidden desktop (`MT_ONLY=dialogs`, answered from outside with the lowlevel tools):
+
+- **Download ZIP** (step `bedrock-zip`) opens the native Save dialog with `<world>.zip` already filled in; the check sets
+  the file name box, presses Enter, and asserts the ZIP holds `<world>/level.dat` and `<world>/db/000001.ldb` and that
+  the page says it saved.
+- **Import a world…** with a .mcworld (step `bedrock`) answers the native Open dialog with a prepared .mcworld and
+  asserts `worlds/<level-name>/level.dat` and `db` landed.
+- **Import a world…** from a folder (step `bedrock-folder`) cancels the Open dialog, which opens the native folder dialog
+  ("Choose a Bedrock world folder (the one with level.dat and db)"); the check sets its Folder box to a prepared world
+  folder, presses Select Folder, and asserts the world landed under the level name, the source folder is untouched, and
+  the page says it imported.
+
+What stays out of reach: Mojang publishes no checksum for either the Windows or the Linux download, and the Docker route
+uses a community image rather than one from Mojang.
+
 ## The sections
 
 [Overview](overview.md), [Console](console.md), [Players](players.md), [Settings](settings.md), [Worlds](worlds.md),

@@ -859,5 +859,38 @@ namespace MonitoringTools.UI
             if (switches + choices < 20) return $"only {switches} switches and {choices} choices were found, so the walk is not covering the app";
             return bad.Count == 0 ? null : $"{bad.Count} of {switches} switches and {choices} choices have no visible subtitle: " + string.Join("; ", bad.Distinct());
         }
+
+        /// <summary>An element menu with its Press item locked: the item shows the veil and lock chip. Captured as <c>lock-menu-item</c>.</summary>
+        public static async Task<string> LockedMenuItem(IWave6Snap snap)
+        {
+            var btn = new Button { Content = "Sample button", Style = Ui.Style("Btn.Accent"), Margin = new Thickness(40), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+            var host = new Window { Width = 760, Height = 520, Title = "Locked menu item", Background = Ui.Res("B.Window"), Content = btn };
+            string page = null, key = null;
+            ElementMenu.KeepOpenForTest = true;
+            try
+            {
+                host.Show(); await Settle(host, 600);
+                ElementMenu.Attach(host);
+                if (!ElementMenu.OpenFor(host, btn)) return "the element menu did not open";
+                await Task.Delay(400);
+                page = ElementMenu.LastMenuLockPage; key = ElementMenu.LastMenuItemKey("Press");
+                if (page == null || key == null) return "the menu has no lockable Press item";
+                var err = Core.Locks.Create(page, key, key, Core.LockPolicy.Pin, 5, "4826", null, null);
+                if (err != null) return "lock not made: " + err;
+                await Task.Delay(500);
+                var card = ElementMenu.LastCard;
+                if (card == null) return "the menu closed";
+                if (snap != null) await snap.Popup(host, card, btn, "lock-menu-item", "Toy locks: the Press item of an element menu is locked on its own, dimmed with the lock chip");
+                return null;
+            }
+            finally
+            {
+                ElementMenu.CloseLast();
+                ElementMenu.KeepOpenForTest = false;
+                var e = page == null ? null : Core.Locks.Find(page, key);
+                if (e != null) { try { new Core.Locks.Session(e).Submit("4826"); } catch { } Core.Locks.Remove(e.Id); }
+                host.Close();
+            }
+        }
     }
 }
