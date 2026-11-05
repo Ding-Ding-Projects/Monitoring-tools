@@ -386,6 +386,7 @@ namespace MonitoringTools.UI
 
                 // the colour picker, on its own in a window
                 var pickerWindow = new Window { Width = 520, Height = 780, Content = new ScrollViewer { Content = new ColorPicker(Color.FromRgb(0x7C, 0xF2, 0xC2)) }, Title = "Colour picker" };
+                pickerWindow.SetResourceReference(Window.BackgroundProperty, "B.Window");   // a test host shows the theme window colour, as the appearance editor does
                 pickerWindow.Resources.MergedDictionaries.Add(Application.Current.Resources);
                 pickerWindow.Show(); await Settle(500);
                 Scan("colour picker", pickerWindow); pickerWindow.Close();

@@ -94,9 +94,9 @@ namespace MonitoringTools.UI
         {
             var box = new StackPanel();
             box.Children.Add(CardTitle("Element locks", "Right-click any button, setting or card and choose Lock this element. A locked element is dimmed and cannot be used until you unlock it here or from its menu."));
-            box.Children.Add(SafetyLine(Locks.Disclosure, "B.TextSoft", 13));
+            box.Children.Add(SafetyLine(Locks.Disclosure, "B.TextSoft", 12));
             box.Children.Add(SafetyLine(Locks.RecoveryLine, "B.TextMute", 12, 4));
-            if (Locks.LoadError != null) box.Children.Add(SafetyLine("The lock store could not be read, so no locks are applied: " + Locks.LoadError, "B.Amber", 13, 6));
+            if (Locks.LoadError != null) box.Children.Add(SafetyLine("The lock store could not be read, so no locks are applied: " + Locks.LoadError, "B.Amber", 12, 6));
 
             var s = Settings.Current;
             box.Children.Add(Number("New locks stay unlocked for (default 5 minutes)",
@@ -116,7 +116,7 @@ namespace MonitoringTools.UI
                 var hits = all.Where(l => search.State.Matches(l.Label + " " + l.PageId + " " + Locks.Describe(l.Policy))).ToList();
                 list.Children.Clear();
                 if (all.Count == 0)
-                    list.Children.Add(SafetyLine("No locks yet. Lock something from its right-click menu and it will be listed here.", "B.TextMute", 13));
+                    list.Children.Add(SafetyLine("No locks yet. Lock something from its right-click menu and it will be listed here.", "B.TextMute", 12));
                 foreach (var l in hits)
                 {
                     var open = Locks.IsOpen(l);
@@ -168,7 +168,7 @@ namespace MonitoringTools.UI
             Totp.SelfTest(out var vectors);
             box.Children.Add(CardTitle("Authenticator", "Time-based one-time codes (RFC 6238) for any account, calculated here. Secrets are kept in a Windows-protected file and never in settings, logs or history."));
             box.Children.Add(SafetyLine("Self-check: " + vectors + ".", Totp.SelfTest(out _) ? "B.Mint" : "B.Danger", 12));
-            if (Authenticator.LoadError != null) box.Children.Add(SafetyLine("The account store could not be read, so changes are blocked: " + Authenticator.LoadError, "B.Amber", 13, 6));
+            if (Authenticator.LoadError != null) box.Children.Add(SafetyLine("The account store could not be read, so changes are blocked: " + Authenticator.LoadError, "B.Amber", 12, 6));
 
             // adding
             var addBox = new StackPanel { Margin = new Thickness(0, 10, 0, 6) };
@@ -185,7 +185,7 @@ namespace MonitoringTools.UI
             addBox.Children.Add(SafetyChips("Algorithm for a bare secret", Totp.Algorithms.Select(a => (a, a)), algo, v => algo = v, "Algorithm"));
             addBox.Children.Add(new NumberField("Digits", "How many digits each code has. Default: 6.", digits, 6, 8, 1, v => digits = (int)v));
             addBox.Children.Add(new NumberField("Period", "How many seconds each code lasts. Default: 30 s.", period, 1, 3600, 1, v => period = (int)v, "s"));
-            var addMsg = SafetyLine("", "B.TextSoft", 13, 4);
+            var addMsg = SafetyLine("", "B.TextSoft", 12, 4);
             AutomationProperties.SetLiveSetting(addMsg, AutomationLiveSetting.Polite);
             AutomationProperties.SetName(addMsg, "Add account status");
 
@@ -269,7 +269,7 @@ namespace MonitoringTools.UI
                 var all = Authenticator.All;
                 var hits = all.Where(a => search.State.Matches(a.Issuer + " " + a.Account)).ToList();
                 list.Children.Clear(); tickers.Clear();
-                if (all.Count == 0) list.Children.Add(SafetyLine("No accounts yet. Add one above.", "B.TextMute", 13));
+                if (all.Count == 0) list.Children.Add(SafetyLine("No accounts yet. Add one above.", "B.TextMute", 12));
                 foreach (var a in hits) list.Children.Add(SafetyAccountRow(a, tickers, helloOk && Settings.Current.LockOfferWindowsHello));
                 search.SetCount(hits.Count, all.Count, "accounts");
             }
@@ -433,7 +433,7 @@ namespace MonitoringTools.UI
                 ResizeMode = ResizeMode.NoResize, Background = Ui.Res("B.Raised"), ShowInTaskbar = false
             };
             var sp = new StackPanel { Margin = new Thickness(20) };
-            sp.Children.Add(SafetyLine("The label changes. The secret is never shown or changed.", "B.TextSoft", 13));
+            sp.Children.Add(SafetyLine("The label changes. The secret is never shown or changed.", "B.TextSoft", 12));
             var issuer = Input(a.Issuer, double.NaN, "Issuer"); issuer.Margin = new Thickness(0, 10, 0, 6); AutomationProperties.SetName(issuer, "Issuer");
             var account = Input(a.Account, double.NaN, "Account"); account.Margin = new Thickness(0, 0, 0, 6); AutomationProperties.SetName(account, "Account");
             sp.Children.Add(issuer); sp.Children.Add(account);
@@ -458,7 +458,7 @@ namespace MonitoringTools.UI
             var box = new StackPanel();
             box.Children.Add(CardTitle("Support Tickets", "A local recovery desk for when a lock or an authenticator gets you stuck."));
             // plain, unstyled, always shown
-            var notice = SafetyLine(TicketDesk.Disclosure, "B.Text", 13);
+            var notice = SafetyLine(TicketDesk.Disclosure, "B.Text", 12);
             notice.FontWeight = FontWeights.SemiBold;
             AutomationProperties.SetName(notice, "Support desk notice");
             box.Children.Add(notice);
@@ -470,7 +470,7 @@ namespace MonitoringTools.UI
             AutomationProperties.SetName(desc, "Describe what happened");
             desc.ToolTip = "Describe what you were locked out of";
             box.Children.Add(desc);
-            var msg = SafetyLine("", "B.TextSoft", 13);
+            var msg = SafetyLine("", "B.TextSoft", 12);
             AutomationProperties.SetLiveSetting(msg, AutomationLiveSetting.Polite);
             box.Children.Add(Ui.Button("File a ticket", () =>
             {
@@ -497,13 +497,13 @@ namespace MonitoringTools.UI
                 var all = TicketDesk.All();
                 var hits = all.Where(t => search.State.Matches(t.Number + " " + t.Category + " " + t.Description + " " + TicketDesk.Status(t))).ToList();
                 list.Children.Clear();
-                if (all.Count == 0) list.Children.Add(SafetyLine("No tickets. Good for you.", "B.TextMute", 13));
+                if (all.Count == 0) list.Children.Add(SafetyLine("No tickets. Good for you.", "B.TextMute", 12));
                 foreach (var t in hits)
                 {
                     var sp = new StackPanel { Margin = new Thickness(0, 0, 0, 14) };
                     sp.Children.Add(new TextBlock { Text = t.Number + " · " + t.Category, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     sp.Children.Add(SafetyLine($"{TicketDesk.Status(t)} · severity {t.Severity} · filed {SafetyWhen(t.FiledAt)}", "B.TextMute", 12));
-                    sp.Children.Add(SafetyLine(t.Description, "B.TextSoft", 13, 4));
+                    sp.Children.Add(SafetyLine(t.Description, "B.TextSoft", 12, 4));
                     if (TicketDesk.Status(t) != "New") sp.Children.Add(SafetyLine(TicketDesk.FirstResponse(t), "B.TextSoft", 12, 4));
                     if (TicketDesk.ResolutionReady(t))
                     {
@@ -563,7 +563,7 @@ namespace MonitoringTools.UI
                 var all = SafetyHistory.All();
                 var hits = all.Where(h => search.State.Matches(h.Action + " " + h.Detail)).ToList();
                 list.Children.Clear();
-                if (all.Count == 0) list.Children.Add(SafetyLine("Nothing yet. Locks, accounts and display-name changes will be listed as they happen.", "B.TextMute", 13));
+                if (all.Count == 0) list.Children.Add(SafetyLine("Nothing yet. Locks, accounts and display-name changes will be listed as they happen.", "B.TextMute", 12));
                 foreach (var h in hits.Take(Max))
                 {
                     var g = new Grid { Margin = new Thickness(0, 0, 0, 8) };

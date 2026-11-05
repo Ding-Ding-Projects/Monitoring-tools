@@ -23,9 +23,12 @@ namespace MonitoringTools.UI
         {
             if (_installed) return;
             _installed = true;
-            EventManager.RegisterClassHandler(typeof(ButtonBase), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) => NameFromContent((ButtonBase)o)));
-            EventManager.RegisterClassHandler(typeof(TextBoxBase), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) => NameFromLabel((FrameworkElement)o)));
-            EventManager.RegisterClassHandler(typeof(PasswordBox), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) => NameFromLabel((FrameworkElement)o)));
+            // each concrete type is registered itself: WPF caches class handlers per type, so a handler added for a base class after a derived
+            // type was first used is never seen by that derived type
+            foreach (var t in new[] { typeof(Button), typeof(ToggleButton), typeof(CheckBox), typeof(RadioButton) })
+                EventManager.RegisterClassHandler(t, FrameworkElement.SizeChangedEvent, new RoutedEventHandler((o, a) => NameFromContent((ButtonBase)o)));   // Loaded is not delivered to button class handlers; the first layout is
+            foreach (var t in new[] { typeof(TextBox), typeof(RichTextBox), typeof(PasswordBox) })
+                EventManager.RegisterClassHandler(t, FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) => NameFromLabel((FrameworkElement)o)));
             EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) =>
             {
                 var w = (Window)o;

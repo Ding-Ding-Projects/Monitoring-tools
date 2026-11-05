@@ -168,7 +168,7 @@ Write-Output 'Copied to the clipboard.'
                         var item = p;
                         var content = new StackPanel { Margin = new Thickness(0, 6, 0, 6) };
                         content.Children.Add(new TextBlock { Text = p.Label, Foreground = Ui.Res("B.Text"), FontSize = 14 });
-                        content.Children.Add(new TextBlock { Text = p.Does, Foreground = Ui.Res("B.TextMute"), FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
+                        content.Children.Add(new TextBlock { Text = p.Does, Foreground = Ui.Res("B.TextSoft"), FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
                         var b = new Button { Style = Ui.Style("Btn.Row"), Content = content, HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 1, 0, 1) };
                         AutomationProperties.SetName(b, p.Label + ". " + p.Does);
                         b.Click += (s, e) => { preset = item; Paint(); };
