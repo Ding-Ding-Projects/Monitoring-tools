@@ -12,6 +12,35 @@ checked; anything unchecked is labelled.
   publishes the next normal release and deploys the site (`.github/workflows/build.yml`).
 - Latest release at the time of writing: v1.0.36 (see [CHANGELOG.md](CHANGELOG.md)).
 
+## State on 2026-11-05 (afternoon)
+
+- **main:** 1946faf, pushed. Releases v1.0.51, v1.0.52 and v1.0.53 published green as normal
+  releases; the release for 1946faf had not been checked when this was written.
+- **Merged and checked today:** document, archive and disk, data and security, and media dialogs
+  (21 file tool windows); the accessibility, Material 3, QR and world generator audit; dialogs moved
+  onto the type and shape scales; regex builder parity (13 of 13 families); 7z, xz, bz2 and AES zip
+  extraction, an Ask rule for existing files, every face of a .ttc and tray Eject for mounted images;
+  RAR4 and RAR5 through the full 7-Zip 26.05 (pinned by SHA-256, unRAR licence: decoding only);
+  per-element locks with radio buttons, drop-down lists, tabs and menu items; Bedrock Download ZIP
+  and folder import driven through the real dialogs; a Hold button on toasts.
+- **Fixes found while checking:** the updater now retries soon after a failed or rate-limited check
+  (was a whole interval); the Records page uses its own translated words for GitHub errors; the
+  sound playback check clears schedule rules (it failed in daytime runs only); the regex help and
+  editable-text checks no longer depend on timing.
+- **Last full self-tests:** 365 of 365 on the archive merge; 365 of 367 after the locks merge (one
+  language mode switch check and one Minecraft item editor check failed in the full order but pass
+  on their own: 59 of 59 and 1 of 1; cause not yet found). A second full run of that build was still
+  going. The Hold button: toasts group 22 of 22 and the held capture inspected. RAR: document dialog
+  group 30 of 30.
+- **Installed copy:** still 1.0.40 on the maintainer's computer at the time of writing; it checks
+  every 6 hours in that version, and its one check today was refused by GitHub's rate limit.
+- **Open:** the order-dependent full-run failures above; only ISO 9660 and Joliet images list
+  without mounting; a real virtual disk test needs the maintainer to approve the Windows consent
+  prompt; colour picker, context menu and drawing rows need a physical mouse or pen; Bedrock has no
+  publisher checksum and its Docker image is a community image.
+- **Clean-up:** every merged task branch and worktree was removed after an archive of the
+  repository was written and verified; only `main` remains locally and on GitHub.
+
 ## State on 2026-11-04 (evening)
 
 - **Checked:** full self-test 180 of 180 on `main` at 823d9a8; releases v1.0.17 to v1.0.36 all green
