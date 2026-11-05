@@ -108,7 +108,7 @@ namespace MonitoringTools.Media
                 {
                     string args = p.Exact
                         ? $"-ss {Inv(p.Start)} -i {MediaProc.Quote(src)} -t {Inv(p.End - p.Start)} -map 0:v? {audioMap} {EncodeArgs(ext)} -f {container} {MediaProc.Quote(part)}"
-                        : $"-ss {Inv(p.Start)} -i {MediaProc.Quote(src)} -t {Inv(p.End - p.Start)} -map 0:v? {audioMap} -c copy -avoid_negative_ts make_zero -f {container} {MediaProc.Quote(part)}";
+                        : $"-ss {Inv(p.Start)} -i {MediaProc.Quote(src)} -t {Inv(p.End - p.Start)} -map 0:v? {audioMap} -c copy -f {container} {MediaProc.Quote(part)}";
                     result.Method = p.Exact ? "Exact cut, re-encoded" : "Lossless copy, cut at keyframes";
                     r = await MediaProc.RunFfmpegAsync(args, total, v => progress?.Invoke(v, p.Exact ? "Re-encoding the video, copying the audio" : "Copying video and audio, no re-encode"), ct);
                 }
@@ -129,7 +129,7 @@ namespace MonitoringTools.Media
                     // Lossless remove: copy the two pieces, then join them with the concat demuxer.
                     Directory.CreateDirectory(tmp);
                     var a = Path.Combine(tmp, "a" + ext); var b = Path.Combine(tmp, "b" + ext);
-                    var cop = $"-map 0:v? {audioMap} -c copy -avoid_negative_ts make_zero";
+                    var cop = $"-map 0:v? {audioMap} -c copy";
                     result.Method = "Lossless copy, pieces joined at keyframes";
                     r = await MediaProc.RunFfmpegAsync($"-ss 0 -i {MediaProc.Quote(src)} -t {Inv(p.Start)} {cop} {MediaProc.Quote(a)}", p.Start, v => progress?.Invoke(v * 0.4, "Copying the part before the cut"), ct);
                     if (r.Ok) r = await MediaProc.RunFfmpegAsync($"-ss {Inv(p.End)} -i {MediaProc.Quote(src)} {cop} {MediaProc.Quote(b)}", dur - p.End, v => progress?.Invoke(0.4 + v * 0.5, "Copying the part after the cut"), ct);

@@ -217,7 +217,10 @@ namespace MonitoringTools.UI
         protected StackPanel ErrorView(string title, string text, string notChanged, Action retry, string retryLabel, string details)
         {
             var sp = new StackPanel();
-            sp.Children.Add(FT.Banner(BannerKind.Error, title, text));
+            string detail = null;
+            foreach (var prefix in new[] { "FFmpeg reported: ", "The imaging component reported: " })
+                if (text != null && text.StartsWith(prefix)) { detail = text.Substring(prefix.Length); text = prefix.TrimEnd(); break; }
+            sp.Children.Add(FT.Banner(BannerKind.Error, title, text, null, detail));
             var inner = new StackPanel();
             inner.Children.Add(FT.Eyebrow("What was not changed", new Thickness(0, 0, 0, 6)));
             inner.Children.Add(FT.Body(notChanged, 13, Ui.Res("B.Text")));
@@ -257,7 +260,7 @@ namespace MonitoringTools.UI
             var sb = new System.Text.StringBuilder();
             void Walk(DependencyObject d)
             {
-                if (d is TextBlock tb) sb.AppendLine(tb.Text);
+                if (d is TextBlock tb) sb.AppendLine(tb.Inlines.Count > 0 && string.IsNullOrEmpty(tb.Text) ? new System.Windows.Documents.TextRange(tb.ContentStart, tb.ContentEnd).Text : tb.Text);
                 if (d is TextBox tx) sb.AppendLine(tx.Text);
                 int n = d is Visual || d is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetChildrenCount(d) : 0;
                 for (int i = 0; i < n; i++) Walk(VisualTreeHelper.GetChild(d, i));

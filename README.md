@@ -38,6 +38,7 @@ To remove it, right-click the tray icon and choose **Uninstall service**.
   - **Several files at once**: move to, copy to, delete to the Recycle Bin, and batch conversion chips.
   - **File tools sheet**: one tab each for move and copy, batch Base64 encode and decode (plus copy as Base64 text or a data URI), and password encryption (AES-256-GCM, `.mtenc` files next to the originals).
   - **Base64 text** on the clipboard offers decode; any text offers encode.
+  - **Media tool dialogs**: Trim and To GIF for a copied video, Edit audio (trim, fades, loudness target), Resize, Privacy and Make icon for copied pictures. Each is its own window with a live preview, a progress view, a clear result and never overwrites. See `docs/features/files/media-dialogs.md`.
   - **Images, video and audio**: save, convert and quick command chips such as `:mp4`, `:gif`, `:mp3`, `:webp`. Drag the preview out of the toast into any drop target.
   - **Docker**: a copied `compose.yaml` / `docker-compose.yml` offers up, down, pull, restart and logs; a `Dockerfile` offers build and build-and-run. Each button explains what it will do.
   - **JSON, colors, email addresses** get their own previews and actions.

@@ -244,7 +244,7 @@ namespace MonitoringTools.Media
             for (uint n = 0; n < 256; n++) { uint c = n; for (int k = 0; k < 8; k++) c = (c & 1) != 0 ? 0xEDB88320u ^ (c >> 1) : c >> 1; t[n] = c; }
             return t;
         }
-        private static uint Crc(byte[] b, int start, int len)
+        internal static uint Crc(byte[] b, int start, int len)
         {
             uint c = 0xFFFFFFFFu;
             for (int i = 0; i < len; i++) c = CrcTable[(c ^ b[start + i]) & 0xFF] ^ (c >> 8);

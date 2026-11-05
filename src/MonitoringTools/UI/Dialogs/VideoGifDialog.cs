@@ -71,7 +71,7 @@ namespace MonitoringTools.UI
             if (!_info.Ok || !_info.HasVideo)
             {
                 SetFile(Path.GetFileName(path), "could not read");
-                Show(ToolState.Error, ErrorView("This video could not be read", MediaProc.Plain(_info.Error ?? "There is no video in this file."), $"Nothing was written and {Path.GetFileName(path)} is untouched.", null, null, _info.Error), "Nothing was saved.");
+                Show(ToolState.Error, ErrorView("This video could not be read", _info.Error == null ? "There is no video in this file." : "FFmpeg reported: " + MediaProc.Plain(_info.Error), $"Nothing was written and {Path.GetFileName(path)} is untouched.", null, null, _info.Error), "Nothing was saved.");
                 return;
             }
             SetFile(Path.GetFileName(path), $"{MediaTime.Format(_info.Duration, 0)} · {_info.Width}×{_info.Height} · {Ui.Bytes(_info.Bytes)}");

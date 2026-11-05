@@ -38,7 +38,7 @@ namespace MonitoringTools.UI
                 case ClipKind.Color: Color(item.Text, list); break;
                 case ClipKind.Json: Json(item.Text, list); break;
                 case ClipKind.Markdown: MarkdownActions(item.Text, list); TextActions(item.Text, list); break;
-                case ClipKind.Files: Files(item, list); break;
+                case ClipKind.Files: Files(item, list); MediaActions.Add(item, list); break;
                 case ClipKind.Image: Bitmap(item, list); break;
                 case ClipKind.Audio: AudioClip(item, list); break;
                 default: TextActions(item.Text, list); break;

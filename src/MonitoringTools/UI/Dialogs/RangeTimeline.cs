@@ -30,8 +30,8 @@ namespace MonitoringTools.UI
             protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e) { if (IsMouseCaptured) ReleaseMouseCapture(); }
             protected override void OnKeyDown(KeyEventArgs e)
             {
-                double step = Owner.FrameStep * (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) ? 30 : Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? 10 : 1);
-                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) step = 1;
+                double step = Owner.FrameStep * (Mods.HasFlag(ModifierKeys.Control) ? 30 : Mods.HasFlag(ModifierKeys.Shift) ? 10 : 1);
+                if (Mods.HasFlag(ModifierKeys.Control)) step = 1;
                 if (e.Key == Key.Left) { Owner.SetPlayhead(Owner.Playhead - step, true); e.Handled = true; }
                 else if (e.Key == Key.Right) { Owner.SetPlayhead(Owner.Playhead + step, true); e.Handled = true; }
                 else if (e.Key == Key.Home) { Owner.SetPlayhead(0, true); e.Handled = true; }
@@ -62,7 +62,7 @@ namespace MonitoringTools.UI
             protected override void OnKeyDown(KeyEventArgs e)
             {
                 double step = Owner.FrameStep;
-                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) step = 1; else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) step = Owner.FrameStep * 10;
+                if (Mods.HasFlag(ModifierKeys.Control)) step = 1; else if (Mods.HasFlag(ModifierKeys.Shift)) step = Owner.FrameStep * 10;
                 double cur = IsStart ? Owner.Start : Owner.End;
                 double? to = e.Key == Key.Left ? cur - step : e.Key == Key.Right ? cur + step : e.Key == Key.Home ? 0 : e.Key == Key.End ? Owner.Duration : (double?)null;
                 if (to == null) return;
@@ -70,6 +70,12 @@ namespace MonitoringTools.UI
                 Owner.MoveHandle(IsStart, to.Value, true);
             }
         }
+
+        /// <summary>The modifier keys held. Checks set this to press a key with Ctrl without a real keyboard.</summary>
+        internal static ModifierKeys? TestModifiers;
+        private static ModifierKeys Mods => TestModifiers ?? Keyboard.Modifiers;
+        internal UIElement StartHandle => _hStart;
+        internal UIElement EndHandle => _hEnd;
 
         private readonly Track _track;
         private readonly Handle _hStart, _hEnd;

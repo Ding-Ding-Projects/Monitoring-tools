@@ -66,6 +66,7 @@ namespace MonitoringTools.UI
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "update") { await UpdateChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexexplain") { await RegexExplainChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "media") { await MediaDialogChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit
             {
                 await McChecksAsync();
@@ -837,6 +838,7 @@ namespace MonitoringTools.UI
             await RunWave6Async();
             await WordingChecksAsync(dir);
             await ConvertChecksAsync(dir);
+            await MediaDialogChecksAsync(dir);
             // ---- the language audit: nothing visible is left in English when Cantonese is on
             await CheckAsync("language: every visible string on every page and window has a Cantonese entry", async () =>
             {

@@ -79,11 +79,12 @@ namespace MonitoringTools.Media
         }
 
         /// <summary>The finished .ico bytes for the chosen sizes.</summary>
-        public static byte[] Build(BitmapSource src, IconOptions o)
+        public static byte[] Build(BitmapSource src, IconOptions o, Action<int, int, int> progress = null)
         {
             var sizes = o.Sizes.Distinct().Where(s => s >= 1 && s <= 256).OrderBy(s => s).ToList();
             if (sizes.Count == 0) throw new ArgumentException("Choose at least one size.");
-            var images = sizes.Select(s => Png(Render(src, s, o))).ToList();
+            var images = new List<byte[]>();
+            for (int i = 0; i < sizes.Count; i++) { progress?.Invoke(i, sizes.Count, sizes[i]); images.Add(Png(Render(src, sizes[i], o))); }
             using var ms = new MemoryStream();
             using var w = new BinaryWriter(ms);
             w.Write((ushort)0); w.Write((ushort)1); w.Write((ushort)sizes.Count);

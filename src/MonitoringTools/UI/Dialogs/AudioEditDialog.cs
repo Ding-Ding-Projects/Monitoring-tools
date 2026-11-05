@@ -64,7 +64,7 @@ namespace MonitoringTools.UI
             if (!_info.Ok || !_info.HasAudio || _info.Duration <= 0.05)
             {
                 SetFile(Path.GetFileName(path), "could not read");
-                Show(ToolState.Error, ErrorView("This audio could not be decoded", "FFmpeg reported: " + MediaProc.Plain(_info.Error ?? "There is no audio in this file."), $"Nothing was written and {Path.GetFileName(path)} is untouched.", null, null, _info.Error), "Nothing was saved.");
+                Show(ToolState.Error, ErrorView("This audio could not be decoded", _info.Error == null ? "There is no audio in this file." : "FFmpeg reported: " + MediaProc.Plain(_info.Error), $"Nothing was written and {Path.GetFileName(path)} is untouched.", null, null, _info.Error), "Nothing was saved.");
                 return;
             }
             SetFile(Path.GetFileName(path), $"{MediaTime.Format(_info.Duration, 0)} · {_info.SampleRate / 1000.0:0.#} kHz · {(_info.Channels == 1 ? "mono" : _info.Channels == 2 ? "stereo" : _info.Channels + " channels")} · {Ui.Bytes(_info.Bytes)}");

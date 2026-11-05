@@ -44,7 +44,7 @@ namespace MonitoringTools.UI
 
         // ------------------------------------------------------------ banners and cards
 
-        public static Border Banner(BannerKind kind, string title, string text, Button action = null)
+        public static Border Banner(BannerKind kind, string title, string text, Button action = null, string detail = null)
         {
             Brush bg, fg; string icon;
             switch (kind)
@@ -63,11 +63,17 @@ namespace MonitoringTools.UI
             var sp = new StackPanel();
             sp.Children.Add(new TextBlock { Text = title, FontSize = 14, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), Foreground = fg, TextWrapping = TextWrapping.Wrap });
             if (!string.IsNullOrEmpty(text)) sp.Children.Add(new TextBlock { Text = text, FontSize = 13, FontFamily = Ui.Font("F.Body"), Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
+            if (!string.IsNullOrEmpty(detail))
+            {
+                var d = new TextBlock { Text = detail, FontSize = 12, FontFamily = Ui.Font("F.Mono"), Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0), MaxWidth = 640 };
+                Core.Language.SetLiteral(d, true);   // the engine's own message, shown exactly as it came
+                sp.Children.Add(d);
+            }
             Grid.SetColumn(sp, 1);
             g.Children.Add(ic); g.Children.Add(sp);
             if (action != null) { action.Margin = new Thickness(12, 0, 0, 0); action.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(action, 2); g.Children.Add(action); }
             var b = new Border { CornerRadius = new CornerRadius(16), Background = bg, Padding = new Thickness(16, 12, 16, 12), Child = g, Margin = new Thickness(0, 0, 0, 12) };
-            AutomationProperties.SetName(b, title + (string.IsNullOrEmpty(text) ? "" : ". " + text));
+            AutomationProperties.SetName(b, title + (string.IsNullOrEmpty(text) ? "" : "\n" + text));
             AutomationProperties.SetLiveSetting(b, kind == BannerKind.Error ? AutomationLiveSetting.Assertive : AutomationLiveSetting.Polite);
             return b;
         }
@@ -76,10 +82,10 @@ namespace MonitoringTools.UI
             new Border { CornerRadius = new CornerRadius(20), Background = Ui.Res("B.Sunken"), Padding = new Thickness(16, 12, 16, 12), Child = child, Margin = margin ?? new Thickness(0, 0, 0, 12) };
 
         /// <summary>A card of label and value rows (Length, Size, Method...).</summary>
-        public static Border FactsCard(IEnumerable<(string Label, string Value)> rows)
+        public static Border FactsCard(IEnumerable<(string Label, string Value)> rows, double labelWidth = 130)
         {
             var g = new Grid();
-            g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(labelWidth) });
             g.ColumnDefinitions.Add(new ColumnDefinition());
             int r = 0;
             foreach (var (l, v) in rows)
@@ -236,6 +242,44 @@ namespace MonitoringTools.UI
             Paint();
             b.Click += (s, e) => { b.Tag = !(bool)b.Tag; Paint(); changed?.Invoke((bool)b.Tag); };
             return b;
+        }
+
+        private static Style _checkStyle;
+
+        /// <summary>A square Material check box (22 px, mint when ticked) for lists. Space toggles it.</summary>
+        public static CheckBox Check(bool on, string accessibleName, Action<bool> changed)
+        {
+            _checkStyle ??= (Style)XamlReader.Parse(
+                "<Style xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='CheckBox'>" +
+                "<Setter Property='FocusVisualStyle' Value='{x:Null}'/><Setter Property='Cursor' Value='Hand'/>" +
+                "<Setter Property='Template'><Setter.Value><ControlTemplate TargetType='CheckBox'><Grid Background='Transparent' Width='26' Height='26'>" +
+                "<Border x:Name='Ring' CornerRadius='9' BorderBrush='{DynamicResource B.Mint}' BorderThickness='2' Margin='-1' Opacity='0'/>" +
+                "<Border x:Name='Box' Width='22' Height='22' CornerRadius='6' BorderThickness='2' BorderBrush='{DynamicResource B.LineStrong}' Background='Transparent'>" +
+                "<Path x:Name='Tick' Data='M5 12l5 5 9-10' Stroke='{DynamicResource B.MintInk}' StrokeThickness='2.4' StrokeStartLineCap='Round' StrokeEndLineCap='Round' StrokeLineJoin='Round' Stretch='Uniform' Margin='2' Visibility='Collapsed'/></Border></Grid>" +
+                "<ControlTemplate.Triggers><Trigger Property='IsChecked' Value='True'><Setter TargetName='Box' Property='Background' Value='{DynamicResource B.Mint}'/><Setter TargetName='Box' Property='BorderBrush' Value='{DynamicResource B.Mint}'/><Setter TargetName='Tick' Property='Visibility' Value='Visible'/></Trigger>" +
+                "<Trigger Property='IsKeyboardFocused' Value='True'><Setter TargetName='Ring' Property='Opacity' Value='1'/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>");
+            var cb = new CheckBox { Style = _checkStyle, IsChecked = on, VerticalAlignment = VerticalAlignment.Center };
+            AutomationProperties.SetName(cb, accessibleName);
+            cb.Checked += (s, e) => changed?.Invoke(true);
+            cb.Unchecked += (s, e) => changed?.Invoke(false);
+            return cb;
+        }
+
+        /// <summary>A small rounded label such as "Location" or "Clean", with an icon and a word (colour is never the only signal).</summary>
+        public static Border Badge(string text, BannerKind kind, string icon = null)
+        {
+            Brush bg, fg;
+            switch (kind)
+            {
+                case BannerKind.Success: bg = Ui.Res("B.MintWash"); fg = Ui.Res("B.OnPrimaryContainer"); break;
+                case BannerKind.Warning: bg = Ui.Res("B.AmberWash"); fg = Ui.Res("B.Amber"); break;
+                case BannerKind.Error: bg = Ui.Res("B.DangerWash"); fg = Ui.Res("B.Danger"); break;
+                default: bg = Ui.Res("B.Sunken"); fg = Ui.Res("B.TextSoft"); break;
+            }
+            var sp = new StackPanel { Orientation = Orientation.Horizontal };
+            if (icon != null) sp.Children.Add(new ContentControl { Content = Ui.Icon(icon, fg, 12, 1.8), Margin = new Thickness(0, 0, 5, 0), VerticalAlignment = VerticalAlignment.Center });
+            sp.Children.Add(new TextBlock { Text = text, FontSize = 12, FontWeight = FontWeights.Medium, Foreground = fg, VerticalAlignment = VerticalAlignment.Center });
+            return new Border { CornerRadius = new CornerRadius(8), Background = bg, Padding = new Thickness(8, 2, 8, 3), Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center, Child = sp };
         }
 
         /// <summary>A group of chips where exactly one is selected (a radio group). Arrow keys move inside it.</summary>

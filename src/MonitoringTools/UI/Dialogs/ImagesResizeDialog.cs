@@ -127,6 +127,7 @@ namespace MonitoringTools.UI
         {
             AllowDrop = true;
             Drop += (s, e) => { if (e.Data.GetData(DataFormats.FileDrop) is string[] f) AddFiles(f); };
+            SetFile("reading the pictures…", "");
             BuildUi();
             LoadedTask = LoadAsync(files);
         }
@@ -346,10 +347,8 @@ namespace MonitoringTools.UI
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             g.ColumnDefinitions.Add(new ColumnDefinition());
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            it.Check = new CheckBox { IsChecked = it.Selected, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 8, 0) };
-            AutomationProperties.SetName(it.Check, "Include " + it.Name);
-            it.Check.Checked += (s, e) => { it.Selected = true; Refresh(); };
-            it.Check.Unchecked += (s, e) => { it.Selected = false; Refresh(); };
+            it.Check = FT.Check(it.Selected, "Include " + it.Name, on => { it.Selected = on; Refresh(); });
+            it.Check.Margin = new Thickness(10, 0, 8, 0);
             var thumb = new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(8), Background = Ui.Res("B.Sunken"), Margin = new Thickness(0, 4, 10, 4), Child = it.Thumb != null ? (UIElement)new Image { Source = it.Thumb, Stretch = Stretch.UniformToFill } : Ui.Icon(Icons.Image, Ui.Res("B.TextMute"), 18, 1.6), ClipToBounds = true };
             var names = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             var name = new TextBlock { Text = it.Name, FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = it.Path };
@@ -496,7 +495,9 @@ namespace MonitoringTools.UI
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var ic = Ui.Icon(r.Ok ? Icons.Check : MediaIcons.Warn, r.Ok ? Ui.Res("B.TextSoft") : Ui.Res("B.Amber"), 15, 1.8); ic.Margin = new Thickness(2, 0, 12, 0);
                 var n = new TextBlock { Text = System.IO.Path.GetFileName(r.Source), FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis }; Core.Language.SetLiteral(n, true);
-                var t = new TextBlock { FontSize = 13, Foreground = r.Ok ? Ui.Res("B.TextSoft") : Ui.Res("B.Amber"), Text = r.Ok ? Ui.Bytes(r.OutputBytes) + (r.TargetMissed ? " (target not reached)" : "") : "Not saved: " + Short(r.Error), TextWrapping = TextWrapping.Wrap, MaxWidth = 380 };
+                var t = new TextBlock { FontSize = 13, Foreground = r.Ok ? Ui.Res("B.TextSoft") : Ui.Res("B.Amber"), TextWrapping = TextWrapping.Wrap, MaxWidth = 380 };
+                if (r.Ok) t.Text = Ui.Bytes(r.OutputBytes) + (r.TargetMissed ? " (target not reached)" : "");
+                else { t.Inlines.Add(new System.Windows.Documents.Run("Not saved: ")); var reason = new System.Windows.Documents.Run(Short(r.Error)); Core.Language.SetLiteral(reason, true); t.Inlines.Add(reason); }
                 Grid.SetColumn(n, 1); Grid.SetColumn(t, 2);
                 g.Children.Add(ic); g.Children.Add(n); g.Children.Add(t); list.Children.Add(g);
             }
