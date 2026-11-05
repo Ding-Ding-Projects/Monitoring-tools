@@ -442,6 +442,10 @@ namespace MonitoringTools.Minecraft
             get { try { return Running.Values.ToArray().Any(p => { try { return !p.HasExited; } catch { return false; } }); } catch { return false; } }
         }
 
+        private static readonly System.Text.RegularExpressions.Regex AnsiRx = new System.Text.RegularExpressions.Regex(@"\x1B\[[0-9;?]*[A-Za-z]", System.Text.RegularExpressions.RegexOptions.Compiled);
+        /// <summary>Removes terminal colour codes: rcon-cli and RCON replies from Forge and Paper carry them, and they would show as junk.</summary>
+        internal static string NoAnsi(string s) => string.IsNullOrEmpty(s) ? s : AnsiRx.Replace(s, "").TrimEnd();
+
         internal static string Escape(string s) => (s ?? "").Replace("\\", "").Replace("\"", "").Replace("'", "").Replace("\n", " ");
         internal static string ActionLine(string s) => (s ?? "").Split('\n').Where(l => l.Trim().Length > 0).LastOrDefault() ?? "";
 
@@ -564,13 +568,13 @@ namespace MonitoringTools.Minecraft
                     {
                         var rc = McRcon.From(s);
                         if (rc == null) return "This server was started outside the app, so commands need RCON. Turn on enable-rcon and set rcon.password in its settings.";
-                        try { var a = McRcon.SendAsync(rc.Port, rc.Password, command).GetAwaiter().GetResult(); return a.Length > 0 ? a : "Sent."; }
+                        try { var a = McRcon.SendAsync(rc.Port, rc.Password, command).GetAwaiter().GetResult(); return a.Length > 0 ? NoAnsi(a) : "Sent."; }
                         catch (Exception ex) { return "RCON: " + ex.Message; }
                     }
                     return "The server is not running.";
-                case Target.LocalDocker: { var r = Run("docker", $"exec {s.ContainerName} {(s.IsBedrock ? "send-command " : "rcon-cli ")}{WinArg(command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
+                case Target.LocalDocker: { var r = Run("docker", $"exec {s.ContainerName} {(s.IsBedrock ? "send-command " : "rcon-cli ")}{WinArg(command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? NoAnsi(r.Out) : "Sent.") : ActionLine(r.Out); }
                 case Target.SshProcess: { var r = Ssh(s, $"cd {Sh(s.RemoteFolder)} && echo {Sh(command)} > console.in", 30000); return r.Code == 0 ? "Sent." : ActionLine(r.Out); }
-                case Target.SshDocker: { var r = Ssh(s, $"docker exec {s.ContainerName} {(s.IsBedrock ? "send-command" : "rcon-cli")} {Sh(command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? r.Out : "Sent.") : ActionLine(r.Out); }
+                case Target.SshDocker: { var r = Ssh(s, $"docker exec {s.ContainerName} {(s.IsBedrock ? "send-command" : "rcon-cli")} {Sh(command)}", 30000); return r.Code == 0 ? (r.Out.Length > 0 ? NoAnsi(r.Out) : "Sent.") : ActionLine(r.Out); }
             }
             return "Unknown target.";
         });

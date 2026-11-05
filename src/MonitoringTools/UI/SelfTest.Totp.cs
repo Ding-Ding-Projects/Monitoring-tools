@@ -9,6 +9,16 @@ namespace MonitoringTools.UI
         /// <summary>A copied picture of an authenticator QR code offers to register it, and registering twice keeps one account.</summary>
         private static void TotpQrChecks()
         {
+            Check("minecraft: command replies lose terminal colour codes (as a real Forge server sends them over rcon-cli)", () =>
+            {
+                var forge = "Set the time to 1000 \u001B[0m";
+                var got = MonitoringTools.Minecraft.ServerManager.NoAnsi(forge);
+                if (got != "Set the time to 1000") return "got \"" + got.Replace("\u001B", "ESC") + "\"";
+                if (MonitoringTools.Minecraft.ServerManager.NoAnsi("\u001B[1;32mThere are 0 of a max of 7 players online:\u001B[0m") != "There are 0 of a max of 7 players online:") return "coloured list reply kept its codes";
+                if (MonitoringTools.Minecraft.ServerManager.NoAnsi("plain [brackets] stay") != "plain [brackets] stay") return "plain text was changed";
+                return null;
+            });
+
             Check("authenticator: a copied otpauth QR picture offers Register for codes, adds the account once and keeps the secret out of the toast", () =>
             {
                 var p = new OtpParams { Issuer = "Example", Account = "ava@example.com", Secret = Totp.NewSecret(), Digits = 6, Period = 30 };
