@@ -4,6 +4,24 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.55 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.55)
+
+- Record the 2026-11-05 state in the handoff and closeout prompt ([`cd1a037`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/cd1a0374832e7b495486139deecb5590ee844119))
+- WIP: Read RAR4 and RAR5 archives through the bundled full 7-Zip ([`de5a9d9`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/de5a9d95a1911eebd1484d9f26887daacc38b544))
+
+## 1.0.54 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.54)
+
+- Add a Hold button that keeps a toast until it is closed ([`156537b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/156537bf151278ea1c1dc956c61b8e8bbbc29014))
+- Record v1.0.53 figures and changelog ([`351fa57`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/351fa57d577b8bd30a9ad1429d7d32eb22f079cc))
+- Keep schedule rules out of the sound playback check ([`7cc57ae`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/7cc57ae3a7fcc2602dcd1d61c381fc8dc9915562))
+- Put the control centre tabs back after the lock checks ([`98d743c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/98d743cf6789c09e6466444734686d9f7541bacb))
+- Read 7z, xz, bz2 and AES zips via 7-Zip; add Ask, font faces and tray Eject ([`21d82be`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/21d82be99fdbc2803c1e408cd91a349e5e2a830e))
+- Lock elements one by one, and drive the Bedrock world dialogs ([`49f4f37`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/49f4f37108da680f70961da31b6305a895e3cbab))
+
 ## 1.0.53 (2026-11-05)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.53)
