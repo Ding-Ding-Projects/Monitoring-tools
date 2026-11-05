@@ -29,12 +29,12 @@ checked; anything unchecked is labelled.
   editable-text checks no longer depend on timing.
 - **Last full self-tests:** 365 of 365 on the archive merge; 365 of 367 after the locks merge (one
   language mode switch check and one Minecraft item editor check failed in the full order but pass
-  on their own: 59 of 59 and 1 of 1; cause not yet found). A second full run of that build was still
-  going. The Hold button: toasts group 22 of 22 and the held capture inspected. RAR: document dialog
+  on their own: 59 of 59 and 1 of 1; cause not yet found). A second full run of that build passed
+  367 of 367, so both are intermittent; cause not found. The Hold button: toasts group 22 of 22 and the held capture inspected. RAR: document dialog
   group 30 of 30.
 - **Installed copy:** still 1.0.40 on the maintainer's computer at the time of writing; it checks
   every 6 hours in that version, and its one check today was refused by GitHub's rate limit.
-- **Open:** the order-dependent full-run failures above; only ISO 9660 and Joliet images list
+- **Open:** the intermittent full-run failures above; only ISO 9660 and Joliet images list
   without mounting; a real virtual disk test needs the maintainer to approve the Windows consent
   prompt; colour picker, context menu and drawing rows need a physical mouse or pen; Bedrock has no
   publisher checksum and its Docker image is a community image.

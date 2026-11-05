@@ -21,10 +21,9 @@ button that keeps a toast until it is closed (toasts group 22 of 22, capture ins
 retries soon after a failed or rate-limited check; Records page errors in its own translated words.
 
 Next steps:
-1. Find the order-dependent full-run failures after the locks merge: "language: switching mode
+1. Intermittent full-run failures (seen once after the locks merge; a second full run passed 367/367): "language: switching mode
    rewrites an open window" and "minecraft commands: the item component editor builds a give
-   line..." (lacks max_stack_size). Both pass when run alone. Compare full runs before and after
-   the locks merge (checks added by the lock walk run earlier in the order).
+   line..." (lacks max_stack_size). Both pass alone and in the second full run; watch for repeats.
 2. Confirm the release for the latest main is green and that the installed copy (1.0.40 at the time
    of writing, 6-hour checks in that version) updates itself.
 3. Only ISO 9660 and Joliet images can be listed without mounting (UDF is open).
