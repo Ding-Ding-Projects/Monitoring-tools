@@ -21,6 +21,8 @@ A small Windows background service with a tray icon and a modern, animated UI. I
 
 Every push to `main` builds on Windows and publishes the next release automatically. Download `MonitoringTools-Setup.exe` from the latest release and run it. FFmpeg, FFprobe and portable Git are bundled inside, so nothing else needs installing and conversion works offline. It copies itself to `%LOCALAPPDATA%\Programs\MonitoringTools`, registers start-up and appears in the tray. Settings, logs and scripts live in `%LOCALAPPDATA%\MonitoringTools`.
 
+After that it keeps itself up to date: new releases download in the background, are checked against the SHA-256 that GitHub publishes, and install at a quiet moment (not during a conversion, a game you are playing, or a Minecraft server started from the app). The service is back in a few seconds, with nothing to download or restart. The switch is on the About page.
+
 To remove it, right-click the tray icon and choose **Uninstall service**.
 
 ## Features
@@ -119,12 +121,15 @@ Create your own `:name` commands in the control centre. Each one is a batch or P
 <summary><b>Tabs, tools and safety</b></summary>
 
 - The control centre is a tab strip docked on the left (or any edge), with New tab, pinning, groups, overflow and searches across tabs.
-- Local AI models: manage Ollama on this computer. Tools: draw on pictures, publish a folder to GitHub, open files in your editor. The Minecraft page is a server manager: a server list beside each server's overview, console, a command builder (task forms with players, items, blocks, effects, bounds and relative positions, and every command of the version, with run, copy, favourites and scheduling), players, settings, worlds and world generator, plugins and mods, backups and schedules, and a six-step create flow. Details: [Minecraft server manager](docs/features/minecraft/README.md).
+- Local AI models: manage Ollama on this computer. Tools: draw on pictures, publish a folder to GitHub, open files in your editor. The Minecraft page is a server manager: a server list beside each server's overview, console, a command builder (task forms with players, items, blocks, effects, bounds and relative positions, and every command of the version, with run, copy, favourites and scheduling), players, settings, worlds and world generator, plugins and mods, backups and schedules, and a six-step create flow. Servers run on this computer, in Docker, over SSH or in Docker over SSH, Java and Bedrock alike. The player list is searchable (with the regex builder) and multi-select, with bulk kick, ban, pardon, operator, allow list, game mode, teleport and give. The command builder also edits item components and NBT with real controls and reads plugin and mod commands from the running server (checked live on Paper, Fabric, Forge and NeoForge). The overview keeps a peak-players history, and world pre-generation can pause and resume. Details: [Minecraft server manager](docs/features/minecraft/README.md).
 
 ![Minecraft server manager](docs/screenshots/mc-overview.png)
 
 ![Minecraft command builder](docs/screenshots/mc-commands-give.png)
-- Safety and locks: playful element locks with an unlock ladder, a Support Tickets desk and a built-in authenticator for one-time codes.
+
+![Bulk player actions](docs/screenshots/mc-players-bulk.png)
+- Safety and locks: playful element locks with an unlock ladder, a Support Tickets desk and a built-in authenticator for one-time codes. Copy a picture of a site's two-factor setup QR code and the clipboard toast offers **Register for codes**, which adds it to the authenticator (encrypted for your Windows account, the secret never shown).
+- Publishing a folder works with GitHub, GitLab and Gitea or Forgejo, using `gh`, `glab` or `tea` when they are signed in and a one-time token otherwise (each route checked live).
 
 What is finished and what is not: [docs/features/required-features.md](docs/features/required-features.md).
 
@@ -142,7 +147,7 @@ What is finished and what is not: [docs/features/required-features.md](docs/feat
 <details>
 <summary><b>Game mode</b></summary>
 
-On by default. Popups are held back while Roblox, Minecraft, League of Legends, Valorant, Fortnite, CS2 and other listed games run, or while any app is fullscreen. The list is editable.
+On by default. Popups are held back while Roblox, Minecraft, League of Legends, Valorant, Fortnite, CS2 and other listed games run, or while any app is fullscreen. The list is editable. A short notice says when a game starts ("Roblox detected") and when it closes, so you know why toasts are waiting; it never takes focus from the game.
 
 </details>
 
@@ -159,14 +164,14 @@ On by default. Popups are held back while Roblox, Minecraft, League of Legends, 
 <details>
 <summary><b>Control centre</b></summary>
 
-Overview with live latency, uptime and outage history; an activity feed of conversions, pushes, shortcuts and file jobs; clipboard history; a command playground that explains what `path:format` will do before it runs; settings for every feature; and an about page with an update check. A welcome tour with **Try it** buttons opens on first run and from the tray menu.
+Overview with live latency, uptime and outage history; an activity feed of conversions, pushes, shortcuts and file jobs; clipboard history; a command playground that explains what `path:format` will do before it runs; settings for every feature; and an about page that shows what the background updater is doing, with **Check now**. A welcome tour with **Try it** buttons opens on first run and from the tray menu.
 
 </details>
 
 <details>
 <summary><b>Self-test</b></summary>
 
-`MonitoringTools.exe --selftest <folder>` runs 45 checks of search, the regex builder, exports, settings history, language switching, themes, density, locks, the two-key confirmation, the authenticator, QR pairing, the docs and every page inside the built app. It uses its own throwaway data folder, so it never touches your settings, and writes `selftest.json`.
+`MonitoringTools.exe --selftest <folder>` runs 184 checks of search, the regex builder, exports, settings history, language switching, themes, density, locks, the two-key confirmation, the authenticator, QR pairing, the docs and every page inside the built app. It uses its own throwaway data folder, so it never touches your settings, and writes `selftest.json`.
 
 The regex builder also works from a terminal: `MonitoringTools.exe --regex "<pattern>" <file>...` (see [docs/features/search](docs/features/search/regex-builder.md)).
 
