@@ -4,6 +4,20 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.50 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.50)
+
+- Hold the fake install until the check has read the running state ([`5c5c97a`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/5c5c97ad2144ecaed1e624b2fb2f8ce9d6a7a2ae))
+- Toasts: parser fix, self-tests, capture scenes, docs for editable text and install commands ([`7eac529`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/7eac52935f7221e3e98d627a56829f24d4b1a6f5))
+- Record v1.0.49 figures and changelog ([`0b7706b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0b7706b1ada4c365d89d4833eb00203e44f59de4))
+- Text toast edits in place; install command toast and automatic mode ([`c872604`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c87260477742b7257374e89df72317002c210201))
+- Regex builder: update parity ledger and capture states ([`cc0a675`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/cc0a675c4598f2ee42755b1b532cc1970ab96ea8))
+- Regex builder: Cantonese wording for the new views ([`cbc7403`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/cbc7403da31e453b956236fb77c26f22b511827e))
+- Regex builder: parity self-tests, neutral help examples, flavour fixes ([`a91cbdc`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a91cbdc306be2d3cc800b132e6bd31915eb588d3))
+- Regex builder: parity views for sample tools, engines, templates, library, help and files ([`f3e685a`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/f3e685a86759ba275aef32c8754dd7d8c620df6a))
+- Regex builder: engines, code templates, library parameters, sample tools, debugger lookaround ([`e0ac3dc`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e0ac3dcb4e4ce08b2ddc1630029e7a3557cf3676))
+
 ## 1.0.49 (2026-11-05)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.49)
