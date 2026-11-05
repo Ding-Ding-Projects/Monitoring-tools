@@ -55,7 +55,10 @@ namespace MonitoringTools.Core
                 if (HistoryVault.IsLocked) { Log.Warn("The history is locked, so this version was not kept."); return false; }
                 var newest = Files(dir).FirstOrDefault();
                 if (newest != null && ReadFile(newest) == text) return false;
-                var stamp = DateTime.UtcNow;
+                var now = DateTime.UtcNow;
+                // Names keep milliseconds only, so compare at that precision: a save later in the same millisecond
+                // would otherwise get the newest version's name and overwrite it.
+                var stamp = new DateTime(now.Ticks - now.Ticks % TimeSpan.TicksPerMillisecond, DateTimeKind.Utc);
                 // Versions sort by their name, so a new one must never be named earlier than the newest.
                 if (newest != null && DateTime.TryParseExact(Path.GetFileNameWithoutExtension(newest), "yyyyMMddHHmmssfff", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var last) && last >= stamp)
                     stamp = last.AddMilliseconds(1);

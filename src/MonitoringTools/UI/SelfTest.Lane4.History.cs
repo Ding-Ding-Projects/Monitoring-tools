@@ -137,6 +137,10 @@ namespace MonitoringTools.UI
             Check("history: retention by count and by age keeps the newest and drops the rest", () =>
             {
                 ResetHistory();
+                // 50 saves in a tight loop land several to a millisecond: every one must survive as its own version
+                for (int i = 1; i <= 50; i++) ScriptHistory.Save("l4-burst", "b" + i);
+                var burst = ScriptHistory.List("l4-burst").Select(v => ScriptHistory.Read("l4-burst", v.Id)).ToList();
+                if (burst.Count != 50 || burst.Distinct().Count() != 50 || burst[0] != "b50") return $"burst saves: {burst.Count} kept, {burst.Distinct().Count()} distinct, newest {burst.FirstOrDefault()}";
                 const string key = "l4-keep";
                 Settings.Current.HistoryKeepCount = 5;
                 var refused = new System.Collections.Generic.List<string>();
@@ -144,7 +148,7 @@ namespace MonitoringTools.UI
                     if (!ScriptHistory.Save(key, "v" + i)) refused.Add($"v{i} (mode {HistoryVault.Mode}, locked {HistoryVault.IsLocked}, files {Directory.GetFiles(Path.Combine(HistoryFolder, key)).Length})");
                 if (refused.Count > 0) return "saves refused: " + string.Join("; ", refused);
                 var list = ScriptHistory.List(key);
-                if (list.Count != 5 || ScriptHistory.Read(key, list[0].Id) != "v12" || ScriptHistory.Read(key, list[4].Id) != "v8") return "count limit wrong: " + list.Count + ", newest " + ScriptHistory.Read(key, list[0].Id) + ", oldest " + ScriptHistory.Read(key, list[^1].Id) + ", mode " + HistoryVault.Mode + ", locked " + HistoryVault.IsLocked;
+                if (list.Count != 5 || ScriptHistory.Read(key, list[0].Id) != "v12" || ScriptHistory.Read(key, list[4].Id) != "v8") return "count limit wrong: kept [" + string.Join(", ", list.Select(v => ScriptHistory.Read(key, v.Id) + "@" + v.Id)) + "], keep " + Settings.Current.HistoryKeepCount + ", days " + Settings.Current.HistoryKeepDays + "; " + list.Count + ", newest " + ScriptHistory.Read(key, list[0].Id) + ", oldest " + ScriptHistory.Read(key, list[^1].Id) + ", mode " + HistoryVault.Mode + ", locked " + HistoryVault.IsLocked;
                 // age: backdate three of them by renaming
                 Settings.Current.HistoryKeepCount = 50;
                 var dir = Path.Combine(HistoryFolder, key);
