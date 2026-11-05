@@ -19,8 +19,8 @@ checked; anything unchecked is labelled.
 - **Background updates:** the installed copy checks 90 s after start and every 6 h, downloads,
   verifies the SHA-256 digest and the file's own version, and installs at a quiet moment. Seen working
   in the real app: v1.0.31 found, downloaded and verified v1.0.32 in 10 s. A game left open with no
-  input for 10 minutes no longer blocks it (fixed in v1.0.36). **Not yet seen:** the swap itself
-  completing on its own; the next release after v1.0.36 is the first chance.
+  input for 10 minutes no longer blocks it (fixed in v1.0.36). **Seen:** the swap itself
+  completing on its own (v1.0.36 to v1.0.37 at 23:23, then v1.0.40 at 23:25, back in seconds).
 - **Game notices:** "Roblox detected" and "Roblox closed", checked by the self-test.
 - **Minecraft:** bulk player actions on a searchable multi-select list; SSH players, plugins,
   backups and worlds; Bedrock on Docker and over SSH; item and NBT editors; live plugin commands;

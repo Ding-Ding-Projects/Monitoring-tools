@@ -22,11 +22,9 @@ translated; encrypted local history; QR up to version 40; real pointer-click che
 Next steps:
 0. Done since: a copied otpauth:// QR picture offers "Register for codes" (built-in authenticator),
    and SSH world import, reset and replace from the app are merged and checked.
-1. Forge and NeoForge live runs: the Java-matched image fix is merged; run
-   MT_LIVE_ONLY=minecraft-lane MT_LIVE_LANE=forge (then neoforge) with a long wait (the Forge
-   installer took about 25 minutes) and update the console and command builder row.
-2. Confirm a real background update: the release after v1.0.36 should install itself on the
-   maintainer's computer; check the log in %LOCALAPPDATA%\MonitoringTools\logs for "Update:" lines.
+1. Forge passed live (2,781 s to ready). NeoForge: run MT_LIVE_ONLY=minecraft-lane
+   MT_LIVE_LANE=neoforge with a long wait and update the console and command builder row.
+2. Background updates are confirmed on the maintainer's computer (v1.0.36 to v1.0.37 to v1.0.40 by itself).
 3. The history retention self-test check failed twice in other runs; it now names the refused save.
    If it fails again, fix the cause it reports.
 Needs the maintainer: native Cantonese review, FIDO2 key, pen or touch device, phone camera, real
