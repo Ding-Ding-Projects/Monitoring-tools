@@ -63,11 +63,21 @@ namespace MonitoringTools.Core
         {
             var s = (url ?? "").Trim();
             if (s.StartsWith("github.com/", StringComparison.OrdinalIgnoreCase)) s = "https://" + s;
-            var r = ForgeHosts.ParseRemote(s);
-            if (r == null || !string.Equals(r.Host, "github.com", StringComparison.OrdinalIgnoreCase)) return null;
-            if (NotRepos.Contains(r.Owner.ToLowerInvariant())) return null;
-            if (!System.Text.RegularExpressions.Regex.IsMatch(r.Owner, @"^[A-Za-z0-9-]{1,39}$") || !System.Text.RegularExpressions.Regex.IsMatch(r.Name, @"^[A-Za-z0-9._-]{1,100}$")) return null;
-            return (r.Owner, r.Name);
+            string owner, name;
+            var scp = System.Text.RegularExpressions.Regex.Match(s, @"^git@github\.com:(?<o>[^/\s]+)/(?<n>[^/\s]+?)(\.git)?/?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (scp.Success) { owner = scp.Groups["o"].Value; name = scp.Groups["n"].Value; }
+            else
+            {
+                if (!Uri.TryCreate(s, UriKind.Absolute, out var u) || !string.Equals(u.Host, "github.com", StringComparison.OrdinalIgnoreCase)
+                    || (u.Scheme != Uri.UriSchemeHttps && u.Scheme != Uri.UriSchemeHttp)) return null;
+                // The first two path segments name the repository; deeper links (blob, tree, issues) still point at it.
+                var parts = u.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 2) return null;
+                owner = parts[0]; name = parts[1].EndsWith(".git", StringComparison.OrdinalIgnoreCase) ? parts[1][..^4] : parts[1];
+            }
+            if (NotRepos.Contains(owner.ToLowerInvariant())) return null;
+            if (!System.Text.RegularExpressions.Regex.IsMatch(owner, @"^[A-Za-z0-9-]{1,39}$") || !System.Text.RegularExpressions.Regex.IsMatch(name, @"^[A-Za-z0-9._-]{1,100}$")) return null;
+            return (owner, name);
         }
 
         /// <summary>Where Clone puts repositories: the chosen folder, or Documents\GitHub.</summary>

@@ -442,7 +442,17 @@ namespace MonitoringTools.UI
                     cc.Navigate(id, animate: false);
                     await Settle(id == "ollama" ? 2500 : 700);   // longer than the 250 ms sweep, so only the sweep can have translated it
                     var where = $"{mode} page: {id}";
-                    if (refresh) Scan(where, cc); else Visit(where, cc, 0);
+                    // A page can still be filling in (the Ollama checks wait on network probes): when this look finds
+                    // untranslated text, wait and look again, and keep only what is still untranslated at the end.
+                    for (int attempt = 0; ; attempt++)
+                    {
+                        var before = new HashSet<string>(Found.Keys, StringComparer.Ordinal);
+                        if (refresh) Scan(where, cc); else Visit(where, cc, 0);
+                        var added = Found.Keys.Where(k => !before.Contains(k)).ToList();
+                        if (added.Count == 0 || attempt >= 5) break;
+                        foreach (var k in added) Found.Remove(k);
+                        await Settle(1000);
+                    }
                     pages++;
                 }
                 cc.Close();
