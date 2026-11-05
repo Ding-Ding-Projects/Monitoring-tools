@@ -38,7 +38,7 @@ namespace MonitoringTools.UI
                 body.Children.Add(frame);
                 body.Children.Add(SafetyUi.Text("QR version " + version + ", error correction level M. Black on white on purpose, so every scanner can read it in light or dark mode.", 11, "B.TextMute", null, 6));
             }
-            else body.Children.Add(SafetyUi.Text("A QR code could not be drawn: " + error + " Use the account's secret and settings by hand instead.", 13, "B.Amber", null, 8));
+            else body.Children.Add(SafetyUi.Text("A QR code could not be drawn: " + error + " Use the account's secret and settings by hand instead.", 12, "B.Amber", null, 8));
 
             body.Children.Add(_left);
             var close = Ui.Button("Close", Close, "Btn.Accent", Icons.Check);

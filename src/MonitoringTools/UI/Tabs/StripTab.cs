@@ -190,14 +190,14 @@ namespace MonitoringTools.UI.Tabs
         public GroupHeader(TabStrip owner, TabGroupInfo g, bool vertical, bool compact)
         {
             _o = owner; GroupId = g.Id;
-            Height = Appearance.Row(32); CornerRadius = new CornerRadius(10);
+            Height = Appearance.Row(32); CornerRadius = new CornerRadius(12);
             Focusable = true; KeyboardNavigation.SetIsTabStop(this, false); FocusVisualStyle = null; Cursor = Cursors.Hand; AllowDrop = true; Background = Brushes.Transparent;
             Margin = vertical ? new Thickness(0, Appearance.Gap(6), 0, Appearance.Gap(2)) : new Thickness(6, 0, 4, 0);
             if (compact) { Width = 44; HorizontalAlignment = HorizontalAlignment.Center; }
             var grid = new Grid();
-            _hi = new Border { CornerRadius = new CornerRadius(10), Opacity = 0, IsHitTestVisible = false };
+            _hi = new Border { CornerRadius = new CornerRadius(12), Opacity = 0, IsHitTestVisible = false };
             _hi.SetResourceReference(BackgroundProperty, "B.Text");
-            _ring = new Border { CornerRadius = new CornerRadius(10), BorderThickness = new Thickness(2), Opacity = 0, IsHitTestVisible = false };
+            _ring = new Border { CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(2), Opacity = 0, IsHitTestVisible = false };
             _ring.SetResourceReference(BorderBrushProperty, "B.Mint");
             grid.Children.Add(_hi);
             grid.Children.Add(_ring);

@@ -16,7 +16,7 @@ namespace MonitoringTools.UI
     /// <summary>Small helpers shared by the lock windows.</summary>
     internal static class SafetyUi
     {
-        public static TextBlock Text(string text, double size = 13, string brush = "B.Text", FontWeight? weight = null, double top = 0)
+        public static TextBlock Text(string text, double size = 12, string brush = "B.Text", FontWeight? weight = null, double top = 0)
         {
             var t = new TextBlock { Text = text, FontSize = size, Foreground = Ui.Res(brush), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, top, 0, 0) };
             if (weight != null) t.FontWeight = weight.Value;
@@ -26,7 +26,7 @@ namespace MonitoringTools.UI
         /// <summary>A status line that screen readers announce when it changes.</summary>
         public static TextBlock Live(string name)
         {
-            var t = Text("", 13, "B.TextSoft", null, 8);
+            var t = Text("", 12, "B.TextSoft", null, 8);
             AutomationProperties.SetLiveSetting(t, AutomationLiveSetting.Polite);
             AutomationProperties.SetName(t, name);
             return t;
@@ -145,7 +145,7 @@ namespace MonitoringTools.UI
         private readonly LockEntry _e;
         private readonly Locks.Session _session;
         private readonly Action _done;
-        private readonly TextBlock _step = SafetyUi.Text("", 13, "B.TextSoft", null, 6);
+        private readonly TextBlock _step = SafetyUi.Text("", 12, "B.TextSoft", null, 6);
         private readonly TextBlock _msg = SafetyUi.Live("Unlock status");
         private readonly PasswordBox _pw;
         private readonly Border _pwFrame;
@@ -354,11 +354,11 @@ namespace MonitoringTools.UI
                 case Rung.Moles: _title.Text = "Rung 3: whack-a-mole"; ShowMoles(); break;
                 case Rung.Clock:
                     _title.Text = "Back to the clock";
-                    _stage.Children.Add(SafetyUi.Text("The ladder is not offered again for this wait. Nothing was lost: you are exactly where you started, and the clock above is still running.", 13, "B.TextSoft"));
+                    _stage.Children.Add(SafetyUi.Text("The ladder is not offered again for this wait. Nothing was lost: you are exactly where you started, and the clock above is still running.", 12, "B.TextSoft"));
                     break;
                 case Rung.Won:
                     _title.Text = "The wait is over";
-                    _stage.Children.Add(SafetyUi.Text("Close this and enter your credential in the unlock prompt.", 13, "B.TextSoft"));
+                    _stage.Children.Add(SafetyUi.Text("Close this and enter your credential in the unlock prompt.", 12, "B.TextSoft"));
                     break;
             }
         }

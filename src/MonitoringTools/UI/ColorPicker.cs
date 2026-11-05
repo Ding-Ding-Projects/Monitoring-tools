@@ -265,7 +265,7 @@ namespace MonitoringTools.UI
             cmp.Children.Add(_oldSwatch); cmp.Children.Add(_newSwatch);
             AutomationProperties.SetName(cmp, "Original colour on the left, new colour on the right");
             Children.Add(cmp);
-            Children.Add(Ui.Mono("ORIGINAL  ·  NEW", Ui.Res("B.TextMute"), 10).WithMargin(0, 2, 0, 0));
+            Children.Add(Ui.Mono("ORIGINAL  ·  NEW", Ui.Res("B.TextMute"), 11).WithMargin(0, 2, 0, 0));
             Children.Add(_contrast);
 
             // translator fields

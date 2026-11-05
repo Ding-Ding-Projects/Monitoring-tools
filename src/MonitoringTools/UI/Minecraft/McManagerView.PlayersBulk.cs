@@ -71,7 +71,7 @@ namespace MonitoringTools.UI.Minecraft
             b.Search = new SearchField(searchId, "Search players", compact: true) { Margin = new Thickness(0, 0, 0, 8) };
             b.Search.SampleSource = () => b.All.Select(p => p.Name);
             b.Root.Children.Add(b.Search);
-            b.Note = McUi.Body("", "B.TextMute", 13);
+            b.Note = McUi.Body("", "B.TextMute", 12);
             b.Root.Children.Add(b.Note);
             b.List = new ListBox
             {
@@ -85,12 +85,12 @@ namespace MonitoringTools.UI.Minecraft
             AutomationProperties.SetHelpText(b.List, "Select several players with Ctrl or Shift and a click or the arrow keys, or press Ctrl+A for all shown.");
             b.Root.Children.Add(b.List);
 
-            b.Selected = McUi.Body("", "B.TextSoft", 12.5);
+            b.Selected = McUi.Body("", "B.TextSoft", 12);
             b.Selected.Margin = new Thickness(0, 8, 0, 4);
             AutomationProperties.SetLiveSetting(b.Selected, AutomationLiveSetting.Polite);
             b.Root.Children.Add(b.Selected);
 
-            b.Result = McUi.Body("", "B.TextMute", 12.5);
+            b.Result = McUi.Body("", "B.TextMute", 12);
             AutomationProperties.SetLiveSetting(b.Result, AutomationLiveSetting.Polite);
             b.Say = (t, fg) => { b.Result.Text = t; b.Result.Foreground = Ui.Res(fg); Core.Language.Refresh(b.Result); };
 

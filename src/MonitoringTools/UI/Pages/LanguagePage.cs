@@ -101,7 +101,7 @@ namespace MonitoringTools.UI
             Lang.SetLiteral(preview, true);   // previews are already in their own language
             var previewTitle = new TextBlock { Text = "Preview", Style = Ui.Style("T.Eyebrow"), FontSize = 11, Margin = new Thickness(0, 0, 0, 4) };
             var lines = Enumerable.Range(0, 4).Select(_ => new TextBlock { Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 1, 0, 1) }).ToArray();
-            var box = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 8, 12, 8) };
+            var box = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 8, 12, 8) };
             var inner = new StackPanel();
             foreach (var l in lines) inner.Children.Add(l);
             box.Child = inner;

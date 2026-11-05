@@ -105,7 +105,7 @@ namespace MonitoringTools.UI
             };
             g.Children.Add(chip);
 
-            var cmd = Ui.Pill(":" + f.Id, Ui.Res("B.MintWash"), Ui.Res("B.Mint"), mono: true, size: 12.5);
+            var cmd = Ui.Pill(":" + f.Id, Ui.Res("B.MintWash"), Ui.Res("B.Mint"), mono: true, size: 12);
             cmd.HorizontalAlignment = HorizontalAlignment.Left;
             Grid.SetColumn(cmd, 1); g.Children.Add(cmd);
 

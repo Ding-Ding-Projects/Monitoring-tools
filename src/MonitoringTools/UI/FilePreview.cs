@@ -149,7 +149,7 @@ namespace MonitoringTools.UI
                 catch (Exception ex) { return (new System.Collections.Generic.List<string> { ex.Message }, "", false); }
             });
             var sp = new StackPanel();
-            sp.Children.Add(Ui.Mono(string.Join("\n", info.Item1) + (info.Item3 ? "\n  …" : ""), Ui.Res("B.TextSoft"), 11.5));
+            sp.Children.Add(Ui.Mono(string.Join("\n", info.Item1) + (info.Item3 ? "\n  …" : ""), Ui.Res("B.TextSoft"), 12));
             host.Children.Add(Frame(sp));
             if (info.Item2.Length > 0) host.Children.Add(Meta(info.Item2));
             Ui.Rise(host, 0, 6, 300);
@@ -170,7 +170,7 @@ namespace MonitoringTools.UI
                 }
                 catch (Exception ex) { return (new System.Collections.Generic.List<string> { ex.Message }, ""); }
             });
-            host.Children.Add(Frame(Ui.Mono(string.Join("\n", info.Item1), Ui.Res("B.TextSoft"), 11.5)));
+            host.Children.Add(Frame(Ui.Mono(string.Join("\n", info.Item1), Ui.Res("B.TextSoft"), 12)));
             if (info.Item2.Length > 0) host.Children.Add(Meta(info.Item2));
             Ui.Rise(host, 0, 6, 300);
             changed?.Invoke();
@@ -226,7 +226,7 @@ namespace MonitoringTools.UI
         {
             var b = new Border
             {
-                Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 8),
+                Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 8, 10, 8),
                 BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), Child = child, ClipToBounds = true
             };
             Core.Language.SetLiteral(b, true);

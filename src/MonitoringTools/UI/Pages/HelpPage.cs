@@ -462,7 +462,7 @@ namespace MonitoringTools.UI
                 {
                     tb.Inlines.Add(new InlineUIContainer(new Border
                     {
-                        Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(5), Padding = new Thickness(5, 0, 5, 1),
+                        Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(4), Padding = new Thickness(5, 0, 5, 1),
                         Child = new TextBlock { Text = v.Trim('`'), FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text") }
                     }) { BaselineAlignment = BaselineAlignment.Center });
                 }
@@ -520,7 +520,7 @@ namespace MonitoringTools.UI
                     var g = new Grid();
                     g.Children.Add(code);
                     g.Children.Add(copy);
-                    into.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 2, 0, 12), Child = g });
+                    into.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 2, 0, 12), Child = g });
                     continue;
                 }
 
@@ -650,7 +650,7 @@ namespace MonitoringTools.UI
                     g.Children.Add(cell);
                 }
             }
-            return new Border { Background = Ui.Res("B.Surface"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), ClipToBounds = true, Margin = new Thickness(0, 2, 0, 14), Child = g };
+            return new Border { Background = Ui.Res("B.Surface"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), ClipToBounds = true, Margin = new Thickness(0, 2, 0, 14), Child = g };
         }
 
         private static FrameworkElement HelpImage(string alt, string src)
@@ -668,7 +668,7 @@ namespace MonitoringTools.UI
                 var img = new Image { Source = bmp, Stretch = Stretch.Uniform, StretchDirection = StretchDirection.DownOnly, MaxWidth = 740, HorizontalAlignment = HorizontalAlignment.Left };
                 AutomationProperties.SetName(img, alt);
                 var sp = new StackPanel { Margin = new Thickness(0, 4, 0, 14) };
-                sp.Children.Add(new Border { CornerRadius = new CornerRadius(10), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), HorizontalAlignment = HorizontalAlignment.Left, ClipToBounds = true, Child = img });
+                sp.Children.Add(new Border { CornerRadius = new CornerRadius(12), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), HorizontalAlignment = HorizontalAlignment.Left, ClipToBounds = true, Child = img });
                 if (alt.Length > 0) sp.Children.Add(new TextBlock { Text = alt, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(2, 5, 0, 0) });
                 return sp;
             }

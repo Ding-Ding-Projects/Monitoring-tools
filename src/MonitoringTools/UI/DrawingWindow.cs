@@ -299,7 +299,7 @@ namespace MonitoringTools.UI
             row.Children.Add(Sep());
             row.Children.Add(ToolButton("Undo", "Undo (Ctrl+Z)", Undo, false, "Undo"));
             row.Children.Add(ToolButton("Redo", "Redo (Ctrl+Y)", Redo, false, "Redo"));
-            var swatch = new Border { Width = 14, Height = 14, CornerRadius = new CornerRadius(7), Background = new SolidColorBrush(_color), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 8, 0) };
+            var swatch = new Border { Width = 14, Height = 14, CornerRadius = new CornerRadius(8), Background = new SolidColorBrush(_color), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 8, 0) };
             var colourBtn = ToolButton("", "Colour (C): turns the toolbar into a palette", () => TogglePanel("colour"), _panel == "colour", "Colour");
             colourBtn.Content = new StackPanel { Orientation = Orientation.Horizontal, Children = { swatch, new TextBlock { Text = "Colour", VerticalAlignment = VerticalAlignment.Center } } };
             row.Children.Add(colourBtn);

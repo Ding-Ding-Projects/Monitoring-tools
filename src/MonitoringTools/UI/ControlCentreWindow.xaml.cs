@@ -532,8 +532,8 @@ namespace MonitoringTools.UI
             var push = new StackPanel();
             push.Children.Add(CardTitle(":push message", "Built in. Stages everything, commits with this message and pushes the current branch."));
             var pr = new StackPanel { Orientation = Orientation.Horizontal };
-            pr.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 0, 10, 8),
-                Child = Ui.Mono(string.IsNullOrWhiteSpace(s.CommitTemplate) ? "not set yet: the first :push will ask" : s.CommitTemplate, Ui.Res(string.IsNullOrWhiteSpace(s.CommitTemplate) ? "B.Amber" : "B.Text"), 13) });
+            pr.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 0, 10, 8),
+                Child = Ui.Mono(string.IsNullOrWhiteSpace(s.CommitTemplate) ? "not set yet: the first :push will ask" : s.CommitTemplate, Ui.Res(string.IsNullOrWhiteSpace(s.CommitTemplate) ? "B.Amber" : "B.Text"), 12) });
             pr.Children.Add(Ui.Button("Edit", () =>
             {
                 var d = new CommitTemplateWindow(continueAfter: false);

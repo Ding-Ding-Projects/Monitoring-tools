@@ -54,7 +54,7 @@ namespace MonitoringTools.UI.Minecraft
                 search.SetCount(hits.Count, all.Count, "lines");
                 lines.Children.Clear();
                 foreach (var l in hits.TakeLast(400)) lines.Children.Add(LogRow(l));
-                if (hits.Count == 0) lines.Children.Add(McUi.Body(all.Count == 0 ? "No console lines yet. Start the server to see its log here." : "No lines match the filters.", "B.TextMute", 12.5));
+                if (hits.Count == 0) lines.Children.Add(McUi.Body(all.Count == 0 ? "No console lines yet. Start the server to see its log here." : "No lines match the filters.", "B.TextMute", 12));
                 count.Text = all.Count == 0 ? "" : hits.Count > 400 ? $"Showing the last 400 of {hits.Count} lines." : $"{hits.Count} of {all.Count} lines";
                 Core.Language.Refresh(count);
                 if (Follow) scroll.ScrollToEnd();
@@ -85,14 +85,14 @@ namespace MonitoringTools.UI.Minecraft
         {
             var card = new StackPanel();
             card.Children.Add(McUi.Title("Run a command", 16));
-            var where = McUi.Body("The Bedrock server has no command list to build from, so type the command as you would in its own console, for example list or allowlist add Ava.", "B.TextMute", 12.5);
+            var where = McUi.Body("The Bedrock server has no command list to build from, so type the command as you would in its own console, for example list or allowlist add Ava.", "B.TextMute", 12);
             where.Margin = new Thickness(0, 2, 0, 10);
             card.Children.Add(where);
             var row = new WrapPanel();
             var box = McUi.Field("", "Command", 360, "A Bedrock server command, without the slash");
             box.FontFamily = Ui.Font("F.Mono");
             row.Children.Add(box);
-            var answer = McUi.Body("", "B.TextMute", 12.5);
+            var answer = McUi.Body("", "B.TextMute", 12);
             AutomationProperties.SetLiveSetting(answer, AutomationLiveSetting.Polite);
             async Task Send()
             {
@@ -120,7 +120,7 @@ namespace MonitoringTools.UI.Minecraft
             title.Children.Add(new ContentControl { Content = Ui.Icon(Icons.Bolt, Ui.Res("B.Mint"), 16), Margin = new Thickness(0, 0, 8, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center });
             title.Children.Add(McUi.Title("Run a command", 16));
             card.Children.Add(title);
-            var where = McUi.Body("Build any command with proper controls: players and selectors, items, blocks, effects and mobs from this version's own lists, numbers with their real limits and positions with relative axes. There is no free shell field.", "B.TextMute", 12.5);
+            var where = McUi.Body("Build any command with proper controls: players and selectors, items, blocks, effects and mobs from this version's own lists, numbers with their real limits and positions with relative axes. There is no free shell field.", "B.TextMute", 12);
             where.Margin = new Thickness(0, 2, 0, 10);
             card.Children.Add(where);
             var open = new WrapPanel();
@@ -131,7 +131,7 @@ namespace MonitoringTools.UI.Minecraft
             every.Margin = new Thickness(0); every.VerticalAlignment = VerticalAlignment.Center;   // same margins as its neighbour, so the two line up
             open.Children.Add(every);
             card.Children.Add(open);
-            var answer = McUi.Body("", "B.TextSoft", 12.5);
+            var answer = McUi.Body("", "B.TextSoft", 12);
             AutomationProperties.SetLiveSetting(answer, AutomationLiveSetting.Polite);
             async Task Send(string line)
             {

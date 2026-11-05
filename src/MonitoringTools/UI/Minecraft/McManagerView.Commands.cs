@@ -129,7 +129,7 @@ namespace MonitoringTools.UI.Minecraft
             AutomationProperties.SetHeadingLevel(title, AutomationHeadingLevel.Level3);
             titles.Children.Add(title);
             titles.Children.Add(McUi.Body(s.IsBedrock ? "Bedrock servers do not report a command list, so their console takes typed lines."
-                : $"{s.Flavour} {s.Version}. Every field comes from this server's own command list, players and registries.", "B.TextSoft", 13.5));
+                : $"{s.Flavour} {s.Version}. Every field comes from this server's own command list, players and registries.", "B.TextSoft", 14));
             Grid.SetColumn(titles, 1); head.Children.Add(titles);
             var modes = new WrapPanel { VerticalAlignment = VerticalAlignment.Top };
             AutomationProperties.SetName(modes, "Builder mode");
@@ -144,7 +144,7 @@ namespace MonitoringTools.UI.Minecraft
             if (s.IsBedrock)
             {
                 var card = new StackPanel();
-                card.Children.Add(McUi.Body("The Bedrock server has no command list to build from. Type its commands in the console instead.", "B.TextSoft", 13));
+                card.Children.Add(McUi.Body("The Bedrock server has no command list to build from. Type its commands in the console instead.", "B.TextSoft", 12));
                 var b = Ui.Button("Back to the console", () => ShowSection("console"), "Btn.Ghost", Icons.Code);
                 b.HorizontalAlignment = HorizontalAlignment.Left; b.Margin = new Thickness(0, 10, 0, 0);
                 card.Children.Add(b);
@@ -158,13 +158,13 @@ namespace MonitoringTools.UI.Minecraft
 
             async void Load(bool download)
             {
-                var note = McUi.Body(download ? "Reading the command list from the server jar…" : "Loading the command list…", "B.TextMute", 12.5);
+                var note = McUi.Body(download ? "Reading the command list from the server jar…" : "Loading the command list…", "B.TextMute", 12);
                 host.Content = McUi.Card(note);
                 var (tree, unavailable) = await McCommandTree.LoadAsync(s.Version, t => Dispatcher.BeginInvoke(new Action(() => { note.Text = t; Core.Language.Refresh(note); })), download);
                 if (tree == null)
                 {
                     var sp = new StackPanel();
-                    sp.Children.Add(McUi.Body(unavailable + " Reading it downloads the official server jar for this version once and asks it for its commands.", "B.TextSoft", 13));
+                    sp.Children.Add(McUi.Body(unavailable + " Reading it downloads the official server jar for this version once and asks it for its commands.", "B.TextSoft", 12));
                     var b = Ui.Button("Read this version's command list", () => Load(true), "Btn.Ghost", Icons.Code);
                     b.HorizontalAlignment = HorizontalAlignment.Left; b.Margin = new Thickness(0, 8, 0, 0);
                     sp.Children.Add(b);
@@ -195,7 +195,7 @@ namespace MonitoringTools.UI.Minecraft
                 var ex = new StackPanel();
                 ex.Children.Add(McUi.Title("Every command", 16));
                 var count = _tree.Children.Count(c => c.IsLiteral);
-                var t = McUi.Body($"All {count} commands of this server, walked step by step from its own command tree. Each argument gets the control its type needs: whole numbers with their limits, true or false, a player or selector picker, positions as axes, items, blocks, effects, enchantments and entities as searchable lists from the game's registries, and text as a text box. Commands added by plugins or mods appear only when the server reports them.", "B.TextSoft", 13);
+                var t = McUi.Body($"All {count} commands of this server, walked step by step from its own command tree. Each argument gets the control its type needs: whole numbers with their limits, true or false, a player or selector picker, positions as axes, items, blocks, effects, enchantments and entities as searchable lists from the game's registries, and text as a text box. Commands added by plugins or mods appear only when the server reports them.", "B.TextSoft", 12);
                 t.Margin = new Thickness(0, 6, 0, 0);
                 ex.Children.Add(t);
                 right.Children.Add(McUi.Card(ex));
@@ -260,7 +260,7 @@ namespace MonitoringTools.UI.Minecraft
                         g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                         var content = new StackPanel { Orientation = Orientation.Horizontal };
                         content.Children.Add(new ContentControl { Content = Ui.Icon(StarIcon, Ui.Res("B.Amber"), 15), Margin = new Thickness(0, 0, 10, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center });
-                        var lt = McUi.Literal(line, "B.Text", 12.5, true);
+                        var lt = McUi.Literal(line, "B.Text", 12, true);
                         lt.TextWrapping = TextWrapping.NoWrap; lt.TextTrimming = TextTrimming.CharacterEllipsis; lt.MaxWidth = 200;
                         content.Children.Add(lt);
                         var row = McUi.Row(content, "Open favourite " + line);
@@ -303,7 +303,7 @@ namespace MonitoringTools.UI.Minecraft
                         g.Children.Add(new ContentControl { Content = Ui.Icon(TaskIcon(t.Icon), Ui.Res(on ? "B.OnSecondaryContainer" : "B.TextSoft"), 16), Margin = new Thickness(0, 0, 12, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center });
                         var label = new TextBlock { Text = t.Label, FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
                         Grid.SetColumn(label, 1); g.Children.Add(label);
-                        var cmd = McUi.Literal(t.Shown, on ? "B.OnSecondaryContainer" : "B.TextMute", 11.5, true);
+                        var cmd = McUi.Literal(t.Shown, on ? "B.OnSecondaryContainer" : "B.TextMute", 12, true);
                         cmd.VerticalAlignment = VerticalAlignment.Center; cmd.Margin = new Thickness(8, 0, 0, 0);
                         Grid.SetColumn(cmd, 2); g.Children.Add(cmd);
                         var row = McUi.Row(g, t.Label);
@@ -334,7 +334,7 @@ namespace MonitoringTools.UI.Minecraft
                     }
                 }
                 search.SetCount(shown, McCommandTasks.All.Length + McCommandTasks.LiveFor(s.Id).Count, "tasks");
-                if (shown == 0 && list.Children.Count == 0) list.Children.Add(McUi.Body("No task matches. Every command has all of them.", "B.TextMute", 12.5));
+                if (shown == 0 && list.Children.Count == 0) list.Children.Add(McUi.Body("No task matches. Every command has all of them.", "B.TextMute", 12));
                 Core.Language.Refresh(list);
             }
             search.Filter += Paint;
@@ -424,10 +424,10 @@ namespace MonitoringTools.UI.Minecraft
             var head = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 16) };
             head.Children.Add(new Border { Width = 44, Height = 44, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.MintWash"), Child = Ui.Icon(TaskIcon(task.Icon), Ui.Res("B.Mint"), 20), Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Top });
             var ht = new StackPanel();
-            var title = McUi.Title(task.Label, 20);
+            var title = McUi.Title(task.Label, 22);
             AutomationProperties.SetHeadingLevel(title, AutomationHeadingLevel.Level3);
             ht.Children.Add(title);
-            var help = McUi.Body(task.Help, "B.TextSoft", 13);
+            var help = McUi.Body(task.Help, "B.TextSoft", 12);
             help.MaxWidth = 560;
             ht.Children.Add(help);
             if (task.Live)
@@ -445,9 +445,9 @@ namespace MonitoringTools.UI.Minecraft
 
             var build = McCommandTasks.Build(task, task.Synthetic ?? _tree, values, _registries);
             if (build.Unavailable != null)
-                card.Children.Add(McUi.Body(build.Unavailable + " Every command lists what this version has.", "B.Amber", 13));
+                card.Children.Add(McUi.Body(build.Unavailable + " Every command lists what this version has.", "B.Amber", 12));
             if (build.Fields.Count == 0 && build.Unavailable == null)
-                card.Children.Add(McUi.Body("This command takes nothing more. Check the line below and run it.", "B.TextMute", 13));
+                card.Children.Add(McUi.Body("This command takes nothing more. Check the line below and run it.", "B.TextMute", 12));
             foreach (var f in build.Fields)
             {
                 var field = f;
@@ -546,7 +546,7 @@ namespace MonitoringTools.UI.Minecraft
 
             var node = steps.Count == 0 ? null : steps[^1].Node;
             var kids = node?.Next ?? new List<McCommandNode>();
-            var nextLabel = McUi.Body(node == null ? "Choose a command above." : kids.Count == 0 ? "This command is complete." : node.CanEnd ? "It can run as it is, or take more:" : "Next:", "B.TextMute", 12.5);
+            var nextLabel = McUi.Body(node == null ? "Choose a command above." : kids.Count == 0 ? "This command is complete." : node.CanEnd ? "It can run as it is, or take more:" : "Next:", "B.TextMute", 12);
             nextLabel.Margin = new Thickness(0, 8, 0, 4);
             sp.Children.Add(nextLabel);
             var next = new WrapPanel();
@@ -605,7 +605,7 @@ namespace MonitoringTools.UI.Minecraft
             var statusRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 10) };
             var statusIcon = new ContentControl { IsTabStop = false, Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Top };
             statusRow.Children.Add(statusIcon);
-            _cmdStatus = McUi.Body("", "B.Mint", 13.5);
+            _cmdStatus = McUi.Body("", "B.Mint", 14);
             _cmdStatus.MaxWidth = 640;
             AutomationProperties.SetLiveSetting(_cmdStatus, AutomationLiveSetting.Polite);
             statusRow.Children.Add(_cmdStatus);
@@ -628,7 +628,7 @@ namespace MonitoringTools.UI.Minecraft
             var sched = Ui.Button("Schedule it", () => ScheduleLine(s), "Btn.Ghost", Icons.Clock);
             buttons.Children.Add(sched);
             card.Children.Add(buttons);
-            _cmdAnswer = McUi.Body("", "B.TextSoft", 12.5);
+            _cmdAnswer = McUi.Body("", "B.TextSoft", 12);
             AutomationProperties.SetLiveSetting(_cmdAnswer, AutomationLiveSetting.Polite);
             _cmdAnswer.Margin = new Thickness(0, 6, 0, 0);
             card.Children.Add(_cmdAnswer);
@@ -656,7 +656,7 @@ namespace MonitoringTools.UI.Minecraft
                     var (bg, fg, kindName) = Tone(kind);
                     var tb = new TextBlock { Text = empty ? "<" + (label ?? steps[i].Node.Name) + ">" : text.Trim(), FontFamily = Ui.Font("F.Mono"), FontSize = 14, Foreground = Ui.Res(empty ? "B.TextMute" : fg), FontStyle = empty ? FontStyles.Italic : FontStyles.Normal };
                     Core.Language.SetLiteral(tb, true);
-                    var part = new Button { Style = Ui.Style("Btn.Row"), Content = new Border { Background = Ui.Res(empty ? "B.Raised" : bg), CornerRadius = new CornerRadius(7), Padding = new Thickness(7, 2, 7, 3), Child = tb }, Height = double.NaN, Padding = new Thickness(0), Margin = new Thickness(0, 0, 6, 6) };
+                    var part = new Button { Style = Ui.Style("Btn.Row"), Content = new Border { Background = Ui.Res(empty ? "B.Raised" : bg), CornerRadius = new CornerRadius(8), Padding = new Thickness(7, 2, 7, 3), Child = tb }, Height = double.NaN, Padding = new Thickness(0), Margin = new Thickness(0, 0, 6, 6) };
                     var tip = kindName + " · " + (label ?? (kind == McCommandTree.PartKind.Command ? "the command" : steps[i].Node.Name));
                     part.ToolTip = tip;
                     AutomationProperties.SetName(part, tip);

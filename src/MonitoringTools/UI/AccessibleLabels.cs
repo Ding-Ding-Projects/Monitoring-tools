@@ -6,6 +6,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace MonitoringTools.UI
 {
@@ -23,6 +24,8 @@ namespace MonitoringTools.UI
             if (_installed) return;
             _installed = true;
             EventManager.RegisterClassHandler(typeof(ButtonBase), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) => NameFromContent((ButtonBase)o)));
+            EventManager.RegisterClassHandler(typeof(TextBoxBase), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) => NameFromLabel((FrameworkElement)o)));
+            EventManager.RegisterClassHandler(typeof(PasswordBox), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) => NameFromLabel((FrameworkElement)o)));
             EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) =>
             {
                 var w = (Window)o;
@@ -34,11 +37,42 @@ namespace MonitoringTools.UI
         private static void NameFromContent(ButtonBase b)
         {
             if (b.TemplatedParent != null) return;                                   // a part inside another control's template
-            if (b.ReadLocalValue(AutomationProperties.NameProperty) != DependencyProperty.UnsetValue) return;   // already named, or already bound
-            if (b.Content is string) return;                                         // the peer reads a plain string by itself
+            var local = b.ReadLocalValue(AutomationProperties.NameProperty);
+            if (local != DependencyProperty.UnsetValue && !(local is string blank && blank.Length == 0)) return;   // already named, or already bound
             if (AutomationProperties.GetLabeledBy(b) != null) return;
             var binding = new Binding("Content") { Source = b, Mode = BindingMode.OneWay, Converter = Converter.Instance };
             b.SetBinding(AutomationProperties.NameProperty, binding);
+        }
+
+        /// <summary>
+        /// An input with no accessible name takes the text block that labels it (the nearest one before it in its panel, or the one that starts the
+        /// panel above), or else its tooltip. The name follows that text block, so a language change reaches it.
+        /// </summary>
+        private static void NameFromLabel(FrameworkElement e)
+        {
+            if (e.TemplatedParent != null) return;
+            var local = e.ReadLocalValue(AutomationProperties.NameProperty);
+            if (local != DependencyProperty.UnsetValue && !(local is string blank && blank.Length == 0)) return;
+            if (AutomationProperties.GetLabeledBy(e) != null) return;
+            TextBlock label = null;
+            DependencyObject child = e;
+            for (int hop = 0; hop < 4 && label == null; hop++)
+            {
+                var parent = VisualTreeHelper.GetParent(child);
+                if (parent == null) break;
+                if (parent is Panel panel)
+                {
+                    int at = panel.Children.IndexOf(child as UIElement);
+                    for (int i = at - 1; i >= 0 && label == null; i--)
+                    {
+                        if (panel.Children[i] is TextBlock t && !string.IsNullOrWhiteSpace(t.Text)) label = t;
+                        else if (panel.Children[i] is Panel inner) label = inner.Children.OfType<TextBlock>().FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Text));
+                    }
+                }
+                child = parent;
+            }
+            if (label != null) e.SetBinding(AutomationProperties.NameProperty, new Binding("Text") { Source = label, Mode = BindingMode.OneWay });
+            else if (e.ToolTip is string tip && !string.IsNullOrWhiteSpace(tip)) AutomationProperties.SetName(e, tip);
         }
 
         private sealed class Converter : IValueConverter

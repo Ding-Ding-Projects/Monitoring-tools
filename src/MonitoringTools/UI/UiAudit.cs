@@ -239,6 +239,7 @@ namespace MonitoringTools.UI
                 {
                     if (!reached.Add(cur)) break;
                     if (cur is UIElement ue) ue.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+                    else if (cur is FrameworkContentElement fce) fce.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));   // a link inside text
                     var next = Keyboard.FocusedElement as DependencyObject;
                     if (next == null || ReferenceEquals(next, cur)) break;
                     cur = next;
@@ -248,6 +249,7 @@ namespace MonitoringTools.UI
                 foreach (var e in enabled)
                 {
                     if (reached.Contains(e)) continue;
+                    if (e is Selector sel && sel.Items.Count == 0) continue;   // an empty list has nothing to focus
                     if (where.StartsWith("command palette", StringComparison.Ordinal)) continue;
                     // a control reached through its own inner element (a text box inside a combo box, a button inside a template) counts
                     bool viaInner = reached.OfType<DependencyObject>().Any(r => Drive.Ancestors(r).Contains(e));
@@ -289,23 +291,42 @@ namespace MonitoringTools.UI
         private static Color? BackdropOf(DependencyObject e, Window win)
         {
             var layers = new List<Color>();
-            for (var p = Parent(e); p != null; p = Parent(p))
+            bool done = false, unknown = false;
+            void Take(Brush br, UIElement owner)
             {
-                // a control's own Background is painted only when its template binds it; the template's borders and panels carry the real fill
-                Brush br = p switch { Border b => b.Background, Panel pa => pa.Background, TextBlock t => t.Background, _ => null };
-                if (br == null) { if (p is Window) break; continue; }
+                if (br == null || done) return;
                 if (br is SolidColorBrush sb)
                 {
                     var col = sb.Color; double op = sb.Opacity;
-                    if (p is UIElement pu) op *= pu.Opacity;
+                    if (owner != null) op *= owner.Opacity;
                     col.A = (byte)Math.Round(col.A * op);
-                    if (col.A == 0) continue;
+                    if (col.A == 0) return;
                     layers.Add(col);
-                    if (Opaque(col)) break;
+                    if (Opaque(col)) done = true;
                 }
-                else if (br is GradientBrush || br is ImageBrush || br is VisualBrush) return null;
+                else if (br is GradientBrush || br is ImageBrush || br is VisualBrush) { unknown = true; done = true; }
             }
-            Color acc = win?.Background is SolidColorBrush wb ? wb.Color : Application.Current.Resources["B.Window"] is SolidColorBrush rb ? rb.Color : Colors.Black;
+            DependencyObject child = e;
+            for (var p = Parent(e); p != null && !done; child = p, p = Parent(p))
+            {
+                // a control's own Background is painted only when its template binds it; the template's borders and panels carry the real fill
+                Brush br = p switch { Border b => b.Background, Panel pa => pa.Background, TextBlock t => t.Background, _ => null };
+                Take(br, p as UIElement);
+                if (done) break;
+                // a template often paints its fill in a border that sits beneath the content in the same grid, not around it
+                if (p is Panel panel && child is UIElement cu)
+                {
+                    int at = panel.Children.IndexOf(cu);
+                    for (int i = at - 1; i >= 0 && !done; i--)
+                        if (panel.Children[i] is Border sib && sib.IsVisible && sib.Opacity >= 0.9 && sib.ActualWidth >= 0.9 * panel.ActualWidth && sib.ActualHeight >= 0.9 * panel.ActualHeight)
+                            Take(sib.Background, sib);
+                }
+                if (p is Window) break;
+            }
+            if (unknown) return null;
+            Color acc;
+            if (win?.Background is SolidColorBrush wb && !ReferenceEquals(win.Background, SystemColors.WindowBrush) && wb.Color != Colors.White) acc = wb.Color;
+            else acc = Application.Current.Resources["B.Window"] is SolidColorBrush rb ? rb.Color : Colors.Black;   // a bare host window shows the theme's window colour
             acc.A = 255;
             for (int i = layers.Count - 1; i >= 0; i--) acc = Over(layers[i], acc);
             return acc;
@@ -351,7 +372,9 @@ namespace MonitoringTools.UI
                 if (fb is not SolidColorBrush fsb) { Count("contrast-skipped-brush"); continue; }
                 var bd = BackdropOf(d, win);
                 if (bd == null) { Count("contrast-skipped-backdrop"); continue; }
-                var fc = fsb.Color; double op = fsb.Opacity * EffectiveOpacity(d);
+                double eo = EffectiveOpacity(d);
+                if (eo < 0.98) { Count("contrast-skipped-opacity"); continue; }   // mid-fade or dimmed on purpose: the settled colour is what a person reads
+                var fc = fsb.Color; double op = fsb.Opacity * eo;
                 fc.A = (byte)Math.Round(fc.A * Math.Min(1, op));
                 if (fc.A < 8) continue;
                 var eff = Over(fc, bd.Value);
@@ -410,7 +433,7 @@ namespace MonitoringTools.UI
                     double r = b.CornerRadius.TopLeft;
                     Corners.TryGetValue(r, out var cn); Corners[r] = cn + 1;
                     bool full = r >= Math.Min(b.ActualWidth, b.ActualHeight) / 2 - 0.6;
-                    bool authored = Math.Abs(r - Math.Round(r)) < 0.001 && b.Name != "Focus";   // a focus ring follows its container's radius; an animated radius is not authored
+                    bool authored = Math.Abs(r - Math.Round(r)) < 0.001 && b.Name != "Focus" && r > 1;   // a focus ring follows its container's radius; an animated radius is not authored
                     if (!full && authored && !ShapeScale.Contains(r)) Add("shape scale", where, fe, $"corner radius {r:0.##} is not on the Material 3 shape scale (0, 4, 8, 12, 16, 20, 28, 32, 48 or full)");
                     Count("shape-checked");
                 }

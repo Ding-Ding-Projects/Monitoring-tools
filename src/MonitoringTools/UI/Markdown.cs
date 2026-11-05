@@ -119,7 +119,7 @@ namespace MonitoringTools.UI
                 {
                     tb.Inlines.Add(new InlineUIContainer(new Border
                     {
-                        Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(5), Padding = new Thickness(5, 0, 5, 1),
+                        Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(4), Padding = new Thickness(5, 0, 5, 1),
                         Child = new TextBlock { Text = v.Trim('`'), FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text") }
                     }) { BaselineAlignment = BaselineAlignment.Center });
                 }

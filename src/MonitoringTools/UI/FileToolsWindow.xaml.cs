@@ -387,7 +387,7 @@ namespace MonitoringTools.UI
                 FontFamily = Ui.Font("F.Mono"), FontSize = 14, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(0)
             };
             box.Template = PlainBox();
-            var frame = new Border { Height = 42, CornerRadius = new CornerRadius(10), Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Padding = new Thickness(12, 0, 12, 0), Child = box };
+            var frame = new Border { Height = 42, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Padding = new Thickness(12, 0, 12, 0), Child = box };
             box.GotKeyboardFocus += (s, e) => frame.BorderBrush = Ui.Res("B.Mint");
             box.LostKeyboardFocus += (s, e) => frame.BorderBrush = Ui.Res("B.LineStrong");
             return (box, frame);

@@ -26,7 +26,7 @@ namespace MonitoringTools.UI.Minecraft
             var top = new WrapPanel();
             Grid.SetColumn(top, 1); head.Children.Add(top);
             card.Children.Add(head);
-            var result = McUi.Body("", "B.TextMute", 12.5);
+            var result = McUi.Body("", "B.TextMute", 12);
             AutomationProperties.SetLiveSetting(result, AutomationLiveSetting.Polite);
             var list = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
             card.Children.Add(list);
@@ -59,7 +59,7 @@ namespace MonitoringTools.UI.Minecraft
                     var (wash, ink, icon) = d.Kind switch { "Nether" => ("B.DangerWash", "B.Danger", Icons.Bolt), "The End" => ("B.VioletWash", "B.Violet", Icons.Moon), _ => ("B.MintWash", "B.Mint", Icons.Globe) };
                     g.Children.Add(new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res(wash), Child = Ui.Icon(icon, Ui.Res(ink), 18), Margin = new Thickness(0, 0, 14, 0) });
                     var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                    text.Children.Add(McUi.Literal(d.Name, "B.Text", 14.5));
+                    text.Children.Add(McUi.Literal(d.Name, "B.Text", 14));
                     string seed = "";
                     if (d.Kind == "Overworld")
                     {
@@ -79,7 +79,7 @@ namespace MonitoringTools.UI.Minecraft
                     }
                     list.Children.Add(g);
                 }
-                var foot = McUi.Body("Reset and replace stop the server, take a backup first and ask for the two-key confirmation. An imported world is copied and checked for a level.dat, never moved.", "B.TextMute", 12.5);
+                var foot = McUi.Body("Reset and replace stop the server, take a backup first and ask for the two-key confirmation. An imported world is copied and checked for a level.dat, never moved.", "B.TextMute", 12);
                 foot.Margin = new Thickness(0, 12, 0, 0);
                 card.Children.Add(foot);
             }
@@ -92,7 +92,7 @@ namespace MonitoringTools.UI.Minecraft
             gh.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var gt = new StackPanel();
             gt.Children.Add(McUi.Title("Generate a new world, or pre-generate chunks", 16));
-            gt.Children.Add(McUi.Body("Builds terrain with the real server jar: a seed, a world type and a square area of chunks generated ahead of time, saved as a folder or a ZIP, or written into this server.", "B.TextMute", 12.5));
+            gt.Children.Add(McUi.Body("Builds terrain with the real server jar: a seed, a world type and a square area of chunks generated ahead of time, saved as a folder or a ZIP, or written into this server.", "B.TextMute", 12));
             gh.Children.Add(gt);
             var toggle = Ui.Button(ShowGenerator ? "Hide the generator" : "Open the generator", () => { ShowGenerator = !ShowGenerator; BuildWorkspace(); }, "Btn.Ghost", Icons.Wand);
             toggle.Margin = new Thickness(12, 0, 0, 0);

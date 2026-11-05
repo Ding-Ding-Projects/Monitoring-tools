@@ -61,7 +61,7 @@ namespace MonitoringTools.UI.Search
             Box = new TextBox
             {
                 Background = Brushes.Transparent, BorderThickness = new Thickness(0), Foreground = Ui.Res("B.Text"), CaretBrush = Ui.Res("B.Text"),
-                SelectionBrush = Ui.Res("B.Mint"), FontSize = compact ? 13 : 14, VerticalContentAlignment = VerticalAlignment.Center,
+                SelectionBrush = Ui.Res("B.Mint"), FontSize = compact ? 12 : 14, VerticalContentAlignment = VerticalAlignment.Center,
                 Padding = new Thickness(0), Margin = new Thickness(0), Text = State.Query, FocusVisualStyle = null,
                 FontFamily = State.IsRegex ? Ui.Font("F.Mono") : Ui.Font("F.Body")
             };

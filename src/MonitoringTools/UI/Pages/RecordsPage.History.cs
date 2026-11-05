@@ -102,7 +102,7 @@ namespace MonitoringTools.UI
                     AutomationProperties.SetName(del, "Delete the history of " + k);
                     DockPanel.SetDock(del, Dock.Right);
                     row.Children.Add(del);
-                    row.Children.Add(SafetyUi.Text(k + "   ·   " + count + (count == 1 ? " version" : " versions"), 13, "B.TextSoft"));
+                    row.Children.Add(SafetyUi.Text(k + "   ·   " + count + (count == 1 ? " version" : " versions"), 12, "B.TextSoft"));
                     items.Children.Add(row);
                 }
             }

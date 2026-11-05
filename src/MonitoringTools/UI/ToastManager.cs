@@ -100,7 +100,7 @@ namespace MonitoringTools.UI
             switch (item.Kind)
             {
                 case ClipKind.Url: Url(w, item); break;
-                case ClipKind.Email: w.SetHeader(Icons.Mail, "Email", ""); w.SetBody(Ui.Mono(item.Text, Ui.Res("B.Mint"), 13)); break;
+                case ClipKind.Email: w.SetHeader(Icons.Mail, "Email", ""); w.SetBody(Ui.Mono(item.Text, Ui.Res("B.Mint"), 12)); break;
                 case ClipKind.Color: ColorBody(w, item); break;
                 case ClipKind.Json: Json(w, item); break;
                 case ClipKind.Markdown:
@@ -274,7 +274,7 @@ namespace MonitoringTools.UI
         {
             return new Border
             {
-                Width = 112, Height = 78, CornerRadius = new CornerRadius(10), Margin = new Thickness(0, 0, 14, 0),
+                Width = 112, Height = 78, CornerRadius = new CornerRadius(12), Margin = new Thickness(0, 0, 14, 0),
                 Background = new ImageBrush(src) { Stretch = Stretch.UniformToFill },
                 BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1)
             };
@@ -299,7 +299,7 @@ namespace MonitoringTools.UI
             var thumb = ThumbFrame(img);
             row.Children.Add(thumb);
             var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            info.Children.Add(Ui.Mono($"{img.PixelWidth} × {img.PixelHeight} px", Ui.Res("B.Text"), 13));
+            info.Children.Add(Ui.Mono($"{img.PixelWidth} × {img.PixelHeight} px", Ui.Res("B.Text"), 12));
             info.Children.Add(Ui.Text("Bitmap on the clipboard. Drag the preview out to drop it as a PNG file."));
             Grid.SetColumn(info, 1);
             row.Children.Add(info);

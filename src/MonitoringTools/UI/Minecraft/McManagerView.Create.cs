@@ -90,7 +90,7 @@ namespace MonitoringTools.UI.Minecraft
                     var t = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
                     t.Children.Add(new TextBlock { Text = StepTitles[i], FontSize = 14, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     var sum = done ? Summary(d, i) : "";
-                    if (sum.Length > 0) { var st = McUi.Literal(sum, cur ? "B.OnSecondaryContainer" : "B.TextMute", 11.5); t.Children.Add(st); }
+                    if (sum.Length > 0) { var st = McUi.Literal(sum, cur ? "B.OnSecondaryContainer" : "B.TextMute", 12); t.Children.Add(st); }
                     Grid.SetColumn(t, 1); row.Children.Add(t);
                     var b = McUi.Row(row, StepTitles[i] + (done ? ", done: " + sum : cur ? ", current step" : ""));
                     b.Background = (cur ? Ui.Res("B.SecondaryContainer") : System.Windows.Media.Brushes.Transparent);
@@ -189,10 +189,10 @@ namespace MonitoringTools.UI.Minecraft
             var sp = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
             var card = new StackPanel();
             card.Children.Add(McUi.Title("Bedrock Dedicated Server for Windows", 16));
-            var note = McUi.Body(d.BedrockVersion != null ? "Version " + d.BedrockVersion + " from minecraft.net." : "Reading Mojang's download link…", d.BedrockVersion != null ? "B.Mint" : "B.TextMute", 13);
+            var note = McUi.Body(d.BedrockVersion != null ? "Version " + d.BedrockVersion + " from minecraft.net." : "Reading Mojang's download link…", d.BedrockVersion != null ? "B.Mint" : "B.TextMute", 12);
             AutomationProperties.SetLiveSetting(note, AutomationLiveSetting.Polite);
             card.Children.Add(note);
-            card.Children.Add(McUi.Body("Mojang offers only the newest release of the Bedrock server, so that is the one installed. Players connect over UDP. On this computer it runs as a Windows process; Mojang publishes no checksum for it, so the server program must carry Microsoft's signature before it is installed. Over SSH it is Mojang's Linux build, unpacked on the host (Mojang publishes no checksum or signature for it, so the download is held to HTTPS on minecraft.net and nothing more). In Docker it is the community image itzg/minecraft-bedrock-server, which downloads the server itself.", "B.TextSoft", 12.5));
+            card.Children.Add(McUi.Body("Mojang offers only the newest release of the Bedrock server, so that is the one installed. Players connect over UDP. On this computer it runs as a Windows process; Mojang publishes no checksum for it, so the server program must carry Microsoft's signature before it is installed. Over SSH it is Mojang's Linux build, unpacked on the host (Mojang publishes no checksum or signature for it, so the download is held to HTTPS on minecraft.net and nothing more). In Docker it is the community image itzg/minecraft-bedrock-server, which downloads the server itself.", "B.TextSoft", 12));
             sp.Children.Add(new Border { Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(16), Padding = new Thickness(16, 12, 16, 12), Child = card, MaxWidth = 720, HorizontalAlignment = HorizontalAlignment.Left });
             if (d.BedrockVersion == null)
                 _ = McBedrock.LatestAsync().ContinueWith(t => Dispatcher.BeginInvoke(new Action(() =>
@@ -214,7 +214,7 @@ namespace MonitoringTools.UI.Minecraft
             var list = new StackPanel();
             AutomationProperties.SetName(list, "Versions");
             sp.Children.Add(new ScrollViewer { Content = list, MaxHeight = 320, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
-            var note = McUi.Body(d.Version == null ? "No version chosen yet." : "Chosen: " + d.Version, d.Version == null ? "B.TextMute" : "B.Mint", 12.5);
+            var note = McUi.Body(d.Version == null ? "No version chosen yet." : "Chosen: " + d.Version, d.Version == null ? "B.TextMute" : "B.Mint", 12);
             note.Margin = new Thickness(0, 8, 0, 0);
             AutomationProperties.SetLiveSetting(note, AutomationLiveSetting.Polite);
             sp.Children.Add(note);
@@ -231,7 +231,7 @@ namespace MonitoringTools.UI.Minecraft
             void Fill()
             {
                 list.Children.Clear();
-                if (all == null) { list.Children.Add(McUi.Body("Loading Mojang's catalogue…", "B.TextMute", 12.5)); return; }
+                if (all == null) { list.Children.Add(McUi.Body("Loading Mojang's catalogue…", "B.TextMute", 12)); return; }
                 var ofType = all.Where(v => v.Type == "release" || (d.Snapshots && v.Type == "snapshot") || (d.OldVersions && (v.Type == "old_alpha" || v.Type == "old_beta"))).ToList();
                 filter.SampleSource = () => ofType.Select(v => v.Id);
                 var hits = ofType.Where(v => filter.State.Matches(v.Id)).ToList();
@@ -242,7 +242,7 @@ namespace MonitoringTools.UI.Minecraft
                     var g = new Grid();
                     g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
                     g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                    var id = McUi.Literal(v.Id, "B.Text", 14.5, mono: true);
+                    var id = McUi.Literal(v.Id, "B.Text", 14, mono: true);
                     g.Children.Add(id);
                     var meta = new TextBlock { Text = v.Type.Replace("old_", "old ") + " · " + v.Released.ToString("d MMM yyyy", CultureInfo.InvariantCulture), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
                     Grid.SetColumn(meta, 1); g.Children.Add(meta);
@@ -268,7 +268,7 @@ namespace MonitoringTools.UI.Minecraft
                     list.Children.Add(row);
                     if (sel) Dispatcher.BeginInvoke(new Action(() => { var sh = McUi.Shape(row); if (sh != null) sh.CornerRadius = new CornerRadius(28); }), System.Windows.Threading.DispatcherPriority.Loaded);
                 }
-                if (hits.Count == 0) list.Children.Add(McUi.Body("No versions match.", "B.TextMute", 12.5));
+                if (hits.Count == 0) list.Children.Add(McUi.Body("No versions match.", "B.TextMute", 12));
                 Core.Language.Refresh(list);
             }
             filter.Filter += Fill;
@@ -278,7 +278,7 @@ namespace MonitoringTools.UI.Minecraft
             async Task Load()
             {
                 try { all = await ServerManager.VersionsAsync(); }
-                catch (Exception ex) { list.Children.Clear(); list.Children.Add(McUi.Body("Could not load the official catalogue: " + ex.Message, "B.Amber", 12.5)); return; }
+                catch (Exception ex) { list.Children.Clear(); list.Children.Add(McUi.Body("Could not load the official catalogue: " + ex.Message, "B.Amber", 12)); return; }
                 Fill();
             }
             return sp;
@@ -302,17 +302,17 @@ namespace MonitoringTools.UI.Minecraft
             var sp = new StackPanel();
             if (d.Bedrock)
             {
-                sp.Children.Add(McUi.Title($"Server software for Bedrock {d.BedrockVersion}", 18));
+                sp.Children.Add(McUi.Title($"Server software for Bedrock {d.BedrockVersion}", 16));
                 var card = new StackPanel { Width = 320 };
                 card.Children.Add(new TextBlock { Text = "Bedrock Dedicated Server", FontSize = 16, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body") });
                 card.Children.Add(new TextBlock { Text = "Mojang's own server for Bedrock players on phones, consoles and Windows.", FontSize = 12, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 4, 0, 6) });
                 var b = new Border { Background = Ui.Res("B.SecondaryContainer"), CornerRadius = new CornerRadius(20), Padding = new Thickness(16, 14, 16, 14), Margin = new Thickness(0, 10, 0, 0), Child = card, HorizontalAlignment = HorizontalAlignment.Left };
                 System.Windows.Documents.TextElement.SetForeground(b, Ui.Res("B.OnSecondaryContainer"));
                 sp.Children.Add(b);
-                sp.Children.Add(McUi.Body("Bedrock has no other server software; plugins and mods are for Java edition.", "B.TextMute", 12.5));
+                sp.Children.Add(McUi.Body("Bedrock has no other server software; plugins and mods are for Java edition.", "B.TextMute", 12));
                 return sp;
             }
-            sp.Children.Add(McUi.Title($"Server software for {d.Version}", 18));
+            sp.Children.Add(McUi.Title($"Server software for {d.Version}", 16));
             var opts = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
             sp.Children.Add(opts);
             var builds = new StackPanel { Margin = new Thickness(0, 10, 0, 0) };
@@ -351,7 +351,7 @@ namespace MonitoringTools.UI.Minecraft
                         chosen.Builds.Take(8).Select(b => (b.Id + (b.Channel != null && b.Channel != "default" && b.Channel != "release" && b.Channel != "stable" ? " (" + b.Channel + ")" : ""), b.Id)), d.Build, v => d.Build = v, literal: true));
                 }
                 if (!McSoftware.RunsAsLocalProcess(d.Flavour))
-                    builds.Children.Add(McUi.Body($"{d.Flavour} runs in Docker, on this computer or over SSH, because it needs its own installer.", "B.TextMute", 12.5));
+                    builds.Children.Add(McUi.Body($"{d.Flavour} runs in Docker, on this computer or over SSH, because it needs its own installer.", "B.TextMute", 12));
                 Core.Language.Refresh(sp);
             }
             Paint();
@@ -474,7 +474,7 @@ namespace MonitoringTools.UI.Minecraft
                     row.Children.Add(new StackPanel { Children = { new TextBlock { Text = "SSH host", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body") }, host } });
                     row.Children.Add(new StackPanel { Children = { new TextBlock { Text = "Folder on the host", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body") }, dir } });
                     sshBox.Children.Add(row);
-                    var hostNote = McUi.Body("", "B.TextMute", 12.5);
+                    var hostNote = McUi.Body("", "B.TextMute", 12);
                     var btns = new WrapPanel();
                     btns.Children.Add(Ui.Button("Check host key", async () =>
                     {
@@ -522,7 +522,7 @@ namespace MonitoringTools.UI.Minecraft
             var name = McUi.Field(d.Name, "Server name", 320, "Also used as the message of the day");
             name.TextChanged += (o, e) => d.Name = name.Text;
             sp.Children.Add(name);
-            var check = McUi.Body("", "B.Mint", 13);
+            var check = McUi.Body("", "B.Mint", 12);
             AutomationProperties.SetLiveSetting(check, AutomationLiveSetting.Polite);
             long installed = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / 1048576;
             void Check()
@@ -546,7 +546,7 @@ namespace MonitoringTools.UI.Minecraft
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var t = new StackPanel { Margin = new Thickness(0, 0, 16, 0) };
                 t.Children.Add(new TextBlock { Text = label, FontSize = 14, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
-                t.Children.Add(McUi.Body(help, "B.TextSoft", 12.5));
+                t.Children.Add(McUi.Body(help, "B.TextSoft", 12));
                 g.Children.Add(t);
                 var nb = new McNumberBox(label, value, min, max, step, unit) { MinWidth = 200 };
                 nb.ValueChanged += v => { set(v); Check(); };
@@ -607,7 +607,7 @@ namespace MonitoringTools.UI.Minecraft
                     {
                         var (_, problem) = McWorlds.Validate(d.WorldSource);
                         host.Children.Add(McUi.Literal(PathDisplay.Shown(d.WorldSource), "B.TextSoft", 12, mono: true));
-                        host.Children.Add(McUi.Body(problem ?? "It has a level.dat, so it is a Minecraft world. It is copied in when the server is made.", problem == null ? "B.Mint" : "B.Amber", 12.5));
+                        host.Children.Add(McUi.Body(problem ?? "It has a level.dat, so it is a Minecraft world. It is copied in when the server is made.", problem == null ? "B.Mint" : "B.Amber", 12));
                     }
                 }
                 else
@@ -625,7 +625,7 @@ namespace MonitoringTools.UI.Minecraft
                             row.Click += (o, e) => { d.WorldSource = bb.Path; Paint(); };
                             host.Children.Add(row);
                         }
-                    if (!any) host.Children.Add(McUi.Body("No backups of other servers on this computer yet.", "B.TextMute", 12.5));
+                    if (!any) host.Children.Add(McUi.Body("No backups of other servers on this computer yet.", "B.TextMute", 12));
                 }
                 Core.Language.Refresh(host);
             }
@@ -648,7 +648,7 @@ namespace MonitoringTools.UI.Minecraft
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(170) });
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 g.Children.Add(new TextBlock { Text = k, FontSize = 14, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") });
-                var vt = literal ? McUi.Literal(v, "B.Text", 13.5) : McUi.Body(v, "B.Text", 13.5);
+                var vt = literal ? McUi.Literal(v, "B.Text", 14) : McUi.Body(v, "B.Text", 14);
                 Grid.SetColumn(vt, 1); g.Children.Add(vt);
                 table.Children.Add(new Border { BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(0, 10, 0, 10), Child = g });
             }

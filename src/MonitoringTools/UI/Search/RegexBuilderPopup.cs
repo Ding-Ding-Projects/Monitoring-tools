@@ -99,7 +99,7 @@ namespace MonitoringTools.UI.Search
             _status = new TextBlock { FontSize = 12, Margin = new Thickness(2, 8, 0, 0), TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body") };
             AutomationProperties.SetLiveSetting(_status, AutomationLiveSetting.Polite);
             _riskText = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.Amber"), TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body") };
-            _risk = new Border { Background = Ui.Res("B.AmberWash"), BorderBrush = Ui.Res("B.Amber"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(0, 8, 0, 0), Child = _riskText, Visibility = Visibility.Collapsed };
+            _risk = new Border { Background = Ui.Res("B.AmberWash"), BorderBrush = Ui.Res("B.Amber"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(0, 8, 0, 0), Child = _riskText, Visibility = Visibility.Collapsed };
 
             _options = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
             foreach (var (flag, label, help) in RegexKit.OptionDefs)
@@ -516,7 +516,7 @@ namespace MonitoringTools.UI.Search
 
         private static Border Panel(UIElement child) => new Border
         {
-            Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
+            Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12),
             Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(0, 4, 0, 0), Child = child
         };
 
@@ -703,7 +703,7 @@ namespace MonitoringTools.UI.Search
                 sp.Children.Add(Ui.Mono($"{r.Matches} match(es) · match {r.MatchMs:0.00} ms · construct {r.ConstructMs:0.00} ms", Ui.Res("B.TextSoft"), 11));
                 sp.Children.Add(Note(r.FirstDifference));
             }
-            return new Border { Child = sp, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6) };
+            return new Border { Child = sp, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6) };
         }
 
         // ---- Benchmark
@@ -805,7 +805,7 @@ namespace MonitoringTools.UI.Search
                 v.Foreground = Ui.Res("B.Text");
                 sp.Children.Add(v);
             }
-            return new Border { Child = sp, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6) };
+            return new Border { Child = sp, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6) };
         }
 
         // ---------------------------------------------------------------- Replace and split

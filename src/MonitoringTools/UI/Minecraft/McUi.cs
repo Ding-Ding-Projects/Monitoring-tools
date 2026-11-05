@@ -24,15 +24,15 @@ namespace MonitoringTools.UI.Minecraft
             Background = Ui.Res(bg), CornerRadius = new CornerRadius(28), Padding = new Thickness(Appearance.Gap(pad)), Margin = new Thickness(0, 0, 0, Appearance.Gap(14)), Child = child
         };
 
-        public static TextBlock Title(string text, double size = 18) => new TextBlock { Text = text, Style = Ui.Style("T.Title"), FontSize = size, TextWrapping = TextWrapping.Wrap };
+        public static TextBlock Title(string text, double size = 16) => new TextBlock { Text = text, Style = Ui.Style("T.Title"), FontSize = size, TextWrapping = TextWrapping.Wrap };
 
-        public static TextBlock Body(string text, string fg = "B.TextSoft", double size = 13) => new TextBlock
+        public static TextBlock Body(string text, string fg = "B.TextSoft", double size = 12) => new TextBlock
         {
             Text = text, Style = Ui.Style("T.Body"), FontSize = size, Foreground = Ui.Res(fg), TextWrapping = TextWrapping.Wrap
         };
 
         /// <summary>Text the person owns or that comes from the server (names, log lines, keys): never translated.</summary>
-        public static TextBlock Literal(string text, string fg = "B.Text", double size = 13, bool mono = false)
+        public static TextBlock Literal(string text, string fg = "B.Text", double size = 12, bool mono = false)
         {
             var t = new TextBlock { Text = text ?? "", FontSize = size, Foreground = Ui.Res(fg), TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font(mono ? "F.Mono" : "F.Body") };
             Core.Language.SetLiteral(t, true);

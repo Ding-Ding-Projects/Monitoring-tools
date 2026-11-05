@@ -30,7 +30,7 @@ namespace MonitoringTools.UI.Minecraft
             card.Children.Add(head);
             var list = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
             card.Children.Add(list);
-            if (s.Schedules.Count == 0) list.Children.Add(McUi.Body("No schedules yet. A daily restart and a backup every few hours suit most servers.", "B.TextMute", 13));
+            if (s.Schedules.Count == 0) list.Children.Add(McUi.Body("No schedules yet. A daily restart and a backup every few hours suit most servers.", "B.TextMute", 12));
             foreach (var job in s.Schedules.ToList())
             {
                 var g = new Grid { Margin = new Thickness(0, 6, 0, 0) };
@@ -53,7 +53,7 @@ namespace MonitoringTools.UI.Minecraft
                 Grid.SetColumn(del, 2); g.Children.Add(del);
                 list.Children.Add(new Border { BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(0, 4, 0, 8), Child = g });
             }
-            var foot = McUi.Body("Schedules run in the background app, in this computer's time zone. If the computer was asleep or the app was closed at the time, a missed run happens once when it is next running, never several times.", "B.TextMute", 12.5);
+            var foot = McUi.Body("Schedules run in the background app, in this computer's time zone. If the computer was asleep or the app was closed at the time, a missed run happens once when it is next running, never several times.", "B.TextMute", 12);
             foot.Margin = new Thickness(0, 12, 0, 0);
             card.Children.Add(foot);
             root.Children.Add(McUi.Card(card));
@@ -152,7 +152,7 @@ namespace MonitoringTools.UI.Minecraft
                             sp.Children.Add(McUi.Body("It runs through the server's console and is skipped, and recorded as skipped, when the server is not running.", "B.TextMute", 12));
                             sp.Children.Add(open);
                         }
-                        else sp.Children.Add(McUi.Body(d.Kind == McScheduleKind.Backup ? $"Backups go to the server's backup folder and the newest {s.KeepBackups} are kept." : "Only the Paper, Purpur, Fabric, Forge and NeoForge build lists can be checked. Nothing is installed by itself.", "B.TextSoft", 13));
+                        else sp.Children.Add(McUi.Body(d.Kind == McScheduleKind.Backup ? $"Backups go to the server's backup folder and the newest {s.KeepBackups} are kept." : "Only the Paper, Purpur, Fabric, Forge and NeoForge build lists can be checked. Nothing is installed by itself.", "B.TextSoft", 12));
                         return sp;
                     },
                     Validate = () => d.Kind == McScheduleKind.Message && string.IsNullOrWhiteSpace(d.Message) ? "Type the message." : d.Kind == McScheduleKind.Command && string.IsNullOrWhiteSpace(d.Command) ? "Type the command, or build it in the command builder." : null,

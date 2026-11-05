@@ -239,7 +239,7 @@ namespace MonitoringTools.UI
         }
 
         /// <summary>A small rounded label, as used for model sizes, server versions and format extensions.</summary>
-        public static Border Pill(string text, Brush bg = null, Brush fg = null, bool mono = false, double size = 11.5)
+        public static Border Pill(string text, Brush bg = null, Brush fg = null, bool mono = false, double size = 12)
         {
             var t = new TextBlock { Text = text, FontSize = size, Foreground = fg ?? Res("B.TextSoft"), FontFamily = Font(mono ? "F.Mono" : "F.Body"), VerticalAlignment = VerticalAlignment.Center };
             return new Border { Background = bg ?? Res("B.Raised"), CornerRadius = new CornerRadius(8), Padding = new Thickness(9, 3, 9, 4), Margin = new Thickness(0, 0, 6, 4), Child = t, VerticalAlignment = VerticalAlignment.Center };

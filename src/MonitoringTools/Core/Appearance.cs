@@ -171,6 +171,28 @@ namespace MonitoringTools.Core
 
         public static string RoleName(int index) => Roles[index];
 
+        private static double Lum(Color c)
+        {
+            double Ch(byte v) { double s = v / 255.0; return s <= 0.03928 ? s / 12.92 : Math.Pow((s + 0.055) / 1.055, 2.4); }
+            return 0.2126 * Ch(c.R) + 0.7152 * Ch(c.G) + 0.0722 * Ch(c.B);
+        }
+
+        /// <summary>Moves a text colour toward black (on a light background) or white (on a dark one) until it reaches the contrast ratio.</summary>
+        public static Color EnsureContrast(Color fg, Color bg, double min)
+        {
+            double lb = Lum(bg);
+            bool toBlack = lb > 0.4;
+            var c = fg;
+            for (int i = 0; i < 60; i++)
+            {
+                double lf = Lum(c), ratio = (Math.Max(lf, lb) + 0.05) / (Math.Min(lf, lb) + 0.05);
+                if (ratio >= min) return c;
+                c = toBlack ? Color.FromRgb((byte)(c.R * 0.96), (byte)(c.G * 0.96), (byte)(c.B * 0.96))
+                            : Color.FromRgb((byte)Math.Min(255, c.R + (255 - c.R) * 0.06 + 1), (byte)Math.Min(255, c.G + (255 - c.G) * 0.06 + 1), (byte)Math.Min(255, c.B + (255 - c.B) * 0.06 + 1));
+            }
+            return c;
+        }
+
         private static Color Darker(Color c, byte by) =>
             Color.FromRgb((byte)Math.Max(0, c.R - by), (byte)Math.Max(0, c.G - by), (byte)Math.Max(0, c.B - by));
 
@@ -218,7 +240,8 @@ namespace MonitoringTools.Core
             Set("LineStrong", r[15]);
             Set("Text", r[13]);
             Set("TextSoft", r[14]);
-            Set("TextMute", r[15]);
+            // muted text is the outline role nudged just far enough to read at 4.5:1 on the strongest surface it sits on
+            Set("TextMute", EnsureContrast(r[15], r[12], 4.9));
             Set("Mint", r[0]);
             Set("MintInk", r[1]);
             Set("MintWash", r[2]);

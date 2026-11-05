@@ -69,7 +69,7 @@ namespace MonitoringTools.UI
             Border Pill(string text, bool on)
             {
                 var t = new TextBlock { Text = text, FontSize = 11, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res(on ? "B.OnPrimaryContainer" : "B.TextMute") };
-                return new Border { Child = t, CornerRadius = new CornerRadius(10), Padding = new Thickness(9, 2, 9, 3), Margin = new Thickness(0, 0, 6, 4), Background = Ui.Res(on ? "B.MintWash" : "B.Sunken") };
+                return new Border { Child = t, CornerRadius = new CornerRadius(12), Padding = new Thickness(9, 2, 9, 3), Margin = new Thickness(0, 0, 6, 4), Background = Ui.Res(on ? "B.MintWash" : "B.Sunken") };
             }
 
             void PaintCaps(string model, (OllamaCapabilityInfo Info, long Context)? got, string error)
