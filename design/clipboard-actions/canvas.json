@@ -1,0 +1,86 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-05T09:00:00Z"
+  },
+  "title": "Clipboard Actions Design",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Text.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1034,
+      "title": "1 · Text toast: edit the copied text",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Image.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1092,
+      "title": "2 · Image toast: codes found",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Folder.dc.html": {
+      "x": 0,
+      "y": 1212,
+      "w": 1440,
+      "h": 1063,
+      "title": "3 · Folder and GitHub link toasts",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Install.dc.html": {
+      "x": 1520,
+      "y": 1212,
+      "w": 1440,
+      "h": 1423,
+      "title": "4 · Install command toast and automatic mode",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Archive.dc.html": {
+      "x": 0,
+      "y": 2755,
+      "w": 1440,
+      "h": 1341,
+      "title": "5 · Archive dialog",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Disk.dc.html": {
+      "x": 1520,
+      "y": 2755,
+      "w": 1440,
+      "h": 1422,
+      "title": "6 · Virtual hard disk dialog",
+      "expand": "fill",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Text.dc.html",
+    "Image.dc.html",
+    "Folder.dc.html",
+    "Install.dc.html",
+    "Archive.dc.html",
+    "Disk.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "x": 0,
+      "y": -300,
+      "text": "Clipboard actions: toasts and tool windows",
+      "kind": "title1",
+      "maxW": 2960
+    }
+  },
+  "designSystems": []
+}

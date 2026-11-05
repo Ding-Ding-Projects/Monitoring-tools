@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Clipboard actions · image toast with codes</title>
+<style>
+@font-face{font-family:'Roboto';font-weight:400 700;font-style:normal;src:url(./fonts/roboto-latin-1404ca34.woff2) format('woff2')}
+@font-face{font-family:'Roboto Mono';font-weight:400 600;font-style:normal;src:url(./fonts/roboto-mono-latin-b81cd551.woff2) format('woff2')}
+:root{color-scheme:dark;--primary:#6FDBB4;--on-primary:#003827;--primary-container:#00513A;--on-primary-container:#8CF8CF;--secondary-container:#354B41;--on-secondary-container:#CFE9DB;--tertiary-container:#244C5D;--on-tertiary-container:#C2E8FD;--surface:#0F1512;--low:#171D1A;--container:#1B211E;--high:#262B28;--highest:#303633;--on-surface:#DEE4DF;--on-variant:#BFC9C2;--outline:#89938C;--outline-variant:#404943;--amber:#FFB95F;--amber-wash:#3B2A12;--on-amber-wash:#FFDDB8;--error:#FFB4AB;--error-wash:#93000A;--on-error-wash:#FFDAD6;--shadow:0 10px 28px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.35);--ink-code:#000}
+:root[data-theme=light]{color-scheme:light;--primary:#006C4F;--on-primary:#FFFFFF;--primary-container:#8CF8CF;--on-primary-container:#002116;--secondary-container:#CFE9DB;--on-secondary-container:#09201A;--tertiary-container:#C2E8FD;--on-tertiary-container:#001F2A;--surface:#F5FBF6;--low:#EFF5F0;--container:#E9EFEA;--high:#E4EAE5;--highest:#DEE4DF;--on-surface:#171D1A;--on-variant:#404943;--outline:#707973;--outline-variant:#BFC9C2;--amber:#855300;--amber-wash:#FFDDB8;--on-amber-wash:#2A1700;--error:#BA1A1A;--error-wash:#FFDAD6;--on-error-wash:#410002;--shadow:0 10px 28px rgba(23,29,26,.16),0 2px 6px rgba(23,29,26,.12)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--surface);color:var(--on-surface);font-family:'Roboto','Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+.i{flex:none;display:inline-block;vertical-align:middle;fill:currentColor}
+.mono{font-family:'Roboto Mono',Consolas,monospace}
+.board{width:1440px;padding:40px 48px 56px}
+.bh{display:flex;align-items:flex-start;gap:16px;margin-bottom:36px}
+.bh .no{width:40px;height:40px;border-radius:20px;background:var(--secondary-container);color:var(--on-secondary-container);display:flex;align-items:center;justify-content:center;font-weight:500;font-size:16px;flex:none}
+.bh h1{margin:0;font-size:28px;line-height:36px;font-weight:400}
+.bh p{margin:4px 0 0;max-width:860px;color:var(--on-variant);font-size:14px;line-height:21px}
+.bh .sp{flex:1}
+.ibtn{width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;color:var(--on-variant);flex:none}
+.ibtn:hover{background:color-mix(in srgb,var(--on-variant) 10%,transparent)}
+.grid3{display:grid;grid-template-columns:repeat(3,400px);column-gap:72px;row-gap:56px;align-items:start}
+.cell{display:flex;flex-direction:column;gap:14px;min-width:0}
+.cap{display:flex;gap:10px;align-items:flex-start}
+.cap .k{width:24px;height:24px;border-radius:12px;background:var(--secondary-container);color:var(--on-secondary-container);font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px}
+.cap b{display:block;font-weight:500;font-size:14px;line-height:20px}
+.cap span{display:block;color:var(--on-variant);font-size:12.5px;line-height:18px;margin-top:2px}
+.kbd{font-family:'Roboto Mono',monospace;font-size:11.5px;line-height:1;padding:3px 6px;border-radius:6px;border:1px solid var(--outline-variant);color:var(--on-variant);background:var(--low);white-space:nowrap}
+/* toast, matching ToastWindow.xaml: 400 wide card, radius 24, padding 18/20/20/16, 3px timer */
+.toast{width:400px;border-radius:24px;background:var(--high);border:1px solid var(--outline-variant);box-shadow:var(--shadow);overflow:hidden;position:relative}
+.toast.hover{outline:4px solid color-mix(in srgb,var(--primary) 55%,transparent);outline-offset:1px}
+.toast .in{padding:18px 20px 16px}
+.hd{display:flex;align-items:center;min-height:28px}
+.ic{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-right:10px;flex:none;background:var(--primary-container);color:var(--primary)}
+:root[data-theme=light] .ic{color:var(--on-primary-container)}
+.ic.amber{background:var(--amber-wash);color:var(--amber)}
+.ic.error{background:var(--error-wash);color:var(--error)}
+.ic.tert{background:var(--tertiary-container);color:var(--on-tertiary-container)}
+.ti{font-size:16px;line-height:22px;white-space:nowrap}
+.meta{flex:1;min-width:0;margin:0 8px 0 10px;font-size:12px;color:var(--outline);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.when{font-size:12px;color:var(--outline);flex:none}
+.held{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--primary);flex:none}
+.x{width:26px;height:26px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:var(--on-variant);margin-left:8px;flex:none}
+.bd{margin-top:10px}
+.hint{margin-top:8px;font-size:12px;line-height:17px;color:var(--outline)}
+.acts{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+.chips{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
+.tip{margin-top:6px;min-height:16px;font-size:12px;line-height:16px;color:var(--outline)}
+.tm{height:3px;background:var(--highest);border-radius:0 0 24px 24px;overflow:hidden}
+.tm i{display:block;height:100%;background:var(--primary)}
+.btn{height:40px;padding:0 20px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500;line-height:1;white-space:nowrap;background:var(--secondary-container);color:var(--on-secondary-container)}
+.btn.p{background:var(--primary);color:var(--on-primary);padding:0 24px}
+.btn.p.ic-l{padding:0 24px 0 18px}
+.btn.d{background:var(--error-wash);color:var(--on-error-wash)}
+.btn.o{background:transparent;border:1px solid var(--outline-variant);color:var(--primary)}
+.btn.t{background:transparent;color:var(--primary);padding:0 12px}
+.btn.off{opacity:.38}
+.btn.focus,.chip.focus{box-shadow:0 0 0 2px var(--high),0 0 0 4px var(--primary)}
+.chip{height:32px;padding:0 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;line-height:1;border:1px solid var(--outline-variant);color:var(--on-variant);white-space:nowrap}
+.chip.m{font-family:'Roboto Mono',monospace;font-weight:400;font-size:12.5px}
+.chip.on{background:var(--secondary-container);color:var(--on-secondary-container);border-color:transparent}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;font-size:12px;font-weight:500;line-height:1;background:var(--secondary-container);color:var(--on-secondary-container);white-space:nowrap}
+.pill.ok{background:var(--primary-container);color:var(--on-primary-container)}
+.pill.warn{background:var(--amber-wash);color:var(--amber)}
+.pill.bad{background:var(--error-wash);color:var(--on-error-wash)}
+.pill.tert{background:var(--tertiary-container);color:var(--on-tertiary-container)}
+.txt{background:var(--highest);border-radius:12px;padding:10px 12px;font-size:14px;line-height:20px;color:var(--on-surface);white-space:pre-wrap;word-break:break-word}
+.txt.ed{box-shadow:inset 0 0 0 2px var(--primary);background:var(--container)}
+.caret{display:inline-block;width:2px;height:18px;background:var(--primary);vertical-align:-4px;margin:0 -1px}
+.sel{background:color-mix(in srgb,var(--primary) 35%,transparent)}
+.thumb{width:96px;height:96px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;border:1px solid var(--outline-variant)}
+.thumb svg{display:block}
+.kv{display:grid;grid-template-columns:76px 1fr;column-gap:12px;row-gap:8px;font-size:13px;line-height:18px;align-items:start}
+.kv dt{color:var(--outline);margin:0}.kv dd{margin:0;color:var(--on-surface)}
+.row{display:flex;align-items:center;gap:10px}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--on-variant);min-width:0}
+.in-f{height:48px;border-radius:12px;background:var(--highest);padding:0 14px;font-size:15px;color:var(--on-surface);display:flex;align-items:center;gap:10px;min-width:0}
+.in-f.foc{box-shadow:inset 0 0 0 2px var(--primary)}
+.in-f .sfx{margin-left:auto;color:var(--outline);font-size:14px;flex:none}
+.in-f .v{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.in-f.dis{opacity:.5}
+.sw{width:52px;height:32px;border-radius:16px;border:2px solid var(--outline);background:var(--highest);position:relative;flex:none;display:inline-block}
+.sw::after{content:"";position:absolute;top:50%;left:6px;width:16px;height:16px;border-radius:8px;background:var(--outline);transform:translateY(-50%)}
+.sw.on{background:var(--primary);border-color:var(--primary)}
+.sw.on::after{left:24px;width:22px;height:22px;border-radius:11px;background:var(--on-primary)}
+.sw.dis{opacity:.38}
+.seg{display:inline-flex;border:1px solid var(--outline);border-radius:20px;overflow:hidden;height:40px}
+.seg button{padding:0 16px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--on-surface);border-left:1px solid var(--outline)}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed=true]{background:var(--secondary-container);color:var(--on-secondary-container)}
+.seg button.dis{opacity:.38}
+.eyebrow{font-size:12px;font-weight:500;letter-spacing:.5px;color:var(--primary);text-transform:none;display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.win{border-radius:28px;background:var(--container);border:1px solid var(--outline-variant);box-shadow:var(--shadow);overflow:hidden}
+.win .wh{display:flex;align-items:center;gap:14px;padding:18px 20px 14px 24px}
+.win .wh .ic{width:40px;height:40px;border-radius:12px;margin:0}
+.win .wh h2{margin:0;font-size:22px;line-height:28px;font-weight:400}
+.win .wh p{margin:0;font-size:13px;color:var(--on-variant)}
+.win .wb{padding:6px 24px 20px}
+.win .wf{display:flex;align-items:center;gap:12px;padding:14px 24px 20px;border-top:1px solid var(--outline-variant)}
+.win .wf .sp{flex:1;min-width:0}
+.bar{height:8px;border-radius:4px;background:var(--highest);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px;background:var(--primary)}
+.note{border-radius:16px;padding:12px 14px;display:flex;gap:12px;font-size:13px;line-height:19px;align-items:flex-start}
+.note.warn{background:var(--amber-wash);color:var(--on-amber-wash)}
+.note.warn .i{color:var(--amber)}
+.note.info{background:var(--tertiary-container);color:var(--on-tertiary-container)}
+.note.bad{background:var(--error-wash);color:var(--on-error-wash)}
+.note.ok{background:var(--primary-container);color:var(--on-primary-container)}
+.card{background:var(--container);border:1px solid var(--outline-variant);border-radius:24px;padding:20px}
+.muted{color:var(--on-variant)}.faint{color:var(--outline)}
+.sl{position:relative;height:40px}
+.sl .tr{position:absolute;left:0;right:0;top:18px;height:4px;border-radius:2px;background:var(--highest)}
+.sl .ac{position:absolute;left:0;top:18px;height:4px;border-radius:2px;background:var(--primary)}
+.sl .th{position:absolute;top:10px;width:20px;height:20px;border-radius:10px;background:var(--primary);margin-left:-10px}
+.sllab{display:flex;justify-content:space-between;font-size:11.5px;color:var(--outline);margin-top:-2px}
+table.t{border-collapse:collapse;width:100%;font-size:13px}
+table.t th{font-weight:500;text-align:left;color:var(--outline);padding:6px 10px 6px 0;font-size:12px}
+table.t td{padding:8px 10px 8px 0;border-top:1px solid var(--outline-variant);vertical-align:top}
+.scroll{overflow:hidden;position:relative}
+.sbar{position:absolute;right:3px;top:8px;width:4px;border-radius:2px;background:var(--outline)}
+.meta,.when,.hint,.tip,.faint{color:var(--on-variant)!important}
+.btn.d.off{background:color-mix(in srgb,var(--on-surface) 12%,transparent);color:var(--on-variant);opacity:.7}
+.note.bad{background:color-mix(in srgb,var(--error-wash) 60%,var(--container))}
+:root[data-theme=light] .note.bad{background:var(--error-wash)}
+.in-f .v.mono{font-size:13px}
+.win{display:flex;flex-direction:column}
+.cell>.win{flex:1}
+.win .wb{flex:1}
+html.frame #theme{display:none}
+.tick{position:absolute;top:19px;width:6px;height:6px;border-radius:3px;margin-left:-3px;background:var(--outline)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search).get('theme');
+  var t=q||'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  if(new URLSearchParams(location.search).get('frame'))document.documentElement.classList.add('frame');
+  window.addEventListener('DOMContentLoaded',function(){
+    var b=document.getElementById('theme');
+    if(b)b.addEventListener('click',function(){var n=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);});
+    if(window.boardInit)window.boardInit();
+  });
+})();
+</script>
+</head>
+<body>
+<div class="board" id="board">
+  <header class="bh"><span class="no" aria-hidden="true">2</span><div><h1>Image toast: codes found in the picture</h1><p>When a copied picture contains QR codes or barcodes, the toast reads them and offers actions that fit what they are. An authenticator code is the careful case: it can be registered, never read back.</p></div><span class="sp"></span><button class="ibtn" id="theme" aria-label="Switch light and dark"><svg class="i " width="22" height="22" aria-hidden="true"><use href="#i-contrast"/></svg></button></header>
+  <div class="grid3">
+    <div class="cell"><div class="cap"><span class="k">A</span><div><b>QR code with a link</b><span>Kind, decoded text and host are shown before anything opens. Open link is the main action.</span></div></div>
+<div class="toast" role="group" aria-label="QR code with a link"><div class="in">
+  <div class="hd"><span class="ic "><svg class="i " width="16" height="16" aria-hidden="true"><use href="#i-qr_code_2"/></svg></span><span class="ti">QR code</span><span class="meta mono">480 × 480</span><span class="when">now</span><span class="x" style="opacity:0"><svg class="i " width="14" height="14" aria-hidden="true"><use href="#i-close"/></svg></span></div>
+  <div class="bd"><div class="row" style="align-items:flex-start;gap:14px"><div class="thumb" style="padding:8px"><svg width="78" height="78" preserveAspectRatio="xMidYMid meet" viewBox="0 0 174 174" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 174L42 174L42 132L0 132ZM54 174L60 174L60 162L54 162L54 156L60 156L60 150L48 150L48 168L54 168ZM66 174L72 174L72 150L66 150L66 156L60 156L60 162L66 162ZM78 174L84 174L84 168L78 168ZM108 174L114 174L114 156L108 156ZM120 174L132 174L132 168L126 168L126 156L120 156ZM138 174L144 174L144 168L138 168ZM162 174L168 174L168 162L162 162ZM6 168L6 138L36 138L36 168ZM84 168L96 168L96 162L84 162ZM144 168L156 168L156 162L144 162ZM12 162L30 162L30 144L12 144ZM138 162L144 162L144 156L138 156ZM156 162L162 162L162 156L156 156ZM168 162L174 162L174 156L168 156ZM78 156L84 156L84 150L78 150ZM114 156L120 156L120 150L114 150ZM144 156L156 156L156 150L162 150L162 144L150 144L150 132L156 132L156 126L162 126L162 120L174 120L174 114L162 114L162 108L144 108L144 102L156 102L156 84L162 84L162 90L168 90L168 96L162 96L162 102L174 102L174 66L168 66L168 72L156 72L156 78L150 78L150 84L144 84L144 66L138 66L138 78L132 78L132 84L138 84L138 90L144 90L144 96L138 96L138 108L132 108L132 114L126 114L126 120L120 120L120 132L114 132L114 120L108 120L108 114L90 114L90 108L84 108L84 114L78 114L78 120L90 120L90 126L102 126L102 132L108 132L108 138L120 138L120 150L144 150ZM162 156L168 156L168 150L162 150ZM72 150L78 150L78 126L72 126L72 108L66 108L66 102L54 102L54 108L60 108L60 114L66 114L66 132L72 132L72 138L66 138L66 144L72 144ZM90 150L102 150L102 144L90 144ZM168 150L174 150L174 144L168 144ZM48 144L60 144L60 138L66 138L66 132L54 132L54 138L48 138ZM84 144L90 144L90 132L84 132ZM102 144L108 144L108 138L102 138ZM126 144L126 126L144 126L144 144ZM96 138L102 138L102 132L96 132ZM132 138L138 138L138 132L132 132ZM156 138L168 138L168 132L174 132L174 126L162 126L162 132L156 132ZM48 132L54 132L54 126L48 126ZM6 126L18 126L18 120L6 120ZM24 126L48 126L48 120L54 120L54 126L60 126L60 114L42 114L42 120L24 120ZM18 120L24 120L24 114L30 114L30 108L18 108ZM114 120L120 120L120 114L114 114ZM138 120L138 114L144 114L144 120ZM150 120L150 114L156 114L156 120ZM0 114L6 114L6 108L0 108ZM36 114L42 114L42 108L36 108ZM108 114L114 114L114 102L108 102ZM120 114L126 114L126 108L120 108ZM42 108L48 108L48 96L18 96L18 102L42 102ZM126 108L132 108L132 96L138 96L138 90L132 90L132 84L120 84L120 78L108 78L108 72L102 72L102 84L114 84L114 90L120 90L120 96L126 96ZM0 102L12 102L12 96L6 96L6 90L0 90ZM72 102L96 102L96 96L78 96L78 84L66 84L66 72L60 72L60 60L54 60L54 54L42 54L42 60L36 60L36 54L42 54L42 48L30 48L30 78L48 78L48 96L54 96L54 90L60 90L60 96L72 96ZM102 102L108 102L108 96L102 96ZM12 96L18 96L18 84L30 84L30 78L24 78L24 72L18 72L18 66L24 66L24 48L6 48L6 60L12 60L12 72L6 72L6 60L0 60L0 84L12 84ZM30 90L42 90L42 84L30 84ZM96 90L102 90L102 84L96 84ZM54 84L54 78L60 78L60 84ZM84 84L96 84L96 78L84 78ZM120 78L132 78L132 72L120 72ZM36 72L36 66L42 66L42 72ZM48 72L48 66L54 66L54 72ZM66 72L72 72L72 66L78 66L78 60L90 60L90 66L108 66L108 72L120 72L120 66L114 66L114 60L120 60L120 54L114 54L114 48L108 48L108 54L102 54L102 60L96 60L96 54L90 54L90 48L102 48L102 36L108 36L108 42L114 42L114 36L120 36L120 24L114 24L114 30L96 30L96 42L90 42L90 24L96 24L96 18L78 18L78 12L72 12L72 18L66 18L66 24L78 24L78 30L84 30L84 54L78 54L78 30L66 30L66 36L72 36L72 42L66 42L66 48L72 48L72 54L60 54L60 60L66 60ZM132 66L138 66L138 60L150 60L150 54L126 54L126 60L132 60ZM162 66L168 66L168 60L162 60ZM168 60L174 60L174 54L168 54ZM120 54L126 54L126 36L120 36ZM156 54L168 54L168 48L156 48ZM54 48L60 48L60 42L54 42ZM0 42L42 42L42 0L0 0ZM48 42L54 42L54 36L48 36ZM60 42L66 42L66 36L60 36ZM132 42L174 42L174 0L132 0ZM6 36L6 6L36 6L36 36ZM54 36L60 36L60 30L66 30L66 24L54 24ZM138 36L138 6L168 6L168 36ZM12 30L30 30L30 12L12 12ZM144 30L162 30L162 12L144 12ZM102 24L108 24L108 18L102 18ZM48 18L54 18L54 6L48 6ZM108 18L114 18L114 12L108 12ZM60 12L66 12L66 6L60 6ZM78 12L90 12L90 0L84 0L84 6L78 6ZM96 12L108 12L108 6L96 6ZM120 12L126 12L126 6L120 6ZM54 6L60 6L60 0L54 0ZM72 6L78 6L78 0L72 0ZM108 6L114 6L114 0L108 0Z" fill-rule="evenodd" />
+</svg>
+</div><div style="min-width:0"><div class="row" style="gap:6px;margin-bottom:6px"><span class="pill">QR code</span><span class="pill tert"><svg class="i " width="14" height="14" aria-hidden="true"><use href="#i-link"/></svg>Link</span></div><div class="mono" style="font-size:13px;line-height:18px;word-break:break-all">https://example.org/menu/12</div><div class="muted" style="font-size:12px;margin-top:6px">example.org</div></div></div></div>
+  
+  <div class="acts"><button class="btn p ic-l"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-open_in_new"/></svg>Open link</button><button class="btn"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-content_copy"/></svg>Copy QR text</button></div>
+  <div class="chips"><span class="faint" style="font-size:12px;align-self:center;margin-right:2px">Save picture as</span><button class="chip m">:png</button><button class="chip m">:jpg</button><button class="chip m">:webp</button></div>
+  <div class="tip">Opens in your default browser, only when you press it.</div>
+</div><div class="tm"><i style="width:66%"></i></div></div></div>
+    <div class="cell"><div class="cap"><span class="k">B</span><div><b>Barcode: EAN-13</b><span>Kind, number and whether the check digit is valid. The thumbnail is the clipboard picture.</span></div></div>
+<div class="toast" role="group" aria-label="EAN-13 barcode"><div class="in">
+  <div class="hd"><span class="ic "><svg class="i " width="16" height="16" aria-hidden="true"><use href="#i-view_week"/></svg></span><span class="ti">Barcode</span><span class="meta mono">640 × 360</span><span class="when">now</span><span class="x" style="opacity:0"><svg class="i " width="14" height="14" aria-hidden="true"><use href="#i-close"/></svg></span></div>
+  <div class="bd"><div class="row" style="align-items:flex-start;gap:14px"><div class="thumb" style="padding:8px"><svg width="78" height="70" preserveAspectRatio="xMidYMid meet" viewBox="0 0 190 58" xmlns="http://www.w3.org/2000/svg">
+<path stroke="#000000" stroke-width="2" d="M1 58L1 0M5 58L5 0M13 58L13 0M23 58L23 0M53 58L53 0M75 58L75 0M89 58L89 0M93 58L93 0M97 58L97 0M129 58L129 0M139 58L139 0M143 58L143 0M157 58L157 0M171 58L171 0M179 58L179 0M185 58L185 0M189 58L189 0" />
+<path stroke="#000000" stroke-width="4" d="M18 58L18 0M38 58L38 0M46 58L46 0M60 58L60 0M102 58L102 0M110 58L110 0M116 58L116 0M122 58L122 0" />
+<path stroke="#000000" stroke-width="6" d="M31 58L31 0M83 58L83 0M149 58L149 0M165 58L165 0" />
+<path stroke="#000000" stroke-width="8" d="M68 58L68 0" />
+</svg>
+</div><div style="min-width:0"><div class="row" style="gap:6px;margin-bottom:6px"><span class="pill">EAN-13</span><span class="pill ok"><svg class="i " width="14" height="14" aria-hidden="true"><use href="#i-check"/></svg>Check digit valid</span></div><div class="mono" style="font-size:16px;letter-spacing:.5px">5901234123457</div><div class="muted" style="font-size:12px;margin-top:6px">13 digits, product code</div></div></div></div>
+  
+  <div class="acts"><button class="btn p ic-l"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-content_copy"/></svg>Copy number</button><button class="btn"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-open_in_new"/></svg>Search the web</button></div>
+  
+  
+</div><div class="tm"><i style="width:60%"></i></div></div></div>
+    <div class="cell"><div class="cap"><span class="k">C</span><div><b>Barcode: Code 128</b><span>Text barcodes show their characters in mono. Same layout as the EAN-13 toast.</span></div></div>
+<div class="toast" role="group" aria-label="Code 128 barcode"><div class="in">
+  <div class="hd"><span class="ic "><svg class="i " width="16" height="16" aria-hidden="true"><use href="#i-view_week"/></svg></span><span class="ti">Barcode</span><span class="meta mono">800 × 240</span><span class="when">now</span><span class="x" style="opacity:0"><svg class="i " width="14" height="14" aria-hidden="true"><use href="#i-close"/></svg></span></div>
+  <div class="bd"><div class="row" style="align-items:flex-start;gap:14px"><div class="thumb" style="padding:8px"><svg width="78" height="70" preserveAspectRatio="xMidYMid meet" viewBox="0 0 312 58" xmlns="http://www.w3.org/2000/svg">
+<path stroke="#000000" stroke-width="4" d="M2 58L2 0M36 58L36 0M46 58L46 0M74 58L74 0M112 58L112 0M150 58L150 0M184 58L184 0M236 58L236 0M260 58L260 0M288 58L288 0M310 58L310 0" />
+<path stroke="#000000" stroke-width="2" d="M7 58L7 0M13 58L13 0M23 58L23 0M63 58L63 0M67 58L67 0M89 58L89 0M119 58L119 0M143 58L143 0M155 58L155 0M177 58L177 0M199 58L199 0M221 58L221 0M227 58L227 0M243 58L243 0M265 58L265 0M283 58L283 0M305 58L305 0" />
+<path stroke="#000000" stroke-width="6" d="M29 58L29 0M53 58L53 0M81 58L81 0M95 58L95 0M127 58L127 0M135 58L135 0M171 58L171 0M191 58L191 0M205 58L205 0M251 58L251 0M299 58L299 0" />
+<path stroke="#000000" stroke-width="8" d="M104 58L104 0M162 58L162 0M214 58L214 0M274 58L274 0" />
+</svg>
+</div><div style="min-width:0"><div class="row" style="gap:6px;margin-bottom:6px"><span class="pill">Code 128</span></div><div class="mono" style="font-size:16px">MT-2026-0417</div><div class="muted" style="font-size:12px;margin-top:6px">12 characters, text</div></div></div></div>
+  
+  <div class="acts"><button class="btn p ic-l"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-content_copy"/></svg>Copy text</button></div>
+  
+  
+</div><div class="tm"><i style="width:52%"></i></div></div></div>
+    <div class="cell"><div class="cap"><span class="k">D</span><div><b>Several codes in one picture</b><span>Marks on the picture match the rows. Each row has its own copy button; the toast copies all.</span></div></div>
+<div class="toast" role="group" aria-label="Several codes in one picture"><div class="in">
+  <div class="hd"><span class="ic "><svg class="i " width="16" height="16" aria-hidden="true"><use href="#i-qr_code_scanner"/></svg></span><span class="ti">3 codes</span><span class="meta mono">1200 × 800</span><span class="when">now</span><span class="x" style="opacity:0"><svg class="i " width="14" height="14" aria-hidden="true"><use href="#i-close"/></svg></span></div>
+  <div class="bd"><div style="position:relative;height:112px;border-radius:12px;background:#fff;border:1px solid var(--outline-variant);overflow:hidden">
+    <div style="position:absolute;left:18px;top:14px"><svg width="66" height="66" preserveAspectRatio="xMidYMid meet" viewBox="0 0 174 174" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 174L42 174L42 132L0 132ZM54 174L60 174L60 162L54 162L54 156L60 156L60 150L48 150L48 168L54 168ZM66 174L72 174L72 150L66 150L66 156L60 156L60 162L66 162ZM78 174L84 174L84 168L78 168ZM108 174L114 174L114 156L108 156ZM120 174L132 174L132 168L126 168L126 156L120 156ZM138 174L144 174L144 168L138 168ZM162 174L168 174L168 162L162 162ZM6 168L6 138L36 138L36 168ZM84 168L96 168L96 162L84 162ZM144 168L156 168L156 162L144 162ZM12 162L30 162L30 144L12 144ZM138 162L144 162L144 156L138 156ZM156 162L162 162L162 156L156 156ZM168 162L174 162L174 156L168 156ZM78 156L84 156L84 150L78 150ZM114 156L120 156L120 150L114 150ZM144 156L156 156L156 150L162 150L162 144L150 144L150 132L156 132L156 126L162 126L162 120L174 120L174 114L162 114L162 108L144 108L144 102L156 102L156 84L162 84L162 90L168 90L168 96L162 96L162 102L174 102L174 66L168 66L168 72L156 72L156 78L150 78L150 84L144 84L144 66L138 66L138 78L132 78L132 84L138 84L138 90L144 90L144 96L138 96L138 108L132 108L132 114L126 114L126 120L120 120L120 132L114 132L114 120L108 120L108 114L90 114L90 108L84 108L84 114L78 114L78 120L90 120L90 126L102 126L102 132L108 132L108 138L120 138L120 150L144 150ZM162 156L168 156L168 150L162 150ZM72 150L78 150L78 126L72 126L72 108L66 108L66 102L54 102L54 108L60 108L60 114L66 114L66 132L72 132L72 138L66 138L66 144L72 144ZM90 150L102 150L102 144L90 144ZM168 150L174 150L174 144L168 144ZM48 144L60 144L60 138L66 138L66 132L54 132L54 138L48 138ZM84 144L90 144L90 132L84 132ZM102 144L108 144L108 138L102 138ZM126 144L126 126L144 126L144 144ZM96 138L102 138L102 132L96 132ZM132 138L138 138L138 132L132 132ZM156 138L168 138L168 132L174 132L174 126L162 126L162 132L156 132ZM48 132L54 132L54 126L48 126ZM6 126L18 126L18 120L6 120ZM24 126L48 126L48 120L54 120L54 126L60 126L60 114L42 114L42 120L24 120ZM18 120L24 120L24 114L30 114L30 108L18 108ZM114 120L120 120L120 114L114 114ZM138 120L138 114L144 114L144 120ZM150 120L150 114L156 114L156 120ZM0 114L6 114L6 108L0 108ZM36 114L42 114L42 108L36 108ZM108 114L114 114L114 102L108 102ZM120 114L126 114L126 108L120 108ZM42 108L48 108L48 96L18 96L18 102L42 102ZM126 108L132 108L132 96L138 96L138 90L132 90L132 84L120 84L120 78L108 78L108 72L102 72L102 84L114 84L114 90L120 90L120 96L126 96ZM0 102L12 102L12 96L6 96L6 90L0 90ZM72 102L96 102L96 96L78 96L78 84L66 84L66 72L60 72L60 60L54 60L54 54L42 54L42 60L36 60L36 54L42 54L42 48L30 48L30 78L48 78L48 96L54 96L54 90L60 90L60 96L72 96ZM102 102L108 102L108 96L102 96ZM12 96L18 96L18 84L30 84L30 78L24 78L24 72L18 72L18 66L24 66L24 48L6 48L6 60L12 60L12 72L6 72L6 60L0 60L0 84L12 84ZM30 90L42 90L42 84L30 84ZM96 90L102 90L102 84L96 84ZM54 84L54 78L60 78L60 84ZM84 84L96 84L96 78L84 78ZM120 78L132 78L132 72L120 72ZM36 72L36 66L42 66L42 72ZM48 72L48 66L54 66L54 72ZM66 72L72 72L72 66L78 66L78 60L90 60L90 66L108 66L108 72L120 72L120 66L114 66L114 60L120 60L120 54L114 54L114 48L108 48L108 54L102 54L102 60L96 60L96 54L90 54L90 48L102 48L102 36L108 36L108 42L114 42L114 36L120 36L120 24L114 24L114 30L96 30L96 42L90 42L90 24L96 24L96 18L78 18L78 12L72 12L72 18L66 18L66 24L78 24L78 30L84 30L84 54L78 54L78 30L66 30L66 36L72 36L72 42L66 42L66 48L72 48L72 54L60 54L60 60L66 60ZM132 66L138 66L138 60L150 60L150 54L126 54L126 60L132 60ZM162 66L168 66L168 60L162 60ZM168 60L174 60L174 54L168 54ZM120 54L126 54L126 36L120 36ZM156 54L168 54L168 48L156 48ZM54 48L60 48L60 42L54 42ZM0 42L42 42L42 0L0 0ZM48 42L54 42L54 36L48 36ZM60 42L66 42L66 36L60 36ZM132 42L174 42L174 0L132 0ZM6 36L6 6L36 6L36 36ZM54 36L60 36L60 30L66 30L66 24L54 24ZM138 36L138 6L168 6L168 36ZM12 30L30 30L30 12L12 12ZM144 30L162 30L162 12L144 12ZM102 24L108 24L108 18L102 18ZM48 18L54 18L54 6L48 6ZM108 18L114 18L114 12L108 12ZM60 12L66 12L66 6L60 6ZM78 12L90 12L90 0L84 0L84 6L78 6ZM96 12L108 12L108 6L96 6ZM120 12L126 12L126 6L120 6ZM54 6L60 6L60 0L54 0ZM72 6L78 6L78 0L72 0ZM108 6L114 6L114 0L108 0Z" fill-rule="evenodd" />
+</svg>
+</div><span style="position:absolute;width:20px;height:20px;border-radius:10px;background:var(--primary);color:var(--on-primary);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff;left:6px;top:6px">1</span>
+    <div style="position:absolute;left:150px;top:18px"><svg width="120" height="60" preserveAspectRatio="xMidYMid meet" viewBox="0 0 190 58" xmlns="http://www.w3.org/2000/svg">
+<path stroke="#000000" stroke-width="2" d="M1 58L1 0M5 58L5 0M13 58L13 0M23 58L23 0M53 58L53 0M75 58L75 0M89 58L89 0M93 58L93 0M97 58L97 0M129 58L129 0M139 58L139 0M143 58L143 0M157 58L157 0M171 58L171 0M179 58L179 0M185 58L185 0M189 58L189 0" />
+<path stroke="#000000" stroke-width="4" d="M18 58L18 0M38 58L38 0M46 58L46 0M60 58L60 0M102 58L102 0M110 58L110 0M116 58L116 0M122 58L122 0" />
+<path stroke="#000000" stroke-width="6" d="M31 58L31 0M83 58L83 0M149 58L149 0M165 58L165 0" />
+<path stroke="#000000" stroke-width="8" d="M68 58L68 0" />
+</svg>
+</div><span style="position:absolute;width:20px;height:20px;border-radius:10px;background:var(--primary);color:var(--on-primary);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff;left:138px;top:8px">2</span>
+    <div style="position:absolute;right:16px;top:30px"><svg width="52" height="52" preserveAspectRatio="xMidYMid meet" viewBox="0 0 126 126" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 126L42 126L42 84L0 84ZM66 126L72 126L72 120L66 120ZM78 126L84 126L84 120L78 120ZM114 126L120 126L120 120L114 120ZM6 120L6 90L36 90L36 120ZM48 120L54 120L54 114L48 114ZM90 120L96 120L96 114L102 114L102 120L114 120L114 114L126 114L126 108L108 108L108 102L96 102L96 108L84 108L84 114L90 114ZM12 114L30 114L30 96L12 96ZM54 114L60 114L60 108L54 108ZM60 108L66 108L66 102L60 102ZM72 108L78 108L78 96L72 96ZM90 102L96 102L96 96L90 96ZM120 102L126 102L126 90L120 90ZM54 96L66 96L66 90L60 90L60 78L48 78L48 90L54 90ZM78 96L84 96L84 90L78 90ZM96 96L114 96L114 90L96 90ZM72 90L78 90L78 84L84 84L84 90L96 90L96 84L102 84L102 78L108 78L108 72L114 72L114 66L120 66L120 60L114 60L114 54L108 54L108 60L102 60L102 72L96 72L96 54L84 54L84 66L90 66L90 72L60 72L60 78L72 78ZM114 90L120 90L120 78L108 78L108 84L114 84ZM6 78L24 78L24 72L18 72L18 66L6 66ZM36 78L48 78L48 72L60 72L60 66L54 66L54 60L60 60L60 54L54 54L54 48L36 48L36 54L48 54L48 66L42 66L42 72L36 72ZM120 78L126 78L126 72L120 72ZM30 72L36 72L36 66L42 66L42 60L30 60ZM0 66L6 66L6 60L0 60ZM66 66L72 66L72 60L66 60ZM6 60L12 60L12 48L6 48ZM60 54L84 54L84 48L72 48L72 42L66 42L66 48L60 48ZM114 54L126 54L126 48L114 48ZM54 48L60 48L60 42L54 42ZM0 42L42 42L42 0L0 0ZM48 42L54 42L54 36L48 36ZM60 42L66 42L66 36L60 36ZM72 42L78 42L78 30L72 30L72 18L66 18L66 36L72 36ZM84 42L126 42L126 0L84 0ZM6 36L6 6L36 6L36 36ZM90 36L90 6L120 6L120 36ZM12 30L30 30L30 12L12 12ZM54 30L60 30L60 18L54 18ZM96 30L114 30L114 12L96 12ZM48 12L54 12L54 6L60 6L60 0L48 0ZM60 12L66 12L66 6L60 6ZM72 6L78 6L78 0L72 0Z" fill-rule="evenodd" />
+</svg>
+</div><span style="position:absolute;width:20px;height:20px;border-radius:10px;background:var(--primary);color:var(--on-primary);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff;right:64px;top:20px">3</span>
+  </div><div style="margin-top:8px"><div class="row" style="height:40px;gap:10px;border-bottom:1px solid var(--outline-variant)"><span class="pill" style="min-width:24px;justify-content:center;padding:0 7px">1</span><span class="pill" style="min-width:64px;justify-content:center">QR</span><span class="mono" style="font-size:12.5px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">https://example.org/menu/12</span><button class="ibtn" style="width:32px;height:32px" aria-label="Copy code 1"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-content_copy"/></svg></button></div><div class="row" style="height:40px;gap:10px;border-bottom:1px solid var(--outline-variant)"><span class="pill" style="min-width:24px;justify-content:center;padding:0 7px">2</span><span class="pill" style="min-width:64px;justify-content:center">EAN-13</span><span class="mono" style="font-size:12.5px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">5901234123457</span><button class="ibtn" style="width:32px;height:32px" aria-label="Copy code 2"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-content_copy"/></svg></button></div><div class="row" style="height:40px;gap:10px;"><span class="pill" style="min-width:24px;justify-content:center;padding:0 7px">3</span><span class="pill" style="min-width:64px;justify-content:center">QR</span><span class="mono" style="font-size:12.5px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Table 12</span><button class="ibtn" style="width:32px;height:32px" aria-label="Copy code 3"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-content_copy"/></svg></button></div></div></div>
+  
+  <div class="acts"><button class="btn p ic-l"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-content_copy"/></svg>Copy all 3</button><button class="btn"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-download"/></svg>Save as .txt</button></div>
+  
+  <div class="tip">Numbers match the marks on the picture, left to right.</div>
+</div><div class="tm"><i style="width:70%"></i></div></div></div>
+    <div class="cell"><div class="cap"><span class="k">E</span><div><b>Authenticator QR</b><span>The secret is never shown or copied. The one main action is Register for codes.</span></div></div>
+<div class="toast" role="group" aria-label="Authenticator QR"><div class="in">
+  <div class="hd"><span class="ic amber"><svg class="i " width="16" height="16" aria-hidden="true"><use href="#i-security"/></svg></span><span class="ti">Authenticator setup</span><span class="meta mono">400 × 400</span><span class="when">now</span><span class="x" style="opacity:0"><svg class="i " width="14" height="14" aria-hidden="true"><use href="#i-close"/></svg></span></div>
+  <div class="bd"><div class="row" style="align-items:flex-start;gap:14px"><div class="thumb" style="padding:8px"><svg width="78" height="78" preserveAspectRatio="xMidYMid meet" viewBox="0 0 222 222" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 222L42 222L42 180L0 180ZM48 222L60 222L60 216L48 216ZM72 222L90 222L90 216L96 216L96 210L60 210L60 216L72 216ZM96 222L108 222L108 210L114 210L114 216L120 216L120 186L114 186L114 204L108 204L108 198L102 198L102 216L96 216ZM126 222L132 222L132 216L144 216L144 222L156 222L156 210L144 210L144 192L150 192L150 174L156 174L156 168L168 168L168 180L162 180L162 186L168 186L168 204L174 204L174 198L186 198L186 222L222 222L222 216L216 216L216 210L210 210L210 216L192 216L192 210L198 210L198 204L204 204L204 192L198 192L198 186L222 186L222 174L216 174L216 168L210 168L210 180L198 180L198 168L204 168L204 162L216 162L216 168L222 168L222 126L216 126L216 132L204 132L204 114L180 114L180 120L174 120L174 126L180 126L180 132L192 132L192 120L198 120L198 132L192 132L192 138L180 138L180 132L174 132L174 126L168 126L168 138L156 138L156 144L180 144L180 150L168 150L168 156L174 156L174 162L144 162L144 156L150 156L150 138L132 138L132 144L144 144L144 150L138 150L138 156L132 156L132 162L138 162L138 168L144 168L144 186L138 186L138 180L132 180L132 192L126 192L126 204L138 204L138 210L126 210ZM6 216L6 186L36 186L36 216ZM162 216L174 216L174 210L168 210L168 204L162 204L162 198L150 198L150 204L156 204L156 210L162 210ZM12 210L30 210L30 192L12 192ZM48 210L60 210L60 204L48 204ZM204 210L210 210L210 204L204 204ZM216 210L222 210L222 192L210 192L210 204L216 204ZM72 204L84 204L84 198L72 198ZM90 204L96 204L96 198L90 198ZM48 198L54 198L54 192L48 192ZM60 198L72 198L72 192L60 192ZM72 192L90 192L90 180L84 180L84 168L78 168L78 174L72 174L72 180L78 180L78 186L72 186ZM96 192L102 192L102 186L96 186ZM156 192L162 192L162 186L156 186ZM174 192L174 174L192 174L192 192ZM54 186L60 186L60 180L66 180L66 174L60 174L60 168L54 168L54 174L48 174L48 180L54 180ZM66 186L72 186L72 180L66 180ZM102 186L108 186L108 180L102 180ZM120 186L126 186L126 180L132 180L132 162L126 162L126 156L120 156L120 162L108 162L108 156L102 156L102 144L108 144L108 156L120 156L120 150L114 150L114 144L120 144L120 138L114 138L114 132L108 132L108 138L96 138L96 144L90 144L90 138L84 138L84 144L78 144L78 138L84 138L84 132L72 132L72 120L60 120L60 114L42 114L42 120L36 120L36 126L42 126L42 132L48 132L48 126L66 126L66 132L60 132L60 144L66 144L66 138L72 138L72 150L60 150L60 168L66 168L66 156L78 156L78 162L84 162L84 168L90 168L90 162L96 162L96 168L102 168L102 174L108 174L108 168L120 168ZM180 186L186 186L186 180L180 180ZM108 180L114 180L114 174L108 174ZM156 180L162 180L162 174L156 174ZM0 174L6 174L6 168L0 168ZM36 174L42 174L42 168L36 168ZM66 174L72 174L72 168L66 168ZM90 174L96 174L96 168L90 168ZM6 168L18 168L18 162L24 162L24 150L18 150L18 156L12 156L12 162L6 162ZM24 168L30 168L30 162L24 162ZM42 168L48 168L48 162L42 162ZM180 168L180 162L186 162L186 150L192 150L192 144L198 144L198 150L204 150L204 156L192 156L192 168ZM0 162L6 162L6 156L0 156ZM30 162L42 162L42 156L30 156ZM48 162L54 162L54 138L42 138L42 144L36 144L36 138L30 138L30 126L12 126L12 120L6 120L6 132L24 132L24 144L30 144L30 150L42 150L42 156L48 156ZM6 156L12 156L12 150L18 150L18 144L6 144L6 138L0 138L0 150L6 150ZM84 156L84 150L90 150L90 156ZM126 156L132 156L132 150L126 150ZM120 150L126 150L126 144L120 144ZM204 150L204 144L198 144L198 138L216 138L216 150ZM36 138L42 138L42 132L36 132ZM96 132L108 132L108 108L102 108L102 126L96 126ZM120 132L132 132L132 126L126 126L126 120L138 120L138 126L144 126L144 114L150 114L150 108L156 108L156 102L144 102L144 108L138 108L138 114L132 114L132 108L126 108L126 102L132 102L132 108L138 108L138 102L144 102L144 96L138 96L138 90L132 90L132 96L126 96L126 90L114 90L114 114L120 114L120 120L114 120L114 126L120 126ZM84 126L90 126L90 120L96 120L96 114L84 114ZM150 126L156 126L156 120L162 120L162 114L168 114L168 120L174 120L174 114L180 114L180 108L174 108L174 102L162 102L162 108L156 108L156 114L150 114ZM210 126L216 126L216 120L210 120ZM18 120L24 120L24 114L18 114ZM30 120L36 120L36 114L42 114L42 108L30 108ZM216 120L222 120L222 72L216 72L216 66L222 66L222 54L216 54L216 60L198 60L198 48L192 48L192 60L186 60L186 66L180 66L180 78L174 78L174 84L192 84L192 78L186 78L186 72L198 72L198 66L210 66L210 84L204 84L204 90L210 90L210 96L216 96L216 108L204 108L204 114L216 114ZM0 114L6 114L6 108L0 108ZM60 114L66 114L66 102L60 102ZM72 114L84 114L84 96L78 96L78 102L72 102ZM12 108L18 108L18 102L24 102L24 96L18 96L18 90L24 90L24 78L18 78L18 60L12 60L12 66L0 66L0 72L12 72L12 78L0 78L0 84L12 84L12 96L6 96L6 90L0 90L0 102L12 102ZM24 108L30 108L30 102L24 102ZM48 108L54 108L54 102L60 102L60 90L54 90L54 84L36 84L36 90L48 90ZM90 108L96 108L96 102L90 102ZM186 108L192 108L192 96L198 96L198 90L174 90L174 96L180 96L180 102L186 102ZM36 102L42 102L42 96L36 96ZM66 102L72 102L72 90L90 90L90 78L96 78L96 84L102 84L102 78L114 78L114 72L120 72L120 66L102 66L102 60L120 60L120 54L114 54L114 48L120 48L120 42L114 42L114 36L108 36L108 42L102 42L102 36L108 36L108 30L102 30L102 24L96 24L96 42L90 42L90 36L84 36L84 48L90 48L90 54L84 54L84 48L78 48L78 30L72 30L72 24L60 24L60 30L66 30L66 36L72 36L72 48L60 48L60 54L78 54L78 66L84 66L84 60L90 60L90 66L96 66L96 72L90 72L90 66L84 66L84 84L78 84L78 78L72 78L72 84L66 84L66 78L60 78L60 90L66 90ZM156 96L168 96L168 90L156 90ZM102 90L108 90L108 84L102 84ZM144 90L150 90L150 84L156 84L156 66L126 66L126 78L120 78L120 84L132 84L132 72L144 72ZM168 90L174 90L174 84L168 84ZM198 84L204 84L204 72L198 72ZM24 78L42 78L42 72L30 72L30 60L24 60ZM54 78L60 78L60 72L54 72ZM168 78L174 78L174 72L168 72ZM48 72L54 72L54 60L48 60L48 54L42 54L42 60L36 60L36 66L48 66ZM66 72L78 72L78 66L72 66L72 60L66 60ZM162 72L168 72L168 66L162 66ZM156 66L162 66L162 60L156 60ZM168 66L180 66L180 54L174 54L174 60L168 60ZM30 60L36 60L36 54L30 54ZM54 60L60 60L60 54L54 54ZM138 60L144 60L144 54L138 54ZM0 54L6 54L6 48L0 48ZM12 54L18 54L18 48L12 48ZM24 54L30 54L30 48L24 48ZM36 54L42 54L42 48L36 48ZM102 54L102 48L108 48L108 54ZM132 54L138 54L138 48L150 48L150 36L144 36L144 42L138 42L138 36L132 36ZM150 54L168 54L168 48L162 48L162 36L156 36L156 48L150 48ZM210 54L216 54L216 48L210 48ZM54 48L60 48L60 42L54 42ZM168 48L174 48L174 30L162 30L162 36L168 36ZM0 42L42 42L42 0L0 0ZM48 42L54 42L54 36L48 36ZM60 42L66 42L66 36L60 36ZM120 42L126 42L126 36L120 36ZM180 42L222 42L222 0L180 0ZM6 36L6 6L36 6L36 36ZM54 36L60 36L60 30L54 30ZM114 36L120 36L120 24L114 24L114 18L120 18L120 12L114 12L114 0L102 0L102 12L108 12L108 30L114 30ZM126 36L132 36L132 30L126 30ZM138 36L144 36L144 18L132 18L132 30L138 30ZM150 36L156 36L156 24L150 24ZM186 36L186 6L216 6L216 36ZM12 30L30 30L30 12L12 12ZM48 30L54 30L54 24L48 24ZM78 30L90 30L90 24L78 24ZM192 30L210 30L210 12L192 12ZM54 24L60 24L60 12L54 12ZM90 24L96 24L96 0L84 0L84 6L90 6L90 12L84 12L84 18L90 18ZM156 24L162 24L162 18L156 18ZM66 18L72 18L72 6L78 6L78 0L66 0L66 6L60 6L60 12L66 12ZM48 12L54 12L54 6L48 6ZM78 12L84 12L84 6L78 6ZM126 12L138 12L138 6L144 6L144 0L132 0L132 6L126 6ZM144 12L162 12L162 6L144 6ZM54 6L60 6L60 0L54 0ZM168 6L174 6L174 0L168 0Z" fill-rule="evenodd" />
+</svg>
+</div><div style="min-width:0"><div class="row" style="gap:6px;margin-bottom:6px"><span class="pill warn"><svg class="i " width="14" height="14" aria-hidden="true"><use href="#i-lock"/></svg>Secret hidden</span></div><div style="font-size:14px">Example</div><div class="muted" style="font-size:13px">demo@example.org</div></div></div>
+      <div class="note info" style="margin-top:12px;padding:10px 12px"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>The secret is never shown or copied. It is stored encrypted when you register.</span></div></div>
+  
+  <div class="acts"><button class="btn p ic-l"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-security"/></svg>Register for codes</button></div>
+  
+  
+</div><div class="tm"><i style="width:80%"></i></div></div></div>
+    <div class="cell"><div class="cap"><span class="k">F</span><div><b>Actions by kind</b><span>The order the implementer builds.</span></div></div><div class="card" style="width:400px">
+    <div class="eyebrow"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-rule"/></svg>What each kind offers</div>
+    <table class="t"><thead><tr><th>Found</th><th>Main action</th><th>Also</th></tr></thead><tbody>
+      <tr><td>QR with a link</td><td>Open link</td><td>Copy QR text</td></tr>
+      <tr><td>QR with text</td><td>Copy QR text</td><td>Search the web</td></tr>
+      <tr><td>EAN-13, UPC, Code 128 and other barcodes</td><td>Copy number or text</td><td>Search the web</td></tr>
+      <tr><td>Several codes</td><td>Copy all</td><td>Per-row copy, Save as .txt</td></tr>
+      <tr><td>Authenticator QR (otpauth)</td><td>Register for codes</td><td>Nothing that shows the secret</td></tr>
+    </tbody></table>
+    <div class="row" style="margin-top:14px;align-items:flex-start;gap:10px;font-size:12.5px;line-height:18px;color:var(--on-variant)"><svg class="i " width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg><span>The image-convert chips stay as they are today. Link and text actions come first because a picture with a code is usually about the code.</span></div>
+  </div></div>
+  </div>
+</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-check" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17 5.53 12.7a.996.996 0 1 0-1.41 1.41l4.18 4.18c.39.39 1.02.39 1.41 0L20.29 7.71a.996.996 0 1 0-1.41-1.41L9 16.17z"/></symbol><symbol id="i-close" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 5.71a.996.996 0 0 0-1.41 0L12 10.59 7.11 5.7A.996.996 0 1 0 5.7 7.11L10.59 12 5.7 16.89a.996.996 0 1 0 1.41 1.41L12 13.41l4.89 4.89a.996.996 0 1 0 1.41-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z"/></symbol><symbol id="i-content_copy" viewBox="0 0 24 24" fill="currentColor"><path d="M15 20H5V7c0-.55-.45-1-1-1s-1 .45-1 1v13c0 1.1.9 2 2 2h10c.55 0 1-.45 1-1s-.45-1-1-1zm5-4V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h9c1.1 0 2-.9 2-2zm-2 0H9V4h9v12z"/></symbol><symbol id="i-contrast" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></symbol><symbol id="i-download" viewBox="0 0 24 24" fill="currentColor"><path d="M16.59 9H15V4c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v5H7.41c-.89 0-1.34 1.08-.71 1.71l4.59 4.59c.39.39 1.02.39 1.41 0l4.59-4.59c.63-.63.19-1.71-.7-1.71zM5 19c0 .55.45 1 1 1h12c.55 0 1-.45 1-1s-.45-1-1-1H6c-.55 0-1 .45-1 1z"/></symbol><symbol id="i-info" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1-8h-2V7h2v2z"/></symbol><symbol id="i-link" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7h-3c-.55 0-1 .45-1 1s.45 1 1 1h3c1.65 0 3 1.35 3 3s-1.35 3-3 3h-3c-.55 0-1 .45-1 1s.45 1 1 1h3c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-9 5c0 .55.45 1 1 1h6c.55 0 1-.45 1-1s-.45-1-1-1H9c-.55 0-1 .45-1 1zm2 3H7c-1.65 0-3-1.35-3-3s1.35-3 3-3h3c.55 0 1-.45 1-1s-.45-1-1-1H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h3c.55 0 1-.45 1-1s-.45-1-1-1z"/></symbol><symbol id="i-lock" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM9 8V6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9z"/></symbol><symbol id="i-open_in_new" viewBox="0 0 24 24" fill="currentColor"><path d="M18 19H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h5c.55 0 1-.45 1-1s-.45-1-1-1H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-6c0-.55-.45-1-1-1s-1 .45-1 1v5c0 .55-.45 1-1 1zM14 4c0 .55.45 1 1 1h2.59l-9.13 9.13a.996.996 0 1 0 1.41 1.41L19 6.41V9c0 .55.45 1 1 1s1-.45 1-1V4c0-.55-.45-1-1-1h-5c-.55 0-1 .45-1 1z"/></symbol><symbol id="i-qr_code_2" viewBox="0 0 24 24" fill="currentColor"><path d="M15 21h-2v-2h2v2zm-2-7h-2v5h2v-5zm8-2h-2v4h2v-4zm-2-2h-2v2h2v-2zM7 12H5v2h2v-2zm-2-2H3v2h2v-2zm7-5h2V3h-2v2zm-7.5-.5v3h3v-3h-3zM8 9H4c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1zm-3.5 7.5v3h3v-3h-3zM8 21H4c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1zm8.5-16.5v3h3v-3h-3zM20 9h-4c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h4c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1zm-1 10v-3h-4v2h2v3h4v-2h-2zm-2-7h-4v2h4v-2zm-4-2H7v2h2v2h2v-2h2v-2zm1-1V7h-2V5h-2v4h4zM6.75 5.25h-1.5v1.5h1.5v-1.5zm0 12h-1.5v1.5h1.5v-1.5zm12-12h-1.5v1.5h1.5v-1.5z"/></symbol><symbol id="i-qr_code_scanner" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5zm-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6zm6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5zm-6 8h1.5v1.5H13V13zm1.5 1.5H16V16h-1.5v-1.5zM16 13h1.5v1.5H16V13zm-3 3h1.5v1.5H13V16zm1.5 1.5H16V19h-1.5v-1.5zM16 16h1.5v1.5H16V16zm1.5-1.5H19V16h-1.5v-1.5zm0 3H19V19h-1.5v-1.5zM21 7c-.55 0-1-.45-1-1V4h-2c-.55 0-1-.45-1-1s.45-1 1-1h3c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1zm1 14v-3c0-.55-.45-1-1-1s-1 .45-1 1v2h-2c-.55 0-1 .45-1 1s.45 1 1 1h3c.55 0 1-.45 1-1zM3 22h3c.55 0 1-.45 1-1s-.45-1-1-1H4v-2c0-.55-.45-1-1-1s-1 .45-1 1v3c0 .55.45 1 1 1zM2 3v3c0 .55.45 1 1 1s1-.45 1-1V4h2c.55 0 1-.45 1-1s-.45-1-1-1H3c-.55 0-1 .45-1 1z"/></symbol><symbol id="i-rule" viewBox="0 0 24 24" fill="currentColor"><path d="m15.83 10.29-2.12-2.12a.996.996 0 1 1 1.41-1.41l1.41 1.41 3.54-3.54a.996.996 0 1 1 1.41 1.41l-4.24 4.24c-.39.4-1.02.4-1.41.01zM10 7H3c-.55 0-1 .45-1 1s.45 1 1 1h7c.55 0 1-.45 1-1s-.45-1-1-1zm10.29 5.71a.996.996 0 0 0-1.41 0L17 14.59l-1.88-1.88a.996.996 0 1 0-1.41 1.41L15.59 16l-1.88 1.88a.996.996 0 1 0 1.41 1.41L17 17.41l1.88 1.88a.996.996 0 1 0 1.41-1.41L18.41 16l1.88-1.88a.996.996 0 0 0 0-1.41zM10 15H3c-.55 0-1 .45-1 1s.45 1 1 1h7c.55 0 1-.45 1-1s-.45-1-1-1z"/></symbol><symbol id="i-security" viewBox="0 0 24 24" fill="currentColor"><path d="m11.19 1.36-7 3.11C3.47 4.79 3 5.51 3 6.3V11c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6.3c0-.79-.47-1.51-1.19-1.83l-7-3.11c-.51-.23-1.11-.23-1.62 0zM12 11.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></symbol><symbol id="i-view_week" viewBox="0 0 24 24" fill="currentColor"><path d="M5.33 20H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2h1.33c1.1 0 2 .9 2 2v12a2 2 0 0 1-2 2zM22 18V6c0-1.1-.9-2-2-2h-1.33c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2H20a2 2 0 0 0 2-2zm-7.33 0V6c0-1.1-.9-2-2-2h-1.33c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h1.33c1.1 0 2-.9 2-2z"/></symbol></svg>
+<script></script>
+</body>
+</html>
