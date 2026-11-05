@@ -10,7 +10,29 @@ checked; anything unchecked is labelled.
   [README.md](README.md). The checklist of shipped and open items is [ROADMAP.md](ROADMAP.md).
 - Every push to `main` builds through `build-installer.bat`, renders screenshots of the real app,
   publishes the next normal release and deploys the site (`.github/workflows/build.yml`).
-- Latest release at the time of writing: v1.0.12 (see [CHANGELOG.md](CHANGELOG.md)).
+- Latest release at the time of writing: v1.0.36 (see [CHANGELOG.md](CHANGELOG.md)).
+
+## State on 2026-11-04 (evening)
+
+- **Checked:** full self-test 180 of 180 on `main` at 823d9a8; releases v1.0.17 to v1.0.36 all green
+  and published as normal releases; v1.0.36 installed on the maintainer's computer and running.
+- **Background updates:** the installed copy checks 90 s after start and every 6 h, downloads,
+  verifies the SHA-256 digest and the file's own version, and installs at a quiet moment. Seen working
+  in the real app: v1.0.31 found, downloaded and verified v1.0.32 in 10 s. A game left open with no
+  input for 10 minutes no longer blocks it (fixed in v1.0.36). **Not yet seen:** the swap itself
+  completing on its own; the next release after v1.0.36 is the first chance.
+- **Game notices:** "Roblox detected" and "Roblox closed", checked by the self-test.
+- **Minecraft:** bulk player actions on a searchable multi-select list; SSH players, plugins,
+  backups and worlds; Bedrock on Docker and over SSH; item and NBT editors; live plugin commands;
+  peak history. The pre-generation stall's cause is proven (an empty 1.21.2+ server pauses after
+  60 s) and fixed with `pause-when-empty-seconds=0`.
+- **Unfinished:** SSH world import, reset and replace from this app, and Forge and NeoForge live
+  runs, were in progress on branch `worktree-agent-aa24b41c13dfee312` when work stopped (see that
+  branch's last commit for its state). The history retention self-test check failed twice in other
+  runs and never in four runs here; it now reports the exact refused save if it fails again.
+- **Needs the maintainer:** native review of the Cantonese, a FIDO2 key, a real pen or touch screen,
+  a real phone camera, a real Windows Hello prompt, and approval to download the `glab` and `tea`
+  command-line tools for the forge checks.
 
 ## Motion and page redesign (2026-11-04)
 
