@@ -440,6 +440,7 @@ namespace MonitoringTools.Core
             AddLane4(t);
             AddUpdate(t);
             AddMcLane(t);
+            AddDocSys(t);
             return t;
         }
 
@@ -450,6 +451,7 @@ namespace MonitoringTools.Core
         private static List<(Regex, Func<Match, string>)> BuildPatterns()
         {
             var p = new List<(Regex, Func<Match, string>)>();
+            AddDocSysPatterns(p);
             AddRegexExplainPatterns(p);
             AddMinecraftCataloguePatterns(p);
             AddMinecraftPatterns(p);

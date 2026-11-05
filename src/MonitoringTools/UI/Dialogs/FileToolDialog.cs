@@ -225,7 +225,6 @@ namespace MonitoringTools.UI.Dialogs
             Grid.SetColumn(col, 1);
             g.Children.Add(ic); g.Children.Add(col);
             var b = new Border { CornerRadius = new CornerRadius(16), Background = bg, Padding = new Thickness(14, 12, 14, 12), Margin = new Thickness(0, 0, 0, 10), Child = g };
-            AutomationProperties.SetName(b, title + (string.IsNullOrEmpty(text) ? "" : ". " + text));
             AutomationProperties.SetLiveSetting(b, kind == BannerKind.Bad ? AutomationLiveSetting.Assertive : AutomationLiveSetting.Polite);
             return b;
         }

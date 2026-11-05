@@ -36,6 +36,7 @@ To remove it, right-click the tray icon and choose **Uninstall service**.
   - **Links**: open, open in a private window, copy domain, strip tracking parameters, copy as a Markdown link.
   - **Files and folders**: rich previews (video frames, PDF and document thumbnails, album art, the first lines of text and code, rendered Markdown, CSV tables, folder and zip listings, plus duration, resolution and codecs for media). **Open in** the file's default app, **Open with…**, show in folder, copy name, forward slashes, terminal here. Paths copied with quotes (Explorer "Copy as path") offer **Remove quotes**; unquoted ones offer **Add quotes**.
   - **Several files at once**: move to, copy to, delete to the Recycle Bin, and batch conversion chips.
+  - **Archive, subtitle, font and disc image dialogs**: copy one zip, tar, subtitle, font or ISO and the notice opens a window to extract it, shift or convert its timing, preview and install the font for you only, or mount and browse the image. See [the dialogs](docs/features/files/document-and-system-dialogs.md).
   - **File tools sheet**: one tab each for move and copy, batch Base64 encode and decode (plus copy as Base64 text or a data URI), and password encryption (AES-256-GCM, `.mtenc` files next to the originals).
   - **Base64 text** on the clipboard offers decode; any text offers encode.
   - **Images, video and audio**: save, convert and quick command chips such as `:mp4`, `:gif`, `:mp3`, `:webp`. Drag the preview out of the toast into any drop target.

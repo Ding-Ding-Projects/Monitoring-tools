@@ -30,6 +30,8 @@ namespace MonitoringTools.UI.Dialogs
         public FontState State { get; private set; }
         internal FontPlan Plan => _plan;
         internal FontFacts Facts => _facts;
+        internal string PreviewDir => _previewDir;
+        internal FontFamily PreviewFamily => _family;
         /// <summary>True when the preview text blocks really use the font from the file (not a fallback).</summary>
         internal bool PreviewUsesFile => _family != null && _specimens.Count > 0 && _specimens.All(t => ReferenceEquals(t.FontFamily, _family));
 
@@ -68,6 +70,8 @@ namespace MonitoringTools.UI.Dialogs
         }
 
         private void CleanPreview() { try { if (_previewDir != null && Directory.Exists(_previewDir)) Directory.Delete(_previewDir, true); } catch { } }
+
+        private static string Short(string s) { s = System.Text.RegularExpressions.Regex.Replace(s, @"\s+", " ").Trim(); return s.Length <= 150 ? s : s[..147] + "..."; }
 
         private string SummaryLine() => $"{_facts.Family} · {_facts.Face} · {Ui.Bytes(new FileInfo(FilePath).Length)}";
 
@@ -110,7 +114,7 @@ namespace MonitoringTools.UI.Dialogs
             {
                 ("Family", $"{_facts.Family} · {_facts.Face}{weight}"),
                 ("Glyphs", $"{_facts.Glyphs:N0}" + (_facts.Scripts.Count > 0 ? " · " + string.Join(", ", _facts.Scripts) : "")),
-                ("Licence", string.IsNullOrWhiteSpace(_facts.Licence) ? "The font does not say" : _facts.Licence)
+                ("Licence", string.IsNullOrWhiteSpace(_facts.Licence) ? "The font does not say" : Short(_facts.Licence))
             };
             if (!string.IsNullOrWhiteSpace(_facts.Version)) rows.Add(("Version", _facts.Version));
             var sw = new CheckBox { Style = Ui.Style("Switch"), IsChecked = true, IsEnabled = false, Margin = new Thickness(0, 4, 0, 0) };

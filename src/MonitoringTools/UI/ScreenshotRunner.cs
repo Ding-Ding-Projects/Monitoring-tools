@@ -132,6 +132,7 @@ namespace MonitoringTools.UI
                 await LookScenes(cc);
                 await ScaleScenes(cc);
                 await ConvertScenes();
+                await DocSysScenes();
                 await Wave6Scenes(cc);
                 cc.Close();
 

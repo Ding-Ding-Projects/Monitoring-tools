@@ -245,9 +245,19 @@ namespace MonitoringTools.UI.Dialogs
             if (dest.Length == 0) { SetStatus("Choose a folder to extract into."); return; }
             try { dest = Path.GetFullPath(dest); } catch { SetStatus("That folder name is not valid."); return; }
             var rule = _ruleIndex == 0 ? OverwriteRule.Skip : _ruleIndex == 1 ? OverwriteRule.Replace : OverwriteRule.KeepBoth;
+            _cts = new CancellationTokenSource();
+            var progress = BuildWorkingUi(dest);
+            var token = _cts.Token;
+            LastRun = Task.Run(() => ArchiveTools.Extract(_info, picked, dest, rule, password, progress, token)).ContinueWith(t =>
+            {
+                Dispatcher.Invoke(() => ShowDone(t.IsFaulted ? new ExtractResult { Error = t.Exception?.GetBaseException().Message, Destination = dest } : t.Result));
+            });
+        }
+
+        private Progress<ExtractProgress> BuildWorkingUi(string dest)
+        {
             State = ArchiveState.Working;
             SetSummary("extracting");
-            _cts = new CancellationTokenSource();
             _bigPercent = new TextBlock { Text = "0%", FontSize = 36, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Bottom };
             _fileOf = Text("", 13, Ui.Res("B.TextSoft")); _fileOf.VerticalAlignment = VerticalAlignment.Bottom; _fileOf.Margin = new Thickness(12, 0, 0, 6);
             _bar = Progress("Extraction progress", false);
@@ -258,7 +268,7 @@ namespace MonitoringTools.UI.Dialogs
             var disabled = Ui.Button("Extract", null, "Btn.Accent"); disabled.IsEnabled = false;
             SetBody(Card(card));
             SetFooter("Cancel stops now; files already written are kept.", null, new[] { cancel, disabled });
-            var progress = new Progress<ExtractProgress>(p =>
+            return new Progress<ExtractProgress>(p =>
             {
                 if (State != ArchiveState.Working) return;
                 double frac = p.TotalBytes > 0 ? (double)p.Bytes / p.TotalBytes : (p.Total > 0 ? (double)p.Done / p.Total : 0);
@@ -267,12 +277,20 @@ namespace MonitoringTools.UI.Dialogs
                 _fileOf.Text = $"File {Math.Max(1, p.Done)} of {p.Total}";
                 _current.Text = $"{p.Current} → {PathDisplay.Shown(dest)} · {Ui.Bytes(p.Bytes)} of {Ui.Bytes(p.TotalBytes)}";
             });
-            var token = _cts.Token;
-            LastRun = Task.Run(() => ArchiveTools.Extract(_info, picked, dest, rule, password, progress, token)).ContinueWith(t =>
-            {
-                Dispatcher.Invoke(() => ShowDone(t.IsFaulted ? new ExtractResult { Error = t.Exception?.GetBaseException().Message, Destination = dest } : t.Result));
-            });
         }
+
+        /// <summary>Shows the Working state at a fixed progress, for captures (nothing is extracted).</summary>
+        internal void PreviewWorking(int total, int done, long totalBytes, long bytes, string current)
+        {
+            _cts = new CancellationTokenSource();
+            var p = BuildWorkingUi(_destText);
+            _bigPercent.Text = $"{(int)(100.0 * bytes / totalBytes)}%"; _bar.Value = 100.0 * bytes / totalBytes;
+            _fileOf.Text = $"File {done} of {total}";
+            _current.Text = $"{current} → {PathDisplay.Shown(_destText)} · {Ui.Bytes(bytes)} of {Ui.Bytes(totalBytes)}";
+        }
+
+        internal SearchField Search => _search;
+        internal TextBlock PasswordErrorBlock => _pwError;
 
         private void ShowDone(ExtractResult r)
         {
@@ -286,7 +304,7 @@ namespace MonitoringTools.UI.Dialogs
             else
             {
                 var title = r.Extracted == 1 ? $"Extracted 1 file, {bytes}" : $"Extracted {r.Extracted} files, {bytes}";
-                var sub = r.Renamed.Count > 0 ? (r.Renamed.Count == 1 ? "1 file already existed, so Keep both saved it under a new name." : $"{r.Renamed.Count} files already existed, so Keep both saved them under new names.") : (r.Skipped > 0 ? (r.Skipped == 1 ? "1 file already existed and was skipped." : $"{r.Skipped} files already existed and were skipped.") : "Every selected file was written.");
+                var sub = r.Renamed.Count > 0 ? (r.Renamed.Count == 1 ? "1 file already existed, so Keep both saved it under a new name." : $"{r.Renamed.Count} files already existed, so Keep both saved them under new names.") : (r.Skipped > 0 ? (r.Skipped == 1 ? "1 file already existed and was skipped." : $"{r.Skipped} files already existed and were skipped.") : (r.Refused.Count > 0 ? "The unsafe paths below were refused; every other selected file was written." : "Every selected file was written."));
                 parts.Add(Banner(r.Refused.Count > 0 ? BannerKind.Warn : BannerKind.Ok, title, sub));
             }
             var rows = new List<(string, string)>
