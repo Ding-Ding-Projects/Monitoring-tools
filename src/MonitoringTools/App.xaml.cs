@@ -153,6 +153,7 @@ namespace MonitoringTools
                 return;
             }
             if (ShouldSuppress) return;
+            if (item.Kind == ClipKind.Install && UI.InstallToast.AutoEligible(item, out _) && Toasts.ShowAutoInstall(item) != null) return;
             Toasts.ShowClip(item);
         }
 
