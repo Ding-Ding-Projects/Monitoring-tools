@@ -24,7 +24,7 @@ namespace MonitoringTools.UI
             if (a != null)
             {
                 await a.WaitForScanAsync(6000);
-                await Shot(a, "archive-dialog", "Archive: the form with Zip chosen, the live estimate under it", 500);
+                a.ExpandForCapture(); await Shot(a, "archive-dialog", "Archive: the form with Zip chosen, the live estimate under it", 500);
                 a.AddExclude("*.tmp", false); a.AddExclude(".git", false);
                 a.FormatBox.Select("tgz");
                 await Shot(a, "archive-dialog-targz", "Archive: tar.gz hides the password, volume and 7z rows", 500);
@@ -50,7 +50,7 @@ namespace MonitoringTools.UI
             {
                 await d.WaitForMeasureAsync(6000);
                 d.NameBox.Text = "Work"; d.LabelBox.Text = "Work"; d.ApplyForTest();
-                await Shot(d, "disk-dialog", "Virtual disk: the permission note first, then the disk file, volume and what goes in", 600);
+                d.ExpandForCapture(); await Shot(d, "disk-dialog", "Virtual disk: the permission note first, then the disk file, volume and what goes in", 600);
                 d.SetSizeForTest(64, "GB");
                 await Shot(d, "disk-dialog-fat32", "Virtual disk: FAT32 is off at 64 GB and the note says why", 400);
                 d.SetSizeForTest(8, "GB"); d.FileSystemBox.Select("exFAT"); d.MountBox.Select("folder"); d.TypeBox.Select("fixed"); d.ContentsBox.Select("move"); d.AfterBox.Select("detach");

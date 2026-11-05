@@ -32,6 +32,7 @@ namespace MonitoringTools.UI.Dialogs
         private readonly CancellationTokenSource _scanCts = new CancellationTokenSource();
         private CancellationTokenSource _runCts;
         private int _version;
+        private string _lastFormat = "zip";
         private bool _building = true;
         private ArchiveOptions _lastOptions;
         private FrameworkElement _form;
@@ -175,14 +176,11 @@ namespace MonitoringTools.UI.Dialogs
             solid.Children.Add(SolidBox);
             Grid.SetColumn(solid, 2); two.Children.Add(dict); two.Children.Add(solid);
             ((StackPanel)_sevenRows).Children.Add(two);
-            var threadsRow = new Grid { Margin = new Thickness(0, 6, 0, 0) };
-            threadsRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); threadsRow.ColumnDefinitions.Add(new ColumnDefinition());
+            var threadsRow = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
             int auto = Math.Clamp(Environment.ProcessorCount, 1, 16);
             ThreadsField = new NumberField("CPU threads", $"Typed number, 1 to 16. Default: {auto}, one for each core.", auto, 1, 16, 1, v => { if (!_building) Recalc(); }, snap: true);
             threadsRow.Children.Add(ThreadsField);
-            var threadNote = DialogParts.Hint("Dictionary, solid block and threads are 7z options with LZMA or LZMA2. They are hidden for Zip.");
-            threadNote.VerticalAlignment = VerticalAlignment.Center; threadNote.Margin = new Thickness(18, 20, 0, 0);
-            Grid.SetColumn(threadNote, 1); threadsRow.Children.Add(threadNote);
+            threadsRow.Children.Add(DialogParts.Hint("Dictionary, solid block and threads are 7z options with LZMA or LZMA2. They are hidden for Zip."));
             ((StackPanel)_sevenRows).Children.Add(threadsRow);
             left.Children.Add(_sevenRows);
 
@@ -397,7 +395,8 @@ namespace MonitoringTools.UI.Dialogs
                 _suffix.Text = zip ? ".zip" : sevenZ ? ".7z" : ".tar.gz";
                 // methods
                 var methods = zip ? ArchiveOptions.ZipMethods : ArchiveOptions.SevenZipMethods;
-                MethodBox.SetChoices(methods.Select(m => new Choice(m, m, zip && !seven && !(m == "Deflate" || m == "Store") ? needs7z : null)), MethodBox.SelectedId);
+                bool formatChanged = fmt != _lastFormat; _lastFormat = fmt;
+                MethodBox.SetChoices(methods.Select(m => new Choice(m, m, zip && !seven && !(m == "Deflate" || m == "Store") ? needs7z : null)), formatChanged ? (zip ? "Deflate" : "LZMA2") : MethodBox.SelectedId);
                 _methodRow.Visibility = tgz ? Visibility.Collapsed : Visibility.Visible;
                 var method = MethodBox.SelectedId;
                 _sevenRows.Visibility = sevenZ ? Visibility.Visible : Visibility.Collapsed;

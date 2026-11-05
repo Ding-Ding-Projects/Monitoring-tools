@@ -37,13 +37,14 @@ namespace MonitoringTools.UI.Dialogs
             var row = new StackPanel { Orientation = Orientation.Horizontal };
             foreach (var c in _choices)
             {
-                var seg = new Border { Tag = c, Padding = new Thickness(18, 0, 18, 0), MinWidth = 64, Cursor = Cursors.Hand, Background = Brushes.Transparent };
+                bool firstSeg = _segments.Count == 0, lastSeg = _segments.Count == _choices.Count - 1;
+                var seg = new Border { Tag = c, Padding = new Thickness(18, 0, 18, 0), MinWidth = 64, Cursor = Cursors.Hand, Background = Brushes.Transparent, CornerRadius = new CornerRadius(firstSeg ? 19 : 0, lastSeg ? 19 : 0, lastSeg ? 19 : 0, firstSeg ? 19 : 0) };
                 var inner = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
                 seg.Child = inner;
                 seg.MouseLeftButtonUp += (s, e) => { if (c.Enabled) Select(c.Id); Focus(); };
                 _segments.Add(seg); row.Children.Add(seg);
             }
-            Child = new Border { CornerRadius = new CornerRadius(19), ClipToBounds = true, Child = row };
+            Child = row;
             AutomationProperties.SetName(this, name);
             PreviewKeyDown += (s, e) =>
             {

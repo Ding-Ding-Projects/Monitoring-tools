@@ -86,6 +86,14 @@ namespace MonitoringTools.UI.Dialogs
             AutomationProperties.SetLiveSetting(SubText, AutomationLiveSetting.Polite);
         }
 
+        /// <summary>For captures only: lifts the height limits so a tall form is photographed whole instead of scrolled.</summary>
+        internal void ExpandForCapture()
+        {
+            MaxHeight = double.PositiveInfinity;
+            foreach (var sv in Drive.All<ScrollViewer>(this)) sv.MaxHeight = double.PositiveInfinity;
+            UpdateLayout();
+        }
+
         /// <summary>The card's own size without the shadow margin, for captures.</summary>
         internal double CardWidth => _cardWidth;
     }

@@ -182,7 +182,7 @@ namespace MonitoringTools.UI.Dialogs
             right.Children.Add(MountBox);
             var letters = VhdEngine.FreeLetters();
             _letterRow = new Grid { Margin = new Thickness(0, 12, 0, 0) };
-            var lg = (Grid)_letterRow; lg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) }); lg.ColumnDefinitions.Add(new ColumnDefinition());
+            var lg = (Grid)_letterRow; lg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) }); lg.ColumnDefinitions.Add(new ColumnDefinition());
             var lstack = new StackPanel(); lstack.Children.Add(new TextBlock { Text = "Letter", FontSize = 13, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 6) });
             LetterBox = new Dropdown("Drive letter", letters.Select(l => new Choice(l, l + ":")), letters.FirstOrDefault() ?? "");
             lstack.Children.Add(LetterBox);
