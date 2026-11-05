@@ -446,7 +446,8 @@ namespace MonitoringTools.Core
                 catch (Exception ex) { skipped.Add(new Skip { Path = path, Reason = "The archive could not be read: " + ex.Message }); }
                 return list;
             }
-            var exe = ArchiveEngine.SevenZip;
+            // RAR needs the full 7-Zip (7z.exe with 7z.dll); 7za reads the other formats
+            var exe = path.EndsWith(".rar", StringComparison.OrdinalIgnoreCase) ? ArchiveEngine.SevenZipFull : ArchiveEngine.SevenZip;
             if (exe == null) { skipped.Add(new Skip { Path = path, Reason = "This archive type needs 7-Zip, which is not available in this build." }); return list; }
             // list first, so an archive that would unpack to too much is never unpacked
             var (code, listing) = Run7z(exe, new[] { "l", "-slt", "-ba", "-p", "--", path }, null, ct);

@@ -158,7 +158,7 @@ namespace MonitoringTools.Core
             Add(@"^Select folder (\S+)$", "揀資料夾 $1");
             Add(@"^Select (?!all$|none$)(\S+)$", "揀 $1");
             Add(@"^A (\S+) archive needs 7-Zip to be read, and 7-Zip is not bundled with this build\. Zip, tar, tar\.gz, tgz and gz archives open here\.$", "$1 壓縮檔要 7-Zip 先讀到，而呢個版本冇附帶 7-Zip。呢度可以開 zip、tar、tar.gz、tgz 同 gz 壓縮檔。");
-            Add(@"^This file could not be read as (.+): (.+)$", "呢個檔案讀唔到做 $1：$2");
+            AddFn(@"^This file could not be read as (.+?): (.+)$", m => "呢個檔案讀唔到做 " + m.Groups[1].Value + "：" + (Language.Yue(m.Groups[2].Value) ?? m.Groups[2].Value));
             Add(@"^Extracted (\d+) files?, (.+)\. Every selected file was written\.$", "已解壓 $1 個檔案，$2。所揀嘅檔案全部寫好。");
             Add(@"^Stopped after (\d+) files?$", "解壓咗 $1 個檔案就停咗");
             Add(@"^(\d+) files? already existed, so Keep both saved (?:it|them) under (?:a )?new names?\.$", "$1 個檔案已經存在，所以「兩個都留」用新名儲存咗。");

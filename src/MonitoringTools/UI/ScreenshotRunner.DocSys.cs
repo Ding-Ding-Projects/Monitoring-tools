@@ -60,7 +60,7 @@ namespace MonitoringTools.UI
             await Task.Delay(1200);
             await Shot(d, "docsys-extract-refused", "Extract an archive: unsafe paths are refused and counted", 300);
             d.Close();
-            // 7z through the bundled 7-Zip: the listing, encrypted names, and a RAR that cannot be read
+            // 7z through the bundled 7-Zip: the listing and encrypted names
             var sevenSrc = Path.Combine(tmp, "seven-src"); Directory.CreateDirectory(Path.Combine(sevenSrc, "photos", "2024"));
             File.WriteAllBytes(Path.Combine(sevenSrc, "photos", "2024", "harbour.jpg"), new byte[420000]); File.WriteAllBytes(Path.Combine(sevenSrc, "photos", "2024", "peak.jpg"), new byte[380000]);
             File.WriteAllText(Path.Combine(sevenSrc, "trip-notes.txt"), "Ferry at nine."); File.WriteAllBytes(Path.Combine(sevenSrc, "budget.xlsx"), new byte[24000]);
@@ -77,10 +77,29 @@ namespace MonitoringTools.UI
                 await Shot(d, "docsys-extract-7z-names-locked", "Extract an archive: a 7z whose file names are encrypted asks for the password before listing", 400);
                 d.Close();
             }
-            var rar = Path.Combine(tmp, "old-backup.rar"); File.WriteAllBytes(rar, new byte[] { 0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00 });
+            // RAR through the bundled full 7-Zip, on archives built byte by byte (no RAR can be made without WinRAR)
+            byte[] Bytes(int n, byte fill) { var b = new byte[n]; Array.Fill(b, fill); return b; }
+            var rarFiles = new[] { ("old-backup/contracts/lease-2023.pdf", Bytes(182000, 1)), ("old-backup/contracts/insurance.pdf", Bytes(96000, 2)), ("old-backup/photos/move-in.jpg", Bytes(410000, 3)), ("old-backup/inventory.txt", Encoding.UTF8.GetBytes("Sofa, desk, two lamps.")) };
+            var rar = Path.Combine(tmp, "old-backup.rar"); File.WriteAllBytes(rar, RarFixtures.Rar5(rarFiles));
             d = ExtractArchiveDialog.Open(rar);
-            await Task.Delay(400);
-            await Shot(d, "docsys-extract-rar", "Extract an archive: a RAR says the bundled 7-Zip has no RAR decoder and changes nothing", 300);
+            await Task.Delay(700);
+            await Shot(d, "docsys-extract-rar", "Extract an archive: a RAR5 archive listed and extracted through the bundled full 7-Zip", 400);
+            d.Close();
+            var rarLocked = Path.Combine(tmp, "payroll-2024.rar"); File.WriteAllBytes(rarLocked, RarFixtures.Rar5("payroll", false, rarFiles));
+            d = ExtractArchiveDialog.Open(rarLocked);
+            await Task.Delay(700);
+            d.SetDestinationForTest(Path.Combine(tmp, "payroll-out"));
+            d.StartForTest("not-it");
+            await Shot(d, "docsys-extract-rar-password", "Extract an archive: a password RAR, where a wrong password extracts nothing and says so", 600);
+            d.Close();
+            var rarSlip = Path.Combine(tmp, "downloaded.rar");
+            File.WriteAllBytes(rarSlip, RarFixtures.Rar4(("setup-notes.txt", Encoding.UTF8.GetBytes("Read me first.")), ("..\\startup.cmd", Encoding.UTF8.GetBytes("echo hello"))));
+            d = ExtractArchiveDialog.Open(rarSlip);
+            await Task.Delay(700);
+            d.SetDestinationForTest(Path.Combine(tmp, "downloaded-out"));
+            d.StartForTest();
+            await Task.Delay(1500);
+            await Shot(d, "docsys-extract-rar-refused", "Extract an archive: a RAR4 entry that would escape the folder is refused and counted", 300);
             d.Close();
 
             // Ask: the question for a name that exists

@@ -30,7 +30,7 @@ namespace MonitoringTools.Core.DocTools
     public sealed class ArchiveInfo
     {
         public string File;
-        public string Format;                 // "zip", "tar", "tar.gz", "gz", "7z", "xz", "bz2", "tar.xz", "tar.bz2"
+        public string Format;                 // "zip", "tar", "tar.gz", "gz", "7z", "rar", "xz", "bz2", "tar.xz", "tar.bz2"
         public List<ArchiveEntry> Entries = new List<ArchiveEntry>();
         public long PackedBytes;
         /// <summary>When set, the archive cannot be read here and this says why in plain words (never a guess).</summary>
@@ -65,7 +65,7 @@ namespace MonitoringTools.Core.DocTools
     /// <summary>
     /// Reads and extracts archives. Zip (System.IO.Compression, plus the traditional zip password scheme read by hand), tar,
     /// tar.gz, tgz and single-file gz use the .NET libraries. 7z, xz, bz2, tar.xz, tar.bz2 and AES-encrypted zip go through the
-    /// bundled 7-Zip command line (7za). RAR is not supported by 7za, so it reports an honest "cannot read" state.
+    /// bundled 7-Zip command line (7za). RAR (RAR4 and RAR5) goes through the bundled full 7-Zip (7z.exe with 7z.dll), because 7za has no RAR decoder.
     /// Every path inside an archive is checked against the destination first, so a zip-slip entry is refused.
     /// </summary>
     public static partial class ArchiveTools
@@ -83,7 +83,8 @@ namespace MonitoringTools.Core.DocTools
         {
             var n = System.IO.Path.GetFileName(path ?? "").ToLowerInvariant();
             if (n.EndsWith(".zip") || n.EndsWith(".tar") || n.EndsWith(".tar.gz") || n.EndsWith(".tgz") || n.EndsWith(".gz")) return true;
-            return !n.EndsWith(".rar") && IsArchive(n) && SevenZipAvailable;
+            if (n.EndsWith(".rar")) return RarAvailable;
+            return IsArchive(n) && SevenZipAvailable;
         }
 
         // ------------------------------------------------------------------ safety
@@ -133,8 +134,9 @@ namespace MonitoringTools.Core.DocTools
                 else if (n.EndsWith(".7z")) { info.Format = "7z"; if (NeedSeven(info)) ListSeven(info, null); }
                 else if (n.EndsWith(".rar"))
                 {
-                    info.Format = "rar";
-                    info.Unsupported = "RAR archives cannot be read here: the 7-Zip command line bundled with this app does not include the RAR decoder. Zip, 7z, tar, gz, xz and bz2 archives open here.";
+                    info.Format = "rar"; info.UseSevenZip = true;
+                    if (RarAvailable) ListSeven(info, null);
+                    else info.Unsupported = "A RAR archive is read through the full 7-Zip (7z.exe with 7z.dll), which is missing from this copy of the app. Zip, 7z, tar, gz, xz and bz2 archives open here.";
                 }
                 else
                 {
@@ -260,7 +262,7 @@ namespace MonitoringTools.Core.DocTools
                 switch (info.Format)
                 {
                     case "zip" when info.UseSevenZip: ExtractSevenStaged(info, picked, dest, rules, password, progress, prog, res, ct); break;
-                    case "7z": ExtractSevenStaged(info, picked, dest, rules, password, progress, prog, res, ct); break;
+                    case "7z": case "rar": ExtractSevenStaged(info, picked, dest, rules, password, progress, prog, res, ct); break;
                     case "zip": ExtractZip(info, picked, dest, rules, password, progress, prog, res, ct); break;
                     case "tar": ExtractTar(() => File.OpenRead(info.File), set, dest, rules, progress, prog, res, ct); break;
                     case "tar.gz": ExtractTar(() => new GZipStream(File.OpenRead(info.File), CompressionMode.Decompress), set, dest, rules, progress, prog, res, ct); break;
@@ -290,7 +292,7 @@ namespace MonitoringTools.Core.DocTools
         /// <summary>Tries the password on the first locked file without writing anything. Null means it works, "wrong" means it does not, anything else says why it cannot be tried.</summary>
         public static string CheckPassword(ArchiveInfo info, string password)
         {
-            if (info.UseSevenZip || info.Format == "7z") return CheckSevenPassword(info, password);
+            if (info.UseSevenZip || info.Format == "7z" || info.Format == "rar") return CheckSevenPassword(info, password);
             var e = info.Entries.FirstOrDefault(x => x.Encrypted && !x.IsDirectory);
             if (e == null) return null;
             try { using var s = OpenEncrypted(info, e.Raw ?? e.Path, password); return null; }

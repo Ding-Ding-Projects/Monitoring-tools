@@ -52,6 +52,7 @@ namespace MonitoringTools.Core
 
         public static bool HasFfmpegBundle => Asm.GetManifestResourceNames().Any(n => n == "bundled/ffmpeg/ffmpeg.exe");
         public static bool HasSevenZipBundle => Asm.GetManifestResourceNames().Any(n => n == "bundled/7zip/7za.exe");
+        public static bool HasFullSevenZipBundle => Asm.GetManifestResourceNames().Any(n => n == "bundled/7zip-full/7z.exe");
         public static bool HasGitBundle => Asm.GetManifestResourceNames().Contains("bundled/mingit.zip");
 
         /// <summary>Pinned versions as recorded at build time, for the About page.</summary>
@@ -99,6 +100,23 @@ namespace MonitoringTools.Core
             }
             var exe = System.IO.Path.Combine(dir, "7za.exe");
             return File.Exists(exe) ? exe : null;
+        }
+
+        /// <summary>
+        /// The bundled full 7-Zip command line (7z.exe with 7z.dll beside it, LGPL with the unRAR restriction), extracted and
+        /// verified once per pinned set. It is used only where 7za has no decoder: reading RAR archives. Null when this build carries none.
+        /// </summary>
+        public static string FullSevenZipExe()
+        {
+            if (!HasFullSevenZipBundle) return null;
+            var dir = System.IO.Path.Combine(ToolsDir, "7zip-full");
+            lock (Gate)
+            {
+                foreach (var name in Asm.GetManifestResourceNames().Where(n => n.StartsWith("bundled/7zip-full/")))
+                    ExtractVerified(name, System.IO.Path.Combine(dir, name.Substring("bundled/7zip-full/".Length)));
+            }
+            var exe = System.IO.Path.Combine(dir, "7z.exe");
+            return File.Exists(exe) && File.Exists(System.IO.Path.Combine(dir, "7z.dll")) ? exe : null;
         }
 
         // -------------------------------------------------------------- MinGit

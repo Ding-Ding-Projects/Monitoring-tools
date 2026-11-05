@@ -13,6 +13,7 @@ using MonitoringTools.Core.Archives;
 namespace MonitoringTools.Core.DocTools
 {
     // The archive formats read through the bundled 7-Zip command line (7za): 7z, xz, bz2, tar.xz, tar.bz2 and AES-encrypted zip.
+    // RAR (RAR4 and RAR5) goes through the bundled full 7-Zip (7z.exe with 7z.dll) the same way, because 7za has no RAR decoder.
     // 7za is always given a password switch and a closed input, so it never waits for a typed answer. Extraction of a 7z or an
     // AES zip goes into a hidden folder inside the destination first; only entries that pass the zip-slip check are asked for,
     // and each finished file is then moved into place under the rule for names that exist. Cancel removes that folder, so a
@@ -32,9 +33,17 @@ namespace MonitoringTools.Core.DocTools
             return false;
         }
 
-        private static ProcessStartInfo SevenStart(IEnumerable<string> args, string cwd = null)
+        /// <summary>True when the full 7-Zip (7z.exe with 7z.dll), which reads RAR, is in this copy of the app.</summary>
+        public static bool RarAvailable => ArchiveEngine.SevenZipFull != null;
+
+        /// <summary>The command line for an archive: the full 7-Zip for RAR (7za has no RAR decoder), 7za for everything else.</summary>
+        private static string ExeFor(ArchiveInfo info) => info.Format == "rar"
+            ? ArchiveEngine.SevenZipFull ?? throw new IOException("The full 7-Zip, which reads RAR, is missing from this copy of the app.")
+            : null;
+
+        private static ProcessStartInfo SevenStart(IEnumerable<string> args, string cwd = null, string exe = null)
         {
-            var exe = ArchiveEngine.SevenZip ?? throw new IOException("7-Zip is missing from this copy of the app.");
+            exe ??= ArchiveEngine.SevenZip ?? throw new IOException("7-Zip is missing from this copy of the app.");
             var psi = new ProcessStartInfo(exe)
             {
                 UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
@@ -45,9 +54,9 @@ namespace MonitoringTools.Core.DocTools
         }
 
         /// <summary>Runs 7za to the end on the calling thread. Each output line goes to <paramref name="line"/>; Cancel kills it.</summary>
-        private static (int Code, string Text) SevenRun(IEnumerable<string> args, CancellationToken ct, Action<string> line = null)
+        private static (int Code, string Text) SevenRun(IEnumerable<string> args, CancellationToken ct, Action<string> line = null, string exe = null)
         {
-            using var p = Process.Start(SevenStart(args)) ?? throw new IOException("7-Zip did not start.");
+            using var p = Process.Start(SevenStart(args, null, exe)) ?? throw new IOException("7-Zip did not start.");
             p.StandardInput.Close();
             var all = new StringBuilder();
             using var reg = ct.Register(() => { try { p.Kill(true); } catch { } });
@@ -75,6 +84,8 @@ namespace MonitoringTools.Core.DocTools
             var lines = text.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0 && (l.StartsWith("ERROR") || l.Contains("Error", StringComparison.OrdinalIgnoreCase) || l.StartsWith("Can"))).ToList();
             var t = string.Join(" ", lines.Take(2));
             t = Regex.Replace(t, @"[A-Za-z]:\\[^:]*?\s:\s", "");    // 7-Zip repeats the full archive path before the reason
+            // the most common reason, said in plain words (and translatable) instead of 7-Zip's own
+            if (Regex.IsMatch(t, @"^(ERROR:\s*)?Cannot open the file as archive\s*$", RegexOptions.IgnoreCase)) return "7-Zip does not recognise it as an archive; it may be damaged or of another type.";
             return t.Length == 0 ? "7-Zip could not read it." : t;
         }
 
@@ -83,7 +94,7 @@ namespace MonitoringTools.Core.DocTools
         /// <summary>Lists a 7z or another multi-file archive with "7za l -slt". A 7z with encrypted names is marked NamesLocked unless a password is given.</summary>
         private static void ListSeven(ArchiveInfo info, string password)
         {
-            var (code, text) = SevenRun(new[] { "l", "-slt", "-ba", "-sccUTF-8", "-p" + (string.IsNullOrEmpty(password) ? NoPassword : password), "--", info.File }, CancellationToken.None);
+            var (code, text) = SevenRun(new[] { "l", "-slt", "-ba", "-sccUTF-8", "-p" + (string.IsNullOrEmpty(password) ? NoPassword : password), "--", info.File }, CancellationToken.None, null, ExeFor(info));
             if (code != 0)
             {
                 if (SaysWrongPassword(text))
@@ -166,7 +177,7 @@ namespace MonitoringTools.Core.DocTools
                 // a name 7-Zip would rewrite (an unsafe one) might match nothing, and testing nothing proves nothing
                 var first = info.Entries.FirstOrDefault(x => x.Encrypted && !x.IsDirectory && !x.Unsafe);
                 if (first == null) return info.Entries.Any(x => x.Encrypted && !x.IsDirectory) ? "Every locked file in this archive has an unsafe path, so nothing would be extracted." : null;
-                var (code, text) = SevenRun(new[] { "t", "-spd", "-sccUTF-8", "-p" + password, "--", info.File, SevenName(first) }, CancellationToken.None);
+                var (code, text) = SevenRun(new[] { "t", "-spd", "-sccUTF-8", "-p" + password, "--", info.File, SevenName(first) }, CancellationToken.None, null, ExeFor(info));
                 if (code == 0 && !text.Contains("No files to process", StringComparison.OrdinalIgnoreCase)) return null;
                 if (code == 0) return "7-Zip could not find the first locked file to check the password.";
                 return SaysWrongPassword(text) ? "wrong" : SevenTail(text);
@@ -233,7 +244,7 @@ namespace MonitoringTools.Core.DocTools
                 File.WriteAllLines(list, safe.Select(SevenName), new UTF8Encoding(false));
                 var args = new List<string> { "x", "-o" + staging, "-y", "-spd", "-scsUTF-8", "-sccUTF-8", "-bsp1", "-bso1", "-bse1", "-i@" + list, "-p" + (string.IsNullOrEmpty(password) ? NoPassword : password), "--", info.File };
                 long total = Math.Max(1, safe.Sum(e => e.Size));
-                var (code, text) = SevenRun(args, ct, line =>
+                var (code, text) = SevenRun(args, ct, exe: ExeFor(info), line: line =>
                 {
                     var m = SevenPct.Match(line);
                     if (!m.Success || !int.TryParse(m.Groups[1].Value, out var pc)) return;

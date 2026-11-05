@@ -16,8 +16,12 @@ namespace MonitoringTools.Core
 
             // ---- archive: formats through 7-Zip
             Add("Zip, 7z, tar, gz, xz and bz2 archives open here.", "呢度可以開 zip、7z、tar、gz、xz 同 bz2 壓縮檔。");
-            Add("RAR archives cannot be read here: the 7-Zip command line bundled with this app does not include the RAR decoder. Zip, 7z, tar, gz, xz and bz2 archives open here.",
-                "呢度讀唔到 RAR 壓縮檔：呢個程式附帶嘅 7-Zip 命令列冇 RAR 解碼器。呢度可以開 zip、7z、tar、gz、xz 同 bz2 壓縮檔。");
+            Add("Zip, 7z, RAR, tar, gz, xz and bz2 archives open here.", "呢度可以開 zip、7z、RAR、tar、gz、xz 同 bz2 壓縮檔。");
+            Add("A RAR archive is read through the full 7-Zip (7z.exe with 7z.dll), which is missing from this copy of the app. Zip, 7z, tar, gz, xz and bz2 archives open here.",
+                "RAR 壓縮檔要經完整版 7-Zip（7z.exe 連 7z.dll）讀，但係呢個程式入面搵唔到。呢度可以開 zip、7z、tar、gz、xz 同 bz2 壓縮檔。");
+            Add("7-Zip does not recognise it as an archive; it may be damaged or of another type.", "7-Zip 認唔出佢係壓縮檔，可能已經損壞，或者係另一種檔案。");
+            Add("7-Zip could not read it.", "7-Zip 讀唔到佢。");
+            Add("The full 7-Zip, which reads RAR, is missing from this copy of the app.", "呢個程式入面搵唔到讀 RAR 用嘅完整版 7-Zip。");
             Add("This archive type cannot be read here. Zip, 7z, tar, gz, xz and bz2 archives open here.", "呢度讀唔到呢種壓縮檔。呢度可以開 zip、7z、tar、gz、xz 同 bz2 壓縮檔。");
             Add("This zip uses AES encryption, which is read through 7-Zip, and 7-Zip is missing from this copy of the app.", "呢個 zip 用 AES 加密，要經 7-Zip 讀，但係呢個程式入面搵唔到 7-Zip。");
             Add("encrypted · names hidden", "已加密 · 檔名已隱藏");

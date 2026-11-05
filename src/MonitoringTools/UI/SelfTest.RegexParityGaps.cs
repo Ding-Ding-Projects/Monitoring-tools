@@ -99,7 +99,7 @@ namespace MonitoringTools.UI
             });
 
             // ================================================================ files: archives, binary, file types
-            Check("regex parity files: zip and 7z archives, binary files by byte with offsets and hex, and per-extension rules", () =>
+            Check("regex parity files: zip, 7z and RAR archives, binary files by byte with offsets and hex, and per-extension rules", () =>
             {
                 var root = Path.Combine(work, "gap-files"); if (Directory.Exists(root)) Directory.Delete(root, true);
                 Directory.CreateDirectory(root);
@@ -165,6 +165,11 @@ namespace MonitoringTools.UI
                         var r7 = RegexGrep.Search(rx, new RegexGrep.Options { Folder = root, SearchArchives = true, Masks = "*.txt" }, default);
                         var hit = r7.Files.FirstOrDefault(f => f.Path.EndsWith("box.7z!/deep.txt"));
                         if (hit == null || hit.Hits[0].Line != 2) bad.Add("7z entry not found: " + string.Join(",", r7.Files.Select(f => f.Path)) + " / " + string.Join(" | ", r7.Skipped.Select(s => s.Reason)));
+                        // a RAR (built byte by byte) goes through the full 7-Zip, which has the RAR decoder that 7za lacks
+                        File.WriteAllBytes(Path.Combine(root, "box.rar"), RarFixtures.Rar5(("inner/deep.txt", System.Text.Encoding.UTF8.GetBytes("x\nfind the needle\n"))));
+                        var rr = RegexGrep.Search(rx, new RegexGrep.Options { Folder = root, SearchArchives = true, Masks = "*.txt" }, default);
+                        var rhit = rr.Files.FirstOrDefault(f => f.Path.EndsWith("box.rar!/inner/deep.txt"));
+                        if (rhit == null || rhit.Hits[0].Line != 2) bad.Add("RAR entry not found: " + string.Join(",", rr.Files.Select(f => f.Path)) + " / " + string.Join(" | ", rr.Skipped.Select(s => s.Reason)));
                         if (r7.Files.Any(f => f.Path.EndsWith("readme.md"))) bad.Add("the *.txt mask did not apply to the zip entries");
                         // a cap smaller than the archive leaves it unsearched and says so
                         var capped = RegexGrep.Search(rx, new RegexGrep.Options { Folder = root, SearchArchives = true, Masks = "*.txt", MaxArchiveBytes = 4 }, default);

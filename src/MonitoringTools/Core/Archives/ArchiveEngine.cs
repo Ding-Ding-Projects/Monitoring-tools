@@ -300,6 +300,9 @@ namespace MonitoringTools.Core.Archives
         internal static string SevenZipPath;   // set by tests; otherwise the bundled copy
         public static string SevenZip => SevenZipPath ?? BundledTools.SevenZipExe() ?? (File.Exists(Environment.GetEnvironmentVariable("MT_7ZA") ?? "") ? Environment.GetEnvironmentVariable("MT_7ZA") : null);
 
+        /// <summary>The full 7-Zip (7z.exe with 7z.dll), used only to read RAR archives, which 7za cannot decode. Null when this build carries none.</summary>
+        public static string SevenZipFull => BundledTools.FullSevenZipExe() ?? (File.Exists(Environment.GetEnvironmentVariable("MT_7Z") ?? "") ? Environment.GetEnvironmentVariable("MT_7Z") : null);
+
         /// <summary>The 7za command line for these options, minus the password (which is added last and never logged).</summary>
         public static List<string> SevenZipArguments(ArchiveOptions o, string archive, string listFile)
         {

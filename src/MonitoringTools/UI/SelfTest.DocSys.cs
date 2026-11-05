@@ -320,7 +320,7 @@ namespace MonitoringTools.UI
                 finally { d?.Close(); }
             });
 
-            await CheckAsync("archive dialog: tar, tar.gz and gz are listed and extracted, a tar path that escapes the folder is refused, and a damaged 7z and a RAR say they cannot be opened", async () =>
+            await CheckAsync("archive dialog: tar, tar.gz and gz are listed and extracted, a tar path that escapes the folder is refused, and a damaged 7z and a damaged RAR say they cannot be opened", async () =>
             {
                 var t = DocTmp("tar");
                 byte[] B(string s) => Encoding.UTF8.GetBytes(s);
@@ -380,9 +380,9 @@ namespace MonitoringTools.UI
                 try
                 {
                     await Pump(300);
-                    if (d5.State != ArchiveState.CannotRead) return "a RAR opened in state " + d5.State;
+                    if (d5.State != ArchiveState.CannotRead) return "a damaged RAR opened in state " + d5.State;
                     var text = Drive.TextOf(d5);
-                    if (!text.Contains("does not include the RAR decoder")) return "the RAR state does not say why: " + text;
+                    if (!text.Contains("could not be read as rar") || !text.Contains("Nothing was extracted and the archive was not changed.")) return "the damaged RAR state does not say so: " + text;
                     await DocAudit("archive cannot read", d5);
                 }
                 finally { d5?.Close(); }
@@ -390,6 +390,7 @@ namespace MonitoringTools.UI
             });
 
             await SevenZipDocChecksAsync();
+            await RarDocChecksAsync();
             await AskRuleDocChecksAsync();
 
             Check("archive engine: Cancel stops before any file is written, removes the .part file and reports Canceled", () =>
