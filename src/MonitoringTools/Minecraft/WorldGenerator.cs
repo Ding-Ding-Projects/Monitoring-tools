@@ -617,7 +617,10 @@ namespace MonitoringTools.Minecraft
                     ["server-ip"] = "127.0.0.1", ["server-port"] = port.ToString(), ["online-mode"] = "false",
                     ["level-name"] = "world", ["level-seed"] = o.Seed ?? "", ["level-type"] = LevelType(o, sup.DataDriven),
                     ["generate-structures"] = o.Structures ? "true" : "false", ["max-tick-time"] = "-1",
-                    ["view-distance"] = "3", ["simulation-distance"] = "3", ["enable-rcon"] = "false", ["spawn-protection"] = "0"
+                    ["view-distance"] = "3", ["simulation-distance"] = "3", ["enable-rcon"] = "false", ["spawn-protection"] = "0",
+                    // ROOT CAUSE of the old stall: since 1.21.2 a server with no players pauses ticking after 60 s ("Server empty for 60 seconds, pausing"),
+                    // and force-loaded chunks only generate while the server ticks. 0 turns the pause off. MT_STAGING_PAUSE_EMPTY exists only to re-run the proof.
+                    ["pause-when-empty-seconds"] = Environment.GetEnvironmentVariable("MT_STAGING_PAUSE_EMPTY") ?? "0"
                 };
                 File.WriteAllLines(Path.Combine(stage, "server.properties"), props.Select(kv => kv.Key + "=" + kv.Value));
                 if (o.Type == WorldType.SingleBiome)
@@ -715,14 +718,14 @@ namespace MonitoringTools.Minecraft
                         var pending = new List<(int X, int Z)>();
                         for (int x = cx; x <= cx2; x++) for (int z = cz; z <= cz2; z++) pending.Add((x, z));
                         var deadline = DateTime.UtcNow.AddMinutes(5);
-                        // A batch whose chunks stop loading is asked for again: the server's force-load tickets can stall when a batch is
-                        // requested right after the last one was removed, and removing them all and adding the area once more starts them over.
+                        // Fallback only: the known stall was the server pausing itself when empty (pause-when-empty-seconds, now 0 in the staging properties).
+                        // If chunks still stop loading for another reason, restarting the staging server and asking for the batch again recovers it.
                         var lastGain = DateTime.UtcNow; int lastCount = pending.Count, restarts = 0;
                         while (pending.Count > 0)
                         {
                             ct.ThrowIfCancellationRequested();
                             if (pending.Count < lastCount) { lastCount = pending.Count; lastGain = DateTime.UtcNow; }
-                            else if ((DateTime.UtcNow - lastGain).TotalSeconds > 45 && restarts < 3)
+                            else if ((DateTime.UtcNow - lastGain).TotalSeconds > 45 && restarts < (Environment.GetEnvironmentVariable("MT_STAGING_NORESTART") == "1" ? 0 : 3))
                             {
                                 restarts++; lastGain = DateTime.UtcNow; deadline = DateTime.UtcNow.AddMinutes(5);
                                 progress($"Pre-generating the {dim.Label}: batch {inThis + 1} of {perDim} stopped loading, so the staging server was restarted ({restarts} of 3)", 0.15 + 0.7 * n / total);

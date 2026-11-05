@@ -284,8 +284,20 @@ namespace MonitoringTools.Core
                 if (!RuleStored(level, "randomTickSpeed", "7")) return "level.dat does not hold randomTickSpeed=7";
                 Say("level.dat holds keepInventory=true and randomTickSpeed=7 (the defaults are false and 3)");
 
+                // ---- a normal world, Nether and End, written as a ZIP
+                var z = new WorldGenOptions { Version = Version, Seed = "lane", RadiusChunks = 2, PreGenNether = true, PreGenEnd = true, EulaAccepted = true, Destination = root, WorldName = "normalzip", AsZip = true };
+                var (pz, nz, fz) = await Generate(z);
+                if (fz != null) return "the normal ZIP world failed: " + fz;
+                if (nz != null) return "the normal ZIP world said: " + nz;
+                if (!pz.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) || !File.Exists(pz)) return "the normal ZIP was not written: " + pz;
+                var zdir = Path.Combine(root, "normalzip-unzipped"); ZipFile.ExtractToDirectory(pz, zdir);
+                var zr = Directory.GetDirectories(zdir, "region", SearchOption.AllDirectories);
+                int zo = zr.Where(d => !d.Contains("DIM")).SelectMany(RegionFiles).Count(), zn = zr.Where(d => d.Contains("DIM-1")).SelectMany(RegionFiles).Count(), ze = zr.Where(d => d.Contains("DIM1")).SelectMany(RegionFiles).Count();
+                if (zo == 0 || zn == 0 || ze == 0 || Directory.GetFiles(zdir, "level.dat", SearchOption.AllDirectories).Length == 0) return $"the normal ZIP holds overworld {zo}, Nether {zn}, End {ze} region files (or no level.dat)";
+                Say($"normal world ZIP {new FileInfo(pz).Length / 1024} KB: overworld {zo}, Nether {zn}, End {ze} region files and a level.dat");
+
                 // ---- a custom superflat world as a ZIP
-                var b = new WorldGenOptions { Version = Version, Seed = "", Type = WorldType.Flat, RadiusChunks = 2, EulaAccepted = true, Destination = root, WorldName = "flat", AsZip = true, FlatBiome = "minecraft:plains" };
+                var b = new WorldGenOptions { Version = Version, Seed = "", Type = WorldType.Flat, RadiusChunks = 2, PreGenNether = true, PreGenEnd = true, EulaAccepted = true, Destination = root, WorldName = "flat", AsZip = true, FlatBiome = "minecraft:plains" };
                 b.FlatLayers.Add(new FlatLayer { Block = "minecraft:bedrock", Height = 1 });
                 b.FlatLayers.Add(new FlatLayer { Block = "minecraft:emerald_block", Height = 2 });
                 b.FlatLayers.Add(new FlatLayer { Block = "minecraft:gold_block", Height = 1 });
@@ -301,15 +313,22 @@ namespace MonitoringTools.Core
                 var inFlat = InChunks(flatRegion, new[] { "minecraft:emerald_block", "minecraft:gold_block", "minecraft:bedrock", "minecraft:plains" });
                 if (!inFlat.Contains("minecraft:emerald_block") || !inFlat.Contains("minecraft:gold_block")) return "the chunks do not hold the custom layers; found " + string.Join(",", inFlat);
                 Say($"ZIP {new FileInfo(pb).Length / 1024} KB, {RegionFiles(flatRegion).Count} region files; the chunks hold {string.Join(", ", inFlat.OrderBy(x => x))}");
+                var flatNether = Directory.GetDirectories(unzip, "region", SearchOption.AllDirectories).Where(d => d.Contains("DIM-1")).SelectMany(RegionFiles).Count();
+                var flatEnd = Directory.GetDirectories(unzip, "region", SearchOption.AllDirectories).Where(d => d.Contains("DIM1")).SelectMany(RegionFiles).Count();
+                if (flatNether == 0 || flatEnd == 0) return $"the superflat ZIP holds Nether {flatNether} and End {flatEnd} region files";
+                Say($"the superflat ZIP also holds {flatNether} Nether and {flatEnd} End region files");
 
                 // ---- a single biome world
-                var c = new WorldGenOptions { Version = Version, Seed = "lane", Type = WorldType.SingleBiome, Biome = "minecraft:cherry_grove", RadiusChunks = 2, EulaAccepted = true, Destination = root, WorldName = "biome" };
+                var c = new WorldGenOptions { Version = Version, Seed = "lane", Type = WorldType.SingleBiome, Biome = "minecraft:cherry_grove", RadiusChunks = 2, PreGenNether = true, PreGenEnd = true, EulaAccepted = true, Destination = root, WorldName = "biome" };
                 var (pc, nc, fc) = await Generate(c);
                 if (fc != null) return "the single biome world failed: " + fc;
                 if (nc != null) return "the single biome world said: " + nc;
                 var biomes = InChunks(Path.Combine(pc, "region"), new[] { "minecraft:cherry_grove", "minecraft:plains", "minecraft:forest", "minecraft:ocean" }, 2000, fullOnly: true);
                 if (!biomes.Contains("minecraft:cherry_grove")) return "the chunks do not hold cherry_grove; found " + string.Join(",", biomes);
                 if (biomes.Any(x => x != "minecraft:cherry_grove")) return "the chunks hold other biomes too: " + string.Join(",", biomes) + "; plains sits at " + ChunkContext(Path.Combine(pc, "region"), "minecraft:plains");
+                var bNether = RegionFiles(Path.Combine(pc, "DIM-1", "region")).Count; var bEnd = RegionFiles(Path.Combine(pc, "DIM1", "region")).Count;
+                if (bNether == 0 || bEnd == 0) return $"the single biome world holds Nether {bNether} and End {bEnd} region files";
+                Say($"the single biome world holds {bNether} Nether and {bEnd} End region files");
                 Say("the finished overworld chunks hold only minecraft:cherry_grove (chunks saved part way, as neighbours of the area, carry a placeholder plains palette and are not counted)");
                 return null;
             }
