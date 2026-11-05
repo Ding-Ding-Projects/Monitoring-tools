@@ -1072,7 +1072,7 @@ namespace MonitoringTools.UI
             var legend = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top };
             legend.Children.Add(Dot(Ui.Res("B.Mint"))); legend.Children.Add(Ui.Mono("gateway", Ui.Res("B.TextMute"), 11));
             legend.Children.Add(new Border { Width = 14 });
-            legend.Children.Add(Dot(new SolidColorBrush(Color.FromRgb(0x8A, 0xB4, 0xFF)))); legend.Children.Add(Ui.Mono("dns", Ui.Res("B.TextMute"), 11));
+            legend.Children.Add(Dot(Ui.Res("B.OnTertiaryContainer"))); legend.Children.Add(Ui.Mono("dns", Ui.Res("B.TextMute"), 11));
             head.Children.Add(legend);
             sp.Children.Add(head);
 
@@ -1118,7 +1118,7 @@ namespace MonitoringTools.UI
                 for (int i = 0; i < samples.Count; i++)
                     if (!samples[i].Online)
                     {
-                        var r = new Rectangle { Width = Math.Max(step, 3), Height = H, Fill = new SolidColorBrush(Color.FromArgb(0x30, 0xFF, 0xB5, 0x47)) };
+                        var r = new Rectangle { Width = Math.Max(step, 3), Height = H, Fill = new SolidColorBrush(Color.FromArgb(0x30, ((SolidColorBrush)Ui.Res("B.Amber")).Color.R, ((SolidColorBrush)Ui.Res("B.Amber")).Color.G, ((SolidColorBrush)Ui.Res("B.Amber")).Color.B)) };
                         Canvas.SetLeft(r, i * step - step / 2);
                         canvas.Children.Add(r);
                     }
@@ -1138,9 +1138,9 @@ namespace MonitoringTools.UI
                     }
                     if (pts != null && pts.Count > 1) canvas.Children.Add(new Polyline { Points = pts, Stroke = stroke, StrokeThickness = thick, StrokeLineJoin = PenLineJoin.Round });
                 }
-                Series(x => x.Dns, new SolidColorBrush(Color.FromRgb(0x8A, 0xB4, 0xFF)), 1.6);
+                Series(x => x.Dns, Ui.Res("B.OnTertiaryContainer"), 1.6);
                 Series(x => x.Gateway, Ui.Res("B.Mint"), 2.2);
-                var top = Ui.Mono($"{max} ms", Ui.Res("B.TextMute"), 10);
+                var top = Ui.Mono($"{max} ms", Ui.Res("B.TextMute"), 11);
                 Canvas.SetLeft(top, W - 44); Canvas.SetTop(top, 2);
                 canvas.Children.Add(top);
             }

@@ -386,6 +386,8 @@ namespace MonitoringTools.Core
             if (root is UIElement) { Retext(root, AutomationProperties.NameProperty, NameEnProp, NameFinalProp); Retext(root, AutomationProperties.HelpTextProperty, HelpEnProp, HelpFinalProp); }
             int n = root is Visual || root is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetChildrenCount(root) : 0;
             for (int i = 0; i < n; i++) Walk(VisualTreeHelper.GetChild(root, i));
+            // a name that follows the element's own text (see AccessibleLabels) is read again once that text has its final wording
+            if (root is UIElement) System.Windows.Data.BindingOperations.GetBindingExpression(root, AutomationProperties.NameProperty)?.UpdateTarget();
         }
 
         /// <summary>Marks an element whose text is already in its final language (previews, voice names) so the layer leaves it alone.</summary>

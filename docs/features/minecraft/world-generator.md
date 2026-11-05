@@ -67,6 +67,18 @@ Unavailable until a version is chosen, and for versions before Java 1.19, where 
 4. Validation runs as you edit and again when the pack is written. Every value must exist in the jar's own default and have the same JSON type (whole number, number, true/false, text). Block ids for `default_block.Name` and `default_fluid.Name` are checked against the jar's block list once the jar has been read. A short set of world height limits is applied: for dimension types `min_y` (-2032 to 2031) and `height` (16 to 4064) in multiples of 16, `logical_height` (0 to 4064, not above `height`) and `coordinate_scale` (0.00001 to 30,000,000); for noise settings `noise.min_y`, `noise.height`, `noise.size_horizontal` and `noise.size_vertical` likewise; and `min_y` plus height not above 2032. **The jar publishes no schema.** These limits were written by hand from the game's documented height rules for 1.18 and newer, not read from the jar, and the game itself has the final say.
 5. On Generate (and on Write to server settings for a local process server), the changes are written to a data pack named `monitoring-tools-worldgen-edits` inside the world's `datapacks` folder. A data pack file replaces a whole entry, so each written file is the jar's default with only your values different, and untouched files are not written. Nothing is written when there are no changes.
 
+## Versions run live
+
+The live check (`MT_LIVE_ONLY=minecraft-lane`, `MT_LIVE_LANE=gen`, version from `MT_LIVE_MC`) was run on three versions, reading the region files and the stored game rules back from the files:
+
+| Version | Result | Notes |
+| --- | --- | --- |
+| 1.20.6 | Passed in 362 s | 4 overworld, 4 Nether and 4 End region files; game rules in `level.dat`; the normal and superflat ZIPs; single biome cherry grove. Nothing version-specific was needed. |
+| 1.21.4 | Passed (earlier runs) | The version the other live checks use. |
+| 26.3 (newest release in Mojang's manifest) | Passed in 337 s | Two version differences, both in the check and not the engine: game rules are snake case (`keep_inventory`, `random_tick_speed`; the engine refuses an unknown name and says so, and the check now takes the names from the jar's own list), and a world stores them in `data/minecraft/game_rules.dat` as typed tags and keeps its dimensions under `dimensions/minecraft/...` instead of `DIM-1` and `DIM1`. |
+
+Bedrock has no equivalent route; that is a limit, not a gap.
+
 ## Limits and honest gaps
 
 - Nether and End pre-generation use the same chunk radius and centre as the Overworld, without coordinate scaling.
@@ -74,7 +86,7 @@ Unavailable until a version is chosen, and for versions before Java 1.19, where 
 - The worldgen editor changes single values only. Whether the running game applies a replaced `minecraft:overworld` dimension type or noise settings entry exactly as expected has not been tested here, and structure sets, lakes and features of the flat generator keep the jar's defaults. Game rules are not applied to an existing server's world.
 - Single biome needs Java 1.19 or newer and a local-process server (or a new world).
 - Docker and SSH servers: the card can write `server.properties` for a local Docker server's folder, but cannot read its jar, so Single biome and custom layers are unavailable there. SSH servers are not supported by this tool.
-- The version boundaries (1.19 for presets, 1.13.1 for forceload) come from release dates in the catalogue. The data generator's output shapes were only studied for 1.21.x; a jar that changes the `commands.json` shape shows an unavailable state.
+- The version boundaries (1.19 for presets, 1.13.1 for forceload) come from release dates in the catalogue. The data generator's output shapes were studied for 1.21.x and read live on 1.20.6 and 26.3; a jar that changes the `commands.json` shape shows an unavailable state.
 - Bedrock has no equivalent route and is not covered.
 
 ## Verification
