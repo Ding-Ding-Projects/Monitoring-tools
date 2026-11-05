@@ -41,7 +41,7 @@ namespace MonitoringTools.UI.Search
 
         private static Border Boxed(UIElement child) => new Border
         {
-            Child = child as UIElement, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
+            Child = child as UIElement, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12),
             Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6)
         };
 
@@ -198,7 +198,7 @@ namespace MonitoringTools.UI.Search
             string state = !r.Available ? "not available" : r.Error != null ? "rejects the pattern" : r.TimedOut ? "hit the limit" : "ran";
             var st = Ui.Mono(state, Ui.Res(!r.Available ? "B.TextMute" : r.Error != null ? "B.Danger" : r.TimedOut ? "B.Amber" : "B.Mint"), 11);
             DockPanel.SetDock(st, Dock.Right); head.Children.Add(st);
-            var name = new TextBlock { Text = r.Engine + (string.IsNullOrEmpty(r.Version) || r.Engine.Contains(r.Version) ? "" : " " + r.Version), FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") };
+            var name = new TextBlock { Text = r.Engine + (string.IsNullOrEmpty(r.Version) || r.Engine.Contains(r.Version) ? "" : " " + r.Version), FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") };
             Core.Language.SetLiteral(name, true);
             head.Children.Add(name);
             sp.Children.Add(head);
@@ -295,7 +295,7 @@ namespace MonitoringTools.UI.Search
                 foreach (var run in new[] { r.A, r.B })
                 {
                     var inner = new StackPanel();
-                    var t1 = new TextBlock { Text = "Pattern " + run.Label, FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") };
+                    var t1 = new TextBlock { Text = "Pattern " + run.Label, FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") };
                     inner.Children.Add(t1);
                     var code = Ui.Mono(run.Pattern, Ui.Res("B.Mint"), 11); code.TextWrapping = TextWrapping.Wrap; Core.Language.SetLiteral(code, true); inner.Children.Add(code);
                     if (run.Error != null) { var e = Note("Not valid: " + run.Error); Core.Language.SetLiteral(e, true); inner.Children.Add(e); }
@@ -535,7 +535,7 @@ namespace MonitoringTools.UI.Search
         private FrameworkElement HelpCard(RegexHelp.Topic t)
         {
             var inner = new StackPanel();
-            inner.Children.Add(new TextBlock { Text = t.Title, FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) });
+            inner.Children.Add(new TextBlock { Text = t.Title, FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) });
             inner.Children.Add(Body(t.Body));
             var ex = Ui.Mono(t.Example, Ui.Res("B.Mint"), 12); ex.TextWrapping = TextWrapping.Wrap; Core.Language.SetLiteral(ex, true);
             inner.Children.Add(Eyebrow("Example"));

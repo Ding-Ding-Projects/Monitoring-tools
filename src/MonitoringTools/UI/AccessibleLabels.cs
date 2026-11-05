@@ -46,7 +46,7 @@ namespace MonitoringTools.UI
             // an icon-only button has no text to read: its tooltip is its name
             if (string.IsNullOrWhiteSpace(Converter.Instance.Convert(b.Content, typeof(string), null, CultureInfo.InvariantCulture) as string) && b.ToolTip is string tip && !string.IsNullOrWhiteSpace(tip))
             {
-                AutomationProperties.SetName(b, tip);
+                b.SetBinding(AutomationProperties.NameProperty, new Binding("ToolTip") { Source = b, Mode = BindingMode.OneWay });   // follows the tooltip, which the language layers rewrite
                 return;
             }
             var binding = new Binding("Content") { Source = b, Mode = BindingMode.OneWay, Converter = Converter.Instance };
@@ -81,7 +81,7 @@ namespace MonitoringTools.UI
                 child = parent;
             }
             if (label != null) e.SetBinding(AutomationProperties.NameProperty, new Binding(".") { Source = label, Mode = BindingMode.OneWay, Converter = Converter.Instance });
-            else if (e.ToolTip is string tip && !string.IsNullOrWhiteSpace(tip)) AutomationProperties.SetName(e, tip);
+            else if (e.ToolTip is string tip && !string.IsNullOrWhiteSpace(tip)) e.SetBinding(AutomationProperties.NameProperty, new Binding("ToolTip") { Source = e, Mode = BindingMode.OneWay });
         }
 
         /// <summary>

@@ -37,7 +37,7 @@ namespace MonitoringTools.UI
             var sp = new StackPanel();
             sp.Children.Add(CardTitle("Clone GitHub repositories",
                 "Copy a GitHub link and its toast offers Clone (into the folder below) and Clone to… (choose a folder that time). Private repositories work when the GitHub CLI is signed in."));
-            var path = Ui.Mono(RepoActions.CloneFolder, Ui.Res("B.TextSoft"), 13);
+            var path = Ui.Mono(RepoActions.CloneFolder, Ui.Res("B.TextSoft"), 12);
             path.Margin = new Thickness(0, 4, 0, 8);
             Core.Language.SetLiteral(path, true);
             sp.Children.Add(path);

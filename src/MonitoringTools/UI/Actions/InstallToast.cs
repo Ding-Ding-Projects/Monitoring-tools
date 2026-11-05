@@ -112,12 +112,12 @@ namespace MonitoringTools.UI
             var pills = new WrapPanel();
             foreach (var p in _c.Packages) { var pill = Ui.Pill(p, B("B.Sunken"), B("B.Text"), mono: true, size: 12); Core.Language.SetLiteral(pill, true); pills.Children.Add(pill); }
             Row(_c.Packages.Count > 1 ? "Packages" : "Package", pills);
-            Row("Source", new TextBlock { Text = _c.SourceName + " (default)", FontSize = 13, Foreground = B("B.Text"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+            Row("Source", new TextBlock { Text = _c.SourceName + " (default)", FontSize = 12, Foreground = B("B.Text"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
 
             var amber = _c.Permission == InstallPermission.ConsentAlways || _c.Permission == InstallPermission.ConsentExpected;
             var perm = new StackPanel { Orientation = Orientation.Horizontal };
             perm.Children.Add(new ContentControl { Content = Ui.Icon(amber ? Icons.Shield : Icons.Help, amber ? B("B.Amber") : B("B.TextSoft"), 14, 2), Margin = new Thickness(0, 2, 8, 0), VerticalAlignment = VerticalAlignment.Top });
-            perm.Children.Add(new TextBlock { Text = PermissionText(_c), FontSize = 13, Foreground = B("B.Text"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, MaxWidth = 270 });
+            perm.Children.Add(new TextBlock { Text = PermissionText(_c), FontSize = 12, Foreground = B("B.Text"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, MaxWidth = 270 });
             Row("Permission", perm);
             root.Children.Add(grid);
 
@@ -168,7 +168,7 @@ namespace MonitoringTools.UI
             {
                 var line = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 2) };
                 line.Children.Add(new ContentControl { Content = Ui.Icon(ToastIcons.Block, B("B.Amber"), 14, 2), Margin = new Thickness(0, 1, 9, 0), VerticalAlignment = VerticalAlignment.Top });
-                var text = new TextBlock { FontSize = 13, Foreground = B("B.Text"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, MaxWidth = 320 };
+                var text = new TextBlock { FontSize = 12, Foreground = B("B.Text"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, MaxWidth = 320 };
                 // The token is the person's own text and stays as written; the reason is the app's wording and is translated.
                 bool prefixed = r.Reason.StartsWith(r.Token + " ", StringComparison.Ordinal) || r.Reason.StartsWith(r.Token.Split(' ')[0] + " ", StringComparison.Ordinal);
                 var token = new Run(prefixed ? r.Token.Split(' ')[0] : r.Token) { FontFamily = Ui.Font("F.Mono"), FontSize = 12 };

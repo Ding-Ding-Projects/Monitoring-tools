@@ -325,7 +325,7 @@ namespace MonitoringTools.UI
             foreach (var code in CodeScanner.Scan(img).Take(3))
             {
                 info.Children.Add(new TextBlock { Text = code.Kind, FontSize = 12, Foreground = Ui.Res("B.Mint"), Margin = new Thickness(0, 6, 0, 0), FontFamily = Ui.Font("F.Body") });
-                var body = Ui.Mono(ActionProvider.Preview(code.Text), Ui.Res("B.Text"), 13);
+                var body = Ui.Mono(ActionProvider.Preview(code.Text), Ui.Res("B.Text"), 12);
                 body.TextWrapping = TextWrapping.Wrap; body.MaxHeight = 60;
                 Core.Language.SetLiteral(body, true);   // the code's own text is data, never translated
                 info.Children.Add(body);
