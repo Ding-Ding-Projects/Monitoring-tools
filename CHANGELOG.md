@@ -4,6 +4,32 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.40 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.40)
+
+- Offer "Register for codes" when a copied picture is an authenticator QR ([`9a43490`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9a43490fa22604ea8ef307b7641713b1eb87b45e))
+
+## 1.0.39 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.39)
+
+- SSH worlds row, millisecond-safe history names, sharper retention check ([`3b47012`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/3b47012791c2a92ef086506ac52b9a103e68c5c6))
+- WIP: SSH world import, replace and reset; Forge and NeoForge Java image fix and live lanes ([`4b6df50`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/4b6df50d4648543d1e23cce4f3bb7ba1d9ab38ae))
+
+## 1.0.38 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.38)
+
+- Record the TOTP-from-QR request and the unfinished SSH worlds branch ([`64ecead`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/64ecead4e1c1b9289e805765ea89d37707516211))
+
+## 1.0.37 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.37)
+
+- Record the evening state in the handoff and closeout prompt ([`eaa2883`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/eaa288304292ffc47b2242d182b58ba663051cb9))
+- Record v1.0.36 figures and changelog ([`b749fb5`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b749fb5297950806074e9a773dd18d54abc63940))
+
 ## 1.0.36 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.36)
