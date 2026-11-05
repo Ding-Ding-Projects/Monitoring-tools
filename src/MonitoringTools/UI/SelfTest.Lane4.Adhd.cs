@@ -115,10 +115,13 @@ namespace MonitoringTools.UI
             await CheckAsync("adhd low stimulation: the sound service really starts playback for an allowed cue and never reaches the player for a refused one", async () =>
             {
                 bool snd0 = s.SoundsEnabled; double vol0 = s.SoundVolume;
+                // a schedule rule from another check, or one whose hours match the time this run happens, would turn sounds off
+                var rules0 = s.ScheduleRules; s.ScheduleRules = new System.Collections.Generic.List<ScheduleRule>(); Modes.Evaluate();
                 try
                 {
                     s.SoundsEnabled = true; s.SoundVolume = 0.05; Sounds.QuietOverrideForTest = false;
                     s.AdhdLowStimulation = false; Modes.NotifyChanged();
+                    if (!Modes.SoundsOn) return $"sounds are off before the check starts (School mode {Modes.SchoolActive}, saved switch {s.SoundsEnabled}); this run cannot test playback";
                     async Task<(int Started, string File, string Failure)> Fire(Cue cue)
                     {
                         await Task.Delay(600);   // clear of the one-cue-at-a-time debounce
@@ -150,7 +153,7 @@ namespace MonitoringTools.UI
                     NoteForReport("sound playback", "allowed cue started " + Path.GetFileName(open.File) + (open.Failure == null ? " with no media error" : "; the media engine reported: " + open.Failure));
                     return null;
                 }
-                finally { Sounds.QuietOverrideForTest = null; s.SoundsEnabled = snd0; s.SoundVolume = vol0; Restore(); }
+                finally { Sounds.QuietOverrideForTest = null; s.SoundsEnabled = snd0; s.SoundVolume = vol0; s.ScheduleRules = rules0; Modes.Evaluate(); Restore(); }
             });
 
             await CheckAsync("adhd time awareness: a running task shows elapsed time, then how long it took, and the reminder timer follows the setting", async () =>
