@@ -171,8 +171,8 @@ namespace MonitoringTools.UI
                 await Task.Delay(200);
                 if (reports < 2) return "only " + reports + " progress reports";
                 if (res["MD5"].Length != 32) return "no MD5";
-                var cts = new CancellationTokenSource(); bool cancelled = false;
-                try { await HashEngine.ComputeAsync(fx.Big, new[] { "SHA-512" }, new Progress<(long Done, long Total)>(p => cts.Cancel()), cts.Token); }
+                var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(40)); bool cancelled = false;
+                try { await HashEngine.ComputeAsync(fx.Big, new[] { "SHA-512", "SHA-256", "SHA-1", "MD5" }, null, cts.Token); }
                 catch (OperationCanceledException) { cancelled = true; }
                 return cancelled ? null : "cancelling did not stop the read";
             });

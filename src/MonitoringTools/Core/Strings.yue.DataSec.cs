@@ -186,7 +186,7 @@ namespace MonitoringTools.Core
             Add(@"^Computed in under 1 s(?: · (.+))?$", "計算咗唔使 1 秒 · $1");
             Add(@"^Computed in (\d+) s(?: · (.+))?$", "計算咗 $1 秒 · $2");
             Add(@"^Computed in (\d+) min (\d+) s(?: · (.+))?$", "計算咗 $1 分 $2 秒 · $3");
-            AddFn(@"^(\S+ \S+) of (\S+ \S+)(?: · (\S+ MB/s))?(?: · about (.+) left)?$", m =>
+            AddFn(@"^(\d[\d.,]* (?:B|KB|MB|GB|TB)) of (\d[\d.,]* (?:B|KB|MB|GB|TB))(?: · (\S+ MB/s))?(?: · about (.+) left)?$", m =>
             {
                 var s = m.Groups[1].Value + " / " + m.Groups[2].Value;
                 if (m.Groups[3].Success) s += " · " + m.Groups[3].Value;
@@ -226,7 +226,7 @@ namespace MonitoringTools.Core
             Add(@"^It stopped being valid on (\S+)\. Clients will refuse it\.$", "佢喺 $1 失效。用戶端會拒絕佢。");
             Add(@"^It becomes valid on (\S+)\.$", "佢會喺 $1 生效。");
             Add(@"^The file holds (\d+) certificates\. This is the first\.$", "個檔案有 $1 個憑證，呢個係第一個。");
-            Add(@"^Saved (.+)$", "已儲存 $1");
+            Add(@"^Saved ([^\s]+\.[A-Za-z0-9]{1,5})$", "已儲存 $1");
 
             // ---- data viewer
             AddFn(@"^Valid (CSV|JSON|YAML)$", m => m.Groups[1].Value + " 有效");
@@ -246,7 +246,7 @@ namespace MonitoringTools.Core
             Add(@"^Showing the first (\d[\d,]*) characters\. Conversion uses the whole file\.$", "顯示頭 $1 個字元。轉換會用成個檔案。");
             Add(@"^Showing the first (\d+) of (\d[\d,]*) rows\. Conversion uses all of them\.$", "顯示 $2 行入面嘅頭 $1 行。轉換會用晒所有行。");
             AddFn(@"^Copied (the cell|the row)\.$", m => m.Groups[1].Value == "the cell" ? "已複製儲存格。" : "已複製成行。");
-            Add(@"^Saved (.+)$", "已儲存 $1");
+            Add(@"^Saved ([^\s]+\.[A-Za-z0-9]{1,5})$", "已儲存 $1");
             Add(@"^(\d[\d,]*) rows? became (\d[\d,]*) objects? with the header names as keys\.$", "$1 行變成 $2 個物件，用標題名稱做鍵。");
             Add(@"^(\d[\d,]*) records? became (\d[\d,]*) rows?\.$", "$1 筆記錄變成 $2 行。");
             AddFn(@"^The (CSV|JSON|YAML) content was written as (CSV|JSON|YAML)\.$", m => m.Groups[1].Value + " 內容已寫成 " + m.Groups[2].Value + "。");
