@@ -91,7 +91,7 @@ namespace MonitoringTools
             AutoUpdater.Start();             // new releases download and install themselves at a quiet moment
             Tray.Refresh();
 
-            ListenForSignal(ServiceHost.QuitEventName, () => Quit(ServiceHost.ExitQuit));
+            ListenForSignal(ServiceHost.QuitEventName, () => Quit(ServiceHost.ExitQuit), once: true);
             ListenForSignal(ServiceHost.ShowEventName, () => OpenControlCentre(null));
 
             var updated = AutoUpdater.TakeUpdatedNote();
@@ -124,16 +124,18 @@ namespace MonitoringTools
                 : Toasts.ShowNotice((_lastGame ?? "The game") + " closed", "Game mode is off. Anything held back shows now.", Toasts.Mint, 3, null, Icons.Game);
         }
 
-        private void ListenForSignal(string name, Action onSignal)
+        /// <param name="once">For the quit signal: the supervisor creates that event as manual-reset, so it stays set
+        /// once raised and a loop would call Quit hundreds of times while the app shuts down.</param>
+        private void ListenForSignal(string name, Action onSignal, bool once = false)
         {
             var handle = new EventWaitHandle(false, EventResetMode.AutoReset, name);
             var t = new Thread(() =>
             {
-                while (true)
+                do
                 {
                     handle.WaitOne();
                     Dispatcher.BeginInvoke(onSignal);
-                }
+                } while (!once);
             }) { IsBackground = true, Name = "signal:" + name };
             t.Start();
         }
