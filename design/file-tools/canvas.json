@@ -1,0 +1,76 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-05T09:00:00Z"
+  },
+  "title": "Monitoring Tools file tools",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "VideoTrim.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1680,
+      "h": 1400,
+      "title": "1 · Trim and cut video",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "VideoToGif.dc.html": {
+      "x": 1760,
+      "y": 0,
+      "w": 1680,
+      "h": 1400,
+      "title": "2 · Video to GIF or short clip",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AudioEdit.dc.html": {
+      "x": 0,
+      "y": 1520,
+      "w": 1680,
+      "h": 1400,
+      "title": "3 · Trim, fade and loudness",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ImagesResize.dc.html": {
+      "x": 1760,
+      "y": 1520,
+      "w": 1680,
+      "h": 1400,
+      "title": "4 · Resize, crop and compress",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ImagePrivacy.dc.html": {
+      "x": 0,
+      "y": 3040,
+      "w": 1680,
+      "h": 1400,
+      "title": "5 · Image privacy clean-up",
+      "expand": "fill",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "VideoTrim.dc.html",
+    "VideoToGif.dc.html",
+    "AudioEdit.dc.html",
+    "ImagesResize.dc.html",
+    "ImagePrivacy.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "x": 0,
+      "y": -300,
+      "text": "File tools: one dialog per format, opened from the clipboard notice",
+      "kind": "title1",
+      "maxW": 3400
+    }
+  },
+  "designSystems": []
+}
