@@ -85,7 +85,7 @@ namespace MonitoringTools.UI.Search
             _field = field;
             _s = field.State;
 
-            var title = new TextBlock { Text = "Regex builder", Style = Ui.Style("T.Title"), FontSize = 15, VerticalAlignment = VerticalAlignment.Center };
+            var title = new TextBlock { Text = "Regex builder", Style = Ui.Style("T.Title"), FontSize = 14, VerticalAlignment = VerticalAlignment.Center };
             _engine = Ui.Mono("", Ui.Res("B.TextMute"), 11);
             _engine.VerticalAlignment = VerticalAlignment.Center; _engine.Margin = new Thickness(12, 0, 0, 0); _engine.TextWrapping = TextWrapping.Wrap;
             var close = Ui.Button("", Close, "Btn.Icon", Icons.Close);
@@ -104,7 +104,7 @@ namespace MonitoringTools.UI.Search
             _status = new TextBlock { FontSize = 12, Margin = new Thickness(2, 8, 0, 0), TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body") };
             AutomationProperties.SetLiveSetting(_status, AutomationLiveSetting.Polite);
             _riskText = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.Amber"), TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body") };
-            _risk = new Border { Background = Ui.Res("B.AmberWash"), BorderBrush = Ui.Res("B.Amber"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(0, 8, 0, 0), Child = _riskText, Visibility = Visibility.Collapsed };
+            _risk = new Border { Background = Ui.Res("B.AmberWash"), BorderBrush = Ui.Res("B.Amber"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(0, 8, 0, 0), Child = _riskText, Visibility = Visibility.Collapsed };
 
             _options = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
             foreach (var (flag, label, help) in RegexKit.OptionDefs)
@@ -522,10 +522,10 @@ namespace MonitoringTools.UI.Search
             sp.Children.Add(controls);
 
             sp.Children.Add(Eyebrow("Pattern (current token highlighted)"));
-            _dbgPattern = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
+            _dbgPattern = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
             sp.Children.Add(Panel(_dbgPattern));
             sp.Children.Add(Eyebrow("Subject (current position highlighted)"));
-            _dbgText = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
+            _dbgText = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
             Core.Language.SetLiteral(_dbgPattern, true); Core.Language.SetLiteral(_dbgText, true);   // the pattern and the subject text are the person's own
             sp.Children.Add(Panel(_dbgText));
             _dbgInfo = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 8, 0, 4), Foreground = Ui.Res("B.Text") };
@@ -537,7 +537,7 @@ namespace MonitoringTools.UI.Search
 
         private static Border Panel(UIElement child) => new Border
         {
-            Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
+            Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12),
             Padding = new Thickness(10, 8, 10, 8), Margin = new Thickness(0, 4, 0, 0), Child = child
         };
 
@@ -611,7 +611,7 @@ namespace MonitoringTools.UI.Search
             {
                 var s = t.Steps[i];
                 var row = new DockPanel { Margin = new Thickness(0, 1, 0, 1) };
-                var num = Ui.Mono("#" + (i + 1), Ui.Res("B.TextMute"), 11); num.MinWidth = 52;
+                var num = Ui.Mono("#" + (i + 1), Ui.Res("B.TextSoft"), 11); num.MinWidth = 52;
                 var kind = Ui.Mono(s.Kind.ToString().ToLowerInvariant(), Ui.Res(s.Kind switch { RegexTrace.StepKind.Fail => "B.Danger", RegexTrace.StepKind.Backtrack => "B.Amber", RegexTrace.StepKind.Match or RegexTrace.StepKind.Done => "B.Mint", _ => "B.TextSoft" }), 11); kind.MinWidth = 70;
                 DockPanel.SetDock(num, Dock.Left); row.Children.Add(num);
                 DockPanel.SetDock(kind, Dock.Left); row.Children.Add(kind);
@@ -717,7 +717,7 @@ namespace MonitoringTools.UI.Search
             var head = new DockPanel();
             var state = Ui.Mono(r.Supported ? (r.TimedOut ? "hit the limit" : "supported") : "not supported", Ui.Res(r.Supported ? (r.TimedOut ? "B.Amber" : "B.Mint") : "B.Danger"), 11);
             DockPanel.SetDock(state, Dock.Right); head.Children.Add(state);
-            head.Children.Add(new TextBlock { Text = r.Mode, FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
+            head.Children.Add(new TextBlock { Text = r.Mode, FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
             sp.Children.Add(head);
             if (!r.Supported) sp.Children.Add(Note(r.Note));
             else
@@ -725,7 +725,7 @@ namespace MonitoringTools.UI.Search
                 sp.Children.Add(Ui.Mono($"{r.Matches} match(es) · match {r.MatchMs:0.00} ms · construct {r.ConstructMs:0.00} ms", Ui.Res("B.TextSoft"), 11));
                 sp.Children.Add(Note(r.FirstDifference));
             }
-            return new Border { Child = sp, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6) };
+            return new Border { Child = sp, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6) };
         }
 
         // ---- Benchmark
@@ -818,7 +818,7 @@ namespace MonitoringTools.UI.Search
         private static FrameworkElement BenchRow(RegexBench.SubjectBench r)
         {
             var sp = new StackPanel();
-            sp.Children.Add(new TextBlock { Text = r.Label, FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
+            sp.Children.Add(new TextBlock { Text = r.Label, FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
             if (r.Skipped) { sp.Children.Add(Note(r.Verdict)); }
             else
             {
@@ -829,7 +829,7 @@ namespace MonitoringTools.UI.Search
                 v.Foreground = Ui.Res("B.Text");
                 sp.Children.Add(v);
             }
-            return new Border { Child = sp, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6) };
+            return new Border { Child = sp, Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 8, 10, 4), Margin = new Thickness(0, 0, 0, 6) };
         }
 
         // ---------------------------------------------------------------- Replace and split
@@ -981,7 +981,7 @@ namespace MonitoringTools.UI.Search
                 DockPanel.SetDock(del, Dock.Right); line.Children.Add(del);
                 DockPanel.SetDock(use, Dock.Right); line.Children.Add(use);
                 var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                text.Children.Add(new TextBlock { Text = item.Name, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") });
+                text.Children.Add(new TextBlock { Text = item.Name, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body") });
                 if (!string.IsNullOrWhiteSpace(item.Description)) { var dl = new TextBlock { Text = item.Description, FontSize = 11, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap }; Core.Language.SetLiteral(dl, true); text.Children.Add(dl); }
                 text.Children.Add(Ui.Mono(item.Pattern, Ui.Res("B.Mint"), 11));
                 var eff = RegexLibrary.EffectiveParameters(item);

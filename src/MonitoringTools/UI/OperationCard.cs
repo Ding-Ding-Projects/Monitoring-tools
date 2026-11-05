@@ -78,7 +78,7 @@ namespace MonitoringTools.UI
             AutomationProperties.SetName(this, title + " progress");
             _title.Text = title;
             _title.Style = Ui.Style("T.Title");
-            _title.FontSize = 15;
+            _title.FontSize = 14;
             _message.Style = Ui.Style("T.Body");
             _message.TextWrapping = TextWrapping.Wrap;
             _message.Foreground = Ui.Res("B.TextSoft");
@@ -104,8 +104,8 @@ namespace MonitoringTools.UI
             foreach (var l in labels)
             {
                 var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 2) };
-                var glyph = new TextBlock { Width = 22, FontSize = 13, Foreground = Ui.Res("B.TextMute"), Text = "○", VerticalAlignment = VerticalAlignment.Top };
-                var label = new TextBlock { Text = l, Style = Ui.Style("T.Body"), FontSize = 13, Foreground = Ui.Res("B.Text") };
+                var glyph = new TextBlock { Width = 22, FontSize = 12, Foreground = Ui.Res("B.TextMute"), Text = "○", VerticalAlignment = VerticalAlignment.Top };
+                var label = new TextBlock { Text = l, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.Text") };
                 var detail = new TextBlock { Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(8, 0, 0, 0), TextWrapping = TextWrapping.Wrap, MaxWidth = 420 };
                 row.Children.Add(glyph); row.Children.Add(label); row.Children.Add(detail);
                 _steps.Children.Add(row);

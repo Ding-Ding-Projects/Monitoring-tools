@@ -30,14 +30,14 @@ namespace MonitoringTools.UI.Minecraft
             AutomationProperties.SetName(filters, "Which players");
             Grid.SetColumn(filters, 1); head.Children.Add(filters);
             card.Children.Add(head);
-            var how = McUi.Body("", "B.TextMute", 12.5);
+            var how = McUi.Body("", "B.TextMute", 12);
             how.Margin = new Thickness(0, 4, 0, 12);
             card.Children.Add(how);
 
             var addRow = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
             var nameBox = McUi.Field("", "Add a player by name", 220, "A Minecraft name: 1 to 16 letters, digits or underscores.");
-            var nameCol = new StackPanel(); nameCol.Children.Add(new TextBlock { Text = "Add a player by name", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); nameCol.Children.Add(nameBox); addRow.Children.Add(nameCol);
-            var result = McUi.Body("", "B.TextMute", 12.5);
+            var nameCol = new StackPanel(); nameCol.Children.Add(new TextBlock { Text = "Add a player by name", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); nameCol.Children.Add(nameBox); addRow.Children.Add(nameCol);
+            var result = McUi.Body("", "B.TextMute", 12);
             AutomationProperties.SetLiveSetting(result, AutomationLiveSetting.Polite);
 
             PlayerBox box = null;
@@ -173,7 +173,7 @@ namespace MonitoringTools.UI.Minecraft
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var init = McUi.Literal(name.Length > 0 ? name[..1].ToUpperInvariant() : "?", "B.OnTertiaryContainer", 14);
             init.FontWeight = FontWeights.SemiBold; init.HorizontalAlignment = HorizontalAlignment.Center; init.VerticalAlignment = VerticalAlignment.Center;
-            g.Children.Add(new Border { Width = 36, Height = 36, CornerRadius = new CornerRadius(10), Background = Ui.Res("B.TertiaryContainer"), Child = init, Margin = new Thickness(0, 0, 12, 0) });
+            g.Children.Add(new Border { Width = 36, Height = 36, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.TertiaryContainer"), Child = init, Margin = new Thickness(0, 0, 12, 0) });
             var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             text.Children.Add(McUi.Literal(name, "B.Text", 14));
             text.Children.Add(new TextBlock { Text = note, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });

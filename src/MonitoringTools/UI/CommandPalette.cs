@@ -186,6 +186,7 @@ namespace MonitoringTools.UI
             public Search.SearchField FindField => _search;
             private List<Item> _shown = new List<Item>();
             private int _sel;
+            private FrameworkElement _selInline;   // the switch or unlock button of the selected row; Ctrl+Space operates it from the keyboard
             private readonly Border _card;
 
             public PaletteWindow(List<Item> items)
@@ -225,7 +226,7 @@ namespace MonitoringTools.UI
                 _card = new Border
                 {
                     Background = Ui.Res("B.Surface"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(18), Padding = new Thickness(14), Margin = new Thickness(20),
+                    CornerRadius = new CornerRadius(16), Padding = new Thickness(14), Margin = new Thickness(20),
                     Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"], Child = root,
                     RenderTransformOrigin = new Point(0.5, 0), RenderTransform = new ScaleTransform(0.97, 0.97)
                 };
@@ -290,6 +291,7 @@ namespace MonitoringTools.UI
             private void Render()
             {
                 _list.Children.Clear();
+                _selInline = null;
                 string group = null;
                 for (int i = 0; i < _shown.Count; i++)
                 {
@@ -328,6 +330,7 @@ namespace MonitoringTools.UI
                     unlock.ToolTip = Core.Language.T("This item is locked and will not run until it is unlocked.");
                     AutomationProperties.SetName(unlock, Core.Language.T("Unlock…") + " " + it.Title);
                     badge.Children.Add(unlock);
+                    if (selected) _selInline = unlock;
                     Grid.SetColumn(badge, 2); g.Children.Add(badge);
                     text.Opacity = 0.65;
                 }
@@ -335,6 +338,7 @@ namespace MonitoringTools.UI
                 {
                     var c = it.Inline(); c.VerticalAlignment = VerticalAlignment.Center;
                     Grid.SetColumn(c, 2); g.Children.Add(c);
+                    if (selected) _selInline = c;
                 }
                 var row = new Border { CornerRadius = new CornerRadius(12), Padding = new Thickness(0, 4, 0, 4), Background = selected ? Ui.Res("B.Raised") : Brushes.Transparent, Child = g, Cursor = Cursors.Hand };
                 AutomationProperties.SetName(row, $"{it.Group}: {it.Title}" + (guard != null ? ", " + Core.Language.T("Locked") : ""));
@@ -375,6 +379,12 @@ namespace MonitoringTools.UI
                 else if (e.Key == Key.Down && _shown.Count > 0) { e.Handled = true; _sel = (_sel + 1) % _shown.Count; Render(); }
                 else if (e.Key == Key.Up && _shown.Count > 0) { e.Handled = true; _sel = (_sel - 1 + _shown.Count) % _shown.Count; Render(); }
                 else if (e.Key == Key.Enter && _shown.Count > 0) { e.Handled = true; Choose(_shown[_sel]); }
+                else if (e.Key == Key.Space && (Keyboard.Modifiers & ModifierKeys.Control) != 0 && _selInline != null)
+                {
+                    e.Handled = true;
+                    if (_selInline is CheckBox cb) cb.IsChecked = cb.IsChecked != true;
+                    else if (_selInline is ButtonBase bb) bb.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+                }
             }
         }
     }

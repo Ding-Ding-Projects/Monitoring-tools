@@ -24,7 +24,7 @@ namespace MonitoringTools.UI
         {
             var body = new StackPanel();
             body.Children.Add(new TextBlock { Text = "AUTHENTICATOR SECRET", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
-            body.Children.Add(new TextBlock { Text = account.Title, Style = Ui.Style("T.Title"), FontSize = 18, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
+            body.Children.Add(new TextBlock { Text = account.Title, Style = Ui.Style("T.Title"), FontSize = 16, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
             body.Children.Add(SafetyUi.Text("Scan this with the authenticator app on your phone. The picture holds this account's secret: anyone who sees it can generate its codes. Close it when you are done.", 12, "B.Amber", null, 6));
 
             var uri = Totp.BuildUri(account.ToParams());
@@ -38,7 +38,7 @@ namespace MonitoringTools.UI
                 body.Children.Add(frame);
                 body.Children.Add(SafetyUi.Text("QR version " + version + ", error correction level M. Black on white on purpose, so every scanner can read it in light or dark mode.", 11, "B.TextMute", null, 6));
             }
-            else body.Children.Add(SafetyUi.Text("A QR code could not be drawn: " + error + " Use the account's secret and settings by hand instead.", 13, "B.Amber", null, 8));
+            else body.Children.Add(SafetyUi.Text("A QR code could not be drawn: " + error + " Use the account's secret and settings by hand instead.", 12, "B.Amber", null, 8));
 
             body.Children.Add(_left);
             var close = Ui.Button("Close", Close, "Btn.Accent", Icons.Check);

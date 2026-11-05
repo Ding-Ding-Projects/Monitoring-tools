@@ -84,7 +84,7 @@ namespace MonitoringTools.UI
             head.ColumnDefinitions.Add(new ColumnDefinition());
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             head.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
-            var value = new TextBlock { Foreground = Ui.Res("B.Mint"), FontSize = 13, FontFamily = Ui.Font("F.Body"), FontWeight = FontWeights.SemiBold };
+            var value = new TextBlock { Foreground = Ui.Res("B.Mint"), FontSize = 12, FontFamily = Ui.Font("F.Body"), FontWeight = FontWeights.SemiBold };
             Grid.SetColumn(value, 1); head.Children.Add(value);
             row.Children.Add(head);
 
@@ -101,7 +101,7 @@ namespace MonitoringTools.UI
             Lang.SetLiteral(preview, true);   // previews are already in their own language
             var previewTitle = new TextBlock { Text = "Preview", Style = Ui.Style("T.Eyebrow"), FontSize = 11, Margin = new Thickness(0, 0, 0, 4) };
             var lines = Enumerable.Range(0, 4).Select(_ => new TextBlock { Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 1, 0, 1) }).ToArray();
-            var box = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 8, 12, 8) };
+            var box = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 8, 12, 8) };
             var inner = new StackPanel();
             foreach (var l in lines) inner.Children.Add(l);
             box.Child = inner;
@@ -219,7 +219,7 @@ namespace MonitoringTools.UI
             rateHead.ColumnDefinitions.Add(new ColumnDefinition());
             rateHead.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             rateHead.Children.Add(new TextBlock { Text = "Speaking rate", Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
-            var rateValue = new TextBlock { Foreground = Ui.Res("B.Mint"), FontSize = 13, FontFamily = Ui.Font("F.Body"), FontWeight = FontWeights.SemiBold };
+            var rateValue = new TextBlock { Foreground = Ui.Res("B.Mint"), FontSize = 12, FontFamily = Ui.Font("F.Body"), FontWeight = FontWeights.SemiBold };
             Lang.SetLiteral(rateValue, true);
             Grid.SetColumn(rateValue, 1); rateHead.Children.Add(rateValue);
             rate.Children.Add(rateHead);

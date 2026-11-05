@@ -129,7 +129,7 @@ namespace MonitoringTools.UI
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var titles = new StackPanel();
             var titleRow = new StackPanel { Orientation = Orientation.Horizontal };
-            titleRow.Children.Add(new TextBlock { Text = "Edit appearance", Style = Ui.Style("T.Title"), FontSize = 18, VerticalAlignment = VerticalAlignment.Center });
+            titleRow.Children.Add(new TextBlock { Text = "Edit appearance", Style = Ui.Style("T.Title"), FontSize = 16, VerticalAlignment = VerticalAlignment.Center });
             titleRow.Children.Add(InfoIcon.Create("the appearance editor",
                 "Changes how this one element looks: its font, colours and shape. Changes show at once and are saved by page and element text, so they come back when the page is rebuilt. " +
                 "Every other element with the same text on this page gets the same look. Each property has its own reset, and Reset element returns this element to the theme.",
@@ -140,8 +140,8 @@ namespace MonitoringTools.UI
             var close = new Button { Style = Ui.Style("Btn.Icon"), Content = Ui.Icon(Icons.Close, Ui.Res("B.TextSoft"), 16), ToolTip = "Close (Esc)" };
             AutomationProperties.SetName(close, "Close appearance editor");
             close.Click += (s, e) => Close();
-            _undoBtn = new Button { Style = Ui.Style("Btn.Icon"), Content = new TextBlock { Text = "↶", FontSize = 18, Foreground = Ui.Res("B.TextSoft") }, ToolTip = "Undo the last change in this editor (Ctrl+Z)" };
-            _redoBtn = new Button { Style = Ui.Style("Btn.Icon"), Content = new TextBlock { Text = "↷", FontSize = 18, Foreground = Ui.Res("B.TextSoft") }, ToolTip = "Redo (Ctrl+Y)" };
+            _undoBtn = new Button { Style = Ui.Style("Btn.Icon"), Content = new TextBlock { Text = "↶", FontSize = 16, Foreground = Ui.Res("B.TextSoft") }, ToolTip = "Undo the last change in this editor (Ctrl+Z)" };
+            _redoBtn = new Button { Style = Ui.Style("Btn.Icon"), Content = new TextBlock { Text = "↷", FontSize = 16, Foreground = Ui.Res("B.TextSoft") }, ToolTip = "Redo (Ctrl+Y)" };
             AutomationProperties.SetName(_undoBtn, "Undo appearance change"); AutomationProperties.SetName(_redoBtn, "Redo appearance change");
             _undoBtn.Click += (s, e) => Undo(); _redoBtn.Click += (s, e) => Redo();
             var headButtons = new StackPanel { Orientation = Orientation.Horizontal };
@@ -413,8 +413,8 @@ namespace MonitoringTools.UI
             AutomationProperties.SetName(box, name);
             void Show() => box.Text = Math.Round(get(), 1).ToString("0.#", CultureInfo.InvariantCulture);
             void Commit(double v) { v = Math.Clamp(v, min, max); Edit(() => set(v)); }
-            var minus = new Button { Style = Ui.Style("Btn.Icon"), Width = 36, Height = 36, Content = new TextBlock { Text = "−", FontSize = 18, Foreground = Ui.Res("B.TextSoft") } };
-            var plus = new Button { Style = Ui.Style("Btn.Icon"), Width = 36, Height = 36, Content = new TextBlock { Text = "+", FontSize = 18, Foreground = Ui.Res("B.TextSoft") } };
+            var minus = new Button { Style = Ui.Style("Btn.Icon"), Width = 36, Height = 36, Content = new TextBlock { Text = "−", FontSize = 16, Foreground = Ui.Res("B.TextSoft") } };
+            var plus = new Button { Style = Ui.Style("Btn.Icon"), Width = 36, Height = 36, Content = new TextBlock { Text = "+", FontSize = 16, Foreground = Ui.Res("B.TextSoft") } };
             AutomationProperties.SetName(minus, "Decrease " + name); AutomationProperties.SetName(plus, "Increase " + name);
             minus.Click += (s, e) => Commit(get() - step);
             plus.Click += (s, e) => Commit(get() + step);
@@ -458,7 +458,7 @@ namespace MonitoringTools.UI
                 list.Items.Clear();
                 foreach (var n in shown)
                 {
-                    var tb = new TextBlock { Text = n, FontSize = 15, Padding = new Thickness(10, 6, 10, 6), Tag = n, Foreground = Ui.Res("B.Text") };
+                    var tb = new TextBlock { Text = n, FontSize = 14, Padding = new Thickness(10, 6, 10, 6), Tag = n, Foreground = Ui.Res("B.Text") };
                     try { tb.FontFamily = new FontFamily(n); } catch { }   Core.Language.SetLiteral(tb, true);
                     list.Items.Add(tb);
                     if (n == _style.FontFamily) list.SelectedItem = tb;
@@ -832,7 +832,7 @@ namespace MonitoringTools.UI
                 var row = new Grid { Margin = new Thickness(0, 0, 0, 6) };
                 row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var tx = new StackPanel();
-                tx.Children.Add(new TextBlock { Text = LabelOf(entry.Key) + " · " + entry.Summary, Foreground = Ui.Res("B.Text"), FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis });
+                tx.Children.Add(new TextBlock { Text = LabelOf(entry.Key) + " · " + entry.Summary, Foreground = Ui.Res("B.Text"), FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis });
                 tx.Children.Add(new TextBlock { Text = entry.At.ToString("g", CultureInfo.CurrentCulture), Foreground = Ui.Res("B.TextMute"), FontSize = 11 });
                 row.Children.Add(tx);
                 bool can = !string.IsNullOrEmpty(entry.Key) && entry.Key != "*";

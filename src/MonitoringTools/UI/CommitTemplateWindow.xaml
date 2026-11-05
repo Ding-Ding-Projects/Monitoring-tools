@@ -18,13 +18,13 @@
                 <TextBlock Text="Set a default commit message" Style="{StaticResource T.Title}" FontSize="22" Margin="0,6,0,6"/>
                 <TextBlock Style="{StaticResource T.Body}" Text="Every :push uses this message. Click a snippet to drop it in; it fills in at push time."/>
 
-                <TextBox x:Name="Input" Style="{StaticResource Input}" Margin="0,16,0,10" FontSize="13" Height="40" TextChanged="OnChanged"/>
+                <TextBox x:Name="Input" Style="{StaticResource Input}" Margin="0,16,0,10" FontSize="12" Height="40" TextChanged="OnChanged"/>
                 <WrapPanel x:Name="Snippets"/>
 
                 <Border Background="{DynamicResource B.Sunken}" CornerRadius="16" Padding="12,10" Margin="0,8,0,0" BorderBrush="{DynamicResource B.Line}" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="PREVIEW" Style="{StaticResource T.Eyebrow}"/>
-                        <TextBlock x:Name="Preview" Style="{StaticResource T.Mono}" Foreground="{DynamicResource B.Text}" FontSize="13" Margin="0,4,0,0"/>
+                        <TextBlock x:Name="Preview" Style="{StaticResource T.Mono}" Foreground="{DynamicResource B.Text}" FontSize="12" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
 

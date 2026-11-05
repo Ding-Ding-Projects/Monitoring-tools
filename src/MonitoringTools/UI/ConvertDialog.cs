@@ -96,14 +96,14 @@ namespace MonitoringTools.UI
             var titleRow = new Grid();
             titleRow.ColumnDefinitions.Add(new ColumnDefinition());
             titleRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var title = new TextBlock { Text = _files.Length == 1 ? "Convert " + Path.GetFileName(_files[0]) : $"Convert {_files.Length} files", Style = Ui.Style("T.Title"), FontSize = 20, TextTrimming = TextTrimming.CharacterEllipsis };
+            var title = new TextBlock { Text = _files.Length == 1 ? "Convert " + Path.GetFileName(_files[0]) : $"Convert {_files.Length} files", Style = Ui.Style("T.Title"), FontSize = 22, TextTrimming = TextTrimming.CharacterEllipsis };
             var close = Ui.Button("", Close, "Btn.Ghost", Icons.Close);
             AutomationProperties.SetName(close, "Close");
             close.ToolTip = "Closes without converting (Esc).";
             Grid.SetColumn(close, 1);
             titleRow.Children.Add(title); titleRow.Children.Add(close);
             head.Children.Add(titleRow);
-            head.Children.Add(new TextBlock { Text = SourceLine(), Style = Ui.Style("T.Body"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 12) });
+            head.Children.Add(new TextBlock { Text = SourceLine(), Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 12) });
             head.Children.Add(_search);
 
             var chips = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
@@ -132,7 +132,7 @@ namespace MonitoringTools.UI
             root.Children.Add(scroll);
 
             var foot = new StackPanel { Margin = new Thickness(0, 12, 0, 0) };
-            _summary.Style = Ui.Style("T.Body"); _summary.FontSize = 13; _summary.Foreground = Ui.Res("B.TextSoft"); _summary.TextWrapping = TextWrapping.Wrap;
+            _summary.Style = Ui.Style("T.Body"); _summary.FontSize = 12; _summary.Foreground = Ui.Res("B.TextSoft"); _summary.TextWrapping = TextWrapping.Wrap;
             foot.Children.Add(_summary);
             var actions = new Grid { Margin = new Thickness(0, 10, 0, 0) };
             actions.ColumnDefinitions.Add(new ColumnDefinition());
@@ -202,7 +202,7 @@ namespace MonitoringTools.UI
                     .Where(t => !_search.State.IsActive || _search.State.Matches(SearchText(t.Spec)))
                     .ToList();
                 if (rows.Count == 0) continue;
-                _list.Children.Add(new TextBlock { Text = GroupTitle(group), Style = Ui.Style("T.Body"), FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Mint"), Margin = new Thickness(4, shown == 0 ? 0 : 14, 0, 6) });
+                _list.Children.Add(new TextBlock { Text = GroupTitle(group), Style = Ui.Style("T.Body"), FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Mint"), Margin = new Thickness(4, shown == 0 ? 0 : 14, 0, 6) });
                 foreach (var t in rows) { _list.Children.Add(Row(t.Spec, t.Count)); shown++; }
             }
             if (shown == 0)
@@ -225,11 +225,11 @@ namespace MonitoringTools.UI
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var left = new StackPanel();
             var top = new WrapPanel();
-            top.Children.Add(new TextBlock { Text = f.Label, FontSize = 15, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center });
+            top.Children.Add(new TextBlock { Text = f.Label, FontSize = 14, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center });
             top.Children.Add(Tag(f.Extension, true));
             if (f.Lossless) top.Children.Add(Tag("Lossless", false));
             left.Children.Add(top);
-            left.Children.Add(new TextBlock { Text = f.Description, FontSize = 13, Foreground = sel ? Ui.Res("B.OnSecondaryContainer") : Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 3, 0, 0) });
+            left.Children.Add(new TextBlock { Text = f.Description, FontSize = 12, Foreground = sel ? Ui.Res("B.OnSecondaryContainer") : Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 3, 0, 0) });
             var notes = new List<string> { f.Quality };
             var kinds = _files.Select(ClipItem.Classify).Distinct().ToList();
             foreach (var k in kinds) { var n = f.SourceNote(k); if (!string.IsNullOrEmpty(n)) notes.Add(n); }
@@ -251,7 +251,7 @@ namespace MonitoringTools.UI
         {
             CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 1, 8, 2), Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center,
             Background = mono ? Ui.Res("B.Sunken") : Ui.Res("B.MintWash"),
-            Child = new TextBlock { Text = text, FontSize = 11.5, Foreground = mono ? Ui.Res("B.TextSoft") : Ui.Res("B.OnPrimaryContainer"), FontFamily = mono ? Ui.Font("F.Mono") : Ui.Font("F.Body") }
+            Child = new TextBlock { Text = text, FontSize = 12, Foreground = mono ? Ui.Res("B.TextSoft") : Ui.Res("B.OnPrimaryContainer"), FontFamily = mono ? Ui.Font("F.Mono") : Ui.Font("F.Body") }
         };
 
         private string Summary()

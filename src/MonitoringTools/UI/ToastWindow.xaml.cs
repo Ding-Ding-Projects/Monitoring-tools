@@ -159,7 +159,7 @@ namespace MonitoringTools.UI
             if (rest.Count > 0)
             {
                 var more = Ui.Button($"More · {rest.Count}", null, "Btn.Ghost");
-                more.Foreground = Ui.Res("B.TextMute");
+                more.Foreground = Ui.Res("B.TextSoft");
                 more.Click += (s, e) =>
                 {
                     bool open = overflow.Visibility != Visibility.Visible;
@@ -179,7 +179,7 @@ namespace MonitoringTools.UI
             Core.Language.SetLiteral(cap, true);
             sp.Children.Add(new Border
             {
-                Margin = new Thickness(10, 0, 0, 0), Padding = new Thickness(6, 1, 6, 2), CornerRadius = new CornerRadius(6), VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(10, 0, 0, 0), Padding = new Thickness(6, 1, 6, 2), CornerRadius = new CornerRadius(4), VerticalAlignment = VerticalAlignment.Center,
                 Background = new SolidColorBrush(Color.FromArgb(a.Primary ? (byte)0x22 : (byte)0x40, 0, 0, 0)), Child = cap
             });
         }

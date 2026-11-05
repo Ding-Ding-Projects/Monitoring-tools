@@ -122,7 +122,7 @@ namespace MonitoringTools.UI.Search
             _gResults = new StackPanel();
             sp.Children.Add(new Border
             {
-                Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
+                Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12),
                 Padding = new Thickness(10, 8, 10, 8),
                 Child = new ScrollViewer { Content = _gResults, MaxHeight = 280, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }
             });

@@ -38,7 +38,7 @@ namespace MonitoringTools.UI
             foreach (var o in list)
             {
                 var row = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
-                row.Children.Add(new TextBlock { Text = o.Cause ?? "Connection lost", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
+                row.Children.Add(new TextBlock { Text = o.Cause ?? "Connection lost", Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
                 row.Children.Add(Ui.Mono(ListActions.OutageLine(o), Ui.Res("B.TextMute"), 11));
                 sp.Children.Add(bulk.Wrap(o, SearchScope.SetItem(row, (o.Cause ?? "outage") + " outage"), o.Cause ?? "outage"));
             }

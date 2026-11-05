@@ -57,7 +57,7 @@ namespace MonitoringTools.UI.Search
             _explain = new StackPanel();
             right.Children.Add(new Border
             {
-                Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10),
+                Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12),
                 Padding = new Thickness(6, 6, 6, 6), Margin = new Thickness(0, 2, 0, 0),
                 Child = new ScrollViewer { Content = _explain, MaxHeight = 230, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }
             });
@@ -160,9 +160,9 @@ namespace MonitoringTools.UI.Search
             var hasKids = n.Children.Count > 0;
             var collapsed = _collapsed.Contains(n.Key);
             var text = n.Text(_tree.Pattern);
-            var chev = new TextBlock { Text = hasKids ? (collapsed ? "▸" : "▾") : "", Width = 16, FontSize = 12, Foreground = Ui.Res("B.TextMute"), VerticalAlignment = VerticalAlignment.Center };
+            var chev = new TextBlock { Text = hasKids ? (collapsed ? "▸" : "▾") : "", Width = 16, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center };
             if (hasKids) { chev.Cursor = Cursors.Hand; chev.MouseLeftButtonDown += (o, e) => { e.Handled = true; Toggle(n); }; }
-            var code = Ui.Mono(Snippet(text, 26), Ui.Res("B.Mint"), 12);
+            var code = Ui.Mono(Snippet(text, 24), Ui.Res("B.Mint"), 12);
             code.MinWidth = 84; code.Margin = new Thickness(0, 0, 10, 0); code.VerticalAlignment = VerticalAlignment.Center; Core.Language.SetLiteral(code, true);   // the pattern text itself
             var label = new TextBlock { Text = _detailed ? Sentence(n.Detailed) : n.Brief, Foreground = Ui.Res("B.TextSoft"), FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
             var dock = new DockPanel();

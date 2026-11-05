@@ -23,7 +23,7 @@ namespace MonitoringTools.UI
                 ? Ui.IconChip(Icons.Trash, Ui.Res("B.Danger"), Ui.Res("B.DangerWash"), 44, 22)
                 : Ui.IconChip(Icons.Shield, Ui.Res("B.Mint"), Ui.Res("B.MintWash"), 44, 22);
             if (extra == null) Extra.Visibility = Visibility.Collapsed;
-            else Extra.Content = new TextBlock { Text = extra, Foreground = Ui.Res("B.TextSoft"), FontSize = 13, FontFamily = Ui.Font("F.Body") };
+            else Extra.Content = new TextBlock { Text = extra, Foreground = Ui.Res("B.TextSoft"), FontSize = 12, FontFamily = Ui.Font("F.Body") };
             if (danger) { Edge.Color = Ui.C("C.DangerWash"); BuildGate(ok); }
             SourceInitialized += (s, e) => Core.Native.ApplyDarkChrome(this);
             // Copy text only: no menu entry can press the confirm button or step around its two-key gate.
@@ -73,8 +73,8 @@ namespace MonitoringTools.UI
             Gate.Children.Add(keys);
 
             var track = new Grid { Height = 48 };
-            var bg = new Border { CornerRadius = new CornerRadius(24), Background = Ui.Res("B.Sunken") };
-            _fill = new Border { CornerRadius = new CornerRadius(24), Background = Ui.Res("B.Danger"), HorizontalAlignment = HorizontalAlignment.Left, Width = 0 };
+            var bg = new Border { CornerRadius = new CornerRadius(28), Background = Ui.Res("B.Sunken") };
+            _fill = new Border { CornerRadius = new CornerRadius(28), Background = Ui.Res("B.Danger"), HorizontalAlignment = HorizontalAlignment.Left, Width = 0 };
             _slider = new Slider { Minimum = 0, Maximum = 100, IsEnabled = false, VerticalAlignment = VerticalAlignment.Stretch, Margin = new Thickness(4, 0, 4, 0), SmallChange = 5, LargeChange = 25, Focusable = true };
             _slider.Template = (ControlTemplate)System.Windows.Markup.XamlReader.Parse(
                 "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='Slider'>" +
@@ -123,7 +123,7 @@ namespace MonitoringTools.UI
             AutomationProperties.SetName(t, name);
             var tpl = new ControlTemplate(typeof(ToggleButton));
             var bd = new FrameworkElementFactory(typeof(Border), "Bd");
-            bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(24));
+            bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(28));
             bd.SetValue(Border.BackgroundProperty, Ui.Res("B.Sunken"));
             bd.SetValue(Border.BorderBrushProperty, Ui.Res("B.LineStrong"));
             bd.SetValue(Border.BorderThicknessProperty, new Thickness(2));
@@ -136,7 +136,7 @@ namespace MonitoringTools.UI
             var on = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
             on.Setters.Add(new Setter(Border.BackgroundProperty, Ui.Res("B.DangerWash"), "Bd"));
             on.Setters.Add(new Setter(Border.BorderBrushProperty, Ui.Res("B.Danger"), "Bd"));
-            on.Setters.Add(new Setter(Border.CornerRadiusProperty, new CornerRadius(14), "Bd"));
+            on.Setters.Add(new Setter(Border.CornerRadiusProperty, new CornerRadius(12), "Bd"));
             tpl.Triggers.Add(on);
             var focus = new Trigger { Property = IsKeyboardFocusedProperty, Value = true };
             focus.Setters.Add(new Setter(Border.BorderBrushProperty, Ui.Res("B.Mint"), "Bd"));

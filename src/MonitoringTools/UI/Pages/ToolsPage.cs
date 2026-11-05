@@ -37,7 +37,7 @@ namespace MonitoringTools.UI
             var sp = new StackPanel();
             sp.Children.Add(CardTitle("Clone GitHub repositories",
                 "Copy a GitHub link and its toast offers Clone (into the folder below) and Clone to… (choose a folder that time). Private repositories work when the GitHub CLI is signed in."));
-            var path = Ui.Mono(RepoActions.CloneFolder, Ui.Res("B.TextSoft"), 13);
+            var path = Ui.Mono(RepoActions.CloneFolder, Ui.Res("B.TextSoft"), 12);
             path.Margin = new Thickness(0, 4, 0, 8);
             Core.Language.SetLiteral(path, true);
             sp.Children.Add(path);
@@ -188,7 +188,7 @@ namespace MonitoringTools.UI
                     Grid.SetColumn(btns, 1);
                     line.Children.Add(label); line.Children.Add(btns);
                     AutomationProperties.SetName(line, "Account " + acc.Login + (acc.Active ? ", active" : ""));
-                    var card = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(14), Padding = new Thickness(12, 6, 6, 0), Margin = new Thickness(0, 0, 0, 6), Child = line };
+                    var card = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 6, 6, 0), Margin = new Thickness(0, 0, 0, 6), Child = line };
                     SearchScope.SetItem(card, "account " + acc.Login);
                     accountRows.Children.Add(card);
                     accountList.Add((acc, card));

@@ -31,11 +31,11 @@ namespace MonitoringTools.UI.Minecraft
             root.Children.Add(host);
             if (_propsFor != s.Id || _propsText == null)
             {
-                host.Content = McUi.Body("Reading server.properties…", "B.TextMute", 13);
+                host.Content = McUi.Body("Reading server.properties…", "B.TextMute", 12);
                 _ = Task.Run(() => ServerManager.ReadPropertiesText(s)).ContinueWith(t => Dispatcher.BeginInvoke(new Action(() =>
                 {
                     _propsText = t.IsFaulted ? null : t.Result; _propsFor = s.Id;
-                    if (Current?.Id == s.Id && Section == "settings") host.Content = _propsText == null ? McUi.Body("The settings could not be read from the host. It may be offline.", "B.Amber", 13) : SettingsBody(s);
+                    if (Current?.Id == s.Id && Section == "settings") host.Content = _propsText == null ? McUi.Body("The settings could not be read from the host. It may be offline.", "B.Amber", 12) : SettingsBody(s);
                     Core.Language.Refresh(host);
                 })));
             }
@@ -68,8 +68,8 @@ namespace MonitoringTools.UI.Minecraft
             var right = new StackPanel();
             Grid.SetColumn(right, 1);
             g.Children.Add(right);
-            var title = McUi.Title("", 20);
-            var context = McUi.Body($"Values and limits are for {s.Flavour} {s.Version}. Keys in server.properties that are not listed here are kept exactly as written.", "B.TextMute", 12.5);
+            var title = McUi.Title("", 22);
+            var context = McUi.Body($"Values and limits are for {s.Flavour} {s.Version}. Keys in server.properties that are not listed here are kept exactly as written.", "B.TextMute", 12);
             context.Margin = new Thickness(0, 2, 0, 10);
             right.Children.Add(title);
             right.Children.Add(context);
@@ -86,7 +86,7 @@ namespace MonitoringTools.UI.Minecraft
                 if (pending.Count == 0) { bar.Content = null; return; }
                 var b = new StackPanel();
                 bool restartNeeded = pending.Keys.Any(k => { var d = McPropertyCatalog.Find(k, s); return d == null ? !k.StartsWith("gamerule:") : d.Applies == McApplies.Restart; });
-                var text = McUi.Body(pending.Count == 1 ? "1 unsaved change." + (restartNeeded ? " It needs a restart to take effect." : "") : $"{pending.Count} unsaved changes." + (restartNeeded ? " Some need a restart to take effect." : ""), "B.Text", 13.5);
+                var text = McUi.Body(pending.Count == 1 ? "1 unsaved change." + (restartNeeded ? " It needs a restart to take effect." : "") : $"{pending.Count} unsaved changes." + (restartNeeded ? " Some need a restart to take effect." : ""), "B.Text", 14);
                 text.VerticalAlignment = VerticalAlignment.Center;
                 b.Children.Add(text);
                 var btns = new WrapPanel();
@@ -112,7 +112,7 @@ namespace MonitoringTools.UI.Minecraft
             FrameworkElement Head(string label, McApplies applies, string key, string def, bool changed)
             {
                 var w = new WrapPanel();
-                w.Children.Add(new TextBlock { Text = label, FontSize = 15, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 10, 2), VerticalAlignment = VerticalAlignment.Center });
+                w.Children.Add(new TextBlock { Text = label, FontSize = 14, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 10, 2), VerticalAlignment = VerticalAlignment.Center });
                 var (txt, icon, bg, fg) = applies switch
                 {
                     McApplies.Now => ("Applies now", Icons.Bolt, "B.MintWash", "B.Mint"),
@@ -127,7 +127,7 @@ namespace MonitoringTools.UI.Minecraft
 
             TextBlock KeyLine(string key, string def)
             {
-                var t = new TextBlock { Text = key + (def == null ? "" : " · default " + (def.Length == 0 ? "(empty)" : def)), FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 2, 0, 0) };
+                var t = new TextBlock { Text = key + (def == null ? "" : " · default " + (def.Length == 0 ? "(empty)" : def)), FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 2, 0, 0) };
                 Core.Language.SetLiteral(t, true);
                 return t;
             }
@@ -147,7 +147,7 @@ namespace MonitoringTools.UI.Minecraft
                         var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = (cur ?? d.Default) == "true", IsEnabled = !off, Margin = new Thickness(0, 4, 0, 4) };
                         var text = new StackPanel();
                         text.Children.Add(Head(d.Label, applies, d.Key, d.Default, changed));
-                        text.Children.Add(new TextBlock { Text = help + (off ? $" Not available on {s.Version}." : ""), Style = Ui.Style("T.Body"), FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap });
+                        text.Children.Add(new TextBlock { Text = help + (off ? $" Not available on {s.Version}." : ""), Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap });
                         text.Children.Add(KeyLine(d.Key, d.Default));
                         cb.Content = text;
                         AutomationProperties.SetName(cb, d.Label);
@@ -174,7 +174,7 @@ namespace MonitoringTools.UI.Minecraft
                         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                         var text = new StackPanel { Margin = new Thickness(0, 0, 16, 0) };
                         text.Children.Add(Head(d.Label, applies, d.Key, d.Default, changed));
-                        text.Children.Add(McUi.Body(help, "B.TextSoft", 12.5));
+                        text.Children.Add(McUi.Body(help, "B.TextSoft", 12));
                         text.Children.Add(KeyLine(d.Key, d.Default));
                         grid.Children.Add(text);
                         long.TryParse(cur ?? d.Default, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v);
@@ -182,7 +182,7 @@ namespace MonitoringTools.UI.Minecraft
                         box.ValueChanged += x => Set(d.Key, x.ToString(CultureInfo.InvariantCulture));
                         var col = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
                         col.Children.Add(box);
-                        var range = new TextBlock { Text = $"{d.Min} to {d.Max}{(d.Unit.Length > 0 ? " " + d.Unit : "")}", FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 4, 0, 0) };
+                        var range = new TextBlock { Text = $"{d.Min} to {d.Max}{(d.Unit.Length > 0 ? " " + d.Unit : "")}", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 4, 0, 0) };
                         col.Children.Add(range);
                         Grid.SetColumn(col, 1); grid.Children.Add(col);
                         row = grid;
@@ -192,7 +192,7 @@ namespace MonitoringTools.UI.Minecraft
                     {
                         var sp = new StackPanel();
                         sp.Children.Add(Head(d.Label, applies, d.Key, d.Default, changed));
-                        sp.Children.Add(McUi.Body(help, "B.TextSoft", 12.5));
+                        sp.Children.Add(McUi.Body(help, "B.TextSoft", 12));
                         sp.Children.Add(KeyLine(d.Key, d.Default));
                         var box = McUi.Field(cur ?? "", d.Label, 320);
                         box.Margin = new Thickness(0, 8, 0, 0);
@@ -221,7 +221,7 @@ namespace MonitoringTools.UI.Minecraft
                     var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = cur == "true", IsEnabled = up, Margin = new Thickness(0, 4, 0, 4) };
                     var text = new StackPanel();
                     text.Children.Add(Head(r.Name, McApplies.Now, r.Name, def, pending.ContainsKey(key)));
-                    text.Children.Add(McUi.Body(help, "B.TextSoft", 12.5));
+                    text.Children.Add(McUi.Body(help, "B.TextSoft", 12));
                     text.Children.Add(KeyLine("gamerule " + r.Name, def));
                     cb.Content = text;
                     AutomationProperties.SetName(cb, r.Name);
@@ -235,7 +235,7 @@ namespace MonitoringTools.UI.Minecraft
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var t2 = new StackPanel { Margin = new Thickness(0, 0, 16, 0) };
                 t2.Children.Add(Head(r.Name, McApplies.Now, r.Name, def, pending.ContainsKey(key)));
-                t2.Children.Add(McUi.Body(help, "B.TextSoft", 12.5));
+                t2.Children.Add(McUi.Body(help, "B.TextSoft", 12));
                 t2.Children.Add(KeyLine("gamerule " + r.Name, def));
                 grid.Children.Add(t2);
                 long.TryParse(cur, out var n);
@@ -259,7 +259,7 @@ namespace MonitoringTools.UI.Minecraft
                     {
                         if (!searching)
                         {
-                            var note = McUi.Body(rules.Count == 0 ? "This version's game rules have not been read yet. They come from the jar's own command list." : IsUp(s) ? "Changes are sent with /gamerule when you save, and apply at once." : "Game rules live inside the world, so they can only be changed while the server runs.", "B.TextMute", 12.5);
+                            var note = McUi.Body(rules.Count == 0 ? "This version's game rules have not been read yet. They come from the jar's own command list." : IsUp(s) ? "Changes are sent with /gamerule when you save, and apply at once." : "Game rules live inside the world, so they can only be changed while the server runs.", "B.TextMute", 12);
                             rows.Children.Add(note);
                             var btns = new WrapPanel { Margin = new Thickness(0, 6, 0, 6) };
                             if (rules.Count == 0) btns.Children.Add(Ui.Button("Read the game rules from the jar", async () =>
@@ -282,22 +282,22 @@ namespace MonitoringTools.UI.Minecraft
                     }
                     if (grp == "Other keys")
                     {
-                        if (!searching) rows.Children.Add(McUi.Body(unknown.Count == 0 ? "server.properties has no keys beyond the documented ones." : "Keys this app does not document for this version. They are shown as they are and saved back unchanged.", "B.TextMute", 12.5));
+                        if (!searching) rows.Children.Add(McUi.Body(unknown.Count == 0 ? "server.properties has no keys beyond the documented ones." : "Keys this app does not document for this version. They are shown as they are and saved back unchanged.", "B.TextMute", 12));
                         foreach (var k in unknown.Where(k => search.State.Matches(k + " " + doc.Get(k))))
                         {
                             var sp = new StackPanel();
                             sp.Children.Add(Head(k, McApplies.Restart, k, null, false));
-                            sp.Children.Add(McUi.Body("Kept exactly as written in server.properties.", "B.TextSoft", 12.5));
+                            sp.Children.Add(McUi.Body("Kept exactly as written in server.properties.", "B.TextSoft", 12));
                             sp.Children.Add(KeyLine(k + " = " + doc.Get(k), null));
                             rows.Children.Add(Wrap(sp));
                             shown++;
                         }
                         continue;
                     }
-                    if (grp == "Management" && !searching) rows.Children.Add(McUi.Body("Settings for the management interface that arrived with 1.21.9.", "B.TextMute", 12.5));
+                    if (grp == "Management" && !searching) rows.Children.Add(McUi.Body("Settings for the management interface that arrived with 1.21.9.", "B.TextMute", 12));
                     foreach (var d in McPropertyCatalog.For(s).Where(d => d.Group == grp && search.State.Matches(d.Key + " " + d.Label + " " + d.Help))) { rows.Children.Add(Row(d)); shown++; }
                 }
-                if (rows.Children.Count == 0) rows.Children.Add(McUi.Body("No settings match the search.", "B.TextMute", 13));
+                if (rows.Children.Count == 0) rows.Children.Add(McUi.Body("No settings match the search.", "B.TextMute", 12));
                 search.SetCount(searching ? shown : total, total, "settings");
                 Core.Language.Refresh(right);
             }
@@ -312,7 +312,7 @@ namespace MonitoringTools.UI.Minecraft
                     var row = new Grid();
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                    row.Children.Add(new TextBlock { Text = grp, FontSize = 13.5, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                    row.Children.Add(new TextBlock { Text = grp, FontSize = 14, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     var c = new TextBlock { Text = CountOf(grp).ToString(), FontSize = 12, FontFamily = Ui.Font("F.Body"), Opacity = 0.8, Margin = new Thickness(8, 0, 0, 0) };
                     Grid.SetColumn(c, 1); row.Children.Add(c);
                     var b = McUi.Row(row, grp + ", " + CountOf(grp) + " settings");
@@ -320,7 +320,7 @@ namespace MonitoringTools.UI.Minecraft
                     b.Foreground = Ui.Res(on ? "B.OnSecondaryContainer" : "B.TextSoft");
                     b.Click += (o, e) => { SettingsGroup = gg; search.State.SetQuery(""); Groups(); Fill(); };
                     groupButtons.Children.Add(b);
-                    if (on) Dispatcher.BeginInvoke(new Action(() => { var sh = McUi.Shape(b); if (sh != null) sh.CornerRadius = new CornerRadius(24); }), System.Windows.Threading.DispatcherPriority.Loaded);
+                    if (on) Dispatcher.BeginInvoke(new Action(() => { var sh = McUi.Shape(b); if (sh != null) sh.CornerRadius = new CornerRadius(28); }), System.Windows.Threading.DispatcherPriority.Loaded);
                 }
             }
 

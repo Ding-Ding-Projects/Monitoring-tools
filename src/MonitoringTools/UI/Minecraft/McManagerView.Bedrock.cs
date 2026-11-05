@@ -22,17 +22,17 @@ namespace MonitoringTools.UI.Minecraft
             var root = new StackPanel();
             var card = new StackPanel();
             card.Children.Add(McUi.Title("Players"));
-            var how = McUi.Body("", "B.TextMute", 12.5);
+            var how = McUi.Body("", "B.TextMute", 12);
             how.Margin = new Thickness(0, 4, 0, 12);
             card.Children.Add(how);
 
             var addRow = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
             var nameBox = McUi.Field("", "Add a player by name", 220, "A Bedrock name: 1 to 32 letters, digits, spaces and . _ # -");
             var xuidBox = McUi.Field("", "Xbox user id (optional)", 220, "Needed to make a player an operator while the server is stopped, until the server has learned it. 6 to 20 digits.");
-            StackPanel Labelled(string label, UIElement box) { var c = new StackPanel { Margin = new Thickness(0, 0, 12, 4) }; c.Children.Add(new TextBlock { Text = label, FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); c.Children.Add(box); return c; }
+            StackPanel Labelled(string label, UIElement box) { var c = new StackPanel { Margin = new Thickness(0, 0, 12, 4) }; c.Children.Add(new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); c.Children.Add(box); return c; }
             addRow.Children.Add(Labelled("Add a player by name", nameBox));
             addRow.Children.Add(Labelled("Xbox user id (optional)", xuidBox));
-            var result = McUi.Body("", "B.TextMute", 12.5);
+            var result = McUi.Body("", "B.TextMute", 12);
             AutomationProperties.SetLiveSetting(result, AutomationLiveSetting.Polite);
             PlayerBox box = null;
             List<McPlayer> loaded = null; string error = null; bool allowOn = true;
@@ -117,7 +117,7 @@ namespace MonitoringTools.UI.Minecraft
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var init = McUi.Literal(p.Name.Length > 0 ? p.Name[..1].ToUpperInvariant() : "?", "B.OnTertiaryContainer", 14);
             init.FontWeight = FontWeights.SemiBold; init.HorizontalAlignment = HorizontalAlignment.Center; init.VerticalAlignment = VerticalAlignment.Center;
-            g.Children.Add(new Border { Width = 36, Height = 36, CornerRadius = new CornerRadius(10), Background = Ui.Res("B.TertiaryContainer"), Child = init, Margin = new Thickness(0, 0, 12, 0) });
+            g.Children.Add(new Border { Width = 36, Height = 36, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.TertiaryContainer"), Child = init, Margin = new Thickness(0, 0, 12, 0) });
             var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             text.Children.Add(McUi.Literal(p.Name, "B.Text", 14));
             var note = (p.Online ? "online" : "offline") + (p.Permission.Length > 0 ? " · " + p.Permission : " · default permission") + (p.Xuid.Length > 0 ? " · Xbox user id " + p.Xuid : p.Anonymous ? "" : " · no Xbox user id recorded yet");
@@ -175,21 +175,21 @@ namespace MonitoringTools.UI.Minecraft
             var root = new StackPanel();
             var card = new StackPanel();
             card.Children.Add(McUi.Title("Add-ons"));
-            card.Children.Add(McUi.Body("Add-ons are behavior packs and resource packs. A pack lives in the server's behavior_packs or resource_packs folder, and a world uses it only when the world's pack list names it; the switch below edits that list.", "B.TextMute", 12.5));
+            card.Children.Add(McUi.Body("Add-ons are behavior packs and resource packs. A pack lives in the server's behavior_packs or resource_packs folder, and a world uses it only when the world's pack list names it; the switch below edits that list.", "B.TextMute", 12));
             var bar = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
             card.Children.Add(bar);
-            var result = McUi.Body("", "B.TextMute", 12.5);
+            var result = McUi.Body("", "B.TextMute", 12);
             result.Margin = new Thickness(0, 6, 0, 0);
             AutomationProperties.SetLiveSetting(result, AutomationLiveSetting.Polite);
             void Say(string text, string fg) { result.Text = text; result.Foreground = Ui.Res(fg); Core.Language.Refresh(result); }
-            var worldLine = McUi.Body("", "B.TextMute", 12.5);
+            var worldLine = McUi.Body("", "B.TextMute", 12);
             worldLine.Margin = new Thickness(0, 6, 0, 0);
             card.Children.Add(worldLine);
             var list = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
             AutomationProperties.SetName(list, "Installed add-ons");
             card.Children.Add(list);
             card.Children.Add(result);
-            var foot = McUi.Body("Before every install, switch or removal, what it touches is copied to a dated folder under addons-backups, so the last change can be undone. A running server reads its packs at the next start.", "B.TextMute", 12.5);
+            var foot = McUi.Body("Before every install, switch or removal, what it touches is copied to a dated folder under addons-backups, so the last change can be undone. A running server reads its packs at the next start.", "B.TextMute", 12);
             foot.Margin = new Thickness(0, 10, 0, 0);
             card.Children.Add(foot);
             root.Children.Add(McUi.Card(card));
@@ -245,11 +245,11 @@ namespace MonitoringTools.UI.Minecraft
             void Fill()
             {
                 list.Children.Clear();
-                if (error != null) { list.Children.Add(McUi.Body(error, "B.Amber", 13)); Core.Language.Refresh(card); return; }
-                if (packs == null) { list.Children.Add(McUi.Body("Reading the pack folders…", "B.TextMute", 13)); Core.Language.Refresh(card); return; }
+                if (error != null) { list.Children.Add(McUi.Body(error, "B.Amber", 12)); Core.Language.Refresh(card); return; }
+                if (packs == null) { list.Children.Add(McUi.Body("Reading the pack folders…", "B.TextMute", 12)); Core.Language.Refresh(card); return; }
                 worldLine.Text = worldExists ? $"World: {level}. Packs are switched on for this world." : $"World: {level} (not made yet). Start the server once so it makes its world; then packs can be switched on.";
                 var custom = packs.Where(p => !p.BuiltIn).ToList();
-                if (custom.Count == 0) list.Children.Add(McUi.Body("No add-ons installed. Install a .mcpack or .mcaddon file.", "B.TextMute", 13));
+                if (custom.Count == 0) list.Children.Add(McUi.Body("No add-ons installed. Install a .mcpack or .mcaddon file.", "B.TextMute", 12));
                 foreach (var p in custom) list.Children.Add(PackRow(p));
                 int built = packs.Count - custom.Count;
                 if (built > 0) list.Children.Add(McUi.Body($"{built} packs that ship with the server are not listed.", "B.TextMute", 12));
@@ -296,19 +296,19 @@ namespace MonitoringTools.UI.Minecraft
             var host = new StackPanel();
             var list = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
             host.Children.Add(list);
-            var foot = McUi.Body("Backups hold the whole worlds folder. Import copies a world into the folder the server uses (level-name) and checks it first; replacing a world stops the server and takes a backup first. Reset and the world generator are for Java edition.", "B.TextMute", 12.5);
+            var foot = McUi.Body("Backups hold the whole worlds folder. Import copies a world into the folder the server uses (level-name) and checks it first; replacing a world stops the server and takes a backup first. Reset and the world generator are for Java edition.", "B.TextMute", 12);
             foot.Margin = new Thickness(0, 12, 0, 0);
             host.Children.Add(foot);
 
             async Task Load()
             {
                 list.Children.Clear();
-                list.Children.Add(McUi.Body("Reading the worlds folder…", "B.TextMute", 13));
+                list.Children.Add(McUi.Body("Reading the worlds folder…", "B.TextMute", 12));
                 List<McWorldFolder> worlds; string level;
                 try { var files = McFiles.For(s); (worlds, level) = await Task.Run(() => { var l = McRemote.LevelName(files, true); return (McBedrockWorlds.List(files, l), l); }); }
-                catch (Exception ex) { list.Children.Clear(); list.Children.Add(McUi.Body(ex.Message, "B.Amber", 13)); Core.Language.Refresh(list); return; }
+                catch (Exception ex) { list.Children.Clear(); list.Children.Add(McUi.Body(ex.Message, "B.Amber", 12)); Core.Language.Refresh(list); return; }
                 list.Children.Clear();
-                if (worlds.Count == 0) list.Children.Add(McUi.Body("The Bedrock server makes its world in the worlds folder at its first start. You can also import one now.", "B.TextSoft", 13));
+                if (worlds.Count == 0) list.Children.Add(McUi.Body("The Bedrock server makes its world in the worlds folder at its first start. You can also import one now.", "B.TextSoft", 12));
                 foreach (var w in worlds)
                 {
                     var g = new Grid { Margin = new Thickness(0, 6, 0, 0) };
@@ -317,8 +317,8 @@ namespace MonitoringTools.UI.Minecraft
                     g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                     g.Children.Add(new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.MintWash"), Child = Ui.Icon(Icons.Globe, Ui.Res("B.Mint"), 18), Margin = new Thickness(0, 0, 14, 0) });
                     var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                    text.Children.Add(McUi.Literal(w.Name, "B.Text", 14.5));
-                    text.Children.Add(new TextBlock { Text = $"{Ui.Bytes(w.Size)}{(w.Title.Length > 0 && w.Title != w.Name ? " · " + w.Title : "")}{(w.InUse ? " · the world the server uses" : "")}", FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                    text.Children.Add(McUi.Literal(w.Name, "B.Text", 14));
+                    text.Children.Add(new TextBlock { Text = $"{Ui.Bytes(w.Size)}{(w.Title.Length > 0 && w.Title != w.Name ? " · " + w.Title : "")}{(w.InUse ? " · the world the server uses" : "")}", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     Grid.SetColumn(text, 1); g.Children.Add(text);
                     var ww = w;
                     var dl = Ui.Button("Download ZIP", () => DownloadWorldZip(s, ww.Rel, ww.Name, say), "Btn.Ghost", Icons.Archive);
@@ -393,13 +393,13 @@ namespace MonitoringTools.UI.Minecraft
             var host = new StackPanel();
             var list = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
             host.Children.Add(list);
-            var foot = McUi.Body("These folders are on the SSH host and are read over SSH; Download ZIP copies a folder here first. Import, reset and replace work on the host from here: the new world is copied up first, the current world gets a dated copy on the host, and any failure puts it back. Backups of this server copy its world here too.", "B.TextMute", 12.5);
+            var foot = McUi.Body("These folders are on the SSH host and are read over SSH; Download ZIP copies a folder here first. Import, reset and replace work on the host from here: the new world is copied up first, the current world gets a dated copy on the host, and any failure puts it back. Backups of this server copy its world here too.", "B.TextMute", 12);
             foot.Margin = new Thickness(0, 12, 0, 0);
             host.Children.Add(foot);
             async Task Load()
             {
                 list.Children.Clear();
-                list.Children.Add(McUi.Body("Reading the world folders on the host…", "B.TextMute", 13));
+                list.Children.Add(McUi.Body("Reading the world folders on the host…", "B.TextMute", 12));
                 try
                 {
                     var files = McFiles.For(s);
@@ -419,9 +419,9 @@ namespace MonitoringTools.UI.Minecraft
                         var (wash, ink, icon) = d.Kind switch { "Nether" => ("B.DangerWash", "B.Danger", Icons.Bolt), "The End" => ("B.VioletWash", "B.Violet", Icons.Moon), _ => ("B.MintWash", "B.Mint", Icons.Globe) };
                         g.Children.Add(new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res(wash), Child = Ui.Icon(icon, Ui.Res(ink), 18), Margin = new Thickness(0, 0, 14, 0) });
                         var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                        text.Children.Add(McUi.Literal(d.Name, "B.Text", 14.5));
+                        text.Children.Add(McUi.Literal(d.Name, "B.Text", 14));
                         var sd = d.Kind == "Overworld" && seed != null ? " · seed " + seed : "";
-                        text.Children.Add(new TextBlock { Text = d.Exists ? $"{d.Kind} · {Ui.Bytes(d.Size)}{sd} · on the host" : $"{d.Kind} · not made yet; the server makes it on its first start", FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                        text.Children.Add(new TextBlock { Text = d.Exists ? $"{d.Kind} · {Ui.Bytes(d.Size)}{sd} · on the host" : $"{d.Kind} · not made yet; the server makes it on its first start", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                         Grid.SetColumn(text, 1); g.Children.Add(text);
                         if (d.Exists)
                         {
@@ -434,7 +434,7 @@ namespace MonitoringTools.UI.Minecraft
                         list.Children.Add(g);
                     }
                 }
-                catch (Exception ex) { list.Children.Clear(); list.Children.Add(McUi.Body(ex.Message, "B.Amber", 13)); }
+                catch (Exception ex) { list.Children.Clear(); list.Children.Add(McUi.Body(ex.Message, "B.Amber", 12)); }
                 Core.Language.Refresh(list);
             }
             _ = Load();

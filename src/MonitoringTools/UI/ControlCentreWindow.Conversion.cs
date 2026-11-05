@@ -101,16 +101,16 @@ namespace MonitoringTools.UI
             var chip = new Border
             {
                 Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res(wash), Margin = new Thickness(0, 0, 12, 0),
-                Child = new TextBlock { Text = badge, FontSize = 10.5, FontWeight = FontWeights.Bold, Foreground = Ui.Res(ink), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontFamily = Ui.Font("F.Body") }
+                Child = new TextBlock { Text = badge, FontSize = 11, FontWeight = FontWeights.Bold, Foreground = Ui.Res(ink), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontFamily = Ui.Font("F.Body") }
             };
             g.Children.Add(chip);
 
-            var cmd = Ui.Pill(":" + f.Id, Ui.Res("B.MintWash"), Ui.Res("B.Mint"), mono: true, size: 12.5);
+            var cmd = Ui.Pill(":" + f.Id, Ui.Res("B.MintWash"), Ui.Res("B.Mint"), mono: true, size: 12);
             cmd.HorizontalAlignment = HorizontalAlignment.Left;
             Grid.SetColumn(cmd, 1); g.Children.Add(cmd);
 
             var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 12, 0) };
-            var title = new TextBlock { FontSize = 14.5, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis };
+            var title = new TextBlock { FontSize = 14, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis };
             title.Inlines.Add(new System.Windows.Documents.Run(f.Label));
             title.Inlines.Add(new System.Windows.Documents.Run("  " + f.Extension) { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
             text.Children.Add(title);
@@ -125,7 +125,7 @@ namespace MonitoringTools.UI
 
             // A row with a soft tonal hover, like the design's list rows.
             var tint = new SolidColorBrush(Colors.Transparent);
-            var row = new Border { Background = tint, CornerRadius = new CornerRadius(18), Padding = new Thickness(10, 8, 10, 8), Child = g };
+            var row = new Border { Background = tint, CornerRadius = new CornerRadius(16), Padding = new Thickness(10, 8, 10, 8), Child = g };
             row.MouseEnter += (o, e) => Ui.ColorTo(tint, ((SolidColorBrush)Ui.Res("B.Raised")).Color, Ui.Reduced ? 1 : 180);
             row.MouseLeave += (o, e) => Ui.ColorTo(tint, Colors.Transparent, Ui.Reduced ? 1 : 240);
             SearchScope.SetItem(row, $"format {f.Id} {f.Label} {f.Extension} {f.Note}");

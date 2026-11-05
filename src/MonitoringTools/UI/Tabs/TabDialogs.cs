@@ -44,7 +44,7 @@ namespace MonitoringTools.UI.Tabs
             var head = new Grid { Margin = new Thickness(0, 0, 0, 14) };
             head.ColumnDefinitions.Add(new ColumnDefinition());
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            head.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 20, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap });
+            head.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 22, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap });
             var close = new Button { Style = Ui.Style("Btn.Icon"), Content = Ui.Icon(Icons.Close, Ui.Res("B.TextSoft"), 14), Width = 36, Height = 36, ToolTip = T("Close (Esc)") };
             AutomationProperties.SetName(close, T("Close dialog"));
             close.Click += (s, e) => w.Close();

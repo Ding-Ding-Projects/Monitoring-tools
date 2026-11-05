@@ -149,7 +149,7 @@
     </Style>
     <!-- Chip: 32 high, 8 corner, outlined until selected. Code paints the selected state. -->
     <Style x:Key="Btn.Chip" TargetType="Button" BasedOn="{StaticResource Btn.Ghost}">
-        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontSize" Value="12"/>
         <Setter Property="Height" Value="32"/>
         <Setter Property="Padding" Value="14,0"/>
         <Setter Property="Background" Value="Transparent"/>
@@ -232,6 +232,9 @@
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="Focus" Property="Opacity" Value="1"/>
                         </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.38"/>
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -245,15 +248,18 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Grid Background="Transparent">
+                    <Grid x:Name="Root" Background="Transparent">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <ContentPresenter VerticalAlignment="Center" Margin="0,0,16,0"/>
                         <Grid Grid.Column="1" Width="52" Height="32" VerticalAlignment="Center">
-                            <Border x:Name="Focus" CornerRadius="19" BorderBrush="{DynamicResource B.Mint}" BorderThickness="2" Margin="-3" Opacity="0"/>
+                            <Border x:Name="Focus" CornerRadius="20" BorderBrush="{DynamicResource B.Mint}" BorderThickness="2" Margin="-3" Opacity="0"/>
                             <Border x:Name="Track" CornerRadius="16" Background="{DynamicResource B.Sunken}" BorderBrush="{DynamicResource B.LineStrong}" BorderThickness="2"/>
+                            <!-- the state layer: a 40 circle behind the thumb, 8 percent on hover and 12 percent pressed -->
+                            <Border x:Name="Halo" Width="40" Height="40" CornerRadius="20" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-4,0,0,0"
+                                    Background="{DynamicResource B.LineStrong}" Opacity="0" IsHitTestVisible="False"/>
                             <Border x:Name="Thumb" Width="16" Height="16" CornerRadius="12" HorizontalAlignment="Left" VerticalAlignment="Center"
                                     Margin="8,0,0,0" Background="{DynamicResource B.LineStrong}">
                                 <Border.RenderTransform><TranslateTransform x:Name="ThumbX"/></Border.RenderTransform>
@@ -261,10 +267,21 @@
                         </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Halo" Property="Opacity" Value="0.08"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Halo" Property="Opacity" Value="0.12"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.38"/>
+                        </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="Focus" Property="Opacity" Value="1"/>
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Halo" Property="Margin" Value="16,0,0,0"/>
+                            <Setter TargetName="Halo" Property="Background" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"/>
                             <Setter TargetName="Track" Property="Background" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"/>
                             <Setter TargetName="Track" Property="BorderBrush" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"/>
                             <Setter TargetName="Thumb" Property="Background" Value="{DynamicResource B.MintInk}"/>
@@ -294,7 +311,7 @@
         <Setter Property="CaretBrush" Value="{DynamicResource B.Mint}"/>
         <Setter Property="SelectionBrush" Value="{DynamicResource B.Mint}"/>
         <Setter Property="FontFamily" Value="{DynamicResource F.Mono}"/>
-        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontSize" Value="12"/>
         <Setter Property="Height" Value="40"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template">
@@ -310,6 +327,9 @@
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B.Raised}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.38"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -390,5 +410,182 @@
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Foreground" Value="{DynamicResource B.TextSoft}"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <!-- Calendar day and month buttons: a round state layer, a primary fill when chosen, a primary ring for today. -->
+    <ControlTemplate x:Key="Calendar.CellTemplate" TargetType="ButtonBase">
+        <Grid>
+            <Border x:Name="Bg" CornerRadius="16" Background="Transparent" BorderThickness="1" BorderBrush="Transparent"/>
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2"/>
+        </Grid>
+    </ControlTemplate>
+    <Style x:Key="CalendarDayButton.Themed" TargetType="CalendarDayButton">
+        <Setter Property="MinWidth" Value="32"/>
+        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="Foreground" Value="{DynamicResource B.Text}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CalendarDayButton">
+                    <Grid>
+                        <Border x:Name="Bg" CornerRadius="16" Background="Transparent" BorderThickness="1" BorderBrush="Transparent"/>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource B.Raised}"/>
+                        </Trigger>
+                        <Trigger Property="IsToday" Value="True">
+                            <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource B.Mint}"/>
+                        </Trigger>
+                        <Trigger Property="IsInactive" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource B.TextMute}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource B.Mint}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource B.MintInk}"/>
+                        </Trigger>
+                        <Trigger Property="IsBlackedOut" Value="True">
+                            <Setter Property="Opacity" Value="0.38"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.38"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="CalendarButton.Themed" TargetType="CalendarButton">
+        <Setter Property="MinWidth" Value="48"/>
+        <Setter Property="MinHeight" Value="40"/>
+        <Setter Property="Foreground" Value="{DynamicResource B.Text}"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CalendarButton">
+                    <Grid>
+                        <Border x:Name="Bg" CornerRadius="16" Background="Transparent"/>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource B.Raised}"/>
+                        </Trigger>
+                        <Trigger Property="IsInactive" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource B.TextMute}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="CalendarItem.Themed" TargetType="CalendarItem">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CalendarItem">
+                    <ControlTemplate.Resources>
+                        <DataTemplate x:Key="{x:Static CalendarItem.DayTitleTemplateResourceKey}">
+                            <TextBlock Text="{Binding}" Foreground="{DynamicResource B.TextSoft}" FontSize="12" FontWeight="Medium"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,4"/>
+                        </DataTemplate>
+                    </ControlTemplate.Resources>
+                    <Border x:Name="PART_Root" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="16" Padding="8">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="PART_PreviousButton" Grid.Column="0" Style="{StaticResource Btn.Icon}" Width="36" Height="36" AutomationProperties.Name="Previous month">
+                                    <Path Data="M14 6l-6 6 6 6" Stroke="{DynamicResource B.TextSoft}" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform"/>
+                                </Button>
+                                <Button x:Name="PART_HeaderButton" Grid.Column="1" Style="{StaticResource Btn.Row}" HorizontalContentAlignment="Center" Height="36" FontSize="14"/>
+                                <Button x:Name="PART_NextButton" Grid.Column="2" Style="{StaticResource Btn.Icon}" Width="36" Height="36" AutomationProperties.Name="Next month">
+                                    <Path Data="M10 6l6 6-6 6" Stroke="{DynamicResource B.TextSoft}" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform"/>
+                                </Button>
+                            </Grid>
+                            <Grid x:Name="PART_MonthView" Grid.Row="1" Visibility="Visible" HorizontalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                            </Grid>
+                            <Grid x:Name="PART_YearView" Grid.Row="1" Visibility="Hidden" HorizontalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="Calendar.Themed" TargetType="Calendar">
+        <Setter Property="Background" Value="{DynamicResource B.Surface}"/>
+        <Setter Property="Foreground" Value="{DynamicResource B.Text}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource B.Line}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CalendarItemStyle" Value="{StaticResource CalendarItem.Themed}"/>
+        <Setter Property="CalendarDayButtonStyle" Value="{StaticResource CalendarDayButton.Themed}"/>
+        <Setter Property="CalendarButtonStyle" Value="{StaticResource CalendarButton.Themed}"/>
+    </Style>
+    <!-- Date field: the same container as a text field (sunken, 12 corner, primary outline when focused), a text part and a calendar button. The popup holds the control's own calendar. -->
+    <Style x:Key="DatePicker.Themed" TargetType="DatePicker">
+        <Setter Property="Foreground" Value="{DynamicResource B.Text}"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="IsTodayHighlighted" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DatePicker">
+                    <Grid x:Name="PART_Root">
+                        <Border x:Name="Bd" CornerRadius="12" Background="{DynamicResource B.Sunken}" BorderBrush="Transparent" BorderThickness="2">
+                            <DockPanel>
+                                <Button x:Name="PART_Button" DockPanel.Dock="Right" Style="{StaticResource Btn.Icon}" Width="36" Height="36" Margin="0,0,2,0"
+                                        AutomationProperties.Name="Open calendar">
+                                    <Path Data="M4 6h16v14H4z M4 10h16 M8 3v4 M16 3v4" Stroke="{DynamicResource B.TextSoft}" StrokeThickness="1.6" Width="16" Height="16" Stretch="Uniform"/>
+                                </Button>
+                                <DatePickerTextBox x:Name="PART_TextBox" Foreground="{DynamicResource B.Text}" FontFamily="{DynamicResource F.Mono}" FontSize="12"
+                                                   Padding="12,0,4,0" VerticalContentAlignment="Center" BorderThickness="0" Background="Transparent">
+                                    <DatePickerTextBox.Template>
+                                        <ControlTemplate TargetType="DatePickerTextBox">
+                                            <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </DatePickerTextBox.Template>
+                                </DatePickerTextBox>
+                            </DockPanel>
+                        </Border>
+                        <Popup x:Name="PART_Popup" Placement="Bottom" PlacementTarget="{Binding ElementName=Bd}" StaysOpen="False" AllowsTransparency="True"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource B.Mint}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B.Raised}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="PART_Root" Property="Opacity" Value="0.38"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

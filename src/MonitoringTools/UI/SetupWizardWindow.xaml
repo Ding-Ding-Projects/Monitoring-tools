@@ -52,7 +52,7 @@
                             <Border x:Name="ProgressFill" HorizontalAlignment="Left" CornerRadius="4" Background="{DynamicResource B.Mint}" Width="0"/>
                         </Border>
                         <TextBlock x:Name="StepEyebrow" Style="{StaticResource T.Eyebrow}" FontSize="12" Foreground="{DynamicResource B.Mint}"/>
-                        <TextBlock x:Name="StepTitle" Style="{StaticResource T.Title}" FontSize="26" Margin="0,6,0,6"/>
+                        <TextBlock x:Name="StepTitle" Style="{StaticResource T.Title}" FontSize="24" Margin="0,6,0,6"/>
                         <TextBlock x:Name="StepIntro" Style="{StaticResource T.Body}" Foreground="{DynamicResource B.TextMute}" FontSize="14" LineHeight="20"/>
                     </StackPanel>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,18,0,0" Padding="0,6,14,6">

@@ -30,7 +30,7 @@ namespace MonitoringTools.UI.Minecraft
             {
                 var sp = new StackPanel();
                 sp.Children.Add(McUi.Title("Plugins and mods"));
-                sp.Children.Add(McUi.Body("Vanilla runs neither plugins nor mods. A Paper or Purpur server takes plugins, and a Fabric, Forge or NeoForge server takes mods; make a new server with one of those to use them.", "B.TextSoft", 13));
+                sp.Children.Add(McUi.Body("Vanilla runs neither plugins nor mods. A Paper or Purpur server takes plugins, and a Fabric, Forge or NeoForge server takes mods; make a new server with one of those to use them.", "B.TextSoft", 12));
                 root.Children.Add(McUi.Card(sp));
                 return root;
             }
@@ -40,17 +40,17 @@ namespace MonitoringTools.UI.Minecraft
             // The actions sit on their own row below the title and wrap, so none is cut off at narrow widths.
             var ib = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
             installed.Children.Add(ib);
-            var result = McUi.Body("", "B.TextMute", 12.5);
+            var result = McUi.Body("", "B.TextMute", 12);
             AutomationProperties.SetLiveSetting(result, AutomationLiveSetting.Polite);
             void Say(string text, string fg) { result.Text = text; result.Foreground = Ui.Res(fg); Core.Language.Refresh(result); }
-            var checkLine = McUi.Body("", "B.TextMute", 12.5);
+            var checkLine = McUi.Body("", "B.TextMute", 12);
             checkLine.Margin = new Thickness(0, 6, 0, 0);
             installed.Children.Add(checkLine);
             var list = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
             AutomationProperties.SetName(list, "Installed " + noun);
             installed.Children.Add(list);
             installed.Children.Add(result);
-            var foot = McUi.Body($"Turning one off renames its jar to .jar.disabled, which the server skips. Before any install, update, removal or switch, the whole {noun} folder is copied to a dated backup beside it, so the change can be rolled back. Changes take effect at the next start.", "B.TextMute", 12.5);
+            var foot = McUi.Body($"Turning one off renames its jar to .jar.disabled, which the server skips. Before any install, update, removal or switch, the whole {noun} folder is copied to a dated backup beside it, so the change can be rolled back. Changes take effect at the next start.", "B.TextMute", 12);
             foot.Margin = new Thickness(0, 10, 0, 0);
             installed.Children.Add(foot);
             root.Children.Add(McUi.Card(installed));
@@ -135,13 +135,13 @@ namespace MonitoringTools.UI.Minecraft
                 List<McAddon> items;
                 if (!s.IsLocal)
                 {
-                    if (remoteError != null) { list.Children.Add(McUi.Body(remoteError, "B.Amber", 13)); Core.Language.Refresh(installed); return; }
-                    if (remoteItems == null) { list.Children.Add(McUi.Body($"Reading the {noun} folder on the SSH host…", "B.TextMute", 13)); Core.Language.Refresh(installed); return; }
+                    if (remoteError != null) { list.Children.Add(McUi.Body(remoteError, "B.Amber", 12)); Core.Language.Refresh(installed); return; }
+                    if (remoteItems == null) { list.Children.Add(McUi.Body($"Reading the {noun} folder on the SSH host…", "B.TextMute", 12)); Core.Language.Refresh(installed); return; }
                     items = remoteItems;
                 }
                 else items = McContent.List(McContent.FolderOf(s));
                 McCatalogue.Last.TryGetValue(s.Id, out var checks);
-                if (items.Count == 0) list.Children.Add(McUi.Body($"No {noun} yet. Install one from a file or find one in the catalogue.", "B.TextMute", 13));
+                if (items.Count == 0) list.Children.Add(McUi.Body($"No {noun} yet. Install one from a file or find one in the catalogue.", "B.TextMute", 12));
                 foreach (var a in items)
                 {
                     McCompatInfo info = null;
@@ -217,7 +217,7 @@ namespace MonitoringTools.UI.Minecraft
             void ShowHits(List<McCatalogHit> found)
             {
                 hits.Children.Clear();
-                if (found.Count == 0) hits.Children.Add(McUi.Body($"Nothing in the catalogue matches for {s.Flavour} {s.Version}.", "B.TextMute", 12.5));
+                if (found.Count == 0) hits.Children.Add(McUi.Body($"Nothing in the catalogue matches for {s.Flavour} {s.Version}.", "B.TextMute", 12));
                 foreach (var h in found)
                 {
                     var g = new Grid { Margin = new Thickness(0, 8, 0, 0) };
@@ -250,7 +250,7 @@ namespace MonitoringTools.UI.Minecraft
             async void Search()
             {
                 hits.Children.Clear();
-                hits.Children.Add(McUi.Body("Searching…", "B.TextMute", 12.5));
+                hits.Children.Add(McUi.Body("Searching…", "B.TextMute", 12));
                 var src = CatalogueSource;
                 try
                 {
@@ -258,7 +258,7 @@ namespace MonitoringTools.UI.Minecraft
                     LastFinds[s.Id + "|" + src] = found;
                     if (src == CatalogueSource) ShowHits(found);
                 }
-                catch (Exception ex) { hits.Children.Clear(); hits.Children.Add(McUi.Body("The catalogue could not be reached: " + ex.Message, "B.Amber", 12.5)); }
+                catch (Exception ex) { hits.Children.Clear(); hits.Children.Add(McUi.Body("The catalogue could not be reached: " + ex.Message, "B.Amber", 12)); }
             }
             go.Click += (o, e) => Search();
             q.Box.KeyDown += (o, e) => { if (e.Key == System.Windows.Input.Key.Enter) Search(); };

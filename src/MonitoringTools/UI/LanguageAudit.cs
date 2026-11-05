@@ -132,6 +132,7 @@ namespace MonitoringTools.UI
             if (root == null) return;
             Language.Refresh(root);
             Visit(where, root, 0);
+            if (UiAudit.Active) UiAudit.Collect(where, root);
         }
 
         internal static void ScanAllWindows(string where)
@@ -386,12 +387,13 @@ namespace MonitoringTools.UI
 
                 // the colour picker, on its own in a window
                 var pickerWindow = new Window { Width = 520, Height = 780, Content = new ScrollViewer { Content = new ColorPicker(Color.FromRgb(0x7C, 0xF2, 0xC2)) }, Title = "Colour picker" };
+                pickerWindow.SetResourceReference(Window.BackgroundProperty, "B.Window");   // a test host shows the theme window colour, as the appearance editor does
                 pickerWindow.Resources.MergedDictionaries.Add(Application.Current.Resources);
                 pickerWindow.Show(); await Settle(500);
                 Scan("colour picker", pickerWindow); pickerWindow.Close();
 
                 // the history panel
-                var history = new Window { Width = 560, Height = 640, Title = "History panel", Content = new ScrollViewer { Content = HistoryPanel.Build("selftest:audit", () => "one\ntwo", t => { }, "text") } };
+                var history = new Window { Width = 560, Height = 640, Background = (Brush)Application.Current.Resources["B.Window"], Title = "History panel", Content = new ScrollViewer { Content = HistoryPanel.Build("selftest:audit", () => "one\ntwo", t => { }, "text") } };
                 history.Resources.MergedDictionaries.Add(Application.Current.Resources);
                 history.Show(); await Settle(500);
                 Scan("history panel", history); history.Close();

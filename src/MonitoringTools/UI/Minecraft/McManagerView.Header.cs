@@ -41,11 +41,11 @@ namespace MonitoringTools.UI.Minecraft
             _badgeHost = new ContentControl { IsTabStop = false, VerticalAlignment = VerticalAlignment.Center };
             nameRow.Children.Add(_badgeHost);
             left.Children.Add(nameRow);
-            _detail = McUi.Body("", "B.TextSoft", 13.5);
+            _detail = McUi.Body("", "B.TextSoft", 14);
             left.Children.Add(_detail);
             _actions = new WrapPanel { Margin = new Thickness(0, 12, 0, 0) };
             left.Children.Add(_actions);
-            _status = McUi.Body("", "B.TextMute", 12.5);
+            _status = McUi.Body("", "B.TextMute", 12);
             AutomationProperties.SetLiveSetting(_status, AutomationLiveSetting.Polite);
             _status.Margin = new Thickness(0, 2, 0, 0); _status.Visibility = Visibility.Collapsed;
             left.Children.Add(_status);

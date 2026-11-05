@@ -87,7 +87,7 @@ namespace MonitoringTools.UI
             return Create(label, what, () => OnOff(current()), def, () =>
             {
                 var cb = new CheckBox { Style = Ui.Style("Switch"), Tag = Ui.Res("B.Mint"), IsChecked = def == "On", Margin = new Thickness(0, 4, 0, 0) };
-                cb.Content = new TextBlock { Text = "Sample switch", Foreground = Ui.Res("B.Text"), FontSize = 13 };
+                cb.Content = new TextBlock { Text = "Sample switch", Foreground = Ui.Res("B.Text"), FontSize = 12 };
                 return cb;
             });
         }
@@ -144,7 +144,7 @@ namespace MonitoringTools.UI
             var sp = new StackPanel { MaxWidth = 340 };
             var head = new Grid();
             head.ColumnDefinitions.Add(new ColumnDefinition()); head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            head.Children.Add(new TextBlock { Text = target, Style = Ui.Style("T.Title"), FontSize = 15, TextWrapping = TextWrapping.Wrap });
+            head.Children.Add(new TextBlock { Text = target, Style = Ui.Style("T.Title"), FontSize = 14, TextWrapping = TextWrapping.Wrap });
             var close = new Button { Style = Ui.Style("Btn.Icon"), Width = 32, Height = 32, Content = Ui.Icon(Icons.Close, Ui.Res("B.TextSoft"), 14) };
             AutomationProperties.SetName(close, "Close explanation");
             Grid.SetColumn(close, 1); head.Children.Add(close);

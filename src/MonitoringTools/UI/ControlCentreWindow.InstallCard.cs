@@ -50,7 +50,7 @@ namespace MonitoringTools.UI
             var rules = new StackPanel { Margin = new Thickness(0, Appearance.Gap(6), 0, 0) };
             var head = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 6) };
             head.Children.Add(new ContentControl { Content = Ui.Icon(Icons.Check, Ui.Res("B.Mint"), 14, 2.4), Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center });
-            head.Children.Add(new TextBlock { Text = "Installed automatically only when", Foreground = Ui.Res("B.Mint"), FontSize = 13, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
+            head.Children.Add(new TextBlock { Text = "Installed automatically only when", Foreground = Ui.Res("B.Mint"), FontSize = 12, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
             rules.Children.Add(head);
             int n = 1;
             foreach (var rule in new[]
@@ -62,12 +62,12 @@ namespace MonitoringTools.UI
                 "Windows shows its consent prompt every time for choco. The app never answers, hides or pre-approves it.",
                 "Each run is logged in Activity with the exact command.",
             })
-                rules.Children.Add(new TextBlock { Text = (n++) + ". " + rule, Style = Ui.Style("T.Body"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 2), MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left });
+                rules.Children.Add(new TextBlock { Text = (n++) + ". " + rule, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 2), MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left });
             card.Children.Add(rules);
 
             var refusedHead = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, Appearance.Gap(12), 0, 6) };
             refusedHead.Children.Add(new ContentControl { Content = Ui.Icon(ToastIcons.Block, Ui.Res("B.Amber"), 14, 2), Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center });
-            refusedHead.Children.Add(new TextBlock { Text = "Refused flags", Foreground = Ui.Res("B.Amber"), FontSize = 13, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
+            refusedHead.Children.Add(new TextBlock { Text = "Refused flags", Foreground = Ui.Res("B.Amber"), FontSize = 12, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
             card.Children.Add(refusedHead);
             var chips = new WrapPanel { MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left };
             foreach (var f in new[]

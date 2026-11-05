@@ -55,7 +55,7 @@ namespace MonitoringTools.UI
                 };
                 var name = new TextBlock { Text = st.Name, FontSize = 12, FontFamily = Ui.Font("F.Body"), Opacity = 0.85 };
                 name.SetResourceReference(TextBlock.ForegroundProperty, on);
-                var value = new TextBlock { Text = st.Value, FontSize = 13, FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 3, 0, 0) };
+                var value = new TextBlock { Text = st.Value, FontSize = 12, FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 3, 0, 0) };
                 value.SetResourceReference(TextBlock.ForegroundProperty, on);
                 var chip = new Border
                 {

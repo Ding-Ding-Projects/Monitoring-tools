@@ -192,7 +192,7 @@ namespace MonitoringTools.UI
                 var sp = new StackPanel();
                 var top = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
                 top.Children.Add(Ui.IconChip(icon, Ui.Res("B.Mint"), Ui.Res("B.MintWash")));
-                top.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 15, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
+                top.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 14, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
                 sp.Children.Add(top);
                 sp.Children.Add(new TextBlock { Text = art.Summary, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), MaxHeight = 52, TextTrimming = TextTrimming.CharacterEllipsis });
                 sp.Children.Add(Ui.Mono("Opens: " + art.Title, Ui.Res("B.TextMute"), 11));
@@ -213,7 +213,7 @@ namespace MonitoringTools.UI
                 var sp = new StackPanel();
                 var top = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
                 top.Children.Add(Ui.IconChip(HelpCategoryIcon(c.Id), Ui.Res("B.Violet"), Ui.Res("B.VioletWash")));
-                top.Children.Add(new TextBlock { Text = c.Title, Style = Ui.Style("T.Title"), FontSize = 15, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
+                top.Children.Add(new TextBlock { Text = c.Title, Style = Ui.Style("T.Title"), FontSize = 14, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
                 sp.Children.Add(top);
                 sp.Children.Add(new TextBlock { Text = c.Intro, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), MaxHeight = 52, TextTrimming = TextTrimming.CharacterEllipsis });
                 var count = c.Articles.Count;
@@ -243,7 +243,7 @@ namespace MonitoringTools.UI
         private static FrameworkElement HelpSectionTitle(string title, string sub)
         {
             var sp = new StackPanel { Margin = new Thickness(0, 6, 0, 12) };
-            sp.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 18 });
+            sp.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 16 });
             if (sub != null) sp.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 3, 0, 0) });
             return sp;
         }
@@ -284,14 +284,14 @@ namespace MonitoringTools.UI
             foreach (var (a, _) in ordered)
             {
                 var sp = new StackPanel();
-                var title = new TextBlock { Style = Ui.Style("T.Title"), FontSize = 15 };
+                var title = new TextBlock { Style = Ui.Style("T.Title"), FontSize = 14 };
                 HelpHighlight(title, a.Title, HelpRanges(a.Title, st));
                 sp.Children.Add(title);
                 var category = Docs.CategoryOf(a);
                 var crumb = Ui.Mono(a.IsIndex ? "Topic" : (category?.Title ?? "Docs"), Ui.Res("B.TextMute"), 11);
                 crumb.Margin = new Thickness(0, 2, 0, 6);
                 sp.Children.Add(crumb);
-                var snip = new TextBlock { Style = Ui.Style("T.Body"), FontSize = 12.5 };
+                var snip = new TextBlock { Style = Ui.Style("T.Body"), FontSize = 12 };
                 var text = HelpSnippet(a, st);
                 HelpHighlight(snip, text, HelpRanges(text, st));
                 sp.Children.Add(snip);
@@ -462,7 +462,7 @@ namespace MonitoringTools.UI
                 {
                     tb.Inlines.Add(new InlineUIContainer(new Border
                     {
-                        Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(5), Padding = new Thickness(5, 0, 5, 1),
+                        Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(4), Padding = new Thickness(5, 0, 5, 1),
                         Child = new TextBlock { Text = v.Trim('`'), FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text") }
                     }) { BaselineAlignment = BaselineAlignment.Center });
                 }
@@ -520,7 +520,7 @@ namespace MonitoringTools.UI
                     var g = new Grid();
                     g.Children.Add(code);
                     g.Children.Add(copy);
-                    into.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 2, 0, 12), Child = g });
+                    into.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 2, 0, 12), Child = g });
                     continue;
                 }
 
@@ -535,7 +535,7 @@ namespace MonitoringTools.UI
                     var tb = new TextBlock
                     {
                         FontFamily = Ui.Font("F.Display"), FontWeight = FontWeights.SemiBold, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap,
-                        FontSize = level <= 2 ? 20 : level == 3 ? 16 : 14, Margin = new Thickness(0, level <= 2 ? 18 : 12, 0, 8)
+                        FontSize = level <= 2 ? 22 : level == 3 ? 16 : 14, Margin = new Thickness(0, level <= 2 ? 18 : 12, 0, 8)
                     };
                     HelpInlines(tb, text, a);
                     AutomationProperties.SetHeadingLevel(tb, level <= 2 ? AutomationHeadingLevel.Level2 : AutomationHeadingLevel.Level3);
@@ -587,7 +587,7 @@ namespace MonitoringTools.UI
                     var gr = new Grid { Margin = new Thickness(Math.Min(li.Groups[1].Length / 2, 6) * 18, 0, 0, 4) };
                     gr.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(24) });
                     gr.ColumnDefinitions.Add(new ColumnDefinition());
-                    var m = new TextBlock { Text = mark, Foreground = Ui.Res("B.Mint"), FontFamily = Ui.Font("F.Mono"), FontSize = 13, Margin = new Thickness(0, 2, 0, 0) };
+                    var m = new TextBlock { Text = mark, Foreground = Ui.Res("B.Mint"), FontFamily = Ui.Font("F.Mono"), FontSize = 12, Margin = new Thickness(0, 2, 0, 0) };
                     var t = HelpPara(text, a);
                     t.Margin = new Thickness(0);
                     Grid.SetColumn(t, 1);
@@ -636,7 +636,7 @@ namespace MonitoringTools.UI
                     var text = c < rows[r].Length ? rows[r][c] : "";
                     var tb = new TextBlock
                     {
-                        FontFamily = Ui.Font("F.Body"), FontSize = 12.5, TextWrapping = TextWrapping.Wrap,
+                        FontFamily = Ui.Font("F.Body"), FontSize = 12, TextWrapping = TextWrapping.Wrap,
                         Foreground = r == 0 ? Ui.Res("B.Text") : Ui.Res("B.TextSoft"), FontWeight = r == 0 ? FontWeights.SemiBold : FontWeights.Normal
                     };
                     HelpInlines(tb, text, a);
@@ -650,7 +650,7 @@ namespace MonitoringTools.UI
                     g.Children.Add(cell);
                 }
             }
-            return new Border { Background = Ui.Res("B.Surface"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), ClipToBounds = true, Margin = new Thickness(0, 2, 0, 14), Child = g };
+            return new Border { Background = Ui.Res("B.Surface"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), ClipToBounds = true, Margin = new Thickness(0, 2, 0, 14), Child = g };
         }
 
         private static FrameworkElement HelpImage(string alt, string src)
@@ -668,8 +668,8 @@ namespace MonitoringTools.UI
                 var img = new Image { Source = bmp, Stretch = Stretch.Uniform, StretchDirection = StretchDirection.DownOnly, MaxWidth = 740, HorizontalAlignment = HorizontalAlignment.Left };
                 AutomationProperties.SetName(img, alt);
                 var sp = new StackPanel { Margin = new Thickness(0, 4, 0, 14) };
-                sp.Children.Add(new Border { CornerRadius = new CornerRadius(10), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), HorizontalAlignment = HorizontalAlignment.Left, ClipToBounds = true, Child = img });
-                if (alt.Length > 0) sp.Children.Add(new TextBlock { Text = alt, Style = Ui.Style("T.Body"), FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(2, 5, 0, 0) });
+                sp.Children.Add(new Border { CornerRadius = new CornerRadius(12), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), HorizontalAlignment = HorizontalAlignment.Left, ClipToBounds = true, Child = img });
+                if (alt.Length > 0) sp.Children.Add(new TextBlock { Text = alt, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(2, 5, 0, 0) });
                 return sp;
             }
             catch { return null; }

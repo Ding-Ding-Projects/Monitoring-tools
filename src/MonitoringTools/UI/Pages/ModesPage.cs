@@ -58,7 +58,7 @@ namespace MonitoringTools.UI
             var p = new PasswordBox
             {
                 Width = maxLength > 12 ? 280 : 200, MaxLength = maxLength, Margin = new Thickness(0, 0, 12, 8), HorizontalAlignment = HorizontalAlignment.Left,
-                Foreground = Ui.Res("B.Text"), CaretBrush = Ui.Res("B.Mint"), FontSize = 15, Tag = name
+                Foreground = Ui.Res("B.Text"), CaretBrush = Ui.Res("B.Mint"), FontSize = 14, Tag = name
             };
             p.Template = (ControlTemplate)System.Windows.Markup.XamlReader.Parse(
                 "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='PasswordBox'>" +
@@ -472,7 +472,7 @@ namespace MonitoringTools.UI
             follow.Children.Add(Ui.Button("Apply now", () => { if (string.IsNullOrWhiteSpace(Settings.Current.ExternalSettingsPath)) Settings.Current.ExternalSettingsPath = path.Text.Trim().Trim('"'); Modes.ApplyExternalNow(); paint(); }));
             follow.Children.Add(Ui.Button("Stop following", () => { Modes.StopFollowing(); paint(); }, "Btn.Alert"));
             sp.Children.Add(follow);
-            sp.Children.Add(new TextBlock { Text = s.ExternalFollowing ? "Following: yes" : "Following: no", Foreground = Ui.Res(s.ExternalFollowing ? "B.Mint" : "B.TextSoft"), FontSize = 13, Margin = new Thickness(0, 0, 0, 4) });
+            sp.Children.Add(new TextBlock { Text = s.ExternalFollowing ? "Following: yes" : "Following: no", Foreground = Ui.Res(s.ExternalFollowing ? "B.Mint" : "B.TextSoft"), FontSize = 12, Margin = new Thickness(0, 0, 0, 4) });
             sp.Children.Add(status);
             sp.Children.Add(ModesNote("The file must be under 64 KB. Expected shape (keys you leave out change nothing; unknown keys are ignored; a wrong type rejects the whole file and keeps the last good values):"));
             sp.Children.Add(Ui.Mono("{ \"version\": 1, \"settings\": { \"language\": \"en|yue|bilingual\", \"theme\": \"system|light|dark\", \"sounds\": true, \"toasts\": true, \"gameMode\": false } }", Ui.Res("B.TextSoft"), 11));

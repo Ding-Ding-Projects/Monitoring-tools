@@ -51,7 +51,7 @@ namespace MonitoringTools.UI
                     var tb = Para(null, Ui.Res("B.Text"));
                     tb.FontFamily = Ui.Font("F.Display");
                     tb.FontWeight = FontWeights.SemiBold;
-                    tb.FontSize = level == 1 ? 18 : level == 2 ? 16 : 14;
+                    tb.FontSize = level == 1 ? 22 : level == 2 ? 16 : 14;
                     AddInlines(tb, h.Groups[2].Value);
                     root.Children.Add(tb); shown++; continue;
                 }
@@ -89,7 +89,7 @@ namespace MonitoringTools.UI
 
         private static TextBlock Para(string text, Brush fg)
         {
-            var t = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 13, Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 4), LineHeight = 19 };
+            var t = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 4), LineHeight = 19 };
             if (text != null) t.Text = text;
             return t;
         }
@@ -119,7 +119,7 @@ namespace MonitoringTools.UI
                 {
                     tb.Inlines.Add(new InlineUIContainer(new Border
                     {
-                        Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(5), Padding = new Thickness(5, 0, 5, 1),
+                        Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(4), Padding = new Thickness(5, 0, 5, 1),
                         Child = new TextBlock { Text = v.Trim('`'), FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text") }
                     }) { BaselineAlignment = BaselineAlignment.Center });
                 }

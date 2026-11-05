@@ -110,7 +110,7 @@ namespace MonitoringTools.UI
             switch (item.Kind)
             {
                 case ClipKind.Url: Url(w, item); break;
-                case ClipKind.Email: w.SetHeader(Icons.Mail, "Email", ""); w.SetBody(Ui.Mono(item.Text, Ui.Res("B.Mint"), 13)); break;
+                case ClipKind.Email: w.SetHeader(Icons.Mail, "Email", ""); w.SetBody(Ui.Mono(item.Text, Ui.Res("B.Mint"), 12)); break;
                 case ClipKind.Color: ColorBody(w, item); break;
                 case ClipKind.Json: Json(w, item); break;
                 case ClipKind.Markdown:
@@ -157,7 +157,7 @@ namespace MonitoringTools.UI
         {
             var tb = new TextBlock
             {
-                FontFamily = Ui.Font("F.Body"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"),
+                FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"),
                 TextWrapping = TextWrapping.Wrap, MaxHeight = 120, TextTrimming = TextTrimming.CharacterEllipsis, LineHeight = 19
             };
             Core.Language.SetLiteral(tb, true);
@@ -178,7 +178,7 @@ namespace MonitoringTools.UI
         {
             Uri.TryCreate(item.Text.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? "https://" + item.Text : item.Text, UriKind.Absolute, out var u);
             w.SetHeader(Icons.Link, "Link", u?.Host ?? "");
-            var tb = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, TextWrapping = TextWrapping.Wrap, MaxHeight = 80 };
+            var tb = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, TextWrapping = TextWrapping.Wrap, MaxHeight = 80 };
             tb.Inlines.Add(Markdown.MakeLink(item.Text, item.Text));
             w.SetBody(tb);
         }
@@ -258,7 +258,7 @@ namespace MonitoringTools.UI
             var body = new StackPanel();
             body.Children.Add(FilePreview.Build(f, null));
             var dir = Path.GetDirectoryName(f.TrimEnd('\\'));
-            var path = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, LineHeight = 19, VerticalAlignment = VerticalAlignment.Center };
+            var path = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, LineHeight = 19, VerticalAlignment = VerticalAlignment.Center };
             if (item.HadQuotes) path.Inlines.Add(new Run("\"") { Foreground = Ui.Res("B.Amber") });
             if (!string.IsNullOrEmpty(dir)) path.Inlines.Add(new Run(dir.TrimEnd('\\') + "\\"));
             path.Inlines.Add(new Run(Path.GetFileName(f.TrimEnd('\\'))) { Foreground = Ui.Res("B.Text"), FontWeight = FontWeights.Medium });
@@ -295,7 +295,7 @@ namespace MonitoringTools.UI
         {
             return new Border
             {
-                Width = 112, Height = 78, CornerRadius = new CornerRadius(10), Margin = new Thickness(0, 0, 14, 0),
+                Width = 112, Height = 78, CornerRadius = new CornerRadius(12), Margin = new Thickness(0, 0, 14, 0),
                 Background = new ImageBrush(src) { Stretch = Stretch.UniformToFill },
                 BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1)
             };
@@ -320,12 +320,12 @@ namespace MonitoringTools.UI
             var thumb = ThumbFrame(img);
             row.Children.Add(thumb);
             var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            info.Children.Add(Ui.Mono($"{img.PixelWidth} × {img.PixelHeight} px", Ui.Res("B.Text"), 13));
+            info.Children.Add(Ui.Mono($"{img.PixelWidth} × {img.PixelHeight} px", Ui.Res("B.Text"), 12));
             info.Children.Add(Ui.Text("Bitmap on the clipboard. Drag the preview out to drop it as a PNG file."));
             foreach (var code in CodeScanner.Scan(img).Take(3))
             {
                 info.Children.Add(new TextBlock { Text = code.Kind, FontSize = 12, Foreground = Ui.Res("B.Mint"), Margin = new Thickness(0, 6, 0, 0), FontFamily = Ui.Font("F.Body") });
-                var body = Ui.Mono(ActionProvider.Preview(code.Text), Ui.Res("B.Text"), 13);
+                var body = Ui.Mono(ActionProvider.Preview(code.Text), Ui.Res("B.Text"), 12);
                 body.TextWrapping = TextWrapping.Wrap; body.MaxHeight = 60;
                 Core.Language.SetLiteral(body, true);   // the code's own text is data, never translated
                 info.Children.Add(body);
@@ -390,9 +390,9 @@ namespace MonitoringTools.UI
             w.SetHeader(Icons.Globe, Core.Language.Headline("ip.changed", current.Ip), current.Org ?? "");
             var body = new StackPanel();
             var row = new WrapPanel();
-            row.Children.Add(new TextBlock { Text = previous.Ip, FontFamily = Ui.Font("F.Mono"), FontSize = 15, Foreground = Ui.Res("B.TextMute"), TextDecorations = TextDecorations.Strikethrough, VerticalAlignment = VerticalAlignment.Center });
+            row.Children.Add(new TextBlock { Text = previous.Ip, FontFamily = Ui.Font("F.Mono"), FontSize = 14, Foreground = Ui.Res("B.TextMute"), TextDecorations = TextDecorations.Strikethrough, VerticalAlignment = VerticalAlignment.Center });
             row.Children.Add(new ContentControl { Content = Ui.Icon("M5 12h14M13 6l6 6-6 6", Ui.Res("B.Violet"), 16), Margin = new Thickness(10, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center });
-            row.Children.Add(new TextBlock { Text = current.Ip, FontFamily = Ui.Font("F.Mono"), FontSize = 18, FontWeight = FontWeights.SemiBold, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center });
+            row.Children.Add(new TextBlock { Text = current.Ip, FontFamily = Ui.Font("F.Mono"), FontSize = 16, FontWeight = FontWeights.SemiBold, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center });
             body.Children.Add(row);
             var since = previous.LastSeen - previous.FirstSeen;
             var detail = $"{(string.IsNullOrEmpty(current.Place) ? "" : current.Place + " · ")}{(current.Times > 1 ? $"seen {current.Times} times before" : "new address")}";

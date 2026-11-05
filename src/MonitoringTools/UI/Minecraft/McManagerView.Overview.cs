@@ -102,13 +102,13 @@ namespace MonitoringTools.UI.Minecraft
 
                 log.Children.Clear();
                 var lines = live.Lines().TakeLast(6).ToList();
-                if (lines.Count == 0) log.Children.Add(McUi.Body("No console lines yet. They appear here once the server has run.", "B.TextMute", 12.5));
+                if (lines.Count == 0) log.Children.Add(McUi.Body("No console lines yet. They appear here once the server has run.", "B.TextMute", 12));
                 foreach (var l in lines) log.Children.Add(LogRow(l));
 
                 players.Children.Clear();
                 pcount.Content = McUi.Badge(up && live.PlayersOnline is int on ? $"{on} of {live.PlayersMax}" : "none", "B.Raised", "B.TextSoft");
                 var names = up ? live.PlayerNames : Array.Empty<string>();
-                if (names.Length == 0) players.Children.Add(McUi.Body(up ? "Nobody is online." : "The server is not running.", "B.TextMute", 12.5));
+                if (names.Length == 0) players.Children.Add(McUi.Body(up ? "Nobody is online." : "The server is not running.", "B.TextMute", 12));
                 var known = s.IsLocal ? McPlayers.Read(s.Folder) : new List<McPlayer>();
                 foreach (var name in names.Take(8))
                 {
@@ -118,7 +118,7 @@ namespace MonitoringTools.UI.Minecraft
 
                 attention.Children.Clear();
                 foreach (var a in Attention(s, st, live)) attention.Children.Add(a);
-                if (attention.Children.Count == 0) attention.Children.Add(McUi.Body("Nothing needs you right now.", "B.TextMute", 13));
+                if (attention.Children.Count == 0) attention.Children.Add(McUi.Body("Nothing needs you right now.", "B.TextMute", 12));
                 Core.Language.Refresh(root);
             }
             _tick = Fill;
@@ -151,16 +151,16 @@ namespace MonitoringTools.UI.Minecraft
                 col.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 var stack = new StackPanel { VerticalAlignment = VerticalAlignment.Bottom };
                 stack.Children.Add(new TextBlock { Text = peak?.ToString() ?? "–", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) });
-                stack.Children.Add(new Border { Height = peak == null ? 3 : Math.Max(4, 52.0 * peak.Value / top), CornerRadius = new CornerRadius(6), Background = Ui.Res(peak == null ? "B.LineStrong" : day.Date == DateTime.Now.Date ? "B.Mint" : "B.SecondaryContainer"), HorizontalAlignment = HorizontalAlignment.Stretch });
+                stack.Children.Add(new Border { Height = peak == null ? 3 : Math.Max(4, 52.0 * peak.Value / top), CornerRadius = new CornerRadius(4), Background = Ui.Res(peak == null ? "B.LineStrong" : day.Date == DateTime.Now.Date ? "B.Mint" : "B.SecondaryContainer"), HorizontalAlignment = HorizontalAlignment.Stretch });
                 col.Children.Add(stack);
-                var label = new TextBlock { Text = day.ToString("ddd", System.Globalization.CultureInfo.InvariantCulture), FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 4, 0, 0) };
+                var label = new TextBlock { Text = day.ToString("ddd", System.Globalization.CultureInfo.InvariantCulture), FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 4, 0, 0) };
                 Core.Language.SetLiteral(label, true);
                 Grid.SetRow(label, 1); col.Children.Add(label);
                 AutomationProperties.SetName(col, day.ToString("dddd", System.Globalization.CultureInfo.InvariantCulture) + ": " + (peak == null ? "no reading" : "peak " + peak.Value + (peak == 1 ? " player" : " players")));
                 bars.Children.Add(col);
             }
             host.Children.Add(bars);
-            host.Children.Add(McUi.Body(sample ? "Sample values: nothing was read from a real server." : "The most players online at once on each day, from the list answers this app read. A dash is a day with no reading, not an empty server.", "B.TextMute", 11.5));
+            host.Children.Add(McUi.Body(sample ? "Sample values: nothing was read from a real server." : "The most players online at once on each day, from the list answers this app read. A dash is a day with no reading, not an empty server.", "B.TextMute", 12));
             Core.Language.Refresh(host);
         }
 
@@ -194,10 +194,10 @@ namespace MonitoringTools.UI.Minecraft
             var sp = new StackPanel();
             var top = new StackPanel { Orientation = Orientation.Horizontal };
             top.Children.Add(new ContentControl { Content = Ui.Icon(icon, Ui.Res("B.Mint"), 14), Margin = new Thickness(0, 0, 8, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center });
-            top.Children.Add(new TextBlock { Text = label, FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+            top.Children.Add(new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
             sp.Children.Add(top);
             sp.Children.Add(new TextBlock { Text = value, FontSize = 24, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Display"), Margin = new Thickness(0, 6, 0, 4), TextWrapping = TextWrapping.Wrap });
-            sp.Children.Add(new TextBlock { Text = note, FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+            sp.Children.Add(new TextBlock { Text = note, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
             var c = McUi.Card(sp, 16);
             Ui.Liftable(c);
             c.Margin = new Thickness(0, 0, 12, 12);
@@ -225,7 +225,7 @@ namespace MonitoringTools.UI.Minecraft
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 g.Children.Add(new ContentControl { Content = Ui.Icon(icon, Ui.Res(tone == "warn" ? "B.Amber" : "B.Mint"), 18), Margin = new Thickness(0, 0, 14, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center });
-                var tb = McUi.Body(text, tone == "warn" ? "B.Text" : "B.TextSoft", 13.5);
+                var tb = McUi.Body(text, tone == "warn" ? "B.Text" : "B.TextSoft", 14);
                 tb.VerticalAlignment = VerticalAlignment.Center;
                 Grid.SetColumn(tb, 1); g.Children.Add(tb);
                 if (button != null)

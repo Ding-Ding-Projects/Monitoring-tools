@@ -253,7 +253,7 @@ namespace MonitoringTools.UI
         private static FrameworkElement Tile(string title, string sub, string button, bool enabled, Action act, bool primary)
         {
             var sp = new StackPanel();
-            sp.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 15 });
+            sp.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 14 });
             sp.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 4, 0, 10), MinHeight = 34 });
             var b = Ui.Button(button, act, primary ? "Btn.Accent" : "Btn.Ghost");
             b.IsEnabled = enabled; b.HorizontalAlignment = HorizontalAlignment.Stretch; b.Margin = new Thickness(0);
@@ -317,7 +317,7 @@ namespace MonitoringTools.UI
             if (!decryptMode)
             {
                 var del = new CheckBox { Style = Ui.Style("Switch"), Tag = Ui.Res("B.Amber"), Margin = new Thickness(0, 12, 0, 0),
-                    Content = new TextBlock { Text = "Send originals to the Recycle Bin afterwards", Foreground = Ui.Res("B.TextSoft"), FontSize = 13, FontFamily = Ui.Font("F.Body") } };
+                    Content = new TextBlock { Text = "Send originals to the Recycle Bin afterwards", Foreground = Ui.Res("B.TextSoft"), FontSize = 12, FontFamily = Ui.Font("F.Body") } };
                 del.Checked += (s, e) => deleteAfter = true;
                 del.Unchecked += (s, e) => deleteAfter = false;
                 sp.Children.Add(del);
@@ -387,7 +387,7 @@ namespace MonitoringTools.UI
                 FontFamily = Ui.Font("F.Mono"), FontSize = 14, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(0)
             };
             box.Template = PlainBox();
-            var frame = new Border { Height = 42, CornerRadius = new CornerRadius(10), Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Padding = new Thickness(12, 0, 12, 0), Child = box };
+            var frame = new Border { Height = 42, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Padding = new Thickness(12, 0, 12, 0), Child = box };
             box.GotKeyboardFocus += (s, e) => frame.BorderBrush = Ui.Res("B.Mint");
             box.LostKeyboardFocus += (s, e) => frame.BorderBrush = Ui.Res("B.LineStrong");
             return (box, frame);

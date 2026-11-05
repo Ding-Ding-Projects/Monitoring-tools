@@ -139,7 +139,7 @@ namespace MonitoringTools.UI
                     var k = Ui.Mono(n.Kind, n.Kind == "Offline" ? Ui.Res("B.Amber") : n.Kind == "IP changed" ? Ui.Res("B.Violet") : Ui.Res("B.Mint")); Grid.SetColumn(k, 1);
                     g.Children.Add(k);
                     var text = new StackPanel(); Grid.SetColumn(text, 2);
-                    text.Children.Add(new TextBlock { Text = n.DisplayTitle, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                    text.Children.Add(new TextBlock { Text = n.DisplayTitle, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     if (!string.IsNullOrWhiteSpace(n.Detail))
                         text.Children.Add(new TextBlock { Text = n.Detail, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap });
                     g.Children.Add(text);
@@ -250,7 +250,7 @@ namespace MonitoringTools.UI
                     Core.Language.SetLiteral(text, true);   // the summary names internal setting keys, so it stays as recorded
                     var when = Ui.Mono(snap.At.ToString("yyyy-MM-dd HH:mm:ss") + (i == 0 ? "  ·  current" : ""), Ui.Res("B.TextMute"));
                     text.Children.Add(when);
-                    text.Children.Add(new TextBlock { Text = snap.Summary, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 12, 0) });
+                    text.Children.Add(new TextBlock { Text = snap.Summary, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 12, 0) });
                     head.Children.Add(text);
 
                     var detail = new StackPanel { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 6, 0, 0) };

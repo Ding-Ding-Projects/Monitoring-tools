@@ -45,6 +45,9 @@ namespace MonitoringTools.Core
         /// <summary>Raised on the UI thread after the resources have been rewritten.</summary>
         public static event Action Changed;
 
+        /// <summary>True while a text field commits its own value: windows update their header but keep the page and its keyboard focus, so tabbing out of the field lands on the next control.</summary>
+        public static bool KeepPage;
+
         // ------------------------------------------------------------------ live values
 
         private static Settings S => Settings.Current;
@@ -171,6 +174,28 @@ namespace MonitoringTools.Core
 
         public static string RoleName(int index) => Roles[index];
 
+        private static double Lum(Color c)
+        {
+            double Ch(byte v) { double s = v / 255.0; return s <= 0.03928 ? s / 12.92 : Math.Pow((s + 0.055) / 1.055, 2.4); }
+            return 0.2126 * Ch(c.R) + 0.7152 * Ch(c.G) + 0.0722 * Ch(c.B);
+        }
+
+        /// <summary>Moves a text colour toward black (on a light background) or white (on a dark one) until it reaches the contrast ratio.</summary>
+        public static Color EnsureContrast(Color fg, Color bg, double min)
+        {
+            double lb = Lum(bg);
+            bool toBlack = lb > 0.4;
+            var c = fg;
+            for (int i = 0; i < 60; i++)
+            {
+                double lf = Lum(c), ratio = (Math.Max(lf, lb) + 0.05) / (Math.Min(lf, lb) + 0.05);
+                if (ratio >= min) return c;
+                c = toBlack ? Color.FromRgb((byte)(c.R * 0.96), (byte)(c.G * 0.96), (byte)(c.B * 0.96))
+                            : Color.FromRgb((byte)Math.Min(255, c.R + (255 - c.R) * 0.06 + 1), (byte)Math.Min(255, c.G + (255 - c.G) * 0.06 + 1), (byte)Math.Min(255, c.B + (255 - c.B) * 0.06 + 1));
+            }
+            return c;
+        }
+
         private static Color Darker(Color c, byte by) =>
             Color.FromRgb((byte)Math.Max(0, c.R - by), (byte)Math.Max(0, c.G - by), (byte)Math.Max(0, c.B - by));
 
@@ -188,6 +213,7 @@ namespace MonitoringTools.Core
                     Application.Current?.Dispatcher.BeginInvoke(new Action(Apply));
                 };
             }
+            MonitoringTools.UI.AccessibleLabels.Install();
             if (!_densityHooked)
             {
                 _densityHooked = true;
@@ -217,7 +243,8 @@ namespace MonitoringTools.Core
             Set("LineStrong", r[15]);
             Set("Text", r[13]);
             Set("TextSoft", r[14]);
-            Set("TextMute", r[15]);
+            // muted text is the outline role nudged just far enough to read at 4.5:1 on the strongest surface it sits on
+            Set("TextMute", EnsureContrast(r[15], r[12], 4.9));
             Set("Mint", r[0]);
             Set("MintInk", r[1]);
             Set("MintWash", r[2]);
@@ -226,6 +253,20 @@ namespace MonitoringTools.Core
             Set("OnSecondaryContainer", r[5]);
             Set("TertiaryContainer", r[6]);
             Set("OnTertiaryContainer", r[7]);
+
+            // the warning, accent and error families have a dark and a light set, so text in them stays readable on either theme
+            if (dark)
+            {
+                Set("Amber", Color.FromRgb(0xFF, 0xB9, 0x5F)); Set("AmberInk", Color.FromRgb(0x46, 0x2A, 0x00)); Set("AmberWash", Color.FromRgb(0x3B, 0x2A, 0x12));
+                Set("Violet", Color.FromRgb(0xCF, 0xBC, 0xFF)); Set("VioletWash", Color.FromRgb(0x2B, 0x26, 0x40));
+                Set("Danger", Color.FromRgb(0xFF, 0xB4, 0xAB)); Set("DangerWash", Color.FromRgb(0x93, 0x00, 0x0A));
+            }
+            else
+            {
+                Set("Amber", Color.FromRgb(0x7A, 0x4A, 0x00)); Set("AmberInk", Color.FromRgb(0xFF, 0xFF, 0xFF)); Set("AmberWash", Color.FromRgb(0xFF, 0xDD, 0xB3));
+                Set("Violet", Color.FromRgb(0x62, 0x47, 0xB0)); Set("VioletWash", Color.FromRgb(0xE9, 0xDD, 0xFF));
+                Set("Danger", Color.FromRgb(0xBA, 0x1A, 0x1A)); Set("DangerWash", Color.FromRgb(0xFF, 0xDA, 0xD6));
+            }
 
             foreach (Window w in app.Windows) ScaleFor(w);
             if (_densityWasCompact != Compact)

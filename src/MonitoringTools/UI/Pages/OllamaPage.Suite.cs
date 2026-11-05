@@ -261,7 +261,7 @@ namespace MonitoringTools.UI
                 {
                     var d = await Ollama.ShowAsync(model);
                     detHost.Children.Clear();
-                    detHost.Children.Add(new TextBlock { Text = model, Foreground = Ui.Res("B.Text"), FontSize = 15, FontFamily = Ui.Font("F.Body") });
+                    detHost.Children.Add(new TextBlock { Text = model, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
                     void Line(string k, string v) { if (!string.IsNullOrWhiteSpace(v)) detHost.Children.Add(Ui.Mono($"{k}: {v}", Ui.Res("B.TextSoft"), 12)); }
                     Line("Family", d.Family); Line("Parameters", d.ParameterSize); Line("Quantisation", d.Quantization); Line("Format", d.Format);
                     Line("Context length", d.ContextLength > 0 ? d.ContextLength.ToString("N0") + " tokens" : "not reported");
@@ -306,7 +306,7 @@ namespace MonitoringTools.UI
                     var glyph = c.State switch { CheckState.Ok => "✓", CheckState.Warn => "!", CheckState.Fail => "✗", _ => "i" };
                     var brush = c.State switch { CheckState.Ok => "B.Mint", CheckState.Warn => "B.Amber", CheckState.Fail => "B.Danger", _ => "B.TextMute" };
                     var row = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
-                    row.Children.Add(new TextBlock { Text = glyph + "  " + c.Title, Foreground = Ui.Res(brush), FontSize = 13, FontFamily = Ui.Font("F.Body") });
+                    row.Children.Add(new TextBlock { Text = glyph + "  " + c.Title, Foreground = Ui.Res(brush), FontSize = 12, FontFamily = Ui.Font("F.Body") });
                     var d = Ui.Text(c.Detail); d.Margin = new Thickness(18, 0, 0, 0); row.Children.Add(d);
                     SearchScope.SetItem(row, "troubleshooter " + c.Title);
                     trRows.Children.Add(row);

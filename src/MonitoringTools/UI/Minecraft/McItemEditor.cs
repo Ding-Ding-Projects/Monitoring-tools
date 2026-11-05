@@ -135,9 +135,9 @@ namespace MonitoringTools.UI.Minecraft
         private void Add(string title, FrameworkElement control, string help)
         {
             var sp = new StackPanel { Margin = new Thickness(0, 0, 0, 12) };
-            sp.Children.Add(new TextBlock { Text = title, FontSize = 12.5, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) });
+            sp.Children.Add(new TextBlock { Text = title, FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) });
             sp.Children.Add(control);
-            sp.Children.Add(new TextBlock { Text = help, FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 2, 0, 0) });
+            sp.Children.Add(new TextBlock { Text = help, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 2, 0, 0) });
             Children.Add(sp);
         }
 

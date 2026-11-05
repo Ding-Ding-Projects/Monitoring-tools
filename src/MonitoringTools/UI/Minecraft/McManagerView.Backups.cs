@@ -28,11 +28,11 @@ namespace MonitoringTools.UI.Minecraft
             Grid.SetColumn(now, 1); head.Children.Add(now);
             card.Children.Add(head);
             var noteRow = new StackPanel { Margin = new Thickness(0, 10, 0, 0) };
-            noteRow.Children.Add(new TextBlock { Text = "Note for the next backup (optional)", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) });
+            noteRow.Children.Add(new TextBlock { Text = "Note for the next backup (optional)", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) });
             noteBox.Width = 360;
             noteRow.Children.Add(noteBox);
             card.Children.Add(noteRow);
-            var result = McUi.Body("", "B.TextMute", 12.5);
+            var result = McUi.Body("", "B.TextMute", 12);
             AutomationProperties.SetLiveSetting(result, AutomationLiveSetting.Polite);
             void Say(string text, string fg) { result.Text = text; result.Foreground = Ui.Res(fg); Core.Language.Refresh(result); }
             card.Children.Add(result);
@@ -54,9 +54,9 @@ namespace MonitoringTools.UI.Minecraft
                 list.Children.Clear();
                 bool onHost = s.IsSsh && s.BackupOnHost;
                 var all = onHost ? (hostList ?? new List<McBackup>()) : McBackups.List(s.BackupFolder);
-                if (onHost && hostError != null) list.Children.Add(McUi.Body(hostError, "B.Amber", 13));
-                else if (onHost && hostList == null) list.Children.Add(McUi.Body("Reading the backups on the SSH host…", "B.TextMute", 13));
-                else if (all.Count == 0) list.Children.Add(McUi.Body("No backups yet.", "B.TextMute", 13));
+                if (onHost && hostError != null) list.Children.Add(McUi.Body(hostError, "B.Amber", 12));
+                else if (onHost && hostList == null) list.Children.Add(McUi.Body("Reading the backups on the SSH host…", "B.TextMute", 12));
+                else if (all.Count == 0) list.Children.Add(McUi.Body("No backups yet.", "B.TextMute", 12));
                 foreach (var b in all)
                 {
                     var g = new Grid { Margin = new Thickness(0, 6, 0, 0) };
@@ -65,10 +65,10 @@ namespace MonitoringTools.UI.Minecraft
                     g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                     g.Children.Add(new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.TertiaryContainer"), Child = Ui.Icon(b.Reason == "Scheduled" ? Icons.Clock : Icons.Archive, Ui.Res("B.OnTertiaryContainer"), 18), Margin = new Thickness(0, 0, 14, 0) });
                     var t = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                    var when = new TextBlock { Text = b.When.ToString("yyyy-MM-dd HH:mm"), FontSize = 14.5, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") };
+                    var when = new TextBlock { Text = b.When.ToString("yyyy-MM-dd HH:mm"), FontSize = 14, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") };
                     Core.Language.SetLiteral(when, true);
                     t.Children.Add(when);
-                    t.Children.Add(new TextBlock { Text = $"{b.Reason} · {Ui.Bytes(b.Size)} · {McUi.Age(b.When)}", FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                    t.Children.Add(new TextBlock { Text = $"{b.Reason} · {Ui.Bytes(b.Size)} · {McUi.Age(b.When)}", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     if (b.Contents.Count > 0) t.Children.Add(McUi.Literal(string.Join(", ", b.Contents) + (b.Note.Length > 0 ? " · " + b.Note : ""), "B.TextMute", 12));
                     Grid.SetColumn(t, 1); g.Children.Add(t);
                     var bb = b;
@@ -140,7 +140,7 @@ namespace MonitoringTools.UI.Minecraft
                 keep.Children.Add(onHost);
             }
             var how = McUi.Body("A backup of a running server runs save-off and save-all, copies the world, then save-on, so the copy is consistent while players stay online. Restore stops the server, keeps the current world as one more backup, then swaps."
-                + (s.IsSsh ? " This server's world is on the SSH host: a backup copies it here with scp, and a restore copies the backup back up, moving the host's current folders aside until every folder has arrived." : ""), "B.TextMute", 12.5);
+                + (s.IsSsh ? " This server's world is on the SSH host: a backup copies it here with scp, and a restore copies the backup back up, moving the host's current folders aside until every folder has arrived." : ""), "B.TextMute", 12);
             how.Margin = new Thickness(0, 12, 0, 0);
             keep.Children.Add(how);
 

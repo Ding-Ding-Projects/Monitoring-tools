@@ -16,9 +16,9 @@
             <StackPanel>
                 <Grid>
                     <StackPanel x:Name="Hero">
-                        <TextBlock Text="WELCOME" Style="{StaticResource T.Eyebrow}" FontSize="13" Foreground="{DynamicResource B.Mint}"/>
-                        <TextBlock Text="It lives in your tray now." Style="{StaticResource T.Title}" FontSize="42" Margin="0,8,0,8"/>
-                        <TextBlock Style="{StaticResource T.Body}" FontSize="15" Foreground="{DynamicResource B.TextMute}" MaxWidth="540" HorizontalAlignment="Left"
+                        <TextBlock Text="WELCOME" Style="{StaticResource T.Eyebrow}" FontSize="12" Foreground="{DynamicResource B.Mint}"/>
+                        <TextBlock Text="It lives in your tray now." Style="{StaticResource T.Title}" FontSize="36" Margin="0,8,0,8"/>
+                        <TextBlock Style="{StaticResource T.Body}" FontSize="14" Foreground="{DynamicResource B.TextMute}" MaxWidth="540" HorizontalAlignment="Left"
                                    Text="Everything below works on its own. Press Try it to see each one right now instead of waiting for it to happen."/>
                     </StackPanel>
                     <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="{DynamicResource B.SecondaryContainer}" BorderBrush="{x:Null}"

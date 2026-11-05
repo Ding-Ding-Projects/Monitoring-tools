@@ -92,7 +92,7 @@ namespace MonitoringTools.UI
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 200 });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var left = new StackPanel();
-                var marker = new TextBlock { FontSize = 13, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
+                var marker = new TextBlock { FontSize = 12, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
                 void Mark()
                 {
                     var changed = FindEdit(leaf.Path) != null;

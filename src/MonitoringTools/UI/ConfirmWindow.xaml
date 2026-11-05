@@ -14,7 +14,7 @@
             </Border.BorderBrush>
             <StackPanel x:Name="Body">
                 <ContentControl x:Name="IconHost" HorizontalAlignment="Left" Margin="0,0,0,14"/>
-                <TextBlock x:Name="TitleText" Style="{StaticResource T.Title}" FontSize="20"/>
+                <TextBlock x:Name="TitleText" Style="{StaticResource T.Title}" FontSize="22"/>
                 <TextBlock x:Name="BodyText" Style="{StaticResource T.Body}" Margin="0,8,0,0" LineHeight="20"/>
                 <CheckBox x:Name="Extra" Style="{StaticResource Switch}" Margin="0,16,0,0"/>
                 <StackPanel x:Name="Gate" Visibility="Collapsed" Margin="0,18,0,0"/>

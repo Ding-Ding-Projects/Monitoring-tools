@@ -64,7 +64,7 @@ namespace MonitoringTools.UI.Minecraft
             var head = new Grid();
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var t = McUi.Title("Found on this computer", 15);
+            var t = McUi.Title("Found on this computer", 14);
             t.VerticalAlignment = VerticalAlignment.Center; t.Margin = new Thickness(4, 0, 0, 0);
             head.Children.Add(t);
             var look = McUi.IconButton(Icons.Search, "Look for servers", () => _ = Discover());
@@ -96,19 +96,19 @@ namespace MonitoringTools.UI.Minecraft
         {
             if (_found == null) return;
             _found.Children.Clear();
-            if (Found.Count == 0) _found.Children.Add(new TextBlock { Text = "None found.", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(4, 2, 0, 0) });
+            if (Found.Count == 0) _found.Children.Add(new TextBlock { Text = "None found.", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(4, 2, 0, 0) });
             foreach (var f in Found)
             {
                 var g = new Grid { Margin = new Thickness(0, 6, 0, 0) };
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var text = new StackPanel { Margin = new Thickness(4, 0, 8, 0) };
-                var name = McUi.Literal(f.Title, "B.Text", 13.5);
+                var name = McUi.Literal(f.Title, "B.Text", 14);
                 name.FontWeight = FontWeights.Medium; name.TextWrapping = TextWrapping.NoWrap; name.TextTrimming = TextTrimming.CharacterEllipsis;
                 text.Children.Add(name);
                 var kind = new TextBlock { Text = (f.Kind == "docker" ? "Docker container" : f.Flavour == Flavour.Bedrock ? "Bedrock process" : "Java process") + " · " + f.Flavour + " " + f.Version + (f.Running ? " · running" : " · not running"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap };
                 text.Children.Add(kind);
-                var where = McUi.Literal(f.Kind == "docker" ? f.Container + " · " + f.Image : PathDisplay.Shown(f.Folder), "B.TextMute", 11.5, mono: true);
+                var where = McUi.Literal(f.Kind == "docker" ? f.Container + " · " + f.Image : PathDisplay.Shown(f.Folder), "B.TextMute", 12, mono: true);
                 where.TextWrapping = TextWrapping.NoWrap; where.TextTrimming = TextTrimming.CharacterEllipsis;
                 where.ToolTip = f.Kind == "docker" ? f.Container : f.Folder;
                 text.Children.Add(where);
@@ -168,9 +168,9 @@ namespace MonitoringTools.UI.Minecraft
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                var dot = new Border { Width = 10, Height = 10, CornerRadius = new CornerRadius(5), Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
+                var dot = new Border { Width = 10, Height = 10, CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
                 var text = new StackPanel();
-                var name = McUi.Literal(s.Name, "B.Text", 14.5);
+                var name = McUi.Literal(s.Name, "B.Text", 14);
                 name.FontWeight = FontWeights.Medium; name.TextWrapping = TextWrapping.NoWrap; name.TextTrimming = TextTrimming.CharacterEllipsis;
                 text.Children.Add(name);
                 var sub = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis };
@@ -179,7 +179,7 @@ namespace MonitoringTools.UI.Minecraft
                 var badge = new Border
                 {
                     BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new System.Windows.Thickness(1), CornerRadius = new CornerRadius(8), Padding = new Thickness(6, 2, 8, 3), Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center,
-                    Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { new ContentControl { Content = Ui.Icon(McUi.TargetIcon(s.Target), Ui.Res("B.TextSoft"), 12), Margin = new Thickness(0, 0, 4, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center }, new TextBlock { Text = McUi.TargetLabel(s.Target), FontSize = 11.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") } } }
+                    Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { new ContentControl { Content = Ui.Icon(McUi.TargetIcon(s.Target), Ui.Res("B.TextSoft"), 12), Margin = new Thickness(0, 0, 4, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center }, new TextBlock { Text = McUi.TargetLabel(s.Target), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") } } }
                 };
                 Grid.SetColumn(badge, 2);
                 g.Children.Add(dot); g.Children.Add(text); g.Children.Add(badge);
@@ -190,7 +190,7 @@ namespace MonitoringTools.UI.Minecraft
                 _rowParts[s.Id] = (row, dot, sub);
             }
             Ui.RiseAll(_rows.Children);
-            if (ServerManager.Servers.Count == 0) _rows.Children.Add(McUi.Body("No servers yet. New server walks you through making one.", "B.TextMute", 12.5));
+            if (ServerManager.Servers.Count == 0) _rows.Children.Add(McUi.Body("No servers yet. New server walks you through making one.", "B.TextMute", 12));
             RepaintList();
         }
 
