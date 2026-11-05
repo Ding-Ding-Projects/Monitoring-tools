@@ -17,7 +17,7 @@ function scrub(inP, outP, mode, ph) {
     <div style="display:flex;justify-content:space-between;margin-top:8px" class="sub mono"><span>0:00</span><span>0:18</span><span>0:36</span><span>0:54</span><span>1:12</span></div></div>`;
 }
 function videoTrim() {
-  const main = win({ title: "Trim and cut video", icon: "Scissors", file: "holiday-2025.mp4", meta: "1:12:04 · 1920×1080 · 1.4 GB", w: 760,
+  const main = win({ title: "Trim and cut video", icon: "Scissors", file: "holiday-2025.mp4", meta: "1:12 · 1920×1080 · 340 MB", w: 760,
     body: `<div style="display:flex;gap:16px;align-items:stretch"><div style="width:236px;height:132px;border-radius:14px;${tn(200, 34)};position:relative;flex:none;display:grid;place-items:center"><span style="width:44px;height:44px;border-radius:22px;background:rgba(0,0,0,.5);display:grid;place-items:center;color:#fff">${ic("Play", "l")}</span><span class="badge" style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff">0:12.480</span></div>
       <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">${sect("WHAT TO DO WITH THE SELECTION")}${seg(["Keep selected", "Remove selected"], 0)}<span class="hint">Keep: the clip between the two handles becomes a new file. Remove: the section between them is cut out and the rest is joined.</span></div></div>
       ${scrub(17, 62, 0, 17)}
@@ -25,12 +25,12 @@ function videoTrim() {
       ${banner("ok", "Lossless: no re-encode", "Both points sit on keyframes, so the cut copies the video as it is. It is instant and loses no quality.", "", "Check")}
       <div class="row2">${field("Save as", "holiday-2025-trim.mp4", { i: "File", hint: "Saved next to the original. A name that exists gets a number added; nothing is overwritten." })}
       ${sw("Exact cut instead", "Re-encodes so the cut lands on the exact frame (slower)", false)}</div>`,
-    foot: { note: "<b>0:32.440</b> kept · about 690 MB", primary: { label: "Trim", i: "Scissors" }, left: btn("Choose folder", { k: "ghost", i: "Folder" }) } });
+    foot: { note: "<b>0:32.440</b> kept · about 153 MB", primary: { label: "Trim", i: "Scissors" }, left: btn("Choose folder", { k: "ghost", i: "Folder" }) } });
   const work = win({ title: "Trim and cut video", icon: "Scissors", file: "holiday-2025.mp4", meta: "keeping 0:12.480 to 0:44.920", w: 760,
-    body: workingBody({ head: "Copying video and audio, no re-encode", sub: "420 MB of about 690 MB · 310 MB/s · writing holiday-2025-trim.mp4.part", pct: 61 }),
+    body: workingBody({ head: "Copying video and audio, no re-encode", sub: "93 MB of about 153 MB · 310 MB/s · writing holiday-2025-trim.mp4.part", pct: 61 }),
     foot: { note: "Cancel stops now and deletes the unfinished .part file.", primary: { label: "Trim", i: "Scissors", dis: true } } });
   const done = win({ title: "Trim and cut video", icon: "Scissors", file: "holiday-2025.mp4", meta: "done", w: 760,
-    body: doneBody({ head: "Saved holiday-2025-trim.mp4", text: "The original was not changed.", rows: [["Length", "0:32.440"], ["Size", "688 MB (original 1.4 GB)"], ["Method", "Lossless copy, cut at keyframes"]],
+    body: doneBody({ head: "Saved holiday-2025-trim.mp4", text: "The original was not changed.", rows: [["Length", "0:32.440"], ["Size", "152 MB (original 340 MB)"], ["Method", "Lossless copy, cut at keyframes"]],
       actions: btn("Show in folder", { k: "ghost", i: "Folder" }) + btn("Play", { k: "ghost", i: "Play" }) + btn("Trim another section", { k: "text" }) }),
     foot: { note: "", cancel: false, primary: { label: "Close" } } });
   const err = win({ title: "Trim and cut video", icon: "Scissors", file: "holiday-2025.mp4", meta: "could not trim", w: 760,
@@ -77,14 +77,14 @@ function audio() {
       <div class="row2" style="gap:32px">${slider("Fade in", "0.5 s", 12)}${slider("Fade out", "2.0 s", 40)}</div>
       <div class="card" style="gap:12px"><div style="display:flex;align-items:baseline;justify-content:space-between"><b style="font-weight:500">Loudness</b><span class="sub">Measured now: <b class="mono" style="font-weight:500;color:var(--text)">−21.3 LUFS</b> · true peak −3.1 dB</span></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">${chip("Leave as it is")}${chip("Podcast −16 LUFS", true)}${chip("Streaming −14 LUFS")}${chip("Broadcast −23 LUFS")}${chip("Custom")}</div>
-        <span class="hint">Raises the whole recording by 5.3 dB without clipping. Two passes: measure, then apply.</span></div>
+        <span class="hint">Raises the whole recording by 5.3 dB; a limiter keeps the peak under −1.0 dB. Two passes: measure, then apply.</span></div>
       ${field("Save as", "interview-take3-edit.wav", { i: "File", hint: "Same format as the original. Choose MP3 or FLAC from the format list in the file name field." })}`,
     foot: { note: "<b>4:18.600</b> · −16.0 LUFS target", primary: { label: "Save", i: "Check" } } });
   const work = win({ title: "Trim, fade and loudness", icon: "Wave", file: "interview-take3.wav", meta: "working", w: 780,
     body: workingBody({ head: "Step 2 of 2: applying the changes", sub: "Step 1 measured the loudness at −21.3 LUFS. Now trimming, fading and raising the level.", pct: 48 }),
     foot: { note: "Cancel deletes the unfinished file.", primary: { label: "Save", dis: true } } });
   const done = win({ title: "Trim, fade and loudness", icon: "Wave", file: "interview-take3.wav", meta: "done", w: 780,
-    body: doneBody({ head: "Saved interview-take3-edit.wav", text: "The original recording was not changed.", rows: [["Length", "4:18.600 (was 4:36)"], ["Loudness", "−21.3 LUFS before, −16.0 LUFS after"], ["True peak", "−3.1 dB before, −1.0 dB after, no clipping"]],
+    body: doneBody({ head: "Saved interview-take3-edit.wav", text: "The original recording was not changed.", rows: [["Length", "4:18.600 (was 4:36)"], ["Loudness", "−21.3 LUFS before, −16.0 LUFS after"], ["True peak", "−3.1 dB before, −1.0 dB after (limited), no clipping"]],
       actions: btn("Show in folder", { k: "ghost", i: "Folder" }) + btn("Play", { k: "ghost", i: "Play" }) }),
     foot: { note: "", cancel: false, primary: { label: "Close" } } });
   const err = win({ title: "Trim, fade and loudness", icon: "Wave", file: "voice-note.m4a", meta: "could not read", w: 780,
@@ -96,16 +96,16 @@ function audio() {
 // ---------------------------------------------------------------- 4 Images resize
 const imgRow = (name, meta, h, sel, extra = "") => `<div class="lr${sel ? " sel" : ""}" style="grid-template-columns:auto 36px 1fr auto"><span>${cb(true)}</span><span class="thumb" style="${tn(h)}"></span><span class="n" style="flex-direction:column;align-items:flex-start;gap:0"><b>${name}</b><span class="sub">${meta}</span></span><span class="r">${extra}</span></div>`;
 function images() {
-  const batch = `<div class="list">${imgRow("IMG_4821.jpg", "4032×3024 · 4.2 MB", 20, true, "→ 640 KB")}${imgRow("IMG_4822.jpg", "4032×3024 · 3.9 MB", 40, false, "→ 598 KB")}${imgRow("beach-panorama.jpg", "9000×2400 · 11.8 MB", 200, false, "→ 1.1 MB")}</div>`;
+  const batch = `<div class="list">${imgRow("IMG_4821.jpg", "4032×3024 · 4.2 MB", 20, true, "→ 640 KB")}${imgRow("IMG_4822.jpg", "4032×3024 · 3.9 MB", 40, false, "→ 598 KB")}${imgRow("beach-panorama.jpg", "9000×2400 · 11.8 MB", 200, false, "→ 690 KB")}${imgRow("IMG_4824.jpg", "4032×3024 · 3.6 MB", 80, false, "→ 610 KB")}<div class="lr" style="grid-template-columns:1fr auto;min-height:36px"><span class="sub">4 more below, scroll to see them</span>${ic("Down", "s")}</div></div>`;
   const preview = `<div style="position:relative;flex:1;min-height:190px;border-radius:14px;overflow:hidden;display:flex"><div style="flex:1;${tn(20, 42)}"></div><div style="flex:1;${tn(20, 40)};filter:saturate(.85)"></div>
     <span style="position:absolute;left:50%;top:0;bottom:0;width:3px;background:var(--text);margin-left:-1px"></span><span style="position:absolute;left:50%;top:50%;width:32px;height:32px;margin:-16px 0 0 -16px;border-radius:16px;background:var(--mint);color:var(--mintink);display:grid;place-items:center">${ic("Sliders", "s")}</span>
     <span class="badge" style="position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff">Before · 4.2 MB</span><span class="badge" style="position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff">After · 640 KB</span></div>`;
-  const main = win({ title: "Resize, crop and compress", icon: "Crop", file: "3 pictures", meta: "IMG_4821.jpg and 2 more · 19.9 MB", w: 840,
+  const main = win({ title: "Resize, crop and compress", icon: "Crop", file: "8 pictures", meta: "IMG_4821.jpg and 7 more · 27.4 MB", w: 840,
     body: `<div style="display:flex;gap:18px"><div style="flex:1.05;display:flex;flex-direction:column;gap:12px;min-width:0">${batch}${preview}</div>
       <div style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:0">${sect("SIZE")}<div class="row2">${field("Width", "1600", { unit: "px", focus: 1 })}${field("Height", "1200", { unit: "px" })}</div>${sw("Keep proportions", "Changing one side sets the other", true)}
       ${sect("CROP")}<div style="display:flex;gap:6px;flex-wrap:wrap">${chip("None")}${chip("1:1")}${chip("4:3", true)}${chip("16:9")}${chip("Free")}</div>
       ${sect("QUALITY")}${seg(["Quality 82", "Target size"], 1)}${field("Aim for under", "700", { unit: "KB each", hint: "Quality is lowered per picture until it fits; panorama needs 74." })}</div></div>`,
-    foot: { note: "3 pictures · 19.9 MB → about <b>2.3 MB</b>", primary: { label: "Save 3 copies", i: "Check" }, left: btn("Save in…", { k: "ghost", i: "Folder" }) } });
+    foot: { note: "8 pictures · 27.4 MB → about <b>5.1 MB</b>", primary: { label: "Save 8 copies", i: "Check" }, left: btn("Save in…", { k: "ghost", i: "Folder" }) } });
   const work = win({ title: "Resize, crop and compress", icon: "Crop", file: "8 pictures", meta: "working", w: 840,
     body: `${workingBody({ head: "Picture 3 of 8", sub: "beach-panorama.jpg · finding the quality that fits 700 KB", pct: 31 })}<div class="list">${[["IMG_4821.jpg", "640 KB", 1], ["IMG_4822.jpg", "598 KB", 1], ["beach-panorama.jpg", "working…", 0]].map(([n, s, d]) => `<div class="lr" style="grid-template-columns:1fr auto"><span class="n">${d ? ic("Check", "s") : ic("Refresh", "s")}<b>${n}</b></span><span class="r">${s}</span></div>`).join("")}</div>`,
     foot: { note: "Cancel keeps the pictures already saved.", primary: { label: "Save copies", dis: true } } });
@@ -115,7 +115,7 @@ function images() {
   const empty = win({ title: "Resize, crop and compress", icon: "Crop", file: "nothing selected", w: 840,
     body: `<div class="empty"><span class="tile">${ic("Image", "l")}</span><b>No pictures to work on</b><span>Copy pictures (JPG, PNG, WebP, BMP, GIF, TIFF, HEIC) and open this tool from the notice, or drop them here.</span>${btn("Add pictures", { k: "ghost", i: "Plus" })}</div>`,
     foot: { note: "", primary: { label: "Save copies", dis: true } } });
-  return { cells: [cell("Ready, batch of 3", main), cell("Working", work), cell("Done, with one failure", done), cell("Empty", empty)] };
+  return { cells: [cell("Ready, batch of 8", main), cell("Working", work), cell("Done, with one failure", done), cell("Empty", empty)] };
 }
 
 // ---------------------------------------------------------------- 5 Privacy
@@ -125,18 +125,18 @@ const map = `<div style="height:132px;border-radius:12px;background:var(--sunken
 const meta = (on, title, sub, badges = "") => `<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)"><span style="margin-top:2px">${cb(on)}</span><div style="flex:1;min-width:0"><div style="display:flex;gap:8px;align-items:center"><b style="font-weight:500">${title}</b>${badges}</div><div class="sub">${sub}</div></div></div>`;
 function privacy() {
   const files = `<div class="list">${[["IMG_4821.jpg", "GPS · 3 more", 20, 1], ["IMG_4822.jpg", "GPS · 2 more", 40, 0], ["IMG_4823.jpg", "GPS · 2 more", 60, 0], ["IMG_4824.jpg", "GPS · 3 more", 80, 0], ["screenshot.png", "no hidden data", 120, 0]].map(([n, s, h, sel]) => `<div class="lr${sel ? " sel" : ""}" style="grid-template-columns:36px 1fr auto"><span class="thumb" style="${tn(h)}"></span><span class="n" style="flex-direction:column;align-items:flex-start;gap:0"><b>${n}</b><span class="sub" style="color:inherit;opacity:.85">${s}</span></span>${s.startsWith("GPS") ? badge("Location", "warn", "Pin") : badge("Clean", "ok")}</div>`).join("")}</div>`;
-  const main = win({ title: "Image privacy clean-up", icon: "Eye", file: "IMG_4821.jpg", meta: "and 2 more · 2 of 3 have hidden data", w: 860,
+  const main = win({ title: "Image privacy clean-up", icon: "Eye", file: "IMG_4821.jpg", meta: "and 4 more · 4 of 5 have hidden data", w: 860,
     body: `<div style="display:flex;gap:18px"><div style="width:268px;display:flex;flex-direction:column;gap:12px;flex:none">${files}${card(`<div class="sub"><b style="font-weight:500;color:var(--text)">Found in these 5 pictures</b></div><div style="display:flex;gap:6px;flex-wrap:wrap">${badge("4 with location", "warn")}${badge("2 with camera serial", "warn")}${badge("3 with date")}</div><div class="hint">Select a picture to see exactly what it holds.</div>`)}${sw("Apply the same choices to all selected pictures", "", true)}</div>
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">${banner("warn", "This picture shows where it was taken", "Anyone you send it to can read the location and the camera's serial number.")}
         <div style="height:12px"></div>${map}<div class="hint" style="margin:6px 0 4px">51.5007° N, 0.1246° W · accurate to about 5 m · altitude 11 m</div>
         ${meta(true, "Location", "GPS position, altitude, direction", badge("Found", "warn"))}${meta(true, "Camera and lens", "Canon EOS R6, serial 0832004711, lens EF 24-70", badge("Found", "warn"))}${meta(true, "Date and time", "12 Jun 2025, 16:42:08 (local)")}${meta(false, "Colour profile", "sRGB. Needed so colours look right; keep it.")}${meta(true, "Embedded thumbnail", "A small copy that can show the uncropped original")}</div></div>
       ${sw("Keep the original", "Clean copies are saved as name-clean.jpg. Turn off to clean the files in place.", true)}`,
-    foot: { note: "<b>4 groups</b> will be removed from 2 pictures", primary: { label: "Remove selected", i: "Trash" }, left: btn("Select all", { k: "text" }) } });
-  const work = win({ title: "Image privacy clean-up", icon: "Eye", file: "IMG_4821.jpg", meta: "and 2 more", w: 860,
-    body: workingBody({ head: "Picture 2 of 2", sub: "Removing metadata without re-compressing the picture.", pct: 70 }),
+    foot: { note: "<b>4 groups</b> will be removed from each of 4 pictures", primary: { label: "Remove selected", i: "Trash" }, left: btn("Select all", { k: "text" }) } });
+  const work = win({ title: "Image privacy clean-up", icon: "Eye", file: "IMG_4821.jpg", meta: "and 4 more", w: 860,
+    body: workingBody({ head: "Picture 3 of 4", sub: "Removing metadata without re-compressing the picture.", pct: 62 }),
     foot: { note: "", primary: { label: "Remove selected", dis: true } } });
   const done = win({ title: "Image privacy clean-up", icon: "Eye", file: "IMG_4821.jpg", meta: "done", w: 860,
-    body: doneBody({ head: "2 clean copies saved", text: "Picture quality is unchanged. The originals were kept.", rows: [["IMG_4821-clean.jpg", "11 tags removed, 0 left that identify you"], ["IMG_4822-clean.jpg", "9 tags removed"], ["Kept", "Colour profile, orientation"]], actions: btn("Show in folder", { k: "ghost", i: "Folder" }) + btn("Check the copy", { k: "text" }) }),
+    body: doneBody({ head: "4 clean copies saved", text: "Picture quality is unchanged. The originals were kept.", rows: [["IMG_4821-clean.jpg", "11 tags removed, 0 left that identify you"], ["IMG_4822-clean.jpg", "9 tags removed"], ["IMG_4823, IMG_4824", "8 and 10 tags removed"], ["screenshot.png", "Skipped, nothing to clean"], ["Kept", "Colour profile, orientation"]], actions: btn("Show in folder", { k: "ghost", i: "Folder" }) + btn("Check the copy", { k: "text" }) }),
     foot: { note: "", cancel: false, primary: { label: "Close" } } });
   const empty = win({ title: "Image privacy clean-up", icon: "Eye", file: "screenshot.png", meta: "1 picture", w: 860,
     body: `<div class="empty"><span class="tile" style="color:var(--mint)">${ic("Check", "l")}</span><b>Nothing to clean</b><span>This picture has no location, camera, date or author data. It is safe to share as it is.</span></div>`,

@@ -348,3 +348,7 @@ given file, or that the Windows APIs behave as described. Contrast was judged by
 amber and danger roles are proposals. The reviewer did not view the light frames of Audio, Resize, Make an icon, Extract, Data
 viewer, Subtitle, Font and Disc image; the generator uses the same tokens for both themes, and the render script found no overflow
 in any of them.
+
+### Cross-state consistency pass
+
+Every board was checked so that all four states describe the same file or batch, with matching counts, sizes and times: Resize is one batch of 8 (27.4 MB to about 5.1 MB) in every state; Image privacy is one batch of 5 pictures, 4 with hidden data; the video trim file is 1:12 and 340 MB so the timeline ruler, kept length and sizes agree; the audio gain note now says a limiter holds the peak; the archive Done card matches the Keep both rule; the expiring certificate is its own file (mail.example.org.cer) with its own dates; the encoding batch counts match the chosen target; the subtitle stretch factor and last-cue result were recomputed.

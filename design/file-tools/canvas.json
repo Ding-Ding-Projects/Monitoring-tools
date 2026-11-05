@@ -41,7 +41,7 @@
       "x": 2060,
       "y": 1562,
       "w": 1872,
-      "h": 1266,
+      "h": 1282,
       "title": "4 · Resize, crop and compress",
       "expand": "fill",
       "is_interactive": true
@@ -50,7 +50,7 @@
       "x": 0,
       "y": 3024,
       "w": 1912,
-      "h": 1433,
+      "h": 1481,
       "title": "5 · Image privacy clean-up",
       "expand": "fill",
       "is_interactive": true
@@ -66,7 +66,7 @@
     },
     "ExtractArchive.dc.html": {
       "x": 0,
-      "y": 4577,
+      "y": 4625,
       "w": 1832,
       "h": 1303,
       "title": "7 · Extract an archive",
@@ -75,7 +75,7 @@
     },
     "HashVerify.dc.html": {
       "x": 2060,
-      "y": 4577,
+      "y": 4625,
       "w": 1712,
       "h": 1232,
       "title": "8 · Hash and verify",
@@ -84,7 +84,7 @@
     },
     "WhoSigned.dc.html": {
       "x": 0,
-      "y": 6000,
+      "y": 6048,
       "w": 1752,
       "h": 1240,
       "title": "9 · Who signed this?",
@@ -93,7 +93,7 @@
     },
     "CertInspector.dc.html": {
       "x": 2060,
-      "y": 6000,
+      "y": 6048,
       "w": 1752,
       "h": 1262,
       "title": "10 · Certificate inspector",
@@ -102,7 +102,7 @@
     },
     "DataViewer.dc.html": {
       "x": 0,
-      "y": 7382,
+      "y": 7430,
       "w": 1792,
       "h": 1525,
       "title": "11 · Data viewer and converter",
@@ -111,7 +111,7 @@
     },
     "EncodingLines.dc.html": {
       "x": 2060,
-      "y": 7382,
+      "y": 7430,
       "w": 1872,
       "h": 1310,
       "title": "12 · Encoding and line endings",
@@ -120,7 +120,7 @@
     },
     "SubtitleTiming.dc.html": {
       "x": 0,
-      "y": 9027,
+      "y": 9075,
       "w": 1792,
       "h": 1348,
       "title": "13 · Subtitle timing",
@@ -129,7 +129,7 @@
     },
     "FontInstall.dc.html": {
       "x": 2060,
-      "y": 9027,
+      "y": 9075,
       "w": 1752,
       "h": 1243,
       "title": "14 · Font preview and install",
@@ -138,7 +138,7 @@
     },
     "DiscImage.dc.html": {
       "x": 0,
-      "y": 10495,
+      "y": 10543,
       "w": 1752,
       "h": 1226,
       "title": "15 · Disc image",

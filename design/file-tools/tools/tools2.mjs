@@ -39,7 +39,7 @@ function archive() {
     body: workingBody({ head: "File 7 of 12", sub: "assets/logo.svg → D:\\Downloads\\project-v2 · 14.9 MB of 31.4 MB", pct: 47 }),
     foot: { note: "Cancel stops now; files already written are kept.", primary: { label: "Extract", dis: true } } });
   const done = win({ title: "Extract an archive", icon: "Archive", file: "project-v2.zip", meta: "done", w: 820,
-    body: `${banner("ok", "Extracted 12 files, 31.4 MB", "2 files were skipped because they already existed and Keep both renamed 1.")}${card(kv([["Skipped", "banner.psd (not selected)"], ["Renamed", "notes.txt → notes (2).txt"], ["Refused", "0 unsafe paths"]]))}<div style="display:flex;gap:8px">${btn("Open folder", { k: "ghost", i: "Folder" })}${btn("Delete the archive", { k: "danger", i: "Trash" })}</div>`,
+    body: `${banner("ok", "Extracted 12 files, 31.4 MB", "1 file already existed, so Keep both saved it under a new name.")}${card(kv([["Renamed", "notes.txt → notes (2).txt"], ["Not selected", "36 files, including banner.psd"], ["Refused", "0 unsafe paths"]]))}<div style="display:flex;gap:8px">${btn("Open folder", { k: "ghost", i: "Folder" })}${btn("Delete the archive", { k: "danger", i: "Trash" })}</div>`,
     foot: close });
   return { cells: [cell("Ready", main), cell("Password needed", pw), cell("Working", work), cell("Done", done)] };
 }
@@ -86,15 +86,15 @@ function signed() {
 }
 
 // ---------------------------------------------------------------- 10 Certificate
-const validity = (pct, k) => `<div class="fld"><div class="sl-top"><b>Valid</b><span>from 15 Mar 2025 to 14 Mar 2026</span></div><div class="prog" style="height:10px"><i style="width:${pct}%;background:${k}"></i></div></div>`;
+const validity = (pct, k, rng = "from 15 Mar 2025 to 14 Mar 2026") => `<div class="fld"><div class="sl-top"><b>Valid</b><span>${rng}</span></div><div class="prog" style="height:10px"><i style="width:${pct}%;background:${k}"></i></div></div>`;
 const usage = `<div style="display:flex;gap:6px;flex-wrap:wrap">${["Digital signature", "Key encipherment", "Server authentication", "Client authentication"].map((x) => `<span class="chip xs on">${x}</span>`).join("")}</div>`;
 function cert() {
-  const detail = (cd) => `<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span class="big" style="${cd.c ? `color:${cd.c}` : ""}">${cd.big}</span><span class="sub">${cd.sub}</span></div>${validity(cd.pct, cd.col || "var(--mint)")}${card(kv([["Subject", "CN=api.example.org, O=Example Org"], ["Issuer", "CN=Example Issuing CA 1"], ["Alternative names", "api.example.org, www.example.org"], ["Key", "RSA 2048 bits · signature sha256RSA"], ["Serial", "<span class='mono'>04 7A 3C 91 E0 …</span>"], ["SHA-256", "<span class='mono'>C3 09 7B …  1F</span>"]]))}<div class="fld"><span class="lbl">Allowed uses</span>${usage}</div>`;
+  const detail = (cd) => `<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span class="big" style="${cd.c ? `color:${cd.c}` : ""}">${cd.big}</span><span class="sub">${cd.sub}</span></div>${validity(cd.pct, cd.col || "var(--mint)", cd.rng)}${card(kv([["Subject", `CN=${cd.cn || "api.example.org"}, O=Example Org`], ["Issuer", "CN=Example Issuing CA 1"], ["Alternative names", cd.cn ? "mail.example.org" : "api.example.org, www.example.org"], ["Key", "RSA 2048 bits · signature sha256RSA"], ["Serial", "<span class='mono'>04 7A 3C 91 E0 …</span>"], ["SHA-256", "<span class='mono'>C3 09 7B …  1F</span>"]]))}<div class="fld"><span class="lbl">Allowed uses</span>${usage}</div>`;
   const main = win({ title: "Certificate inspector", icon: "Cert", file: "api.example.org.cer", meta: "public certificate · 1.8 KB", w: 780,
     body: detail({ big: "214 days left", sub: "Expires 14 Mar 2026", pct: 41 }),
     foot: { left: btn("Convert…", { k: "ghost", i: "Refresh" }), note: "", primary: { label: "Close" }, cancel: "Copy details" } });
-  const soon = win({ title: "Certificate inspector", icon: "Cert", file: "api.example.org.cer", meta: "public certificate", w: 780,
-    body: `${banner("warn", "Expires in 12 days", "Renew it before 14 Mar 2026 so sites and clients keep trusting it.")}${detail({ big: "12 days left", sub: "Expires 14 Mar 2026", pct: 96, col: "var(--amber)", c: "var(--amber)" })}`, foot: { left: btn("Convert…", { k: "ghost", i: "Refresh" }), note: "", primary: { label: "Close" }, cancel: "Copy details" } });
+  const soon = win({ title: "Certificate inspector", icon: "Cert", file: "mail.example.org.cer", meta: "public certificate", w: 780,
+    body: `${banner("warn", "Expires in 12 days", "Renew it before 26 Aug 2025 so mail clients keep trusting it.")}${detail({ big: "12 days left", sub: "Expires 26 Aug 2025", pct: 97, col: "var(--amber)", c: "var(--amber)", rng: "from 27 Aug 2024 to 26 Aug 2025", cn: "mail.example.org" })}`, foot: { left: btn("Convert…", { k: "ghost", i: "Refresh" }), note: "", primary: { label: "Close" }, cancel: "Copy details" } });
   const pfx = win({ title: "Certificate inspector", icon: "Cert", file: "client-auth.pfx", meta: "certificate with private key", w: 780,
     body: `${banner("info", "This file is protected with a password", "It holds a private key. The password is used once to read the certificate and is never stored or written to the log.", "", "Lock")}${field("Password", "••••••••••", { i: "Lock", focus: 1, after: ic("Eye", "s") })}<span class="hint">Only the public details are shown. The private key is never displayed.</span>`,
     foot: { note: "", primary: { label: "Open", i: "Check" } } });
