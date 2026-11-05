@@ -80,8 +80,8 @@ namespace MonitoringTools.Core
             }
             else if (language == "Python")
             {
-                p = Regex.Replace(p, @"(?<!\\)((?:\\\\)*)\\z", "$1\\Z");
                 p = Regex.Replace(p, @"(?<!\\)((?:\\\\)*)\\Z", "$1(?=\\n?\\Z)");
+                p = Regex.Replace(p, @"(?<!\\)((?:\\\\)*)\\z", "$1\\Z");
                 p = Regex.Replace(p, @"\(\?<([A-Za-z_]\w*)>", "(?P<$1>");
                 p = Regex.Replace(p, @"\\k<([A-Za-z_]\w*)>", "(?P=$1)");
             }

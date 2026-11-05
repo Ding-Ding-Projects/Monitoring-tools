@@ -55,6 +55,8 @@ namespace MonitoringTools.Core
         public static int Run(string[] args)
         {
             OpenConsole();
+            var dataDir = Environment.GetEnvironmentVariable("MT_DATA_DIR");   // lets a test point the library and backups at a throwaway folder
+            if (!string.IsNullOrWhiteSpace(dataDir)) Settings.DataDirOverride = dataDir;
             string pattern = null, replace = null, libName = null;
             bool json = false, help = false, inPlace = false, listLib = false, optionsGiven = false;
             var paramValues = new Dictionary<string, string>();

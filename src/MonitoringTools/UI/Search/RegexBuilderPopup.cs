@@ -75,6 +75,10 @@ namespace MonitoringTools.UI.Search
         /// <summary>The builder's surface, for the screenshot run, which renders popups separately from their window.</summary>
         public FrameworkElement Card => _card;
         public bool IsOpen => _popup.IsOpen;
+        internal TextBox PatternBox => _pattern;
+        internal RegexTree.Result CurrentTree => _tree;
+        internal string Tab => _tab;
+        internal StackPanel EditorPanel => _editor;
 
         public RegexBuilderPopup(SearchField field)
         {
@@ -182,14 +186,12 @@ namespace MonitoringTools.UI.Search
             _detailed = Settings.Current.RegexDetailedByDefault;
             ApplyPreferences();
             _popup.IsOpen = true;
-            Show(tab ?? (_opened ? _tab : StartTab()));
-            _opened = true;
+            Show(tab ?? StartTab());
             Refresh(null);
             _pattern.Focus();
             _pattern.CaretIndex = _pattern.Text.Length;
         }
 
-        private bool _opened;
 
         /// <summary>The view chosen in the builder preferences, unless that view has been hidden.</summary>
         private static string StartTab()

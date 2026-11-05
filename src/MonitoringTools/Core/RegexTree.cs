@@ -1007,6 +1007,20 @@ namespace MonitoringTools.Core
         public static string Reorder(string pattern, Node moving, Node target, bool after, RegexOptions options = RegexOptions.None)
         {
             if (!CanReorder(moving, target)) return null;
+            if (moving.Kind == NodeKind.Branch && target.Kind == NodeKind.Branch && moving.Parent.Kind == NodeKind.Alternation)
+            {
+                // Branch spans leave out the bars between them, so the whole alternation is rebuilt from its branches in the new order.
+                var alt = moving.Parent;
+                var texts = alt.Children.Where(c => c.Kind == NodeKind.Branch).ToList();
+                var order = texts.ToList();
+                order.Remove(moving);
+                order.Insert(order.IndexOf(target) + (after ? 1 : 0), moving);
+                var rebuilt = pattern.Substring(0, alt.Start) + string.Join("|", order.Select(b => b.Text(pattern))) + pattern.Substring(alt.End);
+                if (rebuilt == pattern) return null;
+                try { _ = new Regex(rebuilt, options & ~(RegexOptions.NonBacktracking | RegexOptions.ECMAScript), RegexKit.Timeout); }
+                catch (Exception ex) when (ex is ArgumentException || ex is NotSupportedException) { return null; }
+                return rebuilt;
+            }
             var seg = pattern.Substring(moving.Start, moving.End - moving.Start);
             var without = pattern.Remove(moving.Start, seg.Length);
             int at = after ? target.End : target.Start;

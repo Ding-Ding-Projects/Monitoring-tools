@@ -23,7 +23,7 @@ namespace MonitoringTools.UI.Search
         // ---------------------------------------------------------------- shared bits
 
         /// <summary>A labelled row of mutually exclusive chips. The chip of the current value is painted as chosen.</summary>
-        private WrapPanel ChoiceRow(string title, IEnumerable<string> options, Func<string> get, Action<string> set, string help)
+        private WrapPanel ChoiceRow(string title, IEnumerable<string> options, Func<string> get, Action<string> set, string help, Func<string, string> label = null)
         {
             var row = new WrapPanel();
             row.Children.Add(Label(title));
@@ -31,7 +31,7 @@ namespace MonitoringTools.UI.Search
             foreach (var o in options)
             {
                 var value = o;
-                var chip = Chip(value, help + " " + value, () => { set(value); repaint(); });
+                var chip = Chip(label?.Invoke(value) ?? value, help + " " + value, () => { set(value); repaint(); });
                 chip.Tag = value;
                 row.Children.Add(chip);
             }
@@ -50,7 +50,7 @@ namespace MonitoringTools.UI.Search
 
         // ---------------------------------------------------------------- Test: scope, line breaks, clipboard, file, hex
 
-        private string _scope = "Whole text", _sampleEncoding = "Auto";
+        private string _scope = "Whole text", _sampleEncoding = "Auto", _sampleNote = "";
         private bool _hexOn;
         private TextBox _hex;
         private TextBlock _sampleInfo;
@@ -89,17 +89,23 @@ namespace MonitoringTools.UI.Search
         private void ConvertSampleLines(string style)
         {
             if (_sample == null) return;
+            _sampleNote = "Line breaks converted to " + style + ".";
             _sample.Text = RegexSample.NormalizeLineEndings(_sample.Text, style);
-            if (_sampleInfo != null) _sampleInfo.Text = "Line breaks converted to " + style + ".";
         }
 
         private void PasteSample()
         {
             string text = null;
             try { if (Clipboard.ContainsText()) text = Clipboard.GetText(); } catch (Exception ex) { Log.Warn("Clipboard read failed: " + ex.Message); }
-            if (string.IsNullOrEmpty(text)) { if (_sampleInfo != null) _sampleInfo.Text = "The clipboard has no text."; return; }
-            if (text.Length > RegexKit.MaxSampleLength) { text = text[..RegexKit.MaxSampleLength]; if (_sampleInfo != null) _sampleInfo.Text = "The clipboard text was cut to " + RegexKit.MaxSampleLength.ToString("N0") + " characters."; }
-            else if (_sampleInfo != null) _sampleInfo.Text = "Pasted " + text.Length.ToString("N0") + " characters from the clipboard.";
+            PasteText(text);
+        }
+
+        /// <summary>Puts text in the sample the way the Paste button does with the clipboard's text.</summary>
+        internal void PasteText(string text)
+        {
+            if (string.IsNullOrEmpty(text)) { _sampleNote = "The clipboard has no text."; RefreshSampleInfo(); return; }
+            if (text.Length > RegexKit.MaxSampleLength) { text = text[..RegexKit.MaxSampleLength]; _sampleNote = "The clipboard text was cut to " + RegexKit.MaxSampleLength.ToString("N0") + " characters."; }
+            else _sampleNote = "Pasted " + text.Length.ToString("N0") + " characters from the clipboard.";
             if (_sample != null) _sample.Text = text;
         }
 
@@ -119,10 +125,10 @@ namespace MonitoringTools.UI.Search
                 var bytes = File.ReadAllBytes(path);
                 var text = RegexSample.Decode(bytes, _sampleEncoding, out var used);
                 var cut = info.Length > RegexKit.MaxSampleLength;
+                _sampleNote = $"Read {Path.GetFileName(path)} as {used}" + (cut ? $"; only the first {RegexKit.MaxSampleLength:N0} bytes were read." : ".");
                 if (_sample != null) _sample.Text = text;
-                if (_sampleInfo != null) _sampleInfo.Text = $"Read {Path.GetFileName(path)} as {used}" + (cut ? $"; only the first {RegexKit.MaxSampleLength:N0} bytes were read." : ".");
             }
-            catch (Exception ex) { if (_sampleInfo != null) _sampleInfo.Text = "Could not read the file: " + ex.Message; }
+            catch (Exception ex) { _sampleNote = "Could not read the file: " + ex.Message; RefreshSampleInfo(); }
         }
 
         private void UpdateHex()
@@ -135,8 +141,7 @@ namespace MonitoringTools.UI.Search
         private void RefreshSampleInfo()
         {
             if (_sampleInfo == null || _sample == null) return;
-            if (_sampleInfo.Text.StartsWith("Pasted") || _sampleInfo.Text.StartsWith("Read ") || _sampleInfo.Text.StartsWith("Line breaks converted") || _sampleInfo.Text.StartsWith("The clipboard")) return;
-            _sampleInfo.Text = "Sample: " + _sample.Text.Length.ToString("N0") + " characters · " + RegexSample.DescribeLineEndings(_sample.Text);
+            _sampleInfo.Text = (_sampleNote.Length > 0 ? _sampleNote + " " : "") + "Sample: " + _sample.Text.Length.ToString("N0") + " characters · " + RegexSample.DescribeLineEndings(_sample.Text);
         }
 
         // ---------------------------------------------------------------- Compare: other engines
@@ -230,8 +235,7 @@ namespace MonitoringTools.UI.Search
 
             sp.Children.Add(Eyebrow("Compare with another pattern"));
             sp.Children.Add(Note("Pattern A is the pattern above. Type a second pattern to run both on the sample with the same options and see which finds what and which is faster."));
-            _pairB ??= null;
-            var pb = new TextBox { Style = Ui.Style("Input"), FontFamily = Ui.Font("F.Mono"), Text = _pairBText ?? "", Margin = new Thickness(0, 2, 0, 6) };
+                        var pb = new TextBox { Style = Ui.Style("Input"), FontFamily = Ui.Font("F.Mono"), Text = _pairBText ?? "", Margin = new Thickness(0, 2, 0, 6) };
             AutomationProperties.SetName(pb, "Second pattern to compare with the first");
             pb.TextChanged += (o, e) => _pairBText = pb.Text;
             _pairB = pb;
@@ -376,7 +380,7 @@ namespace MonitoringTools.UI.Search
                 langs.Children.Add(b);
             }
             sp.Children.Add(langs);
-            sp.Children.Add(ChoiceRow("Snippet for", RegexCode.Kinds, () => _codeKind, v => { _codeKind = v; Show("Code"); }, "Write a snippet that does this:"));
+            sp.Children.Add(ChoiceRow("Snippet for", RegexCode.Kinds, () => _codeKind, v => { _codeKind = v; Show("Code"); }, "Write a snippet that does this:", v => v + " snippet"));
             _code = new TextBox
             {
                 Style = Ui.Style("Input"), FontFamily = Ui.Font("F.Mono"), FontSize = 12, IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap,
@@ -552,7 +556,7 @@ namespace MonitoringTools.UI.Search
             sp.Children.Add(Note("These stay on this computer and apply to every regex builder in the app."));
             var s = Settings.Current;
             var visible = RegexBuilderPopup.Tabs.Where(t => t != "Build" && t != "Help").ToList();
-            sp.Children.Add(ChoiceRow("Open on", Tabs.Where(t => !(s.RegexHiddenTabs ?? new List<string>()).Contains(t)), () => s.RegexDefaultTab, v => { s.RegexDefaultTab = v; Settings.Save(); }, "Open the builder on the"));
+            sp.Children.Add(ChoiceRow("Open on", Tabs.Where(t => !(s.RegexHiddenTabs ?? new List<string>()).Contains(t)), () => s.RegexDefaultTab, v => { s.RegexDefaultTab = v; Settings.Save(); }, "Open the builder on the", v => "Start on " + v));
             sp.Children.Add(ChoiceRow("Width", new[] { "Match the search bar", "Narrow", "Wide", "Extra wide" }, () => WidthName(s.RegexCardWidth), v => { s.RegexCardWidth = WidthValue(v); Settings.Save(); ApplyPreferences(); }, "Make the builder"));
             sp.Children.Add(ChoiceRow("Height", new[] { "Short", "Normal", "Tall" }, () => s.RegexCardMaxHeight <= 460 ? "Short" : s.RegexCardMaxHeight >= 800 ? "Tall" : "Normal", v => { s.RegexCardMaxHeight = v == "Short" ? 420 : v == "Tall" ? 840 : 620; Settings.Save(); ApplyPreferences(); }, "Make the builder"));
             var hidden = new WrapPanel();
@@ -562,7 +566,7 @@ namespace MonitoringTools.UI.Search
             {
                 var name = t;
                 Button chip = null;
-                chip = Chip(name, "Show or hide the " + name + " view in the tab strip", () =>
+                chip = Chip("Show " + name, "Show or hide the " + name + " view in the tab strip", () =>
                 {
                     var h = s.RegexHiddenTabs ??= new List<string>();
                     if (h.Contains(name)) h.Remove(name); else h.Add(name);

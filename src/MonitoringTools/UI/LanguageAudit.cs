@@ -298,7 +298,7 @@ namespace MonitoringTools.UI
                 if (f != null)
                 {
                     f.State.SetQuery(@"(?<name>\w+)\.(png|md|csv)");
-                    foreach (var tab in new[] { "Build", "Test", "Replace", "Debug", "Compare", "Files", "Code", "Library" })
+                    foreach (var tab in new[] { "Build", "Test", "Replace", "Debug", "Compare", "Benchmark", "Files", "Code", "Library", "Help" })
                     {
                         f.OpenBuilder(tab); await Settle(450);
                         Scan("regex builder: " + tab, cc);
