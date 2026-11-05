@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Font preview and install</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* Monitoring Tools, file tool dialogs. Roles mirror Theme.xaml (B.*); light values come from Appearance.cs (mint scheme). */
+.root{
+  --ground:#0A0F0D;--window:#0F1512;--surface:#1B211E;--raised:#262B28;--sunken:#303633;
+  --line:#404943;--linestrong:#89938C;--text:#DEE4DF;--textsoft:#BFC9C2;--textmute:#89938C;
+  --mint:#6FDBB4;--mintink:#003827;--mintwash:#00513A;--onpc:#8CF8CF;
+  --secc:#354B41;--onsecc:#CFE9DB;--terc:#244C5D;--onterc:#C2E8FD;
+  --amber:#FFB95F;--amberink:#462A00;--amberwash:#3B2A12;--danger:#FFB4AB;--dangerwash:#93000A;--ondanger:#FFDAD6;
+  --shadow:0 10px 32px rgba(0,0,0,.42);
+  color-scheme:dark;
+}
+.root.light{
+  --ground:#FFFFFF;--window:#F5FBF6;--surface:#E9EFEA;--raised:#E4EAE5;--sunken:#DEE4DF;
+  --line:#BFC9C2;--linestrong:#707973;--text:#171D1A;--textsoft:#404943;--textmute:#5E6761;
+  --mint:#006C4F;--mintink:#FFFFFF;--mintwash:#8CF8CF;--onpc:#002116;
+  --secc:#CFE9DB;--onsecc:#09201A;--terc:#C2E8FD;--onterc:#001F2A;
+  --amber:#855300;--amberink:#FFFFFF;--amberwash:#FFDDB8;--danger:#BA1A1A;--dangerwash:#FFDAD6;--ondanger:#410002;
+  --shadow:0 10px 32px rgba(23,29,26,.22);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+.root{margin:0}
+.root{background:var(--ground);color:var(--text);font-family:'Roboto','Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.4}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i.s{width:16px;height:16px}
+svg.i.l{width:24px;height:24px}
+.mono{font-family:'Roboto Mono',Consolas,monospace}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+
+/* artboard */
+.board{width:fit-content;min-width:1680px;padding:56px 64px 72px;display:flex;flex-direction:column;gap:32px}
+.bhead{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.bhead h1{margin:0;font-size:32px;font-weight:400;line-height:1.2}
+.bhead .num{color:var(--mint);font-weight:500}
+.bmeta{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.bmeta .tag{height:28px;padding:0 12px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;background:var(--surface);color:var(--textsoft);font-size:12px;font-weight:500}
+.theme-toggle{height:40px;padding:0 16px;border-radius:20px;background:var(--secc);color:var(--onsecc);display:inline-flex;align-items:center;gap:8px;font-weight:500;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(2,max-content);gap:40px 64px;align-items:start}
+.grid.one{grid-template-columns:max-content}
+.cell{display:flex;flex-direction:column;gap:12px}
+.cap{font-size:12px;font-weight:500;letter-spacing:.4px;color:var(--textmute);display:flex;gap:8px;align-items:center}
+.cap b{color:var(--textsoft);font-weight:500}
+
+/* the dialog (borderless window, raised card radius 28, padding 24 20 20 18) */
+.win{background:var(--raised);border-radius:28px;padding:20px 20px 18px 24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;position:relative}
+.wh{display:flex;align-items:flex-start;gap:14px}
+.tile{width:44px;height:44px;border-radius:14px;background:var(--terc);color:var(--onterc);display:grid;place-items:center;flex:none}
+.wt{flex:1;min-width:0}
+.wt .tool{font-size:20px;font-weight:500;line-height:1.25;margin:0}
+.wt .file{display:flex;gap:8px;align-items:baseline;font-size:13px;color:var(--textsoft);min-width:0;margin-top:2px}
+.wt .file b{font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+.wt .file span{white-space:nowrap}
+.xbtn{width:40px;height:40px;border-radius:20px;background:var(--secc);color:var(--onsecc);display:grid;place-items:center;flex:none}
+.wb{display:flex;flex-direction:column;gap:14px}
+.wf{display:flex;align-items:center;gap:8px;padding-top:2px}
+.wf .note{flex:1;min-width:0;font-size:13px;color:var(--textsoft)}
+.wf .note b{color:var(--text);font-weight:500}
+
+/* buttons: Btn.Accent, Btn.Ghost (tonal), Btn.Chip */
+.btn{height:40px;padding:0 20px;border-radius:20px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap;position:relative;overflow:hidden}
+.btn.acc{background:var(--mint);color:var(--mintink)}
+.btn.ghost{background:var(--secc);color:var(--onsecc)}
+.btn.text{padding:0 16px;color:var(--mint);border:1px solid var(--line)}
+.btn.danger{background:var(--dangerwash);color:var(--ondanger)}
+.btn[disabled]{background:color-mix(in srgb,var(--text) 12%,transparent);color:color-mix(in srgb,var(--text) 38%,transparent);cursor:default}
+.btn.sm{height:32px;padding:0 14px;font-size:13px;border-radius:16px}
+.chip{height:32px;padding:0 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--textsoft);border:1px solid var(--line);white-space:nowrap}
+.chip.on{background:var(--secc);color:var(--onsecc);border-color:transparent}
+.chip.xs{height:24px;padding:0 8px;font-size:12px;border-radius:6px}
+.badge{height:22px;padding:0 8px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;background:var(--sunken);color:var(--textsoft);white-space:nowrap}
+.badge.ok{background:var(--mintwash);color:var(--onpc)}
+.badge.warn{background:var(--amberwash);color:var(--amber)}
+.badge.bad{background:var(--dangerwash);color:var(--ondanger)}
+.badge.info{background:var(--terc);color:var(--onterc)}
+
+/* fields */
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:12px;font-weight:500;color:var(--textsoft);letter-spacing:.3px}
+.in{height:42px;border-radius:10px;background:var(--sunken);border:1px solid var(--linestrong);padding:0 12px;display:flex;align-items:center;gap:8px;min-width:0;font-size:14px}
+.in .v{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.in .u{color:var(--textsoft);font-size:13px}
+.in.focus{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint)}
+.in.err{border-color:var(--danger)}
+.in.dis{opacity:.5}
+.hint{font-size:12px;color:var(--textsoft);line-height:1.35}
+.hint.err{color:var(--danger)}
+.hint.warn{color:var(--amber)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.seg{display:inline-flex;border:1px solid var(--linestrong);border-radius:20px;overflow:hidden;height:40px;align-self:flex-start}
+.seg>span{padding:0 16px;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--textsoft);border-left:1px solid var(--linestrong);white-space:nowrap}
+.seg>span:first-child{border-left:0}
+.seg>span.on{background:var(--secc);color:var(--onsecc)}
+.sw{display:flex;align-items:center;gap:12px;min-height:40px}
+.sw .t{flex:1;min-width:0}
+.sw .t b{font-weight:500;display:block;font-size:14px}
+.sw .t span{font-size:12px;color:var(--textsoft)}
+.tg{width:52px;height:32px;border-radius:16px;border:2px solid var(--linestrong);background:var(--sunken);position:relative;flex:none}
+.tg::after{content:"";position:absolute;left:6px;top:6px;width:16px;height:16px;border-radius:8px;background:var(--linestrong)}
+.tg.on{background:var(--mint);border-color:var(--mint)}
+.tg.on::after{left:25px;top:4px;width:24px;height:24px;border-radius:12px;background:var(--mintink)}
+.card{background:var(--surface);border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.kv{display:grid;grid-template-columns:132px 1fr;gap:6px 12px;font-size:13px;align-items:baseline}
+.kv dt{color:var(--textsoft);margin:0}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+dl.kv{margin:0}
+.banner{display:flex;gap:12px;border-radius:16px;padding:12px 14px;align-items:flex-start;font-size:13px;line-height:1.4}
+.banner b{font-weight:500;display:block;font-size:14px;margin-bottom:2px}
+.banner.ok{background:var(--mintwash);color:var(--onpc)}
+.banner.warn{background:var(--amberwash);color:var(--amber)}
+.banner.bad{background:var(--dangerwash);color:var(--ondanger)}
+.banner.info{background:var(--terc);color:var(--onterc)}
+.banner .grow{flex:1;min-width:0}
+.banner .btn{align-self:center}
+.prog{height:8px;border-radius:4px;background:var(--sunken);overflow:hidden}
+.prog>i{display:block;height:100%;background:var(--mint);border-radius:4px}
+.prog.ind>i{width:34%;margin-left:30%}
+.big{font-size:28px;font-weight:400;line-height:1.1;font-variant-numeric:tabular-nums}
+.sub{font-size:13px;color:var(--textsoft)}
+.mut{color:var(--textsoft)}
+.slider{position:relative;height:28px}
+.slider .tr{position:absolute;left:0;right:0;top:12px;height:4px;border-radius:2px;background:var(--sunken)}
+.slider .fi{position:absolute;left:0;top:12px;height:4px;border-radius:2px;background:var(--mint)}
+.slider .th{position:absolute;top:4px;width:20px;height:20px;border-radius:10px;background:var(--mint);margin-left:-10px}
+.sl-top{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}
+.sl-top b{font-weight:500}
+.sl-top span{color:var(--textsoft);font-variant-numeric:tabular-nums}
+
+/* lists and tables */
+.list{display:flex;flex-direction:column;border-radius:16px;background:var(--surface);overflow:hidden}
+.lr{display:grid;align-items:center;gap:12px;padding:0 14px;min-height:44px;font-size:13px;border-top:1px solid var(--line)}
+.lr:first-child{border-top:0}
+.lr.hd{min-height:36px;font-size:12px;font-weight:500;color:var(--textsoft);border-top:0}
+.lr.sel{background:var(--secc);color:var(--onsecc)}
+.lr .n{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:10px;align-items:center}
+.lr .n b{font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.lr .r{text-align:right;font-variant-numeric:tabular-nums;color:var(--textsoft)}
+.lr.sel .r{color:var(--onsecc)}
+.cb{width:20px;height:20px;border-radius:4px;border:2px solid var(--linestrong);display:grid;place-items:center;flex:none;color:var(--mintink)}
+.cb.on{background:var(--mint);border-color:var(--mint)}
+.cb svg{width:14px;height:14px;stroke-width:2.6}
+.rb{width:20px;height:20px;border-radius:10px;border:2px solid var(--linestrong);flex:none;position:relative}
+.rb.on{border-color:var(--mint)}
+.rb.on::after{content:"";position:absolute;inset:3px;border-radius:6px;background:var(--mint)}
+.thumb{width:36px;height:36px;border-radius:8px;flex:none}
+.pre{background:var(--sunken);border-radius:12px;padding:10px 12px;font-family:'Roboto Mono',Consolas,monospace;font-size:12px;line-height:1.55;white-space:pre;overflow:hidden;color:var(--text)}
+.hl{background:var(--amber);color:var(--amberink);border-radius:3px;padding:0 2px}
+.hlb{background:var(--danger);color:var(--window);border-radius:3px;padding:0 2px}
+.hlg{background:var(--mint);color:var(--mintink);border-radius:3px;padding:0 2px}
+.div{height:1px;background:var(--line);margin:2px 0}
+.sect{font-size:12px;font-weight:500;letter-spacing:.5px;color:var(--mint)}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:28px 16px;color:var(--textsoft)}
+.empty .tile{background:var(--surface);color:var(--textsoft);border-radius:22px;width:56px;height:56px}
+.empty b{font-size:16px;font-weight:500;color:var(--text)}
+.root{width:max-content;min-width:100%}
+</style>
+</helmet>
+<div class="root {{themeClass}}">
+<main class="board">
+  <header class="bhead"><h1><span class="num">14 ·</span> Font preview and install</h1><div class="bmeta"><span class="tag">Opens for .ttf .otf .ttc .woff</span><span class="tag">Engine: WPF GlyphTypeface, per-user font install</span><button class="theme-toggle"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/></svg>Light or dark</button></div></header>
+  <div class="grid"><div class="cell"><div class="cap"><b>Ready</b></div><section class="win" role="dialog" aria-modal="true" aria-labelledby="t53" style="width:780px">
+  <header class="wh"><span class="tile"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20L11 4h2l6 16M7.5 14h9"/></svg></span><div class="wt"><h2 class="tool" id="t53" style="margin:0">Font preview and install</h2><div class="file"><b>FiraSans-Regular.ttf</b><span>Fira Sans · Regular · 438 KB</span></div></div><button class="xbtn" aria-label="Close (Esc)"><svg class="i " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+  <div class="wb"><div class="in focus" style="height:44px"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg><span class="v">The five boxing wizards jump quickly</span></div><div><div style="display:flex;align-items:baseline;gap:14px;padding:6px 0;border-top:1px solid var(--line)"><span class="mono" style="width:44px;flex:none;font-size:12px;color:var(--text)">72</span><span style="font-family:'Roboto',serif;font-size:72px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">Aa Gg 123</span></div><div style="display:flex;align-items:baseline;gap:14px;padding:6px 0;border-top:1px solid var(--line)"><span class="mono" style="width:44px;flex:none;font-size:12px;color:var(--text)">36</span><span style="font-family:'Roboto',serif;font-size:36px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">The five boxing wizards jump</span></div><div style="display:flex;align-items:baseline;gap:14px;padding:6px 0;border-top:1px solid var(--line)"><span class="mono" style="width:44px;flex:none;font-size:12px;color:var(--text)">18</span><span style="font-family:'Roboto',serif;font-size:18px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">The five boxing wizards jump quickly 0123456789</span></div><div style="display:flex;align-items:baseline;gap:14px;padding:6px 0;border-top:1px solid var(--line)"><span class="mono" style="width:44px;flex:none;font-size:12px;color:var(--text)">12</span><span style="font-family:'Roboto',serif;font-size:12px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">Sphinx of black quartz, judge my vow. Pack my box with five dozen liquor jugs.</span></div></div>
+      <div class="card"><dl class="kv"><dt>Family</dt><dd>Fira Sans · Regular (400)</dd><dt>Glyphs</dt><dd>1,610 · Latin, Cyrillic, Greek</dd><dt>Licence</dt><dd>SIL Open Font License 1.1</dd></dl></div>
+      <div class="sw"><div class="t"><b>Install for this user only</b><span>No administrator rights. Other people on this computer do not get it.</span></div><span class="tg on" role="switch" aria-checked="true"></span></div></div>
+  <footer class="wf"><div class="note" aria-live="polite">The preview does not install anything.</div><button class="btn ghost">Cancel</button><button class="btn acc"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Install</button></footer>
+</section></div>
+<div class="cell"><div class="cap"><b>Done</b></div><section class="win" role="dialog" aria-modal="true" aria-labelledby="t54" style="width:780px">
+  <header class="wh"><span class="tile"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20L11 4h2l6 16M7.5 14h9"/></svg></span><div class="wt"><h2 class="tool" id="t54" style="margin:0">Font preview and install</h2><div class="file"><b>FiraSans-Regular.ttf</b><span>installed</span></div></div><button class="xbtn" aria-label="Close (Esc)"><svg class="i " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+  <div class="wb"><div class="banner ok" role="status"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><div class="grow"><b>Fira Sans is installed for you</b>Apps that are already open may need a restart to list it.</div></div><div class="card"><dl class="kv"><dt>Location</dt><dd>Your user fonts folder</dd><dt>Removal</dt><dd>Open this tool again and choose Uninstall</dd></dl></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn danger"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Uninstall</button><button class="btn text">Open fonts settings</button></div></div>
+  <footer class="wf"><div class="note" aria-live="polite"></div><button class="btn acc">Close</button></footer>
+</section></div>
+<div class="cell"><div class="cap"><b>Already installed</b></div><section class="win" role="dialog" aria-modal="true" aria-labelledby="t55" style="width:780px">
+  <header class="wh"><span class="tile"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20L11 4h2l6 16M7.5 14h9"/></svg></span><div class="wt"><h2 class="tool" id="t55" style="margin:0">Font preview and install</h2><div class="file"><b>FiraSans-Regular.ttf</b><span>already installed</span></div></div><button class="xbtn" aria-label="Close (Esc)"><svg class="i " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+  <div class="wb"><div class="banner info" role="status"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v5M12 8h.01"/></svg><div class="grow"><b>This font is already installed</b>The same file is installed for you. Installing again would change nothing.</div></div><div style="display:flex;gap:8px"><button class="btn danger"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Uninstall</button></div></div>
+  <footer class="wf"><div class="note" aria-live="polite"></div><button class="btn acc">Close</button></footer>
+</section></div>
+<div class="cell"><div class="cap"><b>Unreadable file</b></div><section class="win" role="dialog" aria-modal="true" aria-labelledby="t56" style="width:780px">
+  <header class="wh"><span class="tile"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20L11 4h2l6 16M7.5 14h9"/></svg></span><div class="wt"><h2 class="tool" id="t56" style="margin:0">Font preview and install</h2><div class="file"><b>broken-font.otf</b><span>could not read</span></div></div><button class="xbtn" aria-label="Close (Esc)"><svg class="i " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+  <div class="wb"><div class="banner bad" role="alert"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3zM12 10v4M12 17h.01"/></svg><div class="grow"><b>This is not a usable font file</b>The font tables are damaged, so Windows would refuse it.</div></div><div class="card"><div class="sect">WHAT WAS NOT CHANGED</div><div class="sub">Nothing was installed and the file was not changed.</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9h11v11H9zM5 15V4h11"/></svg>Copy details</button></div></div>
+  <footer class="wf"><div class="note" aria-live="polite"></div><button class="btn acc">Close</button></footer>
+</section></div></div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1752,"height":1243}}'>
+class Component extends DCLogic {
+renderVals() { return { themeClass: this.props.theme === 'light' ? 'light' : '' }; }
+}
+</script>
+</body>
+</html>

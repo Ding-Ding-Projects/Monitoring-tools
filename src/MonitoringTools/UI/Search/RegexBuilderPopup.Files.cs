@@ -18,7 +18,8 @@ namespace MonitoringTools.UI.Search
     public sealed partial class RegexBuilderPopup
     {
         // ---- Files view state; kept while the builder is open so switching views does not lose the folder or the results
-        private string _gFolder = "", _gMasks = "*", _gExclude = ".git;node_modules", _gMaxMb = "5";
+        private string _gFolder = "", _gMasks = "*", _gExclude = ".git;node_modules", _gMaxMb = "5", _gNameRx = "", _gPresetName = "";
+        private StackPanel _gPresets, _gBackups, _gHistory;
         private bool _gSub = true, _gBinary = true;
         private RegexGrep.Report _gReport;
         private Regex _gRx;
@@ -74,6 +75,12 @@ namespace MonitoringTools.UI.Search
             masks.Children.Add(l); Grid.SetColumn(r, 2); masks.Children.Add(r);
             sp.Children.Add(masks);
 
+            sp.Children.Add(Eyebrow("File name pattern (optional, a regular expression, ignores case)"));
+            var nameRx = new TextBox { Style = Ui.Style("Input"), FontFamily = Ui.Font("F.Mono"), Text = _gNameRx, Margin = new Thickness(0, 2, 0, 6), ToolTip = "Only files whose name matches this pattern are searched, on top of the masks. Example: ^report-\\d{4}\\.txt$" };
+            AutomationProperties.SetName(nameRx, "Regular expression for file names");
+            nameRx.TextChanged += (o, e) => _gNameRx = nameRx.Text;
+            sp.Children.Add(nameRx);
+
             var opts = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
             Button sub = null, bin = null;
             sub = Chip("Include subfolders", "Search inside folders below the chosen one. On by default.", () => { _gSub = !_gSub; Paint(sub, _gSub); });
@@ -107,6 +114,7 @@ namespace MonitoringTools.UI.Search
             _gRestoreBtn.ToolTip = "Put the files from the most recent replace run back as they were";
             row.Children.Add(_gSearchBtn); row.Children.Add(_gCancelBtn); row.Children.Add(_gReplaceBtn); row.Children.Add(_gExportBtn); row.Children.Add(_gRestoreBtn);
             sp.Children.Add(row);
+            sp.Children.Add(FilesExtras());
 
             _gStatus = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) };
             AutomationProperties.SetLiveSetting(_gStatus, AutomationLiveSetting.Polite);
@@ -150,7 +158,7 @@ namespace MonitoringTools.UI.Search
             if (rx == null) { _gStatus.Text = _s.Error != null ? "Fix the pattern first: " + _s.Error : "Type a pattern first."; _gStatus.Foreground = Ui.Res("B.Amber"); return; }
             if (!Directory.Exists(_gFolder)) { _gStatus.Text = "Choose a folder that exists."; _gStatus.Foreground = Ui.Res("B.Amber"); return; }
             if (!double.TryParse(_gMaxMb, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var mb) || mb <= 0) mb = 5;
-            var o = new RegexGrep.Options { Folder = _gFolder, Masks = _gMasks, ExcludeMasks = _gExclude, Subfolders = _gSub, SkipBinary = _gBinary, MaxBytes = (long)(mb * 1024 * 1024) };
+            var o = new RegexGrep.Options { Folder = _gFolder, Masks = _gMasks, ExcludeMasks = _gExclude, NameRegex = _gNameRx, Subfolders = _gSub, SkipBinary = _gBinary, MaxBytes = (long)(mb * 1024 * 1024) };
             StopFiles();
             var cts = _gCts = new CancellationTokenSource();
             var ct = cts.Token;
@@ -176,6 +184,7 @@ namespace MonitoringTools.UI.Search
                             (rep.Skipped.Count > 0 ? $" · {rep.Skipped.Count} skipped" : "") +
                             (rep.Capped ? " · capped, narrow the pattern or masks to see everything" : "") + ".";
                     }
+                    RecordGrepHistory(rep);
                     UpdateFilesButtons();
                     RenderFiles();
                 })));
@@ -236,7 +245,8 @@ namespace MonitoringTools.UI.Search
             tb.Inlines.Add(new System.Windows.Documents.Run(t[(start + len)..]));
             var b = new Button { Content = tb, Style = Ui.Style("Btn.Row"), HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(14, 0, 0, 0), ToolTip = "Open the file in your editor" };
             AutomationProperties.SetName(b, $"Line {h.Line}, column {h.Column} in {Path.GetFileName(path)}: {h.Value}");
-            b.Click += (o, e) => ExternalEditor.OpenAndTell(path);
+            b.Click += (o, e) => OpenHit(path, h);
+            b.ToolTip = "Open the file in your editor at this line when the editor can jump to a line";
             return b;
         }
 
@@ -327,16 +337,17 @@ namespace MonitoringTools.UI.Search
                 })));
         }
 
-        private void StartRestore()
+        private void StartRestore() => StartRestore(RegexGrep.LastBackup());
+
+        private void StartRestore(string folder)
         {
-            var folder = RegexGrep.LastBackup();
             if (folder == null) return;
             var dlg = new ConfirmWindow("Restore the last backup?",
                 "This copies the backed-up files over the current files they came from. Any edits made to those files since the replace run are lost.\n\n" + folder,
                 "Restore", danger: true);
             dlg.Confirmed += _ =>
             {
-                var (restored, failed, f) = RegexGrep.RestoreLast();
+                var (restored, failed, f) = RegexGrep.RestoreFolder(folder);
                 var lines = new List<string> { $"Restored {restored} file(s) from {f}." };
                 foreach (var x in failed) lines.Add("Not restored: " + x.Path + " : " + x.Reason);
                 _gOutcome = lines; _gReport = null; _gPreviewing = false;

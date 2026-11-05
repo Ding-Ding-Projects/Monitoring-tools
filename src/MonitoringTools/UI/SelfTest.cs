@@ -53,6 +53,8 @@ namespace MonitoringTools.UI
             if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "lane4qr") { QrLane4Checks(); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "audit") { await AuditChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "lockwalk") { await LockWalkChecksAsync(); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "dialogs") { await DialogsLane4Async(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "lane4clicks") { await ClicksLane4Async(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "lane4")
             {
@@ -64,6 +66,13 @@ namespace MonitoringTools.UI
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "wording") { await WordingChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "update") { await UpdateChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexexplain") { await RegexExplainChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexparity") { await RegexParityChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "language")
+            {
+                await CheckAsync("language audit (language loop)", async () => { await LanguageAudit.RunAsync(dir); var left = LanguageAudit.Findings; return left.Count == 0 ? null : left.Count + " untranslated"; });
+                Finish(dir); return;
+            }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "toasts") { InstallParserChecks(); await InstallToastChecksAsync(); await TextToastChecksAsync(); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "convert") { await ConvertChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit
             {
@@ -234,8 +243,8 @@ namespace MonitoringTools.UI
             });
             Check("regex debug: unsupported constructs are named, not faked", () =>
             {
-                var r = RegexTrace.Run(@"(?<=a)b", RegexOptions.None, "ab");
-                return r.Unsupported != null && r.Steps.Count == 0 ? null : "lookbehind was traced";
+                var r = RegexTrace.Run(@"(?i)a", RegexOptions.None, "A");
+                return r.Unsupported != null && r.Steps.Count == 0 ? null : "an inline option was traced";
             });
             Check("regex compare: non-backtracking refuses lookbehind with the engine's message", () =>
             {
@@ -817,7 +826,12 @@ namespace MonitoringTools.UI
                 {
                     Settings.Current.ApplyCopiedWordingFile = true;
                     if (App.TryApplyCopiedWording(new MonitoringTools.Clip.ClipItem { Kind = MonitoringTools.Clip.ClipKind.Files, Files = new[] { other } })) return "an unrelated JSON file was taken";
+                    // No window of ours is active when a path is copied in Explorer: deactivate everything first, then the
+                    // celebration must still cover the screen.
+                    foreach (var w in Application.Current.Windows.OfType<Window>().Where(w => w.GetType().Name == "CelebrationWindow").ToList()) w.Close();
                     if (!App.TryApplyCopiedWording(new MonitoringTools.Clip.ClipItem { Kind = MonitoringTools.Clip.ClipKind.Files, Files = new[] { good } })) return "the wording file was not taken";
+                    if (!Application.Current.Windows.OfType<Window>().Any(w => w.GetType().Name == "CelebrationWindow" && w.IsVisible)) return "no celebration was shown for a copied path";
+                    foreach (var w in Application.Current.Windows.OfType<Window>().Where(w => w.GetType().Name == "CelebrationWindow").ToList()) w.Close();
                     if (PersonalWording.Apply("Clipboard history") != "Copy pile") return "the wording was not applied";
                     PersonalWording.Clear();
                     Settings.Current.ApplyCopiedWordingFile = false;
@@ -844,11 +858,16 @@ namespace MonitoringTools.UI
             await LanguageChecksAsync();
             await AuditChecksAsync(dir);
             await RegexExplainChecksAsync(dir);
+            await RegexParityChecksAsync(dir);
             await RunNumberFieldsAsync();
             await McChecksAsync();
             await Lane4ChecksAsync(dir);
             await UpdateChecksAsync(dir);
             TotpQrChecks();
+            ClipCodeChecks(dir);
+            InstallParserChecks();
+            await InstallToastChecksAsync();
+            await TextToastChecksAsync();
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>

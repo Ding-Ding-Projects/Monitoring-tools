@@ -97,6 +97,16 @@ namespace MonitoringTools.UI
         {
             var w = new ToastWindow();
             w.SetAccent(Mint, Ui.C("C.MintWash"));
+            TextToastEditor editor = null;
+            if (item.Kind == ClipKind.Install)
+            {
+                // A copied install command: its own card, with its own states (offer, refused, installing, installed, declined).
+                var card = new InstallToast(w, item);
+                card.Offer();
+                w.StartTimer(card.OfferSeconds);
+                Present(w);
+                return w;
+            }
             switch (item.Kind)
             {
                 case ClipKind.Url: Url(w, item); break;
@@ -111,15 +121,26 @@ namespace MonitoringTools.UI
                 case ClipKind.Image: Bitmap(w, item); break;
                 case ClipKind.Audio: AudioBody(w, item); break;
                 default:
-                    w.SetHeader(Icons.Text, "Text", Counts(item.Text));
-                    w.SetBody(PlainText(item.Text));
+                    // Plain text is edited in place: the toast shows the text in a field that stays quiet until it is clicked.
+                    if (item.Kind == ClipKind.Text)
+                    {
+                        editor = new TextToastEditor(w, item);
+                        w.SetHeader(Icons.Text, "Copied text", TextToastEditor.Counts(item.Text));
+                        w.SetBody(editor.Build());
+                    }
+                    else { w.SetHeader(Icons.Text, "Text", Counts(item.Text)); w.SetBody(PlainText(item.Text)); }
                     break;
             }
-            w.SetActions(ActionProvider.For(item));
+            var offered = ActionProvider.For(item);
+            if (editor != null) { editor.Decorate(offered); w.SetActions(offered); editor.ApplyIdleHeader(); }
+            else w.SetActions(offered);
             w.StartTimer(Settings.Current.ToastSeconds);
             Present(w);
             return w;
         }
+
+        /// <summary>Automatic mode: the command with a visible countdown and a Cancel button. Returns null (and runs nothing) when the toast could not be shown.</summary>
+        internal InstallToast ShowAutoInstall(ClipItem item) => InstallToast.ShowAuto(this, item, w => { Present(w); return w.IsVisible && !w.IsClosing; });
 
         private static string Counts(string t)
         {
@@ -301,6 +322,14 @@ namespace MonitoringTools.UI
             var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             info.Children.Add(Ui.Mono($"{img.PixelWidth} × {img.PixelHeight} px", Ui.Res("B.Text"), 12));
             info.Children.Add(Ui.Text("Bitmap on the clipboard. Drag the preview out to drop it as a PNG file."));
+            foreach (var code in CodeScanner.Scan(img).Take(3))
+            {
+                info.Children.Add(new TextBlock { Text = code.Kind, FontSize = 12, Foreground = Ui.Res("B.Mint"), Margin = new Thickness(0, 6, 0, 0), FontFamily = Ui.Font("F.Body") });
+                var body = Ui.Mono(ActionProvider.Preview(code.Text), Ui.Res("B.Text"), 13);
+                body.TextWrapping = TextWrapping.Wrap; body.MaxHeight = 60;
+                Core.Language.SetLiteral(body, true);   // the code's own text is data, never translated
+                info.Children.Add(body);
+            }
             Grid.SetColumn(info, 1);
             row.Children.Add(info);
             w.SetBody(row);

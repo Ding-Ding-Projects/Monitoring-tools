@@ -31,6 +31,9 @@ namespace MonitoringTools.UI
         private Color _accent;
         private readonly List<(ToastAction Action, Button Button)> _actionButtons = new List<(ToastAction, Button)>();
         private bool _menuOpen;
+        /// <summary>The action buttons in the order they are shown, for keyboard handling and checks.</summary>
+        internal IEnumerable<Button> ActionButtons => _actionButtons.Select(x => x.Button).ToList();
+        internal Button CloseButton => CloseBtn;
 
         /// <summary>Toasts are not shown until this moment passes. Set from the toast menu; it lasts until the app closes.</summary>
         public static DateTime PausedUntil { get; private set; } = DateTime.MinValue;
@@ -43,6 +46,7 @@ namespace MonitoringTools.UI
             InitializeComponent();
             _accent = Ui.C("C.Mint");
             SourceInitialized += (s, e) => Native.MakeToolWindow(this, noActivate: true);
+            PreviewKeyDown += OnToastKey;
             MouseEnter += (s, e) => OnHover(true);
             MouseLeave += (s, e) => OnHover(false);
             _tick.Tick += (s, e) => Tick();
@@ -136,12 +140,13 @@ namespace MonitoringTools.UI
             {
                 var style = a.Chip ? "Btn.Chip" : a.Primary ? "Btn.Accent" : "Btn.Ghost";
                 var b = Ui.Button(a.Label, null, style, a.Chip ? null : a.Icon);
+                if (!string.IsNullOrEmpty(a.KeyHint)) AddKeyHint(b, a);
                 b.Click += (s, e) => RunAction(b, a);
                 _actionButtons.Add((a, b));
                 if (!string.IsNullOrEmpty(a.Tip))
                 {
                     b.MouseEnter += (s, e) => TipText.Text = a.Tip;
-                    b.MouseLeave += (s, e) => TipText.Text = "";
+                    b.MouseLeave += (s, e) => TipText.Text = TipDefault ?? "";
                 }
                 return b;
             }
@@ -166,6 +171,50 @@ namespace MonitoringTools.UI
             }
         }
 
+        // A small key cap inside the button ("Ctrl+Enter"), so the shortcut is visible where it is used.
+        private static void AddKeyHint(Button b, ToastAction a)
+        {
+            if (!(b.Content is StackPanel sp)) { sp = new StackPanel { Orientation = Orientation.Horizontal }; sp.Children.Add(new TextBlock { Text = a.Label, VerticalAlignment = VerticalAlignment.Center }); b.Content = sp; }
+            var cap = Ui.Mono(a.KeyHint, a.Primary ? Ui.Res("B.MintInk") : Ui.Res("B.TextSoft"), 11);
+            Core.Language.SetLiteral(cap, true);
+            sp.Children.Add(new Border
+            {
+                Margin = new Thickness(10, 0, 0, 0), Padding = new Thickness(6, 1, 6, 2), CornerRadius = new CornerRadius(6), VerticalAlignment = VerticalAlignment.Center,
+                Background = new SolidColorBrush(Color.FromArgb(a.Primary ? (byte)0x22 : (byte)0x40, 0, 0, 0)), Child = cap
+            });
+        }
+
+        // -------------------------------------------------------------- focus on request
+
+        /// <summary>The line shown under the buttons when no button is hovered, for example "Nothing runs until you press Install."</summary>
+        public string TipDefault { get => _tipDefault; set { _tipDefault = value; TipText.Text = value ?? ""; } }
+        private string _tipDefault;
+
+        private bool _focusHeld;
+        /// <summary>Lets a toast see key presses before its buttons do (for example Esc or Ctrl+Enter in an editable body). Return true to say the key was used.</summary>
+        public Func<KeyEventArgs, bool> KeyHook { get; set; }
+        /// <summary>True while the toast has been made activatable and is holding its timer for typing.</summary>
+        public bool FocusHeld => _focusHeld;
+
+        /// <summary>A toast never takes focus on its own. After the person clicks into its text it becomes activatable, takes focus there, and holds its countdown.</summary>
+        public void TakeFocusHeld()
+        {
+            if (IsClosing) return;
+            Native.SetNoActivate(this, false);
+            _focusHeld = true;
+            Ui.Fade(Held, 1, 160); Ui.Fade(WhenText, 0, 120);
+            try { Activate(); } catch { }
+        }
+
+        /// <summary>Gives the toast back its quiet behaviour and restarts the countdown.</summary>
+        public void ReleaseFocusHeld(double seconds)
+        {
+            _focusHeld = false;
+            Native.SetNoActivate(this, true);
+            Ui.Fade(Held, 0, 160); Ui.Fade(WhenText, 1, 160);
+            StartTimer(seconds);
+        }
+
         /// <summary>Show the action row from the start (used by prompts and finished jobs).</summary>
         public void ExpandNow()
         {
@@ -179,6 +228,7 @@ namespace MonitoringTools.UI
             try
             {
                 a.Run?.Invoke();
+                if (a.Stay) return;
                 if (a.HandsOff) { CloseAnimated(); return; }
                 Sounds.Play(Cue.Success);
                 b.Content = new StackPanel
@@ -230,7 +280,7 @@ namespace MonitoringTools.UI
 
         private void Tick()
         {
-            if (_menuOpen) { _deadline += _tick.Interval; return; }
+            if (_menuOpen || _focusHeld) { _deadline += _tick.Interval; return; }
             if (_paused || IsClosing) return;
             var left = _deadline - DateTime.UtcNow;
             TimerScale.ScaleX = Math.Clamp(left.TotalSeconds / _seconds, 0, 1);
@@ -246,7 +296,7 @@ namespace MonitoringTools.UI
             Ui.Fade(Halo, over ? 0.12 : 0, 200);
             Ui.Fade(CloseBtn, over ? 1 : 0, 160);
 
-            if (!_persistent && hold)
+            if (!_persistent && hold && !_focusHeld)
             {
                 if (over)
                 {
@@ -307,6 +357,13 @@ namespace MonitoringTools.UI
         private static bool Still => Core.Appearance.ReduceMotion || Core.Modes.ReduceMotion;
 
         private void OnCloseClick(object sender, RoutedEventArgs e) => CloseAnimated();
+
+        // Esc anywhere in an active toast dismisses it unless its body used the key first (the text editor's Esc reverts).
+        private void OnToastKey(object sender, KeyEventArgs e)
+        {
+            if (KeyHook != null && KeyHook(e)) { e.Handled = true; return; }
+            if (e.Key == Key.Escape && !IsClosing) { e.Handled = true; CloseAnimated(); }
+        }
 
         public void SlideTo(double top)
         {

@@ -88,6 +88,22 @@ namespace MonitoringTools.Core
             SetWindowLongPtr64(hwnd, GWL_EXSTYLE, new IntPtr(ex));
         }
 
+        /// <summary>Turns the "never takes focus" style of a toast on or off, for a toast that must accept typing after a click.</summary>
+        public static void SetNoActivate(Window w, bool on)
+        {
+            var hwnd = new WindowInteropHelper(w).Handle;
+            if (hwnd == IntPtr.Zero) return;
+            long ex = GetWindowLongPtr64(hwnd, GWL_EXSTYLE).ToInt64();
+            ex = on ? ex | WS_EX_NOACTIVATE : ex & ~(long)WS_EX_NOACTIVATE;
+            SetWindowLongPtr64(hwnd, GWL_EXSTYLE, new IntPtr(ex));
+        }
+
+        public static bool IsNoActivate(Window w)
+        {
+            var hwnd = new WindowInteropHelper(w).Handle;
+            return hwnd != IntPtr.Zero && (GetWindowLongPtr64(hwnd, GWL_EXSTYLE).ToInt64() & WS_EX_NOACTIVATE) != 0;
+        }
+
         public static void ForceTopmost(Window w)
         {
             var hwnd = new WindowInteropHelper(w).Handle;

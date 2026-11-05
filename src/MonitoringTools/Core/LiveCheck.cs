@@ -190,6 +190,7 @@ namespace MonitoringTools.Core
 
         private static async Task<string> Forge(string dir)
         {
+            if (string.Equals(Environment.GetEnvironmentVariable("MT_LIVE_FORGE_KIND"), "github", StringComparison.OrdinalIgnoreCase)) return await ForgeGitHub(dir);
             var url = Environment.GetEnvironmentVariable("MT_LIVE_FORGE_URL");
             var token = Environment.GetEnvironmentVariable("MT_LIVE_FORGE_TOKEN");
             var owner = Environment.GetEnvironmentVariable("MT_LIVE_FORGE_OWNER");
@@ -229,6 +230,39 @@ namespace MonitoringTools.Core
             }
             if (body == null) return "the server never returned the pushed README";
             return body.Contains("Published by the Monitoring Tools live check.") ? null : "the pushed README was not found on the server";
+        }
+
+        /// <summary>MT_LIVE_FORGE_KIND=github: publishes a PRIVATE repository with the signed-in GitHub CLI (no token here) under
+        /// MT_LIVE_FORGE_OWNER and reads the README back through gh. The repository name is written to github-repo.txt so the
+        /// caller can delete it; this check never deletes anything itself.</summary>
+        private static async Task<string> ForgeGitHub(string dir)
+        {
+            var owner = Environment.GetEnvironmentVariable("MT_LIVE_FORGE_OWNER");
+            if (string.IsNullOrEmpty(owner)) throw new Skip("No GitHub owner was given (MT_LIVE_FORGE_OWNER).");
+            var gh = ForgePublish.GhPath();
+            if (gh == null) throw new Skip("The GitHub CLI is not installed.");
+            var folder = Path.Combine(Settings.DataDir, "forge-live-github");
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder, "README.md"), "# Live check\n\nPublished by the Monitoring Tools live check.\n");
+            var name = "monitoring-tools-live-check-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            File.WriteAllText(Path.Combine(dir, "github-repo.txt"), owner + "/" + name);
+            var steps = new List<string>();
+            var plan = new ForgePlan { Folder = folder, Owner = owner, Name = name, Private = true, CreateRepository = true, Push = true, Kind = ForgeKind.GitHub };
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+            var r = await ForgePublish.PublishAsync(plan, (i, state, text) => steps.Add($"{i}:{state}:{text}"), cts.Token);
+            File.WriteAllText(Path.Combine(dir, "forge-steps.txt"), string.Join(Environment.NewLine, steps));
+            if (!r.Ok) return "publish failed (" + r.Failure + "): " + r.Summary;
+            foreach (var wait in new[] { 0, 2, 4, 8 })
+            {
+                await Task.Delay(wait * 1000);
+                var psi = new System.Diagnostics.ProcessStartInfo(gh) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
+                foreach (var a in new[] { "api", $"repos/{owner}/{name}/contents/README.md", "-H", "Accept: application/vnd.github.raw" }) psi.ArgumentList.Add(a);
+                using var p = System.Diagnostics.Process.Start(psi);
+                var body = await p.StandardOutput.ReadToEndAsync();
+                p.WaitForExit(20000);
+                if (p.ExitCode == 0 && body.Contains("Published by the Monitoring Tools live check.")) return null;
+            }
+            return "GitHub never returned the pushed README";
         }
 
         // ------------------------------------------------------------------ Minecraft

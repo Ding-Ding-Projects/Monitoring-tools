@@ -25,12 +25,13 @@ namespace MonitoringTools.UI.Search
     /// </summary>
     public sealed partial class RegexBuilderPopup
     {
-        public static readonly string[] Tabs = { "Build", "Test", "Debug", "Compare", "Benchmark", "Replace", "Files", "Code", "Library" };
+        public static readonly string[] Tabs = { "Build", "Test", "Debug", "Compare", "Benchmark", "Replace", "Files", "Code", "Library", "Help" };
 
         private readonly SearchField _field;
         private readonly SearchState _s;
         private readonly Popup _popup;
         private readonly Border _card;
+        private readonly ScrollViewer _scroll;
         private readonly TextBox _pattern;
         private readonly TextBlock _status, _engine;
         private readonly Border _risk;
@@ -74,6 +75,10 @@ namespace MonitoringTools.UI.Search
         /// <summary>The builder's surface, for the screenshot run, which renders popups separately from their window.</summary>
         public FrameworkElement Card => _card;
         public bool IsOpen => _popup.IsOpen;
+        internal TextBox PatternBox => _pattern;
+        internal RegexTree.Result CurrentTree => _tree;
+        internal string Tab => _tab;
+        internal StackPanel EditorPanel => _editor;
 
         public RegexBuilderPopup(SearchField field)
         {
@@ -141,12 +146,13 @@ namespace MonitoringTools.UI.Search
             stack.Children.Add(_body);
             stack.Children.Add(foot);
 
+            _scroll = new ScrollViewer { Content = stack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 620 };
             _card = new Border
             {
                 Background = Ui.Res("B.Raised"), BorderBrush = Brushes.Transparent, BorderThickness = new Thickness(0), CornerRadius = new CornerRadius(28),
                 Padding = new Thickness(24, 20, 24, 20), Margin = new Thickness(0, 0, 24, 24),
                 Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"],
-                Child = new ScrollViewer { Content = stack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 620 }
+                Child = _scroll
             };
             AutomationProperties.SetName(_card, "Regex builder for " + field.Label);
             _card.PreviewKeyDown += (o, e) => { if (e.Key == Key.Escape) { e.Handled = true; Close(); } };
@@ -177,12 +183,22 @@ namespace MonitoringTools.UI.Search
         {
             if (_popup.IsOpen) { if (tab != null) Show(tab); return; }
             if ((DateTime.UtcNow - _closedAt).TotalMilliseconds < 250) return; // the click that closed it should not reopen it
-            _card.Width = Math.Max(_field.Bar.ActualWidth, 680);
+            _detailed = Settings.Current.RegexDetailedByDefault;
+            ApplyPreferences();
             _popup.IsOpen = true;
-            Show(tab ?? _tab);
+            Show(tab ?? StartTab());
             Refresh(null);
             _pattern.Focus();
             _pattern.CaretIndex = _pattern.Text.Length;
+        }
+
+
+        /// <summary>The view chosen in the builder preferences, unless that view has been hidden.</summary>
+        private static string StartTab()
+        {
+            var s = Settings.Current;
+            var t = string.IsNullOrEmpty(s.RegexDefaultTab) ? "Build" : s.RegexDefaultTab;
+            return Tabs.Contains(t) && !(s.RegexHiddenTabs ?? new List<string>()).Contains(t) ? t : "Build";
         }
 
         public void Close() { if (_popup.IsOpen) _popup.IsOpen = false; }
@@ -217,7 +233,8 @@ namespace MonitoringTools.UI.Search
                 case "Benchmark": StaleBench(); break;
                 case "Replace": RunReplace(); break;
                 case "Files": FilesStale(); break;
-                case "Code": if (_code != null) _code.Text = RegexKit.Code(_language, _s.Query, _s.EngineOptions); break;
+                case "Code": UpdateCode(); break;
+                case "Help": RenderHelp(); break;
             }
         }
 
@@ -236,6 +253,7 @@ namespace MonitoringTools.UI.Search
                 "Files" => FilesView(),
                 "Code" => CodeView(),
                 "Library" => LibraryView(),
+                "Help" => HelpView(),
                 _ => BuildView(),
             };
             Refresh(null);
@@ -347,6 +365,7 @@ namespace MonitoringTools.UI.Search
             AutomationProperties.SetName(_sample, "Sample text to test the pattern against");
             _sample.TextChanged += (o, e) => { _s.Sample = _sample.Text; RunTest(); };
             sp.Children.Add(_sample);
+            sp.Children.Add(SampleTools());
             _testSummary = Ui.Mono("", Ui.Res("B.TextMute"), 11);
             sp.Children.Add(_testSummary);
             var cols = new Grid { Margin = new Thickness(0, 8, 0, 0) };
@@ -376,7 +395,8 @@ namespace MonitoringTools.UI.Search
             _matchList.Children.Clear(); _groupTable.Children.Clear();
             var rx = _s.Regex;
             if (rx == null) { _testSummary.Text = _s.Error != null ? "Fix the pattern to test it." : "Type a pattern to test it."; return; }
-            var run = RegexKit.Test(rx, _sample.Text);
+            var run = RegexSample.Run(rx, _sample.Text, _scope);
+            UpdateHex(); RefreshSampleInfo();
             _testSummary.Text = $"{run.Matches.Count} match(es) · {run.Milliseconds:0.00} ms measured" + (run.TimedOut ? " · stopped at the 200 ms limit" : "") + (run.Truncated ? " · capped" : "");
             _testSummary.Foreground = run.TimedOut ? Ui.Res("B.Amber") : Ui.Res("B.TextMute");
             if (_selected >= run.Matches.Count) _selected = 0;
@@ -384,7 +404,8 @@ namespace MonitoringTools.UI.Search
             {
                 var m = run.Matches[i];
                 var idx = i;
-                var label = m.Length == 0 ? $"#{i + 1} at {m.Index}: empty match" : $"#{i + 1} at {m.Index}: {Shorten(m.Value)}";
+                var where = _scope == "Whole text" ? "at " + m.Index : "line " + RegexSample.LineColumn(_sample.Text, m.Index).Line + ", at " + m.Index;
+                var label = m.Length == 0 ? $"#{i + 1} {where}: empty match" : $"#{i + 1} {where}: {Shorten(m.Value)}";
                 var b = Ui.Button(label, () => { _selected = idx; Select(run); }, "Btn.Row");
                 b.HorizontalContentAlignment = HorizontalAlignment.Left; b.FontFamily = Ui.Font("F.Mono"); b.FontSize = 12; b.Margin = new Thickness(0, 0, 0, 2);
                 if (i == _selected) b.Background = Ui.Res("B.MintWash");
@@ -478,7 +499,7 @@ namespace MonitoringTools.UI.Search
         {
             var sp = new StackPanel();
             sp.Children.Add(Eyebrow("Step-by-step trace"));
-            sp.Children.Add(Note("A small built-in interpreter replays one match attempt of the default backtracking engine. It covers literals, classes, anchors, word boundaries, groups, alternation, greedy and lazy repeats and backreferences. Before a trace is shown it is checked against the real .NET engine on the same subject; if they disagree, or the pattern uses something the interpreter does not cover, you are told and nothing is faked."));
+            sp.Children.Add(Note("A small built-in interpreter replays one match attempt of the default backtracking engine. It covers literals, classes (including Unicode categories), anchors, word boundaries, groups, look-ahead and look-behind, atomic groups, alternation, greedy and lazy repeats and backreferences. Before a trace is shown the match and every capture group are checked against the real .NET engine on the same subject; if they disagree, or the pattern uses something the interpreter does not cover, you are told and nothing is faked."));
             sp.Children.Add(Eyebrow("Subject to trace (first " + RegexTrace.MaxSubject + " characters)"));
             _dbgSubjectText ??= DefaultSubject(300);
             _dbgSubject = SubjectBox("Subject text for the step-by-step trace", _dbgSubjectText, 54);
@@ -641,7 +662,7 @@ namespace MonitoringTools.UI.Search
         {
             var sp = new StackPanel();
             sp.Children.Add(Eyebrow("Compare the .NET engine modes"));
-            sp.Children.Add(Note("Runs the pattern over the sample in each mode this runtime really has: the default backtracking engine, the non-backtracking engine, ECMAScript mode and compiled. Each result shows whether the mode accepts the pattern, the match count, the first difference from the default engine and the time of one run. Other languages' engines (PCRE, Java, JavaScript, Python and so on) are not available in this app, so no comparison with them is possible here."));
+            sp.Children.Add(Note("Runs the pattern over the sample in each mode this runtime really has: the default backtracking engine, the non-backtracking engine, ECMAScript mode and compiled. Each result shows whether the mode accepts the pattern, the match count, the first difference from the default engine and the time of one run. Engines outside .NET are compared further down."));
             var run = Ui.Button("Run comparison", RunCompare, "Btn.Accent");
             run.ToolTip = "Run the pattern over the sample in every available .NET mode";
             run.HorizontalAlignment = HorizontalAlignment.Left;
@@ -651,6 +672,7 @@ namespace MonitoringTools.UI.Search
             sp.Children.Add(_cmpStatus);
             _cmpResults = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
             sp.Children.Add(_cmpResults);
+            sp.Children.Add(EnginesPanel());
             return sp;
         }
 
@@ -747,6 +769,7 @@ namespace MonitoringTools.UI.Search
             sp.Children.Add(_benchStatus);
             _benchResults = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
             sp.Children.Add(_benchResults);
+            sp.Children.Add(BenchmarkExtras());
             return sp;
         }
 
@@ -786,6 +809,7 @@ namespace MonitoringTools.UI.Search
                     if (t.IsCanceled || ct.IsCancellationRequested || (t.Exception != null && t.Exception.InnerExceptions.Any(x => x is OperationCanceledException))) { _benchStatus.Text = "Cancelled. No results are shown for a cancelled run."; return; }
                     if (t.IsFaulted) { _benchStatus.Text = "The benchmark could not finish."; return; }
                     _benchStatus.Text = "Done. Times are the mean of repeated runs for fast cases and a single run otherwise; they vary between runs.";
+                    _lastBench = results.FirstOrDefault(r => !r.Skipped) ?? results.FirstOrDefault();
                     foreach (var r in results) _benchResults.Children.Add(BenchRow(r));
                 }));
             });
@@ -828,10 +852,10 @@ namespace MonitoringTools.UI.Search
                 sp.Children.Add(_replacement);
                 var tokens = new WrapPanel();
                 var names = _s.Regex?.GetGroupNames().Where(n => !int.TryParse(n, out _)).Select(n => "${" + n + "}") ?? Enumerable.Empty<string>();
-                foreach (var t in new[] { "$0", "$1", "$2" }.Concat(names).Concat(new[] { "$$", "$`", "$'", "$_" }))
+                foreach (var t in new[] { "$0", "$1", "$2", "$&", "$+" }.Concat(names).Concat(new[] { "$$", "$`", "$'", "$_" }))
                 {
                     var tok = t;
-                    var b = Chip(t, t switch { "$0" => "the whole match", "$$" => "a dollar sign", "$`" => "the text before the match", "$'" => "the text after the match", "$_" => "the whole input", _ => "a group" },
+                    var b = Chip(t, t switch { "$0" => "the whole match", "$&" => "the whole match, another spelling of $0", "$+" => "the last group that matched", "$$" => "a dollar sign", "$`" => "the text before the match", "$'" => "the text after the match", "$_" => "the whole input", _ => "a group" },
                         () => { var c = _replacement.CaretIndex; _replacement.Text = _replacement.Text.Insert(c, tok); _replacement.CaretIndex = c + tok.Length; _replacement.Focus(); });
                     b.FontFamily = Ui.Font("F.Mono");
                     tokens.Children.Add(b);
@@ -877,30 +901,7 @@ namespace MonitoringTools.UI.Search
 
         // ---------------------------------------------------------------- Code
 
-        private FrameworkElement CodeView()
-        {
-            var sp = new StackPanel();
-            var langs = new WrapPanel();
-            foreach (var l in RegexKit.CodeLanguages)
-            {
-                var lang = l;
-                var b = Chip(l, "Generate " + l, () => { _language = lang; Show("Code"); });
-                Paint(b, l == _language);
-                langs.Children.Add(b);
-            }
-            sp.Children.Add(langs);
-            _code = new TextBox
-            {
-                Style = Ui.Style("Input"), FontFamily = Ui.Font("F.Mono"), FontSize = 12, IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap,
-                MinHeight = 110, VerticalContentAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 4, 0, 8), Text = RegexKit.Code(_language, _s.Query, _s.EngineOptions)
-            };
-            AutomationProperties.SetName(_code, "Generated code");
-            sp.Children.Add(_code);
-            var copy = Ui.Button("Copy code", () => ClipboardWatcher.SetText(_code.Text), "Btn.Ghost");
-            copy.HorizontalAlignment = HorizontalAlignment.Left;
-            sp.Children.Add(copy);
-            return sp;
-        }
+        private FrameworkElement CodeView() => CodeViewFull();
 
         // ---------------------------------------------------------------- Library
 
@@ -916,12 +917,23 @@ namespace MonitoringTools.UI.Search
             sp.Children.Add(Eyebrow("Save the current pattern"));
             var name = new TextBox { Style = Ui.Style("Input"), Margin = new Thickness(0, 4, 0, 6) };
             AutomationProperties.SetName(name, "Name for the saved pattern");
+            var desc = new TextBox { Style = Ui.Style("Input"), Margin = new Thickness(0, 0, 0, 6), Text = _libDesc };
+            AutomationProperties.SetName(desc, "Description of the saved pattern");
+            desc.TextChanged += (o, e) => _libDesc = desc.Text;
+            var parms = new TextBox { Style = Ui.Style("Input"), FontFamily = Ui.Font("F.Mono"), AcceptsReturn = true, Height = 54, VerticalContentAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 0, 0, 6), Text = _libParams };
+            AutomationProperties.SetName(parms, "Parameters of the saved pattern, one name=default per line");
+            parms.ToolTip = "One parameter per line as name=default. Write {{name}} in the pattern where its value goes.";
+            parms.TextChanged += (o, e) => _libParams = parms.Text;
+            var libMsg = new TextBlock { FontSize = 11, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body") };
+            AutomationProperties.SetLiveSetting(libMsg, AutomationLiveSetting.Polite);
             var save = Ui.Button("Save", () =>
             {
                 if (_s.Query.Length == 0 || _s.Error != null) return;
                 var n = string.IsNullOrWhiteSpace(name.Text) ? _s.Query : name.Text.Trim();
+                var plist = RegexLibrary.ParseParameters(_libParams, out var problems);
+                if (problems.Count > 0) { libMsg.Text = string.Join(" ", problems); libMsg.Foreground = Ui.Res("B.Amber"); return; }
                 lib.RemoveAll(p => p.Name == n);
-                lib.Insert(0, new SavedPattern { Name = n, Pattern = _s.Query, Options = (int)_s.EngineOptions, Replacement = _s.Replacement ?? "" });
+                lib.Insert(0, new SavedPattern { Name = n, Pattern = _s.Query, Options = (int)_s.EngineOptions, Replacement = _s.Replacement ?? "", Description = _libDesc ?? "", Parameters = plist });
                 Settings.Current.RegexPatternTests ??= new Dictionary<string, List<RegexTestCase>>();
                 if (_s.TestCases.Count > 0) Settings.Current.RegexPatternTests[n] = _s.TestCases.Select(t => new RegexTestCase { Text = t.Text, ShouldMatch = t.ShouldMatch }).ToList();
                 else Settings.Current.RegexPatternTests.Remove(n);
@@ -932,9 +944,16 @@ namespace MonitoringTools.UI.Search
             var row = new DockPanel();
             DockPanel.SetDock(save, Dock.Right); row.Children.Add(save); row.Children.Add(name);
             sp.Children.Add(row);
+            sp.Children.Add(desc);
+            sp.Children.Add(parms);
+            sp.Children.Add(libMsg);
 
-            sp.Children.Add(Eyebrow($"Saved · {lib.Count}"));
+            var shown = RegexLibrary.Search(lib, _libQuery, _libRegex, out var searchError);
+            sp.Children.Add(Eyebrow(shown.Count == lib.Count ? $"Saved · {lib.Count}" : $"Saved · {shown.Count} of {lib.Count}"));
+            if (lib.Count > 0) sp.Children.Add(LibrarySearchBar(() => { _libFocusSearch = true; Show("Library"); }));
+            if (searchError != null) sp.Children.Add(Ui.Mono(searchError, Ui.Res("B.Amber"), 11));
             if (lib.Count == 0) sp.Children.Add(Ui.Mono("Nothing saved yet.", Ui.Res("B.TextMute"), 12));
+            else if (shown.Count == 0) sp.Children.Add(Ui.Mono("No saved pattern matches the search.", Ui.Res("B.TextMute"), 12));
             else sp.Children.Add(_libBulk.Bar(new[]
             {
                 new BulkAction<SavedPattern> { Label = "Export selected…", Hint = "Save only the chosen patterns, with their expected outcomes, to a JSON file the Import button can read back.",
@@ -950,19 +969,37 @@ namespace MonitoringTools.UI.Search
                         });
                     } },
             }));
-            foreach (var p in lib.ToList())
+            _libParamBoxes.Clear();
+            foreach (var p in shown.ToList())
             {
                 var item = p;
                 var line = new DockPanel { Margin = new Thickness(0, 2, 0, 2) };
                 var del = Ui.Button("Remove", () => { lib.Remove(item); Settings.Current.RegexPatternTests?.Remove(item.Name); Settings.Save(); Show("Library"); }, "Btn.Ghost");
                 del.Margin = new Thickness(6, 0, 0, 0);
-                var use = Ui.Button("Use", () => _s.Load(item, this), "Btn.Ghost");
+                var use = Ui.Button("Use", () => UseSaved(item), "Btn.Ghost");
                 use.Margin = new Thickness(6, 0, 0, 0);
                 DockPanel.SetDock(del, Dock.Right); line.Children.Add(del);
                 DockPanel.SetDock(use, Dock.Right); line.Children.Add(use);
                 var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
                 text.Children.Add(new TextBlock { Text = item.Name, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body") });
+                if (!string.IsNullOrWhiteSpace(item.Description)) { var dl = new TextBlock { Text = item.Description, FontSize = 11, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap }; Core.Language.SetLiteral(dl, true); text.Children.Add(dl); }
                 text.Children.Add(Ui.Mono(item.Pattern, Ui.Res("B.Mint"), 11));
+                var eff = RegexLibrary.EffectiveParameters(item);
+                if (eff.Count > 0)
+                {
+                    var boxes = new Dictionary<string, TextBox>();
+                    var pw = new WrapPanel();
+                    foreach (var prm in eff)
+                    {
+                        var pl = Ui.Mono(prm.Name + " =", Ui.Res("B.TextMute"), 11); pl.VerticalAlignment = VerticalAlignment.Center; pl.Margin = new Thickness(0, 0, 4, 4); Core.Language.SetLiteral(pl, true);
+                        var pt = new TextBox { Style = Ui.Style("Input"), FontFamily = Ui.Font("F.Mono"), Width = 120, Text = prm.Default ?? "", Margin = new Thickness(0, 0, 10, 4) };
+                        AutomationProperties.SetName(pt, "Value for parameter " + prm.Name + " of " + item.Name);
+                        boxes[prm.Name] = pt;
+                        pw.Children.Add(pl); pw.Children.Add(pt);
+                    }
+                    _libParamBoxes[item] = boxes;
+                    text.Children.Add(pw);
+                }
                 if (Settings.Current.RegexPatternTests != null && Settings.Current.RegexPatternTests.TryGetValue(item.Name ?? "", out var tl) && tl.Count > 0)
                     text.Children.Add(Ui.Mono($"{tl.Count} expected outcome(s) saved with it", Ui.Res("B.TextMute"), 11));
                 line.Children.Add(text);
@@ -1003,13 +1040,27 @@ namespace MonitoringTools.UI.Search
             return sp;
         }
 
+        private string _libDesc = "", _libParams = "";
+        private bool _libFocusSearch;
+
+        /// <summary>Loads a saved pattern into the pattern box, with its parameters filled from the boxes beside it (or their defaults).</summary>
+        internal void UseSaved(SavedPattern item)
+        {
+            var values = new Dictionary<string, string>();
+            if (_libParamBoxes.TryGetValue(item, out var boxes)) foreach (var kv in boxes) values[kv.Key] = kv.Value.Text;
+            var expanded = RegexLibrary.Expand(item, values, out var unfilled);
+            var copy = new SavedPattern { Name = item.Name, Pattern = expanded, Options = item.Options, Replacement = item.Replacement, Description = item.Description, Parameters = item.Parameters };
+            _s.Load(copy, this);
+            if (unfilled.Count > 0) _status.Text = "No value for: " + string.Join(", ", unfilled) + ". The placeholder stays in the pattern.";
+        }
+
         private void Export(IEnumerable<SavedPattern> patterns)
         {
             var d = new Microsoft.Win32.SaveFileDialog { FileName = "regex-library.json", Filter = "JSON|*.json" };
             if (d.ShowDialog() != true) return;
             File.WriteAllText(d.FileName, JsonSerializer.Serialize(patterns.Select(p => new
             {
-                p.Name, p.Pattern, p.Options, p.Replacement,
+                p.Name, p.Pattern, p.Options, p.Replacement, p.Description, p.Parameters,
                 Tests = Settings.Current.RegexPatternTests != null && Settings.Current.RegexPatternTests.TryGetValue(p.Name ?? "", out var tl) ? tl : new List<RegexTestCase>()
             }).ToList(), new JsonSerializerOptions { WriteIndented = true }));
         }

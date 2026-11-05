@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trim, fade and loudness</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* Monitoring Tools, file tool dialogs. Roles mirror Theme.xaml (B.*); light values come from Appearance.cs (mint scheme). */
+.root{
+  --ground:#0A0F0D;--window:#0F1512;--surface:#1B211E;--raised:#262B28;--sunken:#303633;
+  --line:#404943;--linestrong:#89938C;--text:#DEE4DF;--textsoft:#BFC9C2;--textmute:#89938C;
+  --mint:#6FDBB4;--mintink:#003827;--mintwash:#00513A;--onpc:#8CF8CF;
+  --secc:#354B41;--onsecc:#CFE9DB;--terc:#244C5D;--onterc:#C2E8FD;
+  --amber:#FFB95F;--amberink:#462A00;--amberwash:#3B2A12;--danger:#FFB4AB;--dangerwash:#93000A;--ondanger:#FFDAD6;
+  --shadow:0 10px 32px rgba(0,0,0,.42);
+  color-scheme:dark;
+}
+.root.light{
+  --ground:#FFFFFF;--window:#F5FBF6;--surface:#E9EFEA;--raised:#E4EAE5;--sunken:#DEE4DF;
+  --line:#BFC9C2;--linestrong:#707973;--text:#171D1A;--textsoft:#404943;--textmute:#5E6761;
+  --mint:#006C4F;--mintink:#FFFFFF;--mintwash:#8CF8CF;--onpc:#002116;
+  --secc:#CFE9DB;--onsecc:#09201A;--terc:#C2E8FD;--onterc:#001F2A;
+  --amber:#855300;--amberink:#FFFFFF;--amberwash:#FFDDB8;--danger:#BA1A1A;--dangerwash:#FFDAD6;--ondanger:#410002;
+  --shadow:0 10px 32px rgba(23,29,26,.22);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+.root{margin:0}
+.root{background:var(--ground);color:var(--text);font-family:'Roboto','Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.4}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i.s{width:16px;height:16px}
+svg.i.l{width:24px;height:24px}
+.mono{font-family:'Roboto Mono',Consolas,monospace}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+
+/* artboard */
+.board{width:fit-content;min-width:1680px;padding:56px 64px 72px;display:flex;flex-direction:column;gap:32px}
+.bhead{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.bhead h1{margin:0;font-size:32px;font-weight:400;line-height:1.2}
+.bhead .num{color:var(--mint);font-weight:500}
+.bmeta{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.bmeta .tag{height:28px;padding:0 12px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;background:var(--surface);color:var(--textsoft);font-size:12px;font-weight:500}
+.theme-toggle{height:40px;padding:0 16px;border-radius:20px;background:var(--secc);color:var(--onsecc);display:inline-flex;align-items:center;gap:8px;font-weight:500;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(2,max-content);gap:40px 64px;align-items:start}
+.grid.one{grid-template-columns:max-content}
+.cell{display:flex;flex-direction:column;gap:12px}
+.cap{font-size:12px;font-weight:500;letter-spacing:.4px;color:var(--textmute);display:flex;gap:8px;align-items:center}
+.cap b{color:var(--textsoft);font-weight:500}
+
+/* the dialog (borderless window, raised card radius 28, padding 24 20 20 18) */
+.win{background:var(--raised);border-radius:28px;padding:20px 20px 18px 24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;position:relative}
+.wh{display:flex;align-items:flex-start;gap:14px}
+.tile{width:44px;height:44px;border-radius:14px;background:var(--terc);color:var(--onterc);display:grid;place-items:center;flex:none}
+.wt{flex:1;min-width:0}
+.wt .tool{font-size:20px;font-weight:500;line-height:1.25;margin:0}
+.wt .file{display:flex;gap:8px;align-items:baseline;font-size:13px;color:var(--textsoft);min-width:0;margin-top:2px}
+.wt .file b{font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+.wt .file span{white-space:nowrap}
+.xbtn{width:40px;height:40px;border-radius:20px;background:var(--secc);color:var(--onsecc);display:grid;place-items:center;flex:none}
+.wb{display:flex;flex-direction:column;gap:14px}
+.wf{display:flex;align-items:center;gap:8px;padding-top:2px}
+.wf .note{flex:1;min-width:0;font-size:13px;color:var(--textsoft)}
+.wf .note b{color:var(--text);font-weight:500}
+
+/* buttons: Btn.Accent, Btn.Ghost (tonal), Btn.Chip */
+.btn{height:40px;padding:0 20px;border-radius:20px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap;position:relative;overflow:hidden}
+.btn.acc{background:var(--mint);color:var(--mintink)}
+.btn.ghost{background:var(--secc);color:var(--onsecc)}
+.btn.text{padding:0 16px;color:var(--mint);border:1px solid var(--line)}
+.btn.danger{background:var(--dangerwash);color:var(--ondanger)}
+.btn[disabled]{background:color-mix(in srgb,var(--text) 12%,transparent);color:color-mix(in srgb,var(--text) 38%,transparent);cursor:default}
+.btn.sm{height:32px;padding:0 14px;font-size:13px;border-radius:16px}
+.chip{height:32px;padding:0 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--textsoft);border:1px solid var(--line);white-space:nowrap}
+.chip.on{background:var(--secc);color:var(--onsecc);border-color:transparent}
+.chip.xs{height:24px;padding:0 8px;font-size:12px;border-radius:6px}
+.badge{height:22px;padding:0 8px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;background:var(--sunken);color:var(--textsoft);white-space:nowrap}
+.badge.ok{background:var(--mintwash);color:var(--onpc)}
+.badge.warn{background:var(--amberwash);color:var(--amber)}
+.badge.bad{background:var(--dangerwash);color:var(--ondanger)}
+.badge.info{background:var(--terc);color:var(--onterc)}
+
+/* fields */
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font-size:12px;font-weight:500;color:var(--textsoft);letter-spacing:.3px}
+.in{height:42px;border-radius:10px;background:var(--sunken);border:1px solid var(--linestrong);padding:0 12px;display:flex;align-items:center;gap:8px;min-width:0;font-size:14px}
+.in .v{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.in .u{color:var(--textsoft);font-size:13px}
+.in.focus{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint)}
+.in.err{border-color:var(--danger)}
+.in.dis{opacity:.5}
+.hint{font-size:12px;color:var(--textsoft);line-height:1.35}
+.hint.err{color:var(--danger)}
+.hint.warn{color:var(--amber)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.seg{display:inline-flex;border:1px solid var(--linestrong);border-radius:20px;overflow:hidden;height:40px;align-self:flex-start}
+.seg>span{padding:0 16px;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--textsoft);border-left:1px solid var(--linestrong);white-space:nowrap}
+.seg>span:first-child{border-left:0}
+.seg>span.on{background:var(--secc);color:var(--onsecc)}
+.sw{display:flex;align-items:center;gap:12px;min-height:40px}
+.sw .t{flex:1;min-width:0}
+.sw .t b{font-weight:500;display:block;font-size:14px}
+.sw .t span{font-size:12px;color:var(--textsoft)}
+.tg{width:52px;height:32px;border-radius:16px;border:2px solid var(--linestrong);background:var(--sunken);position:relative;flex:none}
+.tg::after{content:"";position:absolute;left:6px;top:6px;width:16px;height:16px;border-radius:8px;background:var(--linestrong)}
+.tg.on{background:var(--mint);border-color:var(--mint)}
+.tg.on::after{left:25px;top:4px;width:24px;height:24px;border-radius:12px;background:var(--mintink)}
+.card{background:var(--surface);border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.kv{display:grid;grid-template-columns:132px 1fr;gap:6px 12px;font-size:13px;align-items:baseline}
+.kv dt{color:var(--textsoft);margin:0}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+dl.kv{margin:0}
+.banner{display:flex;gap:12px;border-radius:16px;padding:12px 14px;align-items:flex-start;font-size:13px;line-height:1.4}
+.banner b{font-weight:500;display:block;font-size:14px;margin-bottom:2px}
+.banner.ok{background:var(--mintwash);color:var(--onpc)}
+.banner.warn{background:var(--amberwash);color:var(--amber)}
+.banner.bad{background:var(--dangerwash);color:var(--ondanger)}
+.banner.info{background:var(--terc);color:var(--onterc)}
+.banner .grow{flex:1;min-width:0}
+.banner .btn{align-self:center}
+.prog{height:8px;border-radius:4px;background:var(--sunken);overflow:hidden}
+.prog>i{display:block;height:100%;background:var(--mint);border-radius:4px}
+.prog.ind>i{width:34%;margin-left:30%}
+.big{font-size:28px;font-weight:400;line-height:1.1;font-variant-numeric:tabular-nums}
+.sub{font-size:13px;color:var(--textsoft)}
+.mut{color:var(--textsoft)}
+.slider{position:relative;height:28px}
+.slider .tr{position:absolute;left:0;right:0;top:12px;height:4px;border-radius:2px;background:var(--sunken)}
+.slider .fi{position:absolute;left:0;top:12px;height:4px;border-radius:2px;background:var(--mint)}
+.slider .th{position:absolute;top:4px;width:20px;height:20px;border-radius:10px;background:var(--mint);margin-left:-10px}
+.sl-top{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}
+.sl-top b{font-weight:500}
+.sl-top span{color:var(--textsoft);font-variant-numeric:tabular-nums}
+
+/* lists and tables */
+.list{display:flex;flex-direction:column;border-radius:16px;background:var(--surface);overflow:hidden}
+.lr{display:grid;align-items:center;gap:12px;padding:0 14px;min-height:44px;font-size:13px;border-top:1px solid var(--line)}
+.lr:first-child{border-top:0}
+.lr.hd{min-height:36px;font-size:12px;font-weight:500;color:var(--textsoft);border-top:0}
+.lr.sel{background:var(--secc);color:var(--onsecc)}
+.lr .n{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:10px;align-items:center}
+.lr .n b{font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.lr .r{text-align:right;font-variant-numeric:tabular-nums;color:var(--textsoft)}
+.lr.sel .r{color:var(--onsecc)}
+.cb{width:20px;height:20px;border-radius:4px;border:2px solid var(--linestrong);display:grid;place-items:center;flex:none;color:var(--mintink)}
+.cb.on{background:var(--mint);border-color:var(--mint)}
+.cb svg{width:14px;height:14px;stroke-width:2.6}
+.rb{width:20px;height:20px;border-radius:10px;border:2px solid var(--linestrong);flex:none;position:relative}
+.rb.on{border-color:var(--mint)}
+.rb.on::after{content:"";position:absolute;inset:3px;border-radius:6px;background:var(--mint)}
+.thumb{width:36px;height:36px;border-radius:8px;flex:none}
+.pre{background:var(--sunken);border-radius:12px;padding:10px 12px;font-family:'Roboto Mono',Consolas,monospace;font-size:12px;line-height:1.55;white-space:pre;overflow:hidden;color:var(--text)}
+.hl{background:var(--amber);color:var(--amberink);border-radius:3px;padding:0 2px}
+.hlb{background:var(--danger);color:var(--window);border-radius:3px;padding:0 2px}
+.hlg{background:var(--mint);color:var(--mintink);border-radius:3px;padding:0 2px}
+.div{height:1px;background:var(--line);margin:2px 0}
+.sect{font-size:12px;font-weight:500;letter-spacing:.5px;color:var(--mint)}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:28px 16px;color:var(--textsoft)}
+.empty .tile{background:var(--surface);color:var(--textsoft);border-radius:22px;width:56px;height:56px}
+.empty b{font-size:16px;font-weight:500;color:var(--text)}
+.root{width:max-content;min-width:100%}
+</style>
+</helmet>
+<div class="root {{themeClass}}">
+<main class="board">
+  <header class="bhead"><h1><span class="num">3 ·</span> Trim, fade and loudness</h1><div class="bmeta"><span class="tag">Opens for .wav .mp3 .flac .m4a .ogg .aac</span><span class="tag">Engine: FFmpeg loudnorm, afade</span><button class="theme-toggle"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/></svg>Light or dark</button></div></header>
+  <div class="grid"><div class="cell"><div class="cap"><b>Ready</b></div><section class="win" role="dialog" aria-modal="true" aria-labelledby="t9" style="width:780px">
+  <header class="wh"><span class="tile"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h2M7 8v8M11 4v16M15 7v10M19 10v4"/></svg></span><div class="wt"><h2 class="tool" id="t9" style="margin:0">Trim, fade and loudness</h2><div class="file"><b>interview-take3.wav</b><span>4:36 · 48 kHz · stereo · 49 MB</span></div></div><button class="xbtn" aria-label="Close (Esc)"><svg class="i " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+  <div class="wb"><div class="card" style="padding:12px 14px"><svg viewBox="0 0 696 80" width="696" height="80" role="img" aria-label="Waveform with the selected part highlighted" style="display:block"><rect x="1.0" y="33.5" width="3.2" height="12.9" rx="1.6" fill="var(--linestrong)"/><rect x="7.0" y="26.6" width="3.2" height="26.7" rx="1.6" fill="var(--linestrong)"/><rect x="13.0" y="29.2" width="3.2" height="21.6" rx="1.6" fill="var(--linestrong)"/><rect x="19.0" y="25.5" width="3.2" height="29.1" rx="1.6" fill="var(--linestrong)"/><rect x="25.0" y="34.6" width="3.2" height="10.8" rx="1.6" fill="var(--linestrong)"/><rect x="31.0" y="25.2" width="3.2" height="29.6" rx="1.6" fill="var(--linestrong)"/><rect x="37.0" y="30.5" width="3.2" height="18.9" rx="1.6" fill="var(--linestrong)"/><rect x="43.0" y="34.0" width="3.2" height="12.1" rx="1.6" fill="var(--linestrong)"/><rect x="49.0" y="33.6" width="3.2" height="12.8" rx="1.6" fill="var(--mint)"/><rect x="55.0" y="21.6" width="3.2" height="36.8" rx="1.6" fill="var(--mint)"/><rect x="61.0" y="21.2" width="3.2" height="37.5" rx="1.6" fill="var(--mint)"/><rect x="67.0" y="26.7" width="3.2" height="26.6" rx="1.6" fill="var(--mint)"/><rect x="73.0" y="27.5" width="3.2" height="25.1" rx="1.6" fill="var(--mint)"/><rect x="79.0" y="25.8" width="3.2" height="28.5" rx="1.6" fill="var(--mint)"/><rect x="85.0" y="24.6" width="3.2" height="30.8" rx="1.6" fill="var(--mint)"/><rect x="91.0" y="21.6" width="3.2" height="36.8" rx="1.6" fill="var(--mint)"/><rect x="97.0" y="21.1" width="3.2" height="37.7" rx="1.6" fill="var(--mint)"/><rect x="103.0" y="26.4" width="3.2" height="27.2" rx="1.6" fill="var(--mint)"/><rect x="109.0" y="25.2" width="3.2" height="29.6" rx="1.6" fill="var(--mint)"/><rect x="115.0" y="18.7" width="3.2" height="42.6" rx="1.6" fill="var(--mint)"/><rect x="121.0" y="26.5" width="3.2" height="27.0" rx="1.6" fill="var(--mint)"/><rect x="127.0" y="24.2" width="3.2" height="31.6" rx="1.6" fill="var(--mint)"/><rect x="133.0" y="30.7" width="3.2" height="18.7" rx="1.6" fill="var(--mint)"/><rect x="139.0" y="18.9" width="3.2" height="42.3" rx="1.6" fill="var(--mint)"/><rect x="145.0" y="16.9" width="3.2" height="46.1" rx="1.6" fill="var(--mint)"/><rect x="151.0" y="25.3" width="3.2" height="29.4" rx="1.6" fill="var(--mint)"/><rect x="157.0" y="28.4" width="3.2" height="23.2" rx="1.6" fill="var(--mint)"/><rect x="163.0" y="13.0" width="3.2" height="54.0" rx="1.6" fill="var(--mint)"/><rect x="169.0" y="29.1" width="3.2" height="21.8" rx="1.6" fill="var(--mint)"/><rect x="175.0" y="22.5" width="3.2" height="35.0" rx="1.6" fill="var(--mint)"/><rect x="181.0" y="22.2" width="3.2" height="35.6" rx="1.6" fill="var(--mint)"/><rect x="187.0" y="29.0" width="3.2" height="22.1" rx="1.6" fill="var(--mint)"/><rect x="193.0" y="28.7" width="3.2" height="22.6" rx="1.6" fill="var(--mint)"/><rect x="199.0" y="18.1" width="3.2" height="43.7" rx="1.6" fill="var(--mint)"/><rect x="205.0" y="14.8" width="3.2" height="50.5" rx="1.6" fill="var(--mint)"/><rect x="211.0" y="28.9" width="3.2" height="22.2" rx="1.6" fill="var(--mint)"/><rect x="217.0" y="17.8" width="3.2" height="44.5" rx="1.6" fill="var(--mint)"/><rect x="223.0" y="10.7" width="3.2" height="58.7" rx="1.6" fill="var(--mint)"/><rect x="229.0" y="24.7" width="3.2" height="30.7" rx="1.6" fill="var(--mint)"/><rect x="235.0" y="17.4" width="3.2" height="45.1" rx="1.6" fill="var(--mint)"/><rect x="241.0" y="22.5" width="3.2" height="35.0" rx="1.6" fill="var(--mint)"/><rect x="247.0" y="23.2" width="3.2" height="33.5" rx="1.6" fill="var(--mint)"/><rect x="253.0" y="18.6" width="3.2" height="42.7" rx="1.6" fill="var(--mint)"/><rect x="259.0" y="14.0" width="3.2" height="52.0" rx="1.6" fill="var(--mint)"/><rect x="265.0" y="22.9" width="3.2" height="34.1" rx="1.6" fill="var(--mint)"/><rect x="271.0" y="26.3" width="3.2" height="27.4" rx="1.6" fill="var(--mint)"/><rect x="277.0" y="9.8" width="3.2" height="60.3" rx="1.6" fill="var(--mint)"/><rect x="283.0" y="15.4" width="3.2" height="49.2" rx="1.6" fill="var(--mint)"/><rect x="289.0" y="21.0" width="3.2" height="38.1" rx="1.6" fill="var(--mint)"/><rect x="295.0" y="6.6" width="3.2" height="66.9" rx="1.6" fill="var(--mint)"/><rect x="301.0" y="18.4" width="3.2" height="43.3" rx="1.6" fill="var(--mint)"/><rect x="307.0" y="25.4" width="3.2" height="29.1" rx="1.6" fill="var(--mint)"/><rect x="313.0" y="23.6" width="3.2" height="32.7" rx="1.6" fill="var(--mint)"/><rect x="319.0" y="7.9" width="3.2" height="64.1" rx="1.6" fill="var(--mint)"/><rect x="325.0" y="15.7" width="3.2" height="48.6" rx="1.6" fill="var(--mint)"/><rect x="331.0" y="17.9" width="3.2" height="44.2" rx="1.6" fill="var(--mint)"/><rect x="337.0" y="25.4" width="3.2" height="29.2" rx="1.6" fill="var(--mint)"/><rect x="343.0" y="19.3" width="3.2" height="41.5" rx="1.6" fill="var(--mint)"/><rect x="349.0" y="25.3" width="3.2" height="29.4" rx="1.6" fill="var(--mint)"/><rect x="355.0" y="29.5" width="3.2" height="21.1" rx="1.6" fill="var(--mint)"/><rect x="361.0" y="13.2" width="3.2" height="53.6" rx="1.6" fill="var(--mint)"/><rect x="367.0" y="11.6" width="3.2" height="56.8" rx="1.6" fill="var(--mint)"/><rect x="373.0" y="26.1" width="3.2" height="27.7" rx="1.6" fill="var(--mint)"/><rect x="379.0" y="16.8" width="3.2" height="46.4" rx="1.6" fill="var(--mint)"/><rect x="385.0" y="12.2" width="3.2" height="55.6" rx="1.6" fill="var(--mint)"/><rect x="391.0" y="9.0" width="3.2" height="62.0" rx="1.6" fill="var(--mint)"/><rect x="397.0" y="21.0" width="3.2" height="38.0" rx="1.6" fill="var(--mint)"/><rect x="403.0" y="20.2" width="3.2" height="39.5" rx="1.6" fill="var(--mint)"/><rect x="409.0" y="15.0" width="3.2" height="50.0" rx="1.6" fill="var(--mint)"/><rect x="415.0" y="10.7" width="3.2" height="58.6" rx="1.6" fill="var(--mint)"/><rect x="421.0" y="18.3" width="3.2" height="43.4" rx="1.6" fill="var(--mint)"/><rect x="427.0" y="18.9" width="3.2" height="42.2" rx="1.6" fill="var(--mint)"/><rect x="433.0" y="12.2" width="3.2" height="55.6" rx="1.6" fill="var(--mint)"/><rect x="439.0" y="8.5" width="3.2" height="63.0" rx="1.6" fill="var(--mint)"/><rect x="445.0" y="22.8" width="3.2" height="34.3" rx="1.6" fill="var(--mint)"/><rect x="451.0" y="10.6" width="3.2" height="58.9" rx="1.6" fill="var(--mint)"/><rect x="457.0" y="25.7" width="3.2" height="28.6" rx="1.6" fill="var(--mint)"/><rect x="463.0" y="24.3" width="3.2" height="31.5" rx="1.6" fill="var(--mint)"/><rect x="469.0" y="9.9" width="3.2" height="60.2" rx="1.6" fill="var(--mint)"/><rect x="475.0" y="15.2" width="3.2" height="49.6" rx="1.6" fill="var(--mint)"/><rect x="481.0" y="26.2" width="3.2" height="27.7" rx="1.6" fill="var(--mint)"/><rect x="487.0" y="29.6" width="3.2" height="20.8" rx="1.6" fill="var(--mint)"/><rect x="493.0" y="24.7" width="3.2" height="30.6" rx="1.6" fill="var(--mint)"/><rect x="499.0" y="14.0" width="3.2" height="52.1" rx="1.6" fill="var(--mint)"/><rect x="505.0" y="15.6" width="3.2" height="48.8" rx="1.6" fill="var(--mint)"/><rect x="511.0" y="26.9" width="3.2" height="26.2" rx="1.6" fill="var(--mint)"/><rect x="517.0" y="21.2" width="3.2" height="37.7" rx="1.6" fill="var(--mint)"/><rect x="523.0" y="16.6" width="3.2" height="46.8" rx="1.6" fill="var(--mint)"/><rect x="529.0" y="23.5" width="3.2" height="33.1" rx="1.6" fill="var(--mint)"/><rect x="535.0" y="25.4" width="3.2" height="29.3" rx="1.6" fill="var(--mint)"/><rect x="541.0" y="25.2" width="3.2" height="29.7" rx="1.6" fill="var(--mint)"/><rect x="547.0" y="28.1" width="3.2" height="23.8" rx="1.6" fill="var(--mint)"/><rect x="553.0" y="16.3" width="3.2" height="47.4" rx="1.6" fill="var(--mint)"/><rect x="559.0" y="28.5" width="3.2" height="23.0" rx="1.6" fill="var(--mint)"/><rect x="565.0" y="20.4" width="3.2" height="39.1" rx="1.6" fill="var(--mint)"/><rect x="571.0" y="20.5" width="3.2" height="39.1" rx="1.6" fill="var(--mint)"/><rect x="577.0" y="25.2" width="3.2" height="29.7" rx="1.6" fill="var(--mint)"/><rect x="583.0" y="28.3" width="3.2" height="23.4" rx="1.6" fill="var(--mint)"/><rect x="589.0" y="24.4" width="3.2" height="31.2" rx="1.6" fill="var(--mint)"/><rect x="595.0" y="27.7" width="3.2" height="24.6" rx="1.6" fill="var(--mint)"/><rect x="601.0" y="31.6" width="3.2" height="16.8" rx="1.6" fill="var(--mint)"/><rect x="607.0" y="27.5" width="3.2" height="25.0" rx="1.6" fill="var(--mint)"/><rect x="613.0" y="26.6" width="3.2" height="26.8" rx="1.6" fill="var(--mint)"/><rect x="619.0" y="22.9" width="3.2" height="34.3" rx="1.6" fill="var(--mint)"/><rect x="625.0" y="21.7" width="3.2" height="36.5" rx="1.6" fill="var(--mint)"/><rect x="631.0" y="23.4" width="3.2" height="33.2" rx="1.6" fill="var(--linestrong)"/><rect x="637.0" y="31.0" width="3.2" height="17.9" rx="1.6" fill="var(--linestrong)"/><rect x="643.0" y="25.5" width="3.2" height="29.1" rx="1.6" fill="var(--linestrong)"/><rect x="649.0" y="27.1" width="3.2" height="25.7" rx="1.6" fill="var(--linestrong)"/><rect x="655.0" y="33.7" width="3.2" height="12.6" rx="1.6" fill="var(--linestrong)"/><rect x="661.0" y="26.1" width="3.2" height="27.9" rx="1.6" fill="var(--linestrong)"/><rect x="667.0" y="25.6" width="3.2" height="28.8" rx="1.6" fill="var(--linestrong)"/><rect x="673.0" y="28.9" width="3.2" height="22.1" rx="1.6" fill="var(--linestrong)"/><rect x="679.0" y="26.3" width="3.2" height="27.5" rx="1.6" fill="var(--linestrong)"/><rect x="685.0" y="34.9" width="3.2" height="10.2" rx="1.6" fill="var(--linestrong)"/><rect x="691.0" y="28.3" width="3.2" height="23.4" rx="1.6" fill="var(--linestrong)"/><rect x="46" y="0" width="3" height="80" rx="1.5" fill="var(--text)"/><rect x="628" y="0" width="3" height="80" rx="1.5" fill="var(--text)"/></svg><div style="display:flex;justify-content:space-between" class="sub mono"><span>0:00</span><span>1:09</span><span>2:18</span><span>3:27</span><span>4:36</span></div></div>
+      <div class="row3"><div class="fld"><span class="lbl">Start</span><div class="in focus"><span class="v mono">0:03.200</span></div></div><div class="fld"><span class="lbl">End</span><div class="in"><span class="v mono">4:21.800</span></div></div><div class="fld"><span class="lbl">New length</span><div class="in dis"><span class="v mono">4:18.600</span></div></div></div>
+      <div class="row2" style="gap:32px"><div class="fld"><div class="sl-top"><b>Fade in</b><span>0.5 s</span></div><div class="slider"><div class="tr"></div><div class="fi" style="width:12%"></div><div class="th" style="left:12%"></div></div></div><div class="fld"><div class="sl-top"><b>Fade out</b><span>2.0 s</span></div><div class="slider"><div class="tr"></div><div class="fi" style="width:40%"></div><div class="th" style="left:40%"></div></div></div></div>
+      <div class="card" style="gap:12px"><div style="display:flex;align-items:baseline;justify-content:space-between"><b style="font-weight:500">Loudness</b><span class="sub">Measured now: <b class="mono" style="font-weight:500;color:var(--text)">−21.3 LUFS</b> · true peak −3.1 dB</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip">Leave as it is</span><span class="chip on">Podcast −16 LUFS</span><span class="chip">Streaming −14 LUFS</span><span class="chip">Broadcast −23 LUFS</span><span class="chip">Custom</span></div>
+        <span class="hint">Raises the whole recording by 5.3 dB; a limiter keeps the peak under −1.0 dB. Two passes: measure, then apply.</span></div>
+      <div class="fld"><span class="lbl">Save as</span><div class="in"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5"/></svg><span class="v">interview-take3-edit.wav</span></div><span class="hint">Same format as the original. Choose MP3 or FLAC from the format list in the file name field.</span></div></div>
+  <footer class="wf"><div class="note" aria-live="polite"><b>4:18.600</b> · −16.0 LUFS target</div><button class="btn ghost">Cancel</button><button class="btn acc"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Save</button></footer>
+</section></div>
+<div class="cell"><div class="cap"><b>Working</b></div><section class="win" role="dialog" aria-modal="true" aria-labelledby="t10" style="width:780px">
+  <header class="wh"><span class="tile"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h2M7 8v8M11 4v16M15 7v10M19 10v4"/></svg></span><div class="wt"><h2 class="tool" id="t10" style="margin:0">Trim, fade and loudness</h2><div class="file"><b>interview-take3.wav</b><span>working</span></div></div><button class="xbtn" aria-label="Close (Esc)"><svg class="i " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+  <div class="wb"><div class="card" style="gap:14px"><div style="display:flex;align-items:baseline;gap:10px"><span class="big">48%</span><span class="sub">Step 2 of 2: applying the changes</span></div><div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="48"><i style="width:48%"></i></div><div class="sub">Step 1 measured the loudness at −21.3 LUFS. Now trimming, fading and raising the level.</div></div></div>
+  <footer class="wf"><div class="note" aria-live="polite">Cancel deletes the unfinished file.</div><button class="btn ghost">Cancel</button><button class="btn acc" disabled>Save</button></footer>
+</section></div>
+<div class="cell"><div class="cap"><b>Done</b></div><section class="win" role="dialog" aria-modal="true" aria-labelledby="t11" style="width:780px">
+  <header class="wh"><span class="tile"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h2M7 8v8M11 4v16M15 7v10M19 10v4"/></svg></span><div class="wt"><h2 class="tool" id="t11" style="margin:0">Trim, fade and loudness</h2><div class="file"><b>interview-take3.wav</b><span>done</span></div></div><button class="xbtn" aria-label="Close (Esc)"><svg class="i " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+  <div class="wb"><div class="banner ok" role="status"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><div class="grow"><b>Saved interview-take3-edit.wav</b>The original recording was not changed.</div></div><div class="card"><dl class="kv"><dt>Length</dt><dd>4:18.600 (was 4:36)</dd><dt>Loudness</dt><dd>−21.3 LUFS before, −16.0 LUFS after</dd><dt>True peak</dt><dd>−3.1 dB before, −1.0 dB after (limited), no clipping</dd></dl></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Show in folder</button><button class="btn ghost"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>Play</button></div></div>
+  <footer class="wf"><div class="note" aria-live="polite"></div><button class="btn acc">Close</button></footer>
+</section></div>
+<div class="cell"><div class="cap"><b>Error</b></div><section class="win" role="dialog" aria-modal="true" aria-labelledby="t12" style="width:780px">
+  <header class="wh"><span class="tile"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h2M7 8v8M11 4v16M15 7v10M19 10v4"/></svg></span><div class="wt"><h2 class="tool" id="t12" style="margin:0">Trim, fade and loudness</h2><div class="file"><b>voice-note.m4a</b><span>could not read</span></div></div><button class="xbtn" aria-label="Close (Esc)"><svg class="i " viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+  <div class="wb"><div class="banner bad" role="alert"><svg class="i l" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3zM12 10v4M12 17h.01"/></svg><div class="grow"><b>This audio could not be decoded</b>FFmpeg reported: moov atom not found. The recording was probably cut off while it was being saved.</div></div><div class="card"><div class="sect">WHAT WAS NOT CHANGED</div><div class="sub">Nothing was written and voice-note.m4a is untouched.</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9h11v11H9zM5 15V4h11"/></svg>Copy details</button></div></div>
+  <footer class="wf"><div class="note" aria-live="polite"></div><button class="btn acc">Close</button></footer>
+</section></div></div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1752,"height":1342}}'>
+class Component extends DCLogic {
+renderVals() { return { themeClass: this.props.theme === 'light' ? 'light' : '' }; }
+}
+</script>
+</body>
+</html>

@@ -501,6 +501,7 @@ namespace MonitoringTools.UI
             a.Children.Add(Number("Toast duration", "How long a toast stays on screen before it fades. Default: 3 s.", s.ToastSeconds, 1, 600, 0.5, v => s.ToastSeconds = v, "s", 1));
             a.Children.Add(Number("History size", "How many recent copies are kept in memory for the History page. Quitting the app clears them. Default: 50.", s.HistorySize, 5, 1000, 5, v => { s.HistorySize = (int)v; App.History.Trim(); }, "items"));
             root.Children.Add(Card(a));
+            root.Children.Add(Card(InstallCommandsCard()));
 
             var snd = new StackPanel();
             snd.Children.Add(CardTitle("Sound effects", "Short cues when an action finishes, fails, or the connection drops and returns. Quiet during Windows quiet time, presentations and games."));

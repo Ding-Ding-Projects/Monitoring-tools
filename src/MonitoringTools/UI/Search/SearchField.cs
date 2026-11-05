@@ -154,6 +154,8 @@ namespace MonitoringTools.UI.Search
 
         public bool BuilderOpen => _builder?.IsOpen ?? false;
         public FrameworkElement BuilderCard => _builder?.Card;
+        /// <summary>The open builder, for the self-test that drives it.</summary>
+        internal RegexBuilderPopup Builder => _builder;
 
         /// <summary>Shows the result count and an honest message when nothing matches.</summary>
         public void SetCount(int shown, int total, string noun = "items")

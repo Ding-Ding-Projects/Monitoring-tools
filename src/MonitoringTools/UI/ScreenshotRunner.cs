@@ -41,6 +41,17 @@ namespace MonitoringTools.UI
                     App.Current.Shutdown(0);
                     return;
                 }
+                if (Environment.GetEnvironmentVariable("MT_TOASTS_ONLY") == "1")   // quick loop for the text and install toasts
+                {
+                    await ToastScenesAsync();
+                    var tcc = new ControlCentreWindow { Width = 1180, Height = 820 };
+                    tcc.Show(); await Task.Delay(1200);
+                    await InstallCardSceneAsync(tcc);
+                    tcc.Close();
+                    File.WriteAllText(Path.Combine(_dir, "index.json"), JsonSerializer.Serialize(Index, new JsonSerializerOptions { WriteIndented = true }));
+                    App.Current.Shutdown(0);
+                    return;
+                }
                 if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1")   // quick loop while developing these scenes
                 {
                     await Wave6ScenesAsync();
@@ -62,6 +73,8 @@ namespace MonitoringTools.UI
                 await Toast("toast-bitmap", "Screenshot on the clipboard", App.Toasts.ShowClip(ClipItem.FromImage(Demo.SampleBitmap(1920, 1080, "Capture", Color.FromRgb(0x8A, 0xB4, 0xFF)))));
                 await Toast("toast-color", "Color value", App.Toasts.ShowClip(ClipItem.FromText("#7CF2C2")));
                 await Toast("toast-base64", "Base64 text", App.Toasts.ShowClip(ClipItem.FromText(FileOps.EncodeText("Monitoring Tools decodes this for you."))));
+
+                await ToastScenesAsync();
 
                 // a conversion in progress
                 var job = new ConversionJob
@@ -133,6 +146,7 @@ namespace MonitoringTools.UI
                 await ScaleScenes(cc);
                 await ConvertScenes();
                 await Wave6Scenes(cc);
+                await InstallCardSceneAsync(cc);
                 cc.Close();
 
                 var gate = new ConfirmWindow("Uninstall Monitoring Tools?", "This stops the background service, removes it from start-up and deletes the program.", "Uninstall", danger: true);
@@ -221,6 +235,10 @@ namespace MonitoringTools.UI
             await ShotWithBuilder(cc, f, "search-builder-code", "Regex builder: generated code", 900);
             f.OpenBuilder("Library");
             await ShotWithBuilder(cc, f, "search-builder-library", "Regex builder: saved patterns", 900);
+            f.OpenBuilder("Benchmark");
+            await ShotWithBuilder(cc, f, "search-builder-benchmark", "Regex builder: pattern pair, per-part timing and saved history", 1000);
+            f.OpenBuilder("Help");
+            await ShotWithBuilder(cc, f, "search-builder-help", "Regex builder: syntax help and builder preferences", 1000);
             f.State.SetQuery("(a+)+$");
             f.OpenBuilder("Build");
             await ShotWithBuilder(cc, f, "search-builder-risk", "Regex builder warns about catastrophic backtracking", 1000);

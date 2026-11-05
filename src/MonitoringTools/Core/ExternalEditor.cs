@@ -123,6 +123,42 @@ namespace MonitoringTools.Core
             return OpenWith(vs, path, out message);
         }
 
+        /// <summary>
+        /// The arguments that make an editor open a file at a line and column, or null when this editor has no way to do that
+        /// (the system default editor, a custom program, or an unknown id). Lines and columns start at 1.
+        /// </summary>
+        public static List<string> LineArguments(EditorInfo editor, string path, int line, int column)
+        {
+            if (editor == null || editor.Path == null || line < 1) return null;
+            if (column < 1) column = 1;
+            if (editor.Id.StartsWith("vscode", StringComparison.Ordinal)) return new List<string> { "-g", path + ":" + line + ":" + column };
+            if (editor.Id == "notepadpp") return new List<string> { "-n" + line, "-c" + column, path };
+            return null;
+        }
+
+        /// <summary>Opens a file at a line in the preferred editor. An editor that cannot take a line opens the file itself and the message says so.</summary>
+        public static bool OpenAtLine(string path, int line, int column, out string message)
+        {
+            var editor = Preferred();
+            var args = LineArguments(editor, path, line, column);
+            if (args == null)
+            {
+                var ok = OpenWith(editor, path, out message);
+                if (ok) message += " This editor cannot jump to line " + line + ".";
+                return ok;
+            }
+            if (!File.Exists(path)) { message = "That path no longer exists: " + path; return false; }
+            try
+            {
+                var start = new ProcessStartInfo(editor.Path) { UseShellExecute = false, CreateNoWindow = true };
+                foreach (var a in args) start.ArgumentList.Add(a);
+                using (Process.Start(start)) { }
+                message = "Opened the file at line " + line + " in " + editor.Name + ".";
+                return true;
+            }
+            catch (Exception ex) { Log.Warn("Open at line failed: " + ex.Message); message = "Could not start " + editor.Name + ": " + ex.Message; return false; }
+        }
+
         public static bool OpenWith(EditorInfo editor, string path, out string message)
         {
             if (string.IsNullOrWhiteSpace(path) || (!File.Exists(path) && !Directory.Exists(path)))

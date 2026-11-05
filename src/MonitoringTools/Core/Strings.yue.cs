@@ -436,8 +436,10 @@ namespace MonitoringTools.Core
             AddMinecraftCatalogue(t);
             AddMcCommands(t);
             AddRegexExplain(t);
+            AddRegexParity(t);
             AddMcFiles(t);
             AddLane4(t);
+            AddToasts(t);
             AddUpdate(t);
             AddMcLane(t);
             return t;
@@ -451,11 +453,13 @@ namespace MonitoringTools.Core
         {
             var p = new List<(Regex, Func<Match, string>)>();
             AddRegexExplainPatterns(p);
+            AddRegexParityPatterns(p);
             AddMinecraftCataloguePatterns(p);
             AddMinecraftPatterns(p);
             AddMcCommandsPatterns(p);
             AddMcFilesPatterns(p);
             AddLane4Patterns(p);
+            AddToastsPatterns(p);
             AddUpdatePatterns(p);
             AddMcLanePatterns(p);
             AddMorePatterns(p);

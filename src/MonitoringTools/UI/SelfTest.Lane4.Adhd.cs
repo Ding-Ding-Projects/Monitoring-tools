@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -109,6 +110,47 @@ namespace MonitoringTools.UI
                     return !Modes.SoundsOn || soundEssential ? null : "a warning sound is silenced by the mode";
                 }
                 finally { Restore(); }
+            });
+
+            await CheckAsync("adhd low stimulation: the sound service really starts playback for an allowed cue and never reaches the player for a refused one", async () =>
+            {
+                bool snd0 = s.SoundsEnabled; double vol0 = s.SoundVolume;
+                try
+                {
+                    s.SoundsEnabled = true; s.SoundVolume = 0.05; Sounds.QuietOverrideForTest = false;
+                    s.AdhdLowStimulation = false; Modes.NotifyChanged();
+                    async Task<(int Started, string File, string Failure)> Fire(Cue cue)
+                    {
+                        await Task.Delay(600);   // clear of the one-cue-at-a-time debounce
+                        int before = Sounds.StartedForTest; Sounds.FailureForTest = null;
+                        Sounds.Play(cue);
+                        await Task.Delay(400);   // a playback failure from the media engine arrives a moment later
+                        return (Sounds.StartedForTest - before, Sounds.LastStartedForTest, Sounds.FailureForTest);
+                    }
+                    var open = await Fire(Cue.Success);
+                    if (open.Started != 1) return "with Low stimulation off an ordinary cue did not start playback (" + open.Started + " starts)";
+                    if (string.IsNullOrEmpty(open.File)) return "playback started but named no sound";
+                    // Low stimulation: an ordinary cue is refused before the player, a warning still plays
+                    s.AdhdLowStimulation = true; Modes.NotifyChanged();
+                    var refused = await Fire(Cue.Success);
+                    if (refused.Started != 0) return "with Low stimulation on an ordinary cue still reached the player";
+                    var warn = await Fire(Cue.Warning);
+                    if (warn.Started != 1) return "with Low stimulation on a warning did not start playback";
+                    // the master switch and a zero volume refuse everything
+                    s.AdhdLowStimulation = false; s.SoundsEnabled = false; Modes.NotifyChanged();
+                    var off = await Fire(Cue.Warning);
+                    if (off.Started != 0) return "with sounds off a cue reached the player";
+                    s.SoundsEnabled = true; s.SoundVolume = 0; Modes.NotifyChanged();
+                    var mute = await Fire(Cue.Success);
+                    if (mute.Started != 0) return "with the volume at zero a cue reached the player";
+                    // and quiet time (a game, a presentation, Windows quiet hours) is honoured
+                    s.SoundVolume = 0.05; Sounds.QuietOverrideForTest = true;
+                    var quiet = await Fire(Cue.Success);
+                    if (quiet.Started != 0) return "during quiet time a cue reached the player";
+                    NoteForReport("sound playback", "allowed cue started " + Path.GetFileName(open.File) + (open.Failure == null ? " with no media error" : "; the media engine reported: " + open.Failure));
+                    return null;
+                }
+                finally { Sounds.QuietOverrideForTest = null; s.SoundsEnabled = snd0; s.SoundVolume = vol0; Restore(); }
             });
 
             await CheckAsync("adhd time awareness: a running task shows elapsed time, then how long it took, and the reminder timer follows the setting", async () =>

@@ -48,3 +48,7 @@ Toasts are held back in game mode and while a presentation or fullscreen app is 
 - [Quick commands](../commands/quick-commands.md)
 - [File tools](../files/file-tools.md)
 - [Docker actions](../files/docker-actions.md)
+
+## Editable text and install commands
+
+Plain copied text is edited in place in its toast, and a copied choco or winget install command gets a strict, opt-in install card. See [install commands and editable text toasts](install-commands.md).

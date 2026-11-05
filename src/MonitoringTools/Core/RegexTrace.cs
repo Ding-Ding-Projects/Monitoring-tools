@@ -46,6 +46,9 @@ namespace MonitoringTools.Core
             public int MatchIndex, MatchLength;
             /// <summary>True only when the trace was checked against the real engine and agreed.</summary>
             public bool Verified;
+            /// <summary>True when every capture group's position also agreed with the .NET engine, not only the overall match.</summary>
+            public bool CapturesVerified;
+            public int CaptureCount;
             public bool HasTrace => Unsupported == null && Disagreement == null && Steps.Count > 0;
         }
 
@@ -59,6 +62,7 @@ namespace MonitoringTools.Core
             public bool Negated;
             public List<(char Lo, char Hi)> Ranges = new List<(char, char)>();
             public List<char> Escapes = new List<char>(); // d D w W s S
+            public List<(string Name, bool Not)> Props = new List<(string, bool)>(); // \p{..} and \P{..}
             public string Text;
         }
         private sealed class AnchorNode : Node { public char Kind; } // ^ $ b B A z Z
@@ -67,6 +71,32 @@ namespace MonitoringTools.Core
         private sealed class SeqNode : Node { public List<Node> Items = new List<Node>(); }
         private sealed class RepeatNode : Node { public Node Child; public int Min, Max; public bool Lazy; }
         private sealed class BackrefNode : Node { public int Number = -1; public string Name; public GroupNode Target; }
+        private sealed class LookNode : Node { public Node Body; public bool Ahead, Negative; }
+        private sealed class AtomicNode : Node { public Node Body; }
+
+        // Unicode general categories, by their two-letter names, for \p{..} and \P{..}.
+        private static readonly Dictionary<System.Globalization.UnicodeCategory, string> CategoryCodes = new Dictionary<System.Globalization.UnicodeCategory, string>
+        {
+            [System.Globalization.UnicodeCategory.UppercaseLetter] = "Lu", [System.Globalization.UnicodeCategory.LowercaseLetter] = "Ll", [System.Globalization.UnicodeCategory.TitlecaseLetter] = "Lt",
+            [System.Globalization.UnicodeCategory.ModifierLetter] = "Lm", [System.Globalization.UnicodeCategory.OtherLetter] = "Lo", [System.Globalization.UnicodeCategory.NonSpacingMark] = "Mn",
+            [System.Globalization.UnicodeCategory.SpacingCombiningMark] = "Mc", [System.Globalization.UnicodeCategory.EnclosingMark] = "Me", [System.Globalization.UnicodeCategory.DecimalDigitNumber] = "Nd",
+            [System.Globalization.UnicodeCategory.LetterNumber] = "Nl", [System.Globalization.UnicodeCategory.OtherNumber] = "No", [System.Globalization.UnicodeCategory.SpaceSeparator] = "Zs",
+            [System.Globalization.UnicodeCategory.LineSeparator] = "Zl", [System.Globalization.UnicodeCategory.ParagraphSeparator] = "Zp", [System.Globalization.UnicodeCategory.Control] = "Cc",
+            [System.Globalization.UnicodeCategory.Format] = "Cf", [System.Globalization.UnicodeCategory.Surrogate] = "Cs", [System.Globalization.UnicodeCategory.PrivateUse] = "Co",
+            [System.Globalization.UnicodeCategory.ConnectorPunctuation] = "Pc", [System.Globalization.UnicodeCategory.DashPunctuation] = "Pd", [System.Globalization.UnicodeCategory.OpenPunctuation] = "Ps",
+            [System.Globalization.UnicodeCategory.ClosePunctuation] = "Pe", [System.Globalization.UnicodeCategory.InitialQuotePunctuation] = "Pi", [System.Globalization.UnicodeCategory.FinalQuotePunctuation] = "Pf",
+            [System.Globalization.UnicodeCategory.OtherPunctuation] = "Po", [System.Globalization.UnicodeCategory.MathSymbol] = "Sm", [System.Globalization.UnicodeCategory.CurrencySymbol] = "Sc",
+            [System.Globalization.UnicodeCategory.ModifierSymbol] = "Sk", [System.Globalization.UnicodeCategory.OtherSymbol] = "So", [System.Globalization.UnicodeCategory.OtherNotAssigned] = "Cn",
+        };
+
+        private static bool ValidPropertyName(string name) =>
+            name.Length == 1 && "LMNPSZC".IndexOf(name[0]) >= 0 || name.Length == 2 && CategoryCodes.ContainsValue(name);
+
+        private static bool PropertyHas(string name, char c)
+        {
+            var code = CategoryCodes[System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c)];
+            return name.Length == 1 ? code[0] == name[0] : code == name;
+        }
 
         private sealed class UnsupportedException : Exception { public UnsupportedException(string m) : base(m) { } }
         private sealed class ParseErrorException : Exception { public ParseErrorException(string m) : base(m) { } }
@@ -152,13 +182,18 @@ namespace MonitoringTools.Core
                 {
                     string rest = p.Substring(i, Math.Min(3, p.Length - i));
                     if (rest.StartsWith("?:", StringComparison.Ordinal)) { g.Capturing = false; i += 2; }
-                    else if (rest.StartsWith("?<=", StringComparison.Ordinal) || rest.StartsWith("?<!", StringComparison.Ordinal))
-                        throw new UnsupportedException("lookbehind (" + p.Substring(s, Math.Min(4, p.Length - s)) + ")");
+                    else if (rest.StartsWith("?<=", StringComparison.Ordinal) || rest.StartsWith("?<!", StringComparison.Ordinal)) return ParseLook(s, false, rest[2] == '!', 3);
                     else if (rest.Length >= 3 && rest[1] == '<' && (char.IsLetter(rest[2]) || rest[2] == '_')) { i += 2; g.Name = ReadName('>'); }
                     else if (rest.StartsWith("?'", StringComparison.Ordinal)) { i += 2; g.Name = ReadName('\''); }
-                    else if (rest.StartsWith("?=", StringComparison.Ordinal) || rest.StartsWith("?!", StringComparison.Ordinal))
-                        throw new UnsupportedException("lookahead (" + p.Substring(s, Math.Min(3, p.Length - s)) + ")");
-                    else if (rest.StartsWith("?>", StringComparison.Ordinal)) throw new UnsupportedException("atomic group (?>...)");
+                    else if (rest.StartsWith("?=", StringComparison.Ordinal) || rest.StartsWith("?!", StringComparison.Ordinal)) return ParseLook(s, true, rest[1] == '!', 2);
+                    else if (rest.StartsWith("?>", StringComparison.Ordinal))
+                    {
+                        i += 2;
+                        var body = ParseAlt();
+                        if (i >= p.Length || p[i] != ')') throw new ParseErrorException("Missing ')' for the group opened at position " + s);
+                        i++;
+                        return new AtomicNode { Body = body, PS = s, PE = i };
+                    }
                     else if (rest.StartsWith("?(", StringComparison.Ordinal)) throw new UnsupportedException("conditional (?(...)yes|no)");
                     else if (rest.StartsWith("?#", StringComparison.Ordinal)) throw new UnsupportedException("inline comment (?#...)");
                     else throw new UnsupportedException("inline options or group construct (" + p.Substring(s, Math.Min(4, p.Length - s)) + "...)");
@@ -169,6 +204,15 @@ namespace MonitoringTools.Core
                 i++;
                 g.PE = i;
                 return g;
+            }
+
+            private Node ParseLook(int s, bool ahead, bool negative, int skip)
+            {
+                i += skip; // past "(" is already consumed by the caller; skip "?=", "?!", "?<=" or "?<!"
+                var body = ParseAlt();
+                if (i >= p.Length || p[i] != ')') throw new ParseErrorException("Missing ')' for the group opened at position " + s);
+                i++;
+                return new LookNode { Body = body, Ahead = ahead, Negative = negative, PS = s, PE = i };
             }
 
             private string ReadName(char close)
@@ -205,7 +249,13 @@ namespace MonitoringTools.Core
                     case 'e': return Lit('\u001B', s);
                     case 'x': return Lit(ReadHex(2), s);
                     case 'u': return Lit(ReadHex(4), s);
-                    case 'p': case 'P': throw new UnsupportedException("Unicode property \\" + e + "{...}");
+                    case 'p': case 'P':
+                    {
+                        var cn = new ClassNode { PS = s };
+                        cn.Props.Add(ReadProperty(e == 'P'));
+                        cn.PE = i; cn.Text = p.Substring(s, i - s);
+                        return cn;
+                    }
                     case 'G': throw new UnsupportedException("\\G (continue from the previous match)");
                     case 'c': throw new UnsupportedException("control character escape \\c");
                     case '0': throw new UnsupportedException("octal escape \\0");
@@ -237,6 +287,18 @@ namespace MonitoringTools.Core
                 }
             }
 
+            /// <summary>Reads {Name} after \p or \P. Only the general categories are traced; scripts and blocks are named as unsupported.</summary>
+            private (string, bool) ReadProperty(bool not)
+            {
+                if (i >= p.Length || p[i] != '{') throw new ParseErrorException("\\p must be followed by {name}");
+                int close = p.IndexOf('}', i);
+                if (close < 0) throw new ParseErrorException("Unterminated \\p{...}");
+                var name = p.Substring(i + 1, close - i - 1);
+                if (!ValidPropertyName(name)) throw new UnsupportedException("Unicode property \\p{" + name + "} (only the general categories such as L, Lu, Nd are traced)");
+                i = close + 1;
+                return (name, not);
+            }
+
             private LitNode Lit(char c, int s) => new LitNode { C = c, PS = s, PE = i };
 
             private char ReadHex(int n)
@@ -266,7 +328,7 @@ namespace MonitoringTools.Core
                         if (i + 1 >= p.Length) throw new ParseErrorException("Missing ']' for the set opened at position " + s);
                         char e = p[i + 1];
                         if ("dDwWsS".IndexOf(e) >= 0) { cn.Escapes.Add(e); i += 2; continue; }
-                        if (e == 'p' || e == 'P') throw new UnsupportedException("Unicode property \\" + e + "{...} inside a set");
+                        if (e == 'p' || e == 'P') { i += 2; cn.Props.Add(ReadProperty(e == 'P')); continue; }
                     }
                     char lo = ReadClassChar();
                     if (i + 1 < p.Length && p[i] == '-' && p[i + 1] != ']')
@@ -385,6 +447,8 @@ namespace MonitoringTools.Core
                 return ok;
             }
 
+            public (int S, int L)[] Captures => caps;
+
             public void LogRoot(Node root, int pos, int len, StepKind k, string text) => Log(root, pos, len, k, text);
 
             private static string Q(char c)
@@ -421,6 +485,7 @@ namespace MonitoringTools.Core
                 {
                     foreach (var (lo, hi) in cn.Ranges) if (x >= lo && x <= hi) return true;
                     foreach (var e in cn.Escapes) if (EscapeHas(e, x)) return true;
+                    foreach (var (nm, not) in cn.Props) if (PropertyHas(nm, x) != not) return true;
                     return false;
                 }
                 bool hit = Raw(c) || (ic && (Raw(char.ToLowerInvariant(c)) || Raw(char.ToUpperInvariant(c))));
@@ -483,6 +548,39 @@ namespace MonitoringTools.Core
                         }
                         return false;
                     case GroupNode g: return Group(g, pos, k);
+                    case LookNode lk:
+                    {
+                        string kind = (lk.Negative ? "negative " : "") + (lk.Ahead ? "look-ahead" : "look-behind");
+                        Log(n, pos, 0, StepKind.Enter, "Enter " + kind + ": test without consuming text");
+                        var saved = ((int, int)[])caps.Clone();
+                        bool found = false;
+                        if (lk.Ahead) found = M(lk.Body, pos, e => true);
+                        else for (int st = pos; st >= 0 && !found; st--) found = M(lk.Body, st, e => e == pos);
+                        if (lk.Negative)
+                        {
+                            Array.Copy(saved, caps, caps.Length);
+                            if (found) { Log(n, pos, 0, StepKind.Fail, "The " + kind + " body matched, so the negative test fails"); return false; }
+                            Log(n, pos, 0, StepKind.Leave, "The " + kind + " body did not match, so the negative test passes");
+                            return k(pos);
+                        }
+                        if (!found) { Log(n, pos, 0, StepKind.Fail, "The " + kind + " body did not match here"); return false; }
+                        Log(n, pos, 0, StepKind.Leave, "The " + kind + " body matched; continue from position " + pos);
+                        if (k(pos)) return true;
+                        Array.Copy(saved, caps, caps.Length);
+                        return false;
+                    }
+                    case AtomicNode at:
+                    {
+                        Log(n, pos, 0, StepKind.Enter, "Enter atomic group: take the first way the body matches and never go back into it");
+                        var saved = ((int, int)[])caps.Clone();
+                        int end = -1;
+                        if (!M(at.Body, pos, e => { end = e; return true; })) { Log(n, pos, 0, StepKind.Fail, "The atomic group body did not match"); return false; }
+                        Log(n, pos, end - pos, StepKind.Leave, "Leave atomic group, matched \"" + Clip(t.Substring(pos, end - pos)) + "\" and locked it in");
+                        if (k(end)) return true;
+                        Array.Copy(saved, caps, caps.Length);
+                        Log(n, pos, 0, StepKind.Backtrack, "The rest failed, and an atomic group gives nothing back");
+                        return false;
+                    }
                     case RepeatNode r: return Rep(r, 0, pos, k);
                     case BackrefNode b:
                     {
@@ -597,6 +695,7 @@ namespace MonitoringTools.Core
             if (root.PE == 0 && root.PS == 0) { root.PE = pattern.Length; }
 
             Exception failure = null;
+            (int S, int L)[] finalCaps = null;
             var steps = res.Steps;
             var worker = new Thread(() =>
             {
@@ -609,6 +708,7 @@ namespace MonitoringTools.Core
                         if (m.Attempt(root, start, out var end))
                         {
                             res.Matched = true; res.MatchIndex = start; res.MatchLength = end - start;
+                            finalCaps = ((int, int)[])m.Captures.Clone();
                             m.LogRoot(root, start, end - start, StepKind.Done, "Match found at " + start + ", length " + (end - start));
                             return;
                         }
@@ -644,6 +744,26 @@ namespace MonitoringTools.Core
                     return res;
                 }
                 res.Verified = true;
+                if (real.Success && finalCaps != null)
+                {
+                    res.CaptureCount = parser.Groups.Count;
+                    for (int gi = 1; gi < finalCaps.Length; gi++)
+                    {
+                        var rg = real.Groups[gi];
+                        var (cs, cl) = finalCaps[gi];
+                        bool traceHas = cs >= 0;
+                        if (rg.Success != traceHas || traceHas && (rg.Index != cs || rg.Length != cl))
+                        {
+                            res.Disagreement = "The trace and the .NET engine agree on the match but not on capture group " + gi + " (" +
+                                (traceHas ? "trace: " + cs + " length " + cl : "trace: did not take part") + "; " + (rg.Success ? ".NET: " + rg.Index + " length " + rg.Length : ".NET: did not take part") + "), so the trace is not shown.";
+                            res.Steps.Clear();
+                            res.Verified = false;
+                            return res;
+                        }
+                    }
+                    res.CapturesVerified = true;
+                }
+                else if (real.Success) res.CapturesVerified = true;
             }
             catch (RegexMatchTimeoutException)
             {

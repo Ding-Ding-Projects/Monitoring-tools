@@ -153,6 +153,7 @@ namespace MonitoringTools
                 return;
             }
             if (ShouldSuppress) return;
+            if (item.Kind == ClipKind.Install && UI.InstallToast.AutoEligible(item, out _) && Toasts.ShowAutoInstall(item) != null) return;
             Toasts.ShowClip(item);
         }
 
@@ -166,9 +167,10 @@ namespace MonitoringTools
             if (PersonalWording.TryApply(path, out var message))
             {
                 Sounds.Play(Cue.Tada);
-                var over = Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive && w.IsVisible) ?? Current.MainWindow;
-                if (over != null && over.IsVisible) UI.WordingLayer.Celebrate(over);
-                else Toasts.ShowNotice("Personal wording applied", message, Toasts.Mint, 4, icon: Icons.Text);
+                // The celebration covers the whole screen and never takes focus, so it needs no window of ours: a path is
+                // usually copied in Explorer, when none of this app's windows is open.
+                var over = Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive && w.IsVisible);
+                UI.WordingLayer.Celebrate(over);
             }
             else
             {

@@ -37,7 +37,7 @@ namespace MonitoringTools.UI
             "UI", "ID", "OS", "PC", "AI", "LLM", "GGUF", "CLI", "SSD", "NAT", "VPN", "LAN", "WAN", "MAC", "ARP", "ICMP", "TTL", "RAW", "UTC", "AM", "PM", "CRLF", "LF", "UAC",
             "Roblox", "League", "Legends", "Valorant", "Fortnite", "Steam", "Epic", "Cloudflare", "Google", "OpenDNS", "Quad", "Comodo", "Paper", "Spigot", "Fabric", "Forge",
             "Vanilla", "Purpur", "Bukkit", "NeoForge", "Mojang", "Java", "Gradle", "Bedrock", "Neo", "Quilt", "Folia", "Velocity", "Waterfall", "Windows", "Microsoft", "Apple", "Mac",
-            "Hyper", "WSL", "Linux", "Ubuntu", "Edge", "Chrome", "Firefox", "Python", "Node", "Visual", "Studio", "Code", "VS", "Sublime", "Text", "Regex", "RegexBuddy",
+            "Hyper", "WSL", "Linux", "Ubuntu", "Edge", "Chrome", "Firefox", "Python", "JavaScript", "Java", "Node", "Visual", "Studio", "Code", "VS", "Sublime", "Text", "Regex", "RegexBuddy",
             "Base", "AES", "Argon", "bcrypt", "x", "px", "pt", "em", "pm", "am", "vs", "etc", "eg", "ie", "Adapter", "Gateway", "Wi-Fi", "WiFi", "Ethernet",
             "Intel", "AMD", "NVIDIA", "Realtek", "Qualcomm", "Atheros", "Broadcom", "Home", "Offline", "Cantonese", "English", "Mint", "Violet", "Amber", "Rose", "Sky", "Coral", "Lime",
             "Aa", "ABC", "NG", "OK", "Alpha", "Beta", "AVIF", "Matroska", "Ogg", "Vorbis", "Opus", "QuickTime", "GitLab", "Gitea", "Forgejo", "Valheim", "winget", "primary", "outline", "surface", "Drawesome", "Ink", "ECMAScript", "true", "false", "Qwen", "Llama", "Gemma", "Mistral", "DeepSeek", "Phi", "LLaVA", "Nomic", "TinyLlama", "Footage", "my", "repo", "Insiders", "en", "Hong", "Kong", "Toronto", "Canada", "CA", "US", "UK", "HK", "AS", "Fibre", "Example", "Org"
@@ -299,7 +299,7 @@ namespace MonitoringTools.UI
                 if (f != null)
                 {
                     f.State.SetQuery(@"(?<name>\w+)\.(png|md|csv)");
-                    foreach (var tab in new[] { "Build", "Test", "Replace", "Debug", "Compare", "Files", "Code", "Library" })
+                    foreach (var tab in new[] { "Build", "Test", "Replace", "Debug", "Compare", "Benchmark", "Files", "Code", "Library", "Help" })
                     {
                         f.OpenBuilder(tab); await Settle(450);
                         Scan("regex builder: " + tab, cc);
@@ -444,7 +444,17 @@ namespace MonitoringTools.UI
                     cc.Navigate(id, animate: false);
                     await Settle(id == "ollama" ? 2500 : 700);   // longer than the 250 ms sweep, so only the sweep can have translated it
                     var where = $"{mode} page: {id}";
-                    if (refresh) Scan(where, cc); else Visit(where, cc, 0);
+                    // A page can still be filling in (the Ollama checks wait on network probes): when this look finds
+                    // untranslated text, wait and look again, and keep only what is still untranslated at the end.
+                    for (int attempt = 0; ; attempt++)
+                    {
+                        var before = new HashSet<string>(Found.Keys, StringComparer.Ordinal);
+                        if (refresh) Scan(where, cc); else Visit(where, cc, 0);
+                        var added = Found.Keys.Where(k => !before.Contains(k)).ToList();
+                        if (added.Count == 0 || attempt >= 5) break;
+                        foreach (var k in added) Found.Remove(k);
+                        await Settle(1000);
+                    }
                     pages++;
                 }
                 cc.Close();
