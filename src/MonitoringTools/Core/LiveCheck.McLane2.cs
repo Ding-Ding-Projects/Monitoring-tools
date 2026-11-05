@@ -21,6 +21,8 @@ namespace MonitoringTools.Core
         {
             if (only.Contains("updates")) await Check(results, "minecraft: update checks against the real Paper, Purpur, Fabric, Forge and NeoForge APIs", UpdateApis);
             if (only.Contains("fabric")) await Check(results, "minecraft: a real Fabric server in Docker with a mod, whose command is read from help and built into a form", FabricLane);
+            if (only.Contains("forge")) await Check(results, "minecraft: a real Forge server in Docker, created and started by the app, answers list and help and a builder command", () => ModdedLane(Flavour.Forge));
+            if (only.Contains("neoforge")) await Check(results, "minecraft: a real NeoForge server in Docker, created and started by the app, answers list and help and a builder command", () => ModdedLane(Flavour.NeoForge));
             if (only.Contains("sshdocker")) await Check(results, "minecraft: the command builder's lines run and answer on the SSH Docker target", SshDockerLane);
             if (only.Contains("gen")) await Check(results, "minecraft: world generation writes Nether and End regions, game rules, a custom superflat world in a ZIP, and a single biome, each read back from the files", GenLane);
         }
@@ -91,6 +93,65 @@ namespace MonitoringTools.Core
                 Say($"form for /spark from usage \"{Trim(sparkCmd.Usage)}\": template '{task.Template}', {form.Fields.Count} fields");
                 var answer = await McCommandRun.SendAsync(s, "spark tps", TimeSpan.FromSeconds(8));
                 Say("spark tps → " + Trim(answer));
+                return null;
+            }
+            finally
+            {
+                try { await ServerManager.StopAsync(s); } catch { }
+                try { ServerManager.DeleteContainer(s); } catch { }
+                ServerManager.Servers.Remove(s); ServerManager.Save();
+                try { Directory.Delete(s.Folder, true); } catch { }
+            }
+        }
+
+        // ------------------------------------------------------------------ Forge and NeoForge
+
+        /// <summary>
+        /// A real Forge or NeoForge server in a throwaway container made and started through the app's own create and start path:
+        /// the log must reach "Done", <c>list</c> and <c>help</c> are read through the console, the loader's own commands are
+        /// turned into forms, and a builder command is run and its reply read.
+        /// </summary>
+        private static async Task<string> ModdedLane(Flavour flavour)
+        {
+            NeedDocker();
+            int port = 25565; while (!ServerManager.PortFree(port) || ServerManager.Servers.Any(x => x.Port == port)) port++;
+            var s = new ServerDef { Name = "Live " + flavour, Version = Version, Flavour = flavour, Target = Target.LocalDocker, Port = port, MemoryMb = 1536, EulaAccepted = true };
+            var (tree, unavailable) = await McCommandTree.LoadAsync(Version, null, true);
+            if (tree == null) return "the command list could not be read: " + unavailable;
+            var (reg, _) = await McRegistries.LoadAsync(Version);
+            var sw = Stopwatch.StartNew();
+            await ServerManager.CreateAsync(s, _ => { }, new Dictionary<string, string> { ["max-players"] = "7" });
+            try
+            {
+                Say($"{flavour} build {s.Build} created as {s.ContainerName} in {sw.Elapsed.TotalSeconds:0} s");
+                sw.Restart();
+                await ServerManager.StartAsync(s, _ => { });
+                var until = DateTime.Now.AddMinutes(50);
+                string log = "";
+                while (DateTime.Now < until && !(log = await ServerManager.LogTailAsync(s, 600)).Contains("Done (")) await Task.Delay(3000);
+                if (!log.Contains("Done (")) return $"the {flavour} server did not become ready; its log ends: " + string.Join(" | ", log.Split('\n').Where(l => l.Trim().Length > 0).TakeLast(14).Select(l => l.Length > 220 ? l[..220] : l));
+                Say($"{flavour} ready after {sw.Elapsed.TotalSeconds:0} s");
+                var list = await McCommandRun.SendAsync(s, "list", TimeSpan.FromSeconds(10));
+                if (!list.Contains("players online", StringComparison.OrdinalIgnoreCase)) return "list answered: " + Trim(list);
+                Say("list → " + Trim(list));
+                var read = await McLiveCommands.ReadAsync(s, tree);
+                Say($"help printed {read.Raw.Count} lines, the first: {Trim(string.Join(" | ", read.Raw.Take(4)))}");
+                Say($"help gave {read.Commands.Count} commands the jar does not list: {string.Join(", ", read.Commands.Take(10).Select(c => c.Name + (c.Source != "server" ? "@" + c.Source : "")))}" + (read.Problem != null ? " (" + read.Problem + ")" : ""));
+                if (read.Raw.Count == 0) return "help printed nothing";
+                var loaderCmd = flavour == Flavour.Forge ? "forge" : "neoforge";
+                var own = read.Commands.FirstOrDefault(c => c.Name.Equals(loaderCmd, StringComparison.OrdinalIgnoreCase));
+                if (own != null)
+                {
+                    var task = McLiveCommands.ToTask(own);
+                    var form = McCommandTasks.Build(task, task.Synthetic, new Dictionary<string, string>(), null);
+                    Say($"form for /{own.Name} from usage \"{Trim(own.Usage)}\": template '{task.Template}', {form.Fields.Count} fields");
+                }
+                else Say($"help lists no /{loaderCmd} command to turn into a form");
+                var time = McCommandTasks.Build(McCommandTasks.Find("time"), tree, new Dictionary<string, string> { ["when"] = "day" }, reg);
+                if (time.Problem != null || time.Line != "/time set day") return "the builder made " + (time.Problem ?? time.Line);
+                var answer = await McCommandRun.SendAsync(s, time.Line.TrimStart('/'), TimeSpan.FromSeconds(10));
+                if (!answer.Contains("Set the time to", StringComparison.Ordinal)) return time.Line + " answered: " + Trim(answer);
+                Say($"{time.Line} → \"{Trim(answer)}\"");
                 return null;
             }
             finally

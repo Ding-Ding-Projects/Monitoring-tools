@@ -15,8 +15,12 @@ as Vanilla writes them). The seed is read from the world's own `level.dat`, or f
   server when it is on this computer.
 
 A server on an **SSH host** lists its world folders from the host (sizes from `du`, the seed from a copy of
-`level.dat`), and **Download ZIP** copies a folder here with scp and zips it. Import, reset and replace for such a server
-are still done on the host. A **Bedrock** server lists the folders in `worlds` with size and `levelname.txt`, and
+`level.dat`), and **Download ZIP** copies a folder here with scp and zips it. **Import a world**, **Reset the world** and replace work
+from here as well, over the same file store: the world is staged here (a ZIP is unpacked with every path checked, `level.dat` required,
+`session.lock` left out) and copied up beside the live world under a temporary name, so a failed copy touches nothing; then each
+live world folder gets a dated copy on the host (`<folder>-backups/<stamp>`), is moved aside, and the new world is moved in. Any
+failure moves the old folders back and removes what was added. Replace and reset keep the two-key confirmation, and the server
+must be stopped (the app stops it first). A **Bedrock** server lists the folders in `worlds` with size and `levelname.txt`, and
 **Import a world** takes a `.mcworld` file or a world folder: it must hold `level.dat` and a `db` folder (a Java world is
 refused with that reason), it is copied into the folder named by `level-name` and never moved, a ZIP entry that points
 outside its folder is refused, and replacing an existing world stops the server, takes a backup first and asks for the

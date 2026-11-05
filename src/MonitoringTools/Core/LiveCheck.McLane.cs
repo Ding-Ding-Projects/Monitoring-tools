@@ -17,7 +17,7 @@ namespace MonitoringTools.Core
     {
         private static async Task McLane(List<Result> results)
         {
-            var only = (Environment.GetEnvironmentVariable("MT_LIVE_LANE") ?? "paper,docker,ssh,pregen,updates,fabric,sshdocker,gen").Split(',');
+            var only = (Environment.GetEnvironmentVariable("MT_LIVE_LANE") ?? "paper,docker,ssh,pregen,updates,fabric,forge,neoforge,sshdocker,gen").Split(',');
             if (only.Contains("paper")) await Check(results, "minecraft: on a real Paper server with a bot player, tps, the update check, plugin commands, a player's position, item components and NBT all work", PaperLane);
             if (only.Contains("docker")) await Check(results, "minecraft: the command builder's lines run and answer on the Docker target", DockerLane);
             if (only.Contains("ssh")) await Check(results, "minecraft: the command builder's lines run and answer on the SSH target", SshLane);

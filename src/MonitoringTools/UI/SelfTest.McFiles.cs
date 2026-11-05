@@ -193,6 +193,76 @@ namespace MonitoringTools.UI
                 finally { McFiles.Override = null; McState.Set(modded, McRunState.Running, "sample server"); modded.BackupDir = oldBackups; mc.Select("sample-friends"); }
             });
 
+            await CheckAsync("minecraft: an SSH server's Worlds section imports a folder and a ZIP, replaces after a dated copy on the host, resets, and puts the old world back when a step fails", async () =>
+            {
+                var dir = McTemp("ssh-world-actions");
+                var src = McTemp("ssh-world-actions-src");
+                File.WriteAllText(Path.Combine(dir, "server.properties"), "level-name=world\n");
+                var folder = Path.Combine(src, "folder-world"); MakeWorldFolder(folder, "from-folder");
+                File.WriteAllText(Path.Combine(folder, "session.lock"), "lock");
+                var zipSrc = Path.Combine(src, "zip-src", "my world"); MakeWorldFolder(zipSrc, "from-zip");
+                Directory.CreateDirectory(Path.Combine(zipSrc, "DIM-1")); File.WriteAllText(Path.Combine(zipSrc, "DIM-1", "level.dat"), "n");
+                var zip = Path.Combine(src, "world.zip"); ZipFile.CreateFromDirectory(Path.Combine(src, "zip-src"), zip);
+                var notWorld = Path.Combine(src, "empty"); Directory.CreateDirectory(notWorld);
+                var f = new McLocalFiles(dir);
+                var modded = ServerManager.Servers.First(x => x.Id == "sample-modded");
+                McFiles.Override = x => x.Id == "sample-modded" ? new McLocalFiles(dir) : null;
+                McState.Set(modded, McRunState.Stopped, "sample server");
+                string Marker() => f.ReadText("world/region/r.0.0.mca");
+                string Said() => string.Join(" | ", Descend<TextBlock>(mc).Where(t => t.IsVisible).Select(t => t.Text));
+                try
+                {
+                    mc.Select("sample-modded");
+                    mc.ShowSection("worlds");
+                    await Wave6Flows.Settle(cc, 1200);
+                    McManagerView.WorldSourceForTest = () => notWorld;
+                    if (!Press(mc, "Import a world…")) return "no Import a world button for an SSH server";
+                    await Task.Delay(200);
+                    if (!Said().Contains("That folder has no level.dat, so it is not a Minecraft world.") || f.Exists("world")) return "a folder without level.dat was not refused";
+                    McManagerView.WorldSourceForTest = () => folder;
+                    Press(mc, "Import a world…");
+                    await McManagerView.WorldActionTask; await Wave6Flows.Settle(cc, 600);
+                    if (Marker() != "from-folder" || !f.Exists("world/level.dat")) return "the folder was not imported (marker " + Marker() + ")";
+                    if (f.Exists("world/session.lock")) return "session.lock was copied";
+                    if (f.List("").Any(e => e.Name.Contains(".import-") || e.Name.Contains(".replaced-"))) return "a staging folder was left on the host";
+                    // a ZIP onto an existing world asks first; declining changes nothing
+                    McManagerView.WorldSourceForTest = () => zip;
+                    McManagerView.WorldConfirmForTest = () => false;
+                    Press(mc, "Import a world…");
+                    await Task.Delay(300);
+                    if (Marker() != "from-folder" || !Said().Contains("Not changed: it was not confirmed.")) return "the world changed without a confirmation";
+                    McManagerView.WorldConfirmForTest = () => true;
+                    Press(mc, "Import a world…");
+                    await McManagerView.WorldActionTask; await Wave6Flows.Settle(cc, 600);
+                    if (Marker() != "from-zip" || !f.Exists("world/DIM-1")) return "the ZIP did not replace the world (marker " + Marker() + ")";
+                    var copies = f.List("world-backups").Where(e => e.IsDir).ToList();
+                    if (copies.Count != 1 || f.ReadText("world-backups/" + copies[0].Name + "/region/r.0.0.mca") != "from-folder") return "no dated copy of the old world on the host";
+                    // a failure after the old folders are aside puts them back and adds nothing
+                    f.WriteText("world_nether/level.dat", "nether");
+                    McRemoteWorlds.AfterAsideForTest = () => throw new IOException("injected");
+                    try { await Task.Run(() => McRemoteWorlds.Import(f, zip, "world", true)); return "the injected failure was not reported"; }
+                    catch (IOException ex) when (ex.Message == "injected") { }
+                    finally { McRemoteWorlds.AfterAsideForTest = null; }
+                    if (Marker() != "from-zip" || f.ReadText("world_nether/level.dat") != "nether") return "the old world was not put back after a failure";
+                    if (f.List("").Any(e => e.Name.Contains(".import-") || e.Name.Contains(".replaced-"))) return "a failure left a staging or moved-aside folder";
+                    // reset: dated copies of both folders, then nothing left
+                    Press(mc, "Reset the world…");
+                    await McManagerView.WorldActionTask; await Wave6Flows.Settle(cc, 600);
+                    if (f.Exists("world") || f.Exists("world_nether")) return "the world is still there after a reset";
+                    if (f.List("world_nether-backups").Count(e => e.IsDir) != 2 || f.List("world-backups").Count(e => e.IsDir) != 3) return "reset took no dated copies";
+                    return null;
+                }
+                finally { McManagerView.WorldSourceForTest = null; McManagerView.WorldConfirmForTest = null; McRemoteWorlds.AfterAsideForTest = null; McFiles.Override = null; McState.Set(modded, McRunState.Running, "sample server"); mc.Select("sample-friends"); }
+            });
+
+            Check("minecraft: Forge and NeoForge containers use the image whose Java matches the Minecraft version, every other software the newest image", () =>
+            {
+                string Img(Flavour f, string v) => ServerManager.DockerImage(new ServerDef { Flavour = f, Version = v });
+                var want = new[] { (Flavour.Forge, "1.16.5", "java8"), (Flavour.Forge, "1.18.2", "java17"), (Flavour.NeoForge, "1.20.4", "java17"), (Flavour.NeoForge, "1.20.5", "java21"), (Flavour.NeoForge, "1.21.4", "java21"), (Flavour.Forge, "1.21", "java21"), (Flavour.Forge, "26.1", "latest"), (Flavour.Forge, "", "latest"), (Flavour.Paper, "1.21.4", "latest"), (Flavour.Fabric, "1.21.4", "latest") };
+                foreach (var (f, v, tag) in want) if (Img(f, v) != "itzg/minecraft-server:" + tag) return $"{f} {v} got {Img(f, v)}, wanted {tag}";
+                return null;
+            });
+
             Check("minecraft: Bedrock players are read from allowlist.json and permissions.json and edited while the server is stopped", () =>
             {
                 var dir = McTemp("bedrock-players");

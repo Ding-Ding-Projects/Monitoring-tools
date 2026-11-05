@@ -393,7 +393,7 @@ namespace MonitoringTools.UI.Minecraft
             var host = new StackPanel();
             var list = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
             host.Children.Add(list);
-            var foot = McUi.Body("These folders are on the SSH host and are read over SSH; Download ZIP copies a folder here first. Import, reset and replace for a server on a host are done on the host, and the world generator below can build a world here to copy over. Backups of this server copy its world here too.", "B.TextMute", 12.5);
+            var foot = McUi.Body("These folders are on the SSH host and are read over SSH; Download ZIP copies a folder here first. Import, reset and replace work on the host from here: the new world is copied up first, the current world gets a dated copy on the host, and any failure puts it back. Backups of this server copy its world here too.", "B.TextMute", 12.5);
             foot.Margin = new Thickness(0, 12, 0, 0);
             host.Children.Add(foot);
             async Task Load()
