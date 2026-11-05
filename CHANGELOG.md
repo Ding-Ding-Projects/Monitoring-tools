@@ -4,6 +4,20 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.46 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.46)
+
+- Bring the README up to date; publish to GitHub live ([`c8ab43a`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c8ab43ad8d7c47122e0abf53bff7ed364df7908c))
+- Mark five finished rows done ([`903b98a`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/903b98a225cd67d7fd3d7f20e02adfa247110fb0))
+
+## 1.0.45 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.45)
+
+- Run the glab and tea publishing routes live; record hardware decisions ([`b2331e4`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b2331e491b891bb63d88366cc84a23afb421fb3a))
+- Record v1.0.44 figures and changelog ([`b3fc32d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b3fc32d831535e8559e236931e31790a260e1ad2))
+
 ## 1.0.44 (2026-11-05)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.44)
