@@ -55,6 +55,7 @@
     <AssemblyMetadata Include="BuildTimeUtc" Value="$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
     <PackageReference Include="ZXing.Net" Version="0.16.10" />
   </ItemGroup>
 </Project>

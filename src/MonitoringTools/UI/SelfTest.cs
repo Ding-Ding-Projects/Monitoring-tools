@@ -80,6 +80,7 @@ namespace MonitoringTools.UI
                 await CheckAsync("language audit (archive and disk loop)", async () => { await LanguageAudit.RunAsync(dir); var left = LanguageAudit.Findings; return left.Count == 0 ? null : left.Count + " untranslated: " + string.Join(" | ", left.Take(200).Select(x => "\"" + x.Text.Replace("\n", " / ") + "\" (" + x.Where + ")")); });
                 Finish(dir); return;
             }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "datasec") { await DataSecChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit
             {
                 await McChecksAsync();
@@ -852,6 +853,7 @@ namespace MonitoringTools.UI
             await WordingChecksAsync(dir);
             await ConvertChecksAsync(dir);
             await ArchiveDiskChecksAsync(dir);
+            await DataSecChecksAsync(dir);
             // ---- the language audit: nothing visible is left in English when Cantonese is on
             await CheckAsync("language: every visible string on every page and window has a Cantonese entry", async () =>
             {
