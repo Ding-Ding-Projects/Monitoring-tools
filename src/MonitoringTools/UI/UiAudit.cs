@@ -436,7 +436,7 @@ namespace MonitoringTools.UI
                     Corners.TryGetValue(r, out var cn); Corners[r] = cn + 1;
                     bool full = r >= Math.Min(b.ActualWidth, b.ActualHeight) / 2 - 0.6;
                     bool authored = Math.Abs(r - Math.Round(r)) < 0.001 && b.Name != "Focus" && r > 1;   // a focus ring follows its container's radius; an animated radius is not authored
-                    if (!full && authored && !ShapeScale.Contains(r)) Add("shape scale", where, fe, $"corner radius {r:0.##} is not on the Material 3 shape scale (0, 4, 8, 12, 16, 20, 28, 32, 48 or full)");
+                    if (!full && authored && !ShapeScale.Contains(Math.Round(r))) Add("shape scale", where, fe, $"corner radius {r:0.##} is not on the Material 3 shape scale (0, 4, 8, 12, 16, 20, 28, 32, 48 or full)");
                     Count("shape-checked");
                 }
                 if (fe.Effect is DropShadowEffect ds)

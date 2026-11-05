@@ -232,6 +232,9 @@
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="Focus" Property="Opacity" Value="1"/>
                         </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.38"/>
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -245,7 +248,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Grid Background="Transparent">
+                    <Grid x:Name="Root" Background="Transparent">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -254,6 +257,9 @@
                         <Grid Grid.Column="1" Width="52" Height="32" VerticalAlignment="Center">
                             <Border x:Name="Focus" CornerRadius="20" BorderBrush="{DynamicResource B.Mint}" BorderThickness="2" Margin="-3" Opacity="0"/>
                             <Border x:Name="Track" CornerRadius="16" Background="{DynamicResource B.Sunken}" BorderBrush="{DynamicResource B.LineStrong}" BorderThickness="2"/>
+                            <!-- the state layer: a 40 circle behind the thumb, 8 percent on hover and 12 percent pressed -->
+                            <Border x:Name="Halo" Width="40" Height="40" CornerRadius="20" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-4,0,0,0"
+                                    Background="{DynamicResource B.LineStrong}" Opacity="0" IsHitTestVisible="False"/>
                             <Border x:Name="Thumb" Width="16" Height="16" CornerRadius="12" HorizontalAlignment="Left" VerticalAlignment="Center"
                                     Margin="8,0,0,0" Background="{DynamicResource B.LineStrong}">
                                 <Border.RenderTransform><TranslateTransform x:Name="ThumbX"/></Border.RenderTransform>
@@ -261,10 +267,21 @@
                         </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Halo" Property="Opacity" Value="0.08"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Halo" Property="Opacity" Value="0.12"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.38"/>
+                        </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="Focus" Property="Opacity" Value="1"/>
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Halo" Property="Margin" Value="16,0,0,0"/>
+                            <Setter TargetName="Halo" Property="Background" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"/>
                             <Setter TargetName="Track" Property="Background" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"/>
                             <Setter TargetName="Track" Property="BorderBrush" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"/>
                             <Setter TargetName="Thumb" Property="Background" Value="{DynamicResource B.MintInk}"/>
@@ -310,6 +327,9 @@
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource B.Raised}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.38"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

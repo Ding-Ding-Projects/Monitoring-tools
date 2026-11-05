@@ -82,7 +82,8 @@ namespace MonitoringTools.UI
                 s.DisplayName = v.Length == 0 ? Appearance.DefaultName : v;
                 if (v.Length == 0) nameBox.Text = Appearance.DefaultName;
                 Settings.Save();
-                Appearance.Apply();
+                Appearance.KeepPage = true;
+                try { Appearance.Apply(); } finally { Appearance.KeepPage = false; }
             }
             nameBox.LostFocus += (a, b) => CommitName();
             nameBox.KeyDown += (a, e) => { if (e.Key == System.Windows.Input.Key.Enter) CommitName(); };
@@ -101,7 +102,8 @@ namespace MonitoringTools.UI
                 else if (Appearance.TryParseHex(t, out var c)) { s.LogoCustomHex = "#" + c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2"); hexNote.Text = ""; }
                 else { hexNote.Text = "Use six hex digits, like #6FDBB4."; return; }
                 Settings.Save();
-                Appearance.Apply();
+                Appearance.KeepPage = true;
+                try { Appearance.Apply(); } finally { Appearance.KeepPage = false; }
                 swatch.Background = new SolidColorBrush(Appearance.LogoColor);
             }
             hexBox.LostFocus += (a, b) => CommitHex();

@@ -75,7 +75,7 @@ namespace MonitoringTools.UI
                 if (Modes.Momentum && !string.IsNullOrEmpty(Settings.Current.LastPage) && SectionIds.Contains(Settings.Current.LastPage)) start = Settings.Current.LastPage;
                 Navigate(start);
             };
-            void OnLook() { AppName.Text = Appearance.DisplayName; LogoKit.ApplyToHeader(Logo, Appearance.LogoColor); if (_current != null) Navigate(_current, animate: false); }
+            void OnLook() { AppName.Text = Appearance.DisplayName; LogoKit.ApplyToHeader(Logo, Appearance.LogoColor); if (_current != null && !Appearance.KeepPage) Navigate(_current, animate: false); }
             Appearance.Changed += OnLook;
             Closed += (s, e) => Appearance.Changed -= OnLook;
             Loaded += (s, e) => { AppName.Text = Appearance.DisplayName; LogoKit.ApplyToHeader(Logo, Appearance.LogoColor); };

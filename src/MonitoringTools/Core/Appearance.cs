@@ -45,6 +45,9 @@ namespace MonitoringTools.Core
         /// <summary>Raised on the UI thread after the resources have been rewritten.</summary>
         public static event Action Changed;
 
+        /// <summary>True while a text field commits its own value: windows update their header but keep the page and its keyboard focus, so tabbing out of the field lands on the next control.</summary>
+        public static bool KeepPage;
+
         // ------------------------------------------------------------------ live values
 
         private static Settings S => Settings.Current;
