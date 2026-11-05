@@ -30,6 +30,8 @@ checked; anything unchecked is labelled.
   runs, were in progress on branch `worktree-agent-aa24b41c13dfee312` when work stopped (see that
   branch's last commit for its state). The history retention self-test check failed twice in other
   runs and never in four runs here; it now reports the exact refused save if it fails again.
+- **Requested, not started:** register a TOTP account when a copied image holds an `otpauth://` QR
+  code (see ROADMAP.md).
 - **Needs the maintainer:** native review of the Cantonese, a FIDO2 key, a real pen or touch screen,
   a real phone camera, a real Windows Hello prompt, and approval to download the `glab` and `tea`
   command-line tools for the forge checks.

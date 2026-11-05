@@ -20,6 +20,9 @@ and mod commands, peak history; pre-generation stall fixed (empty servers pause 
 translated; encrypted local history; QR up to version 40; real pointer-click checks.
 
 Next steps:
+0. New request, not started: when a copied image holds an otpauth:// QR code, offer to register it
+   for TOTP codes (secret encrypted for this Windows account, current code with countdown, copy).
+   The QR decoder already exists (QR pairing); a TOTP routine exists for element locks.
 1. Branch worktree-agent-aa24b41c13dfee312 holds unfinished work: SSH world import, reset and
    replace from the app, and Forge and NeoForge live runs. Read its last commit message for what is
    finished, finish it, run the full self-test (--selftest on a hidden desktop), and merge to main.
