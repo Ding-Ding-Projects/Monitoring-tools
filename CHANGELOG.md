@@ -4,6 +4,27 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.49 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.49)
+
+- Convert clipboard-actions and file-tools artboards to Design Component files ([`42ea339`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/42ea339200e96b31bf9eff8f376e56df9c2d4b84))
+- Design: make every file tool state describe the same file or batch ([`a045ae6`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a045ae6ad7579a05c0a01ad32cf3feb81c453dde))
+- Add clipboard actions design canvas with six boards and frames ([`0828240`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/08282400c35cc901432cb17626118068496b2aae))
+- Design: file tools review fixes, handoff and final frames ([`ec65ce3`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ec65ce3499050f2d6b2573892e993eb9de167ffb))
+- Design: all fifteen file tool boards, frames and renderer ([`f4dec30`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/f4dec30065c68749b9fe5daed819e07860b9627e))
+- Design: file tool dialogs, shared kit and first five boards ([`bdc7bfc`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/bdc7bfc4a6e1f612f2389377af20ef7ec583ee22))
+
+## 1.0.48 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.48)
+
+- Decode every simulated phone photo; generate worlds on 1.20.6 and 26.3 ([`6ab1c80`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/6ab1c80b9201338dc1827c83109a7a8b36b35396))
+- Read GitHub deep links as their repository; let the audit wait for slow pages ([`727e5fc`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/727e5fc86ac5c11f58454e8b42fb28e0e2099be0))
+- Record v1.0.47 figures and changelog ([`27c2b71`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/27c2b71cf0ac06674aa0c96d73ab2f662cdc5c97))
+- Walk every lockable element type and check that sound playback really starts ([`dfb3711`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/dfb37115ffba6f8c5b5da366c4f775dfdf366861))
+- Drive the real file dialogs and the calendar popup from outside ([`a477dcb`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a477dcb1c023a9c61f016a938ecb96ac1d7afbef))
+
 ## 1.0.47 (2026-11-05)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.47)
