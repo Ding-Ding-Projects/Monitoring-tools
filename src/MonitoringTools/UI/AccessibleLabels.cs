@@ -74,14 +74,35 @@ namespace MonitoringTools.UI
                     int at = panel.Children.IndexOf(child as UIElement);
                     for (int i = at - 1; i >= 0 && label == null; i--)
                     {
-                        if (panel.Children[i] is TextBlock t && !string.IsNullOrWhiteSpace(t.Text)) label = t;
-                        else if (panel.Children[i] is Panel inner) label = inner.Children.OfType<TextBlock>().FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Text));
+                        if (panel.Children[i] is TextBlock t && !string.IsNullOrWhiteSpace(TextOf(t))) label = t;
+                        else if (panel.Children[i] is Panel inner) label = inner.Children.OfType<TextBlock>().FirstOrDefault(x => !string.IsNullOrWhiteSpace(TextOf(x)));
                     }
                 }
                 child = parent;
             }
-            if (label != null) e.SetBinding(AutomationProperties.NameProperty, new Binding("Text") { Source = label, Mode = BindingMode.OneWay });
+            if (label != null) e.SetBinding(AutomationProperties.NameProperty, new Binding(".") { Source = label, Mode = BindingMode.OneWay, Converter = Converter.Instance });
             else if (e.ToolTip is string tip && !string.IsNullOrWhiteSpace(tip)) AutomationProperties.SetName(e, tip);
+        }
+
+        /// <summary>
+        /// The words a text block shows. The language and personal wording layers rewrite its runs, and the block's own Text property is not
+        /// always updated by that, so the runs are read when there are any.
+        /// </summary>
+        internal static string TextOf(TextBlock t)
+        {
+            if (t.Inlines.Count == 0) return t.Text;
+            var sb = new System.Text.StringBuilder();
+            void Add(System.Windows.Documents.InlineCollection col)
+            {
+                foreach (var i in col)
+                {
+                    if (i is System.Windows.Documents.Run r) sb.Append(r.Text);
+                    else if (i is System.Windows.Documents.Span sp) Add(sp.Inlines);
+                    else if (i is System.Windows.Documents.LineBreak) sb.Append(' ');
+                }
+            }
+            Add(t.Inlines);
+            return sb.Length > 0 ? sb.ToString() : t.Text;
         }
 
         private sealed class Converter : IValueConverter
@@ -90,11 +111,11 @@ namespace MonitoringTools.UI
             public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             {
                 if (value is string s) return s;
-                if (value is TextBlock t) return t.Text;
+                if (value is TextBlock t) return TextOf(t);
                 if (value is DependencyObject d)
                 {
-                    var tb = Drive.Descendants(d).OfType<TextBlock>().FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Text));
-                    if (tb != null) return tb.Text;
+                    var tb = Drive.Descendants(d).OfType<TextBlock>().FirstOrDefault(x => !string.IsNullOrWhiteSpace(TextOf(x)));
+                    if (tb != null) return TextOf(tb);
                 }
                 return "";
             }
