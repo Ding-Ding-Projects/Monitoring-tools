@@ -4,6 +4,13 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.36 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.36)
+
+- Let updates through when a game is left open and nobody is playing ([`323c127`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/323c127a3dabbf08b9453e6ec3524287cb76d234))
+- Record v1.0.35 figures and changelog ([`bd3625b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/bd3625bd3ccf8bc397961e2b215fa823ba9a9ad9))
+
 ## 1.0.35 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.35)
