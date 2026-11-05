@@ -10,7 +10,7 @@ function data() {
   const main = win({ title: "Data viewer and converter", icon: "Table", file: "orders-march.csv", meta: "1,204 rows · 5 columns · 62 KB", w: 800,
     body: `${banner("ok", "Valid CSV", "Comma separated, header row found, every row has 5 values. Shown: the first 500 rows.")}<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">${tabs(0)}<span class="sub">Separator</span>${chip("Comma", true)}${chip("Semicolon")}${chip("Tab")}${chip("Auto")}</div>${dtable}
       ${card(`${sect("CONVERT TO")}<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">${seg(["JSON", "YAML", "CSV"], 0)}${sw("Pretty print", "Indent 2 spaces", true)}</div>${field("Save as", "orders-march.json", { i: "File" })}`)}`,
-    foot: { note: "Original is never changed.", left: btn("Format in place", { k: "ghost", i: "Lines" }), primary: { label: "Convert", i: "Refresh" } } });
+    foot: { note: "Convert saves a new file. Format in place rewrites this one.", left: btn("Format in place", { k: "ghost", i: "Lines" }), primary: { label: "Convert", i: "Refresh" } } });
   const bad = win({ title: "Data viewer and converter", icon: "Table", file: "settings.json", meta: "412 bytes", w: 800,
     body: `${banner("bad", "Invalid JSON at line 7, column 14", "A comma is missing after the value on line 6. Nothing can be converted until it is fixed.")}<div class="pre"><span style="color:var(--textsoft)">5   </span>  "retries": 3,\n<span style="color:var(--textsoft)">6   </span>  "mode": "fast"\n<span class="hlb">7   </span>  <span class="hlb">"path"</span>: "D:\\\\data"\n<span style="color:var(--textsoft)">8   </span>}</div><div style="display:flex;gap:8px">${btn("Go to the error", { k: "ghost", i: "Search" })}${btn("Copy message", { k: "ghost", i: "Copy" })}</div>`,
     foot: { note: "", primary: { label: "Convert", dis: true } } });
@@ -65,23 +65,23 @@ function subs() {
 
 // ---------------------------------------------------------------- 14 Font
 function fontTool() {
-  const sample = (px, t) => `<div style="display:flex;align-items:baseline;gap:14px;padding:6px 0;border-top:1px solid var(--line)"><span class="sub mono" style="width:40px;flex:none">${px}</span><span style="font-family:'Roboto',serif;font-size:${px}px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${t}</span></div>`;
+  const sample = (px, t) => `<div style="display:flex;align-items:baseline;gap:14px;padding:6px 0;border-top:1px solid var(--line)"><span class="mono" style="width:44px;flex:none;font-size:12px;color:var(--text)">${px}</span><span style="font-family:'Roboto',serif;font-size:${px}px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${t}</span></div>`;
   const main = win({ title: "Font preview and install", icon: "Font", file: "FiraSans-Regular.ttf", meta: "Fira Sans · Regular · 438 KB", w: 780,
-    body: `<div class="in focus" style="height:44px">${ic("Text", "s")}<span class="v">The quick brown fox jumps over the lazy dog</span></div><div>${sample(72, "Aa Gg 123")}${sample(36, "The quick brown fox jumps")}${sample(18, "The quick brown fox jumps over the lazy dog 0123456789")}${sample(12, "Sphinx of black quartz, judge my vow. Pack my box with five dozen liquor jugs.")}</div>
+    body: `<div class="in focus" style="height:44px">${ic("Text", "s")}<span class="v">The five boxing wizards jump quickly</span></div><div>${sample(72, "Aa Gg 123")}${sample(36, "The five boxing wizards jump")}${sample(18, "The five boxing wizards jump quickly 0123456789")}${sample(12, "Sphinx of black quartz, judge my vow. Pack my box with five dozen liquor jugs.")}</div>
       ${card(kv([["Family", "Fira Sans · Regular (400)"], ["Glyphs", "1,610 · Latin, Cyrillic, Greek"], ["Licence", "SIL Open Font License 1.1"]]))}
       ${sw("Install for this user only", "No administrator rights. Other people on this computer do not get it.", true)}`,
     foot: { note: "The preview does not install anything.", primary: { label: "Install", i: "Plus" } } });
   const done = win({ title: "Font preview and install", icon: "Font", file: "FiraSans-Regular.ttf", meta: "installed", w: 780,
-    body: doneBody({ head: "Fira Sans is installed for you", text: "Apps that are already open may need a restart to list it.", rows: [["Location", "Your user fonts folder"], ["Removal", "Open this tool again and choose Uninstall"]], actions: btn("Uninstall", { k: "ghost", i: "Trash" }) + btn("Open fonts settings", { k: "text" }) }), foot: close });
+    body: doneBody({ head: "Fira Sans is installed for you", text: "Apps that are already open may need a restart to list it.", rows: [["Location", "Your user fonts folder"], ["Removal", "Open this tool again and choose Uninstall"]], actions: btn("Uninstall", { k: "danger", i: "Trash" }) + btn("Open fonts settings", { k: "text" }) }), foot: close });
   const already = win({ title: "Font preview and install", icon: "Font", file: "FiraSans-Regular.ttf", meta: "already installed", w: 780,
-    body: `${banner("info", "This font is already installed", "The same file is installed for you. Installing again would change nothing.")}<div style="display:flex;gap:8px">${btn("Uninstall", { k: "ghost", i: "Trash" })}</div>`, foot: { note: "", cancel: false, primary: { label: "Close" } } });
+    body: `${banner("info", "This font is already installed", "The same file is installed for you. Installing again would change nothing.")}<div style="display:flex;gap:8px">${btn("Uninstall", { k: "danger", i: "Trash" })}</div>`, foot: { note: "", cancel: false, primary: { label: "Close" } } });
   const bad = win({ title: "Font preview and install", icon: "Font", file: "broken-font.otf", meta: "could not read", w: 780,
     body: errorBody({ head: "This is not a usable font file", text: "The font tables are damaged, so Windows would refuse it.", why: "Nothing was installed and the file was not changed.", actions: btn("Copy details", { k: "ghost", i: "Copy" }) }), foot: close });
   return { cells: [cell("Ready", main), cell("Done", done), cell("Already installed", already), cell("Unreadable file", bad)] };
 }
 
 // ---------------------------------------------------------------- 15 Disc image
-const drow = (d, kind, name, size, on) => `<div class="lr" style="grid-template-columns:auto 1fr 90px;min-height:40px"><span class="n" style="padding-left:${d * 22}px;gap:8px">${cb(on)}${ic(kind === "d" ? "Folder" : "File", "s")}<b style="font-weight:${kind === "d" ? 500 : 400}">${name}</b></span><span class="r">${size}</span><span></span></div>`;
+const drow = (d, kind, name, size, on) => `<div class="lr" style="grid-template-columns:1fr 90px;min-height:40px"><span class="n" style="padding-left:${d * 22}px;gap:8px">${kind === "d" ? ic("Chevron", "s") : cb(on)}${ic(kind === "d" ? "Folder" : "File", "s")}<b style="font-weight:${kind === "d" ? 500 : 400}">${name}</b></span><span class="r">${size}</span><span></span></div>`;
 function disc() {
   const tree = `<div class="list">${drow(0, "d", "sources", "", false)}${drow(1, "f", "install.wim", "3.9 GB", false)}${drow(0, "d", "boot", "", false)}${drow(0, "f", "setup.exe", "88 KB", true)}${drow(0, "f", "autorun.inf", "1 KB", false)}</div>`;
   const main = win({ title: "Disc image", icon: "Disc", file: "Win-install.iso", meta: "ISO 9660 · 5.2 GB", w: 780,
@@ -89,7 +89,7 @@ function disc() {
       <div style="display:flex;gap:8px;flex-wrap:wrap">${btn("Mount as a drive", { k: "acc", i: "Disc" })}${btn("Extract selected", { k: "ghost", i: "Down" })}${btn("Browse without mounting", { k: "text", i: "Folder" })}</div>`,
     foot: { note: "1 file selected · 88 KB", cancel: "Close", primary: null } });
   const work = win({ title: "Disc image", icon: "Disc", file: "Win-install.iso", meta: "mounting", w: 780,
-    body: workingBody({ head: "Mounting", sub: "Asking Windows to attach the image. This usually takes a second or two.", pct: 40, ind: true }), foot: { note: "", primary: null, cancel: "Cancel" } });
+    body: workingBody({ head: "Attaching the image as a drive", sub: "Asking Windows to attach the image. This usually takes a second or two.", pct: 40, ind: true }), foot: { note: "", primary: null, cancel: "Cancel" } });
   const mounted = win({ title: "Disc image", icon: "Disc", file: "Win-install.iso", meta: "mounted as E:", w: 780,
     body: `${banner("ok", "Mounted as drive E:", "Read-only. Eject when you are done so the .iso can be moved or deleted.")}${tree}<div style="display:flex;gap:8px;flex-wrap:wrap">${btn("Open drive E:", { k: "acc", i: "Folder" })}${btn("Extract selected", { k: "ghost", i: "Down" })}${btn("Eject", { k: "ghost", i: "Eject" })}</div>`,
     foot: { note: "Leaving this window open does not unmount it.", cancel: "Close", primary: null } });

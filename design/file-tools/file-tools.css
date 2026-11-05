@@ -62,9 +62,9 @@ svg.i.l{width:24px;height:24px}
 .btn{height:40px;padding:0 20px;border-radius:20px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap;position:relative;overflow:hidden}
 .btn.acc{background:var(--mint);color:var(--mintink)}
 .btn.ghost{background:var(--secc);color:var(--onsecc)}
-.btn.text{padding:0 12px;color:var(--mint)}
+.btn.text{padding:0 16px;color:var(--mint);border:1px solid var(--line)}
 .btn.danger{background:var(--dangerwash);color:var(--ondanger)}
-.btn[disabled]{opacity:.38;cursor:default}
+.btn[disabled]{background:color-mix(in srgb,var(--text) 12%,transparent);color:color-mix(in srgb,var(--text) 38%,transparent);cursor:default}
 .btn.sm{height:32px;padding:0 14px;font-size:13px;border-radius:16px}
 .chip{height:32px;padding:0 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--textsoft);border:1px solid var(--line);white-space:nowrap}
 .chip.on{background:var(--secc);color:var(--onsecc);border-color:transparent}
@@ -147,9 +147,9 @@ dl.kv{margin:0}
 .rb.on::after{content:"";position:absolute;inset:3px;border-radius:6px;background:var(--mint)}
 .thumb{width:36px;height:36px;border-radius:8px;flex:none}
 .pre{background:var(--sunken);border-radius:12px;padding:10px 12px;font-family:'Roboto Mono',Consolas,monospace;font-size:12px;line-height:1.55;white-space:pre;overflow:hidden;color:var(--text)}
-.hl{background:var(--amberwash);color:var(--amber);border-radius:3px;padding:0 2px}
-.hlb{background:var(--dangerwash);color:var(--ondanger);border-radius:3px;padding:0 2px}
-.hlg{background:var(--mintwash);color:var(--onpc);border-radius:3px;padding:0 2px}
+.hl{background:var(--amber);color:var(--amberink);border-radius:3px;padding:0 2px}
+.hlb{background:var(--danger);color:var(--window);border-radius:3px;padding:0 2px}
+.hlg{background:var(--mint);color:var(--mintink);border-radius:3px;padding:0 2px}
 .div{height:1px;background:var(--line);margin:2px 0}
 .sect{font-size:12px;font-weight:500;letter-spacing:.5px;color:var(--mint)}
 .empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:28px 16px;color:var(--textsoft)}

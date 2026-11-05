@@ -58,7 +58,7 @@ export function win({ title, tool = "", icon, file, meta, w = 720, body, foot, l
 export const cell = (cap, html, tag = "") => `<div class="cell"><div class="cap"><b>${cap}</b>${tag}</div>${html}</div>`;
 
 // Generic state bodies shared by every tool.
-export const workingBody = ({ head, sub, pct, rows = [], ind = false }) => `<div class="card" style="gap:14px"><div style="display:flex;align-items:baseline;gap:10px"><span class="big">${ind ? "Working" : pct + "%"}</span><span class="sub">${head}</span></div>${prog(pct, ind)}<div class="sub">${sub}</div></div>${rows.length ? `<div class="list">${rows.join("")}</div>` : ""}`;
+export const workingBody = ({ head, sub, pct, rows = [], ind = false }) => `<div class="card" style="gap:14px"><div style="display:flex;align-items:baseline;gap:10px"><span class="big"${ind ? ' style="font-size:20px"' : ""}>${ind ? "Mounting" : pct + "%"}</span><span class="sub">${head}</span></div>${prog(pct, ind)}<div class="sub">${sub}</div></div>${rows.length ? `<div class="list">${rows.join("")}</div>` : ""}`;
 export const doneBody = ({ head, text, rows, actions }) => `${banner("ok", head, text)}${rows ? card(kv(rows)) : ""}<div style="display:flex;gap:8px;flex-wrap:wrap">${actions}</div>`;
 export const errorBody = ({ head, text, why, actions }) => `${banner("bad", head, text)}<div class="card"><div class="sect">WHAT WAS NOT CHANGED</div><div class="sub">${why}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap">${actions}</div>`;
 

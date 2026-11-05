@@ -7,7 +7,7 @@ const sizes = [16, 24, 32, 48, 64, 128, 256];
 const grid = (bg) => `<div style="background:${bg};border-radius:14px;padding:14px;display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">${sizes.map((s) => `<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="display:block;width:${Math.min(s, 96)}px;height:${Math.min(s, 96)}px;border-radius:${Math.round(Math.min(s, 96) * 0.22)}px;${tn(165, 44)}"></span><span class="sub mono" style="color:inherit;opacity:.8;font-size:11px">${s}</span></div>`).join("")}</div>`;
 function icon() {
   const main = win({ title: "Make an icon", icon: "Stamp", file: "logo-mark.png", meta: "512×512 · transparent", w: 820,
-    body: `<div style="display:flex;gap:18px"><div style="flex:none;width:190px;display:flex;flex-direction:column;gap:10px"><div style="height:190px;border-radius:16px;background:repeating-conic-gradient(var(--sunken) 0 25%,var(--surface) 0 50%) 0 0/16px 16px;display:grid;place-items:center"><span style="width:150px;height:150px;border-radius:32px;${tn(165, 44)}"></span></div>${sw("Keep transparency", "", true)}${slider("Padding", "8%", 16)}</div>
+    body: `<div style="display:flex;gap:18px"><div style="flex:none;width:190px;display:flex;flex-direction:column;gap:10px;align-self:stretch"><div style="flex:1;min-height:190px;border-radius:16px;background:repeating-conic-gradient(var(--sunken) 0 25%,var(--surface) 0 50%) 0 0/16px 16px;display:grid;place-items:center"><span style="width:150px;height:150px;border-radius:32px;${tn(165, 44)}"></span></div>${sw("Keep transparency", "", true)}${slider("Padding", "8%", 16)}</div>
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">${sect("SIZES INSIDE THE .ICO")}<div style="display:flex;gap:6px;flex-wrap:wrap">${sizes.map((s) => `<span class="chip on">${ic("Check", "s")}${s}</span>`).join("")}</div><span class="hint">Windows picks the closest size for the taskbar, title bars and Explorer. Keep all seven unless you know you need fewer.</span>
       ${sect("PREVIEW (128 AND 256 SHOWN SMALLER)")}<div class="row2"><div style="color:#171D1A">${grid("#F3F3F3")}</div><div style="color:#fff">${grid("#202020")}</div></div></div></div>
       <div class="row2">${field("Shape", "Keep the picture as it is", { i: "Crop", after: ic("Chevron", "s") })}${field("Save as", "logo-mark.ico", { i: "File" })}</div>`,
@@ -23,8 +23,8 @@ function icon() {
 }
 
 // ---------------------------------------------------------------- 7 Archive
-const trow = (depth, kind, name, size, date, on, sel = false) => `<div class="lr${sel ? " sel" : ""}" style="grid-template-columns:auto 1fr 88px 120px"><span class="n" style="padding-left:${depth * 22}px;gap:8px">${cb(on)}${ic(kind === "d" ? "Folder" : "File", "s")}<b style="font-weight:${kind === "d" ? 500 : 400}">${name}</b></span><span class="r">${size}</span><span class="r">${date}</span></div>`;
-const treeHead = `<div class="lr hd" style="grid-template-columns:auto 1fr 88px 120px"><span class="n"><span style="width:20px;display:inline-block"></span>Name</span><span class="r">Size</span><span class="r">Modified</span></div>`;
+const trow = (depth, kind, name, size, date, on, sel = false) => `<div class="lr${sel ? " sel" : ""}" style="grid-template-columns:1fr 88px 120px"><span class="n" style="padding-left:${depth * 22}px;gap:8px">${cb(on)}${ic(kind === "d" ? "Folder" : "File", "s")}<b style="font-weight:${kind === "d" ? 500 : 400}">${name}</b></span><span class="r">${size}</span><span class="r">${date}</span></div>`;
+const treeHead = `<div class="lr hd" style="grid-template-columns:1fr 88px 120px"><span class="n"><span style="width:28px;display:inline-block"></span>Name</span><span class="r">Size</span><span class="r">Modified</span></div>`;
 function archive() {
   const tree = `<div class="list" style="max-height:268px">${treeHead}${trow(0, "d", "project", "", "", true)}${trow(1, "d", "src", "", "", true)}${trow(2, "f", "main.cs", "14 KB", "3 Nov 2025", true, true)}${trow(2, "f", "util.cs", "6 KB", "3 Nov 2025", true)}${trow(1, "d", "assets", "", "", false)}${trow(2, "f", "banner.psd", "48.2 MB", "30 Oct 2025", false)}${trow(1, "f", "README.md", "3 KB", "3 Nov 2025", true)}${trow(1, "f", "notes.txt", "1 KB", "1 Nov 2025", true)}</div>`;
   const main = win({ title: "Extract an archive", icon: "Archive", file: "project-v2.zip", meta: "48 files · 112 MB unpacked · 41 MB zipped", w: 820,
@@ -39,7 +39,7 @@ function archive() {
     body: workingBody({ head: "File 7 of 12", sub: "assets/logo.svg → D:\\Downloads\\project-v2 · 14.9 MB of 31.4 MB", pct: 47 }),
     foot: { note: "Cancel stops now; files already written are kept.", primary: { label: "Extract", dis: true } } });
   const done = win({ title: "Extract an archive", icon: "Archive", file: "project-v2.zip", meta: "done", w: 820,
-    body: `${banner("ok", "Extracted 12 files, 31.4 MB", "2 files were skipped because they already existed and Keep both renamed 1.")}${card(kv([["Skipped", "banner.psd (not selected)"], ["Renamed", "notes.txt → notes (2).txt"], ["Refused", "0 unsafe paths"]]))}<div style="display:flex;gap:8px">${btn("Open folder", { k: "ghost", i: "Folder" })}${btn("Delete the archive", { k: "text", i: "Trash" })}</div>`,
+    body: `${banner("ok", "Extracted 12 files, 31.4 MB", "2 files were skipped because they already existed and Keep both renamed 1.")}${card(kv([["Skipped", "banner.psd (not selected)"], ["Renamed", "notes.txt → notes (2).txt"], ["Refused", "0 unsafe paths"]]))}<div style="display:flex;gap:8px">${btn("Open folder", { k: "ghost", i: "Folder" })}${btn("Delete the archive", { k: "danger", i: "Trash" })}</div>`,
     foot: close });
   return { cells: [cell("Ready", main), cell("Password needed", pw), cell("Working", work), cell("Done", done)] };
 }
@@ -70,7 +70,7 @@ const chain = (rows) => `<div class="list">${rows.map(([n, s, lvl, k]) => `<div 
 function signed() {
   const main = win({ title: "Who signed this?", icon: "Shield", file: "SetupClient-3.4.1.exe", meta: "installer · 84.2 MB", w: 780,
     body: `${banner("ok", "Signed by Fabrikam Software Ltd, and the file is intact", "The signature checks out and the certificate chains to a trusted root. This tells you who made it and that it was not altered, not that it is safe.")}
-      ${card(kv([["Publisher", "<b style='font-weight:500'>Fabrikam Software Ltd</b> · Toronto, Canada"], ["Signed on", "21 Oct 2025, 14:08 UTC (trusted timestamp)"], ["Certificate valid", "to 14 Mar 2026, was valid when signed"], ["Digest", "SHA-256 · file hash <span class='mono'>4F9C2A…E81B</span>"], ["Thumbprint", "<span class='mono'>B1 07 3E 5C 90 AA 21 4D …</span>"]]))}
+      ${card(kv([["Publisher", "<b style='font-weight:500'>Fabrikam Software Ltd</b> · Toronto, Canada"], ["Signed on", "21 Oct 2025, 14:08 UTC (trusted timestamp)"], ["Certificate valid", "to 14 Mar 2026, was valid when signed"], ["Digest", "SHA-256 · file hash <span class='mono'>4F9C2A…E81B</span>"], ["Thumbprint", "<span class='mono'>B1073E…214D</span>"]]))}
       <div class="fld"><span class="lbl">Certificate chain</span>${chain([["Fabrikam Software Ltd", "Valid", 0, "ok"], ["Contoso Code Signing CA 2024", "Trusted", 1, "ok"], ["Contoso Root Authority", "Trusted root", 2, "ok"]])}</div>`,
     foot: { left: btn("Open certificate", { k: "ghost", i: "Cert" }), note: "", primary: { label: "Close" }, cancel: "Copy details" } });
   const un = win({ title: "Who signed this?", icon: "Shield", file: "notes-tool.exe", meta: "program · 2.1 MB", w: 780,
