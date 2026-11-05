@@ -39,6 +39,8 @@ namespace MonitoringTools.UI.Minecraft
             }
             else if (!s.IsLocal)
             {
+                top.Children.Add(Ui.Button("Import a world…", () => Import(s, Say), "Btn.Ghost", Icons.Folder));
+                top.Children.Add(Ui.Button("Reset the world…", () => Reset(s, null, Say), "Btn.Danger", Icons.Restart));
                 list.Children.Add(SshWorldsBody(s, Say));
             }
             else
@@ -125,9 +127,34 @@ namespace MonitoringTools.UI.Minecraft
             if (source == null) return;
             var (_, problem) = McWorlds.Validate(source);
             if (problem != null) { say(problem, "B.Amber"); return; }
+            if (s.IsSsh)
+            {
+                bool exists;
+                try { var f = McFiles.For(s); var lv = McRemote.LevelName(f, false); exists = f.Exists(lv); }
+                catch (Exception ex) { say(ex.Message, "B.Amber"); return; }
+                if (exists) { Reset(s, source, say); return; }
+                if (IsUp(s) && !McDemo.IsSample(s)) { say("Stop the server first: it holds its world open while it runs.", "B.Amber"); return; }
+                WorldActionTask = RunSshWorld(s, source, "Importing…", "Imported. The server uses this world on its next start.", say);
+                return;
+            }
             if (Directory.Exists(Path.Combine(s.Folder, McWorlds.LevelName(s)))) { Reset(s, source, say); return; }
             try { McWorlds.ImportInto(s, source); say("Imported. The server uses this world on its next start.", "B.Mint"); BuildWorkspace(); }
             catch (Exception ex) { say(ex.Message, "B.Amber"); }
+        }
+
+        private Task RunSshWorld(ServerDef s, string source, string start, string done, Action<string, string> say)
+        {
+            return Task.Run(async () =>
+            {
+                await Dispatcher.InvokeAsync(() => say(start, "B.TextMute"));
+                try
+                {
+                    var files = McFiles.For(s);
+                    await Task.Run(() => McRemoteWorlds.Import(files, source, McRemote.LevelName(files, false), false));
+                    await Dispatcher.InvokeAsync(() => { BuildWorkspace(); SetStatus(done, "B.Mint"); });
+                }
+                catch (Exception ex) { await Dispatcher.InvokeAsync(() => say(ex.Message, "B.Amber")); }
+            });
         }
 
         private void Reset(ServerDef s, string replacement, Action<string, string> say)
@@ -138,6 +165,14 @@ namespace MonitoringTools.UI.Minecraft
                 try
                 {
                     if (IsUp(s) && !McDemo.IsSample(s)) await ServerManager.StopAsync(s);
+                    if (s.IsSsh)
+                    {
+                        var files = McFiles.For(s);
+                        var r = await Task.Run(() => { var lv = McRemote.LevelName(files, false); return replacement == null ? McRemoteWorlds.Reset(files, lv) : McRemoteWorlds.Import(files, replacement, lv, true); });
+                        BuildWorkspace();
+                        SetStatus((replacement == null ? "The world was reset." : "The world was replaced.") + (r.Backups.Count > 0 ? " The old world is kept on the host in " + string.Join(", ", r.Backups) + "." : ""), "B.Mint");
+                        return;
+                    }
                     var b = await Task.Run(() => McWorlds.ResetOrReplace(s, replacement));
                     BuildWorkspace();
                     SetStatus((replacement == null ? "The world was reset." : "The world was replaced.") + (b != null ? " The old world is in the backup " + Path.GetFileName(b.Path) + "." : ""), "B.Mint");

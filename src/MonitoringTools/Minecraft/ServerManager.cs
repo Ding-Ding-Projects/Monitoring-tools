@@ -341,7 +341,7 @@ namespace MonitoringTools.Minecraft
                     if (worldSource != null) McWorlds.ImportInto(s, worldSource, report);
                     WriteProperties(s, props);
                     report("Pulling the server image…");
-                    var pull = Run("docker", "pull itzg/minecraft-server:latest", 900000);
+                    var pull = Run("docker", "pull " + DockerImage(s), 900000);
                     if (pull.Code != 0) throw new InvalidOperationException("Pull failed: " + ActionLine(pull.Out));
                     var mk = Run("docker", DockerCreateArgs(s, $"\"{s.Folder}\"", props), 60000);
                     if (mk.Code != 0) throw new InvalidOperationException("Container create failed: " + ActionLine(mk.Out));
@@ -372,7 +372,7 @@ namespace MonitoringTools.Minecraft
                     if (info.Code != 0) throw new InvalidOperationException("Docker is not available on the SSH host: " + ActionLine(info.Out));
                     report("Pulling the server image on the SSH host…");
                     var dir = s.RemoteFolder;
-                    var r = Ssh(s, $"mkdir -p {Sh(dir)} && docker pull itzg/minecraft-server:latest >/dev/null && docker {DockerCreateArgs(s, $"\"$(cd {Sh(dir)} && pwd)\"", props)}", 900000);
+                    var r = Ssh(s, $"mkdir -p {Sh(dir)} && docker pull {DockerImage(s)} >/dev/null && docker {DockerCreateArgs(s, $"\"$(cd {Sh(dir)} && pwd)\"", props)}", 900000);
                     if (r.Code != 0) throw new InvalidOperationException("Container create failed: " + ActionLine(r.Out));
                     break;
                 }
@@ -400,6 +400,24 @@ namespace MonitoringTools.Minecraft
             if (!string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase)) { File.Delete(path); throw new InvalidDataException($"The {s.Flavour} jar failed its {kind.ToUpperInvariant()} check."); }
         }
 
+        /// <summary>
+        /// The server image. Forge and NeoForge are loaded by the Java their Minecraft version was built for, and the newest
+        /// image's Java (25) lacks a module NeoForge 1.21.4 needs (jdk.crypto.ec), so they run on the matching image tag; every
+        /// other software uses the newest image.
+        /// </summary>
+        internal static string DockerImage(ServerDef s)
+        {
+            const string repo = "itzg/minecraft-server";
+            if (s.Flavour is not (Flavour.Forge or Flavour.NeoForge)) return repo + ":latest";
+            var parts = (s.Version ?? "").Split('.');
+            if (parts.Length < 2 || !int.TryParse(parts[0], out var major) || !int.TryParse(parts[1], out var minor) || major != 1) return repo + ":latest";
+            int patch = parts.Length > 2 && int.TryParse(parts[2], out var p) ? p : 0;
+            if (minor <= 16) return repo + ":java8";
+            if (minor < 20 || (minor == 20 && patch < 5)) return repo + ":java17";
+            if (minor < 22) return repo + ":java21";
+            return repo + ":latest";
+        }
+
         private static string DockerCreateArgs(ServerDef s, string volume, IDictionary<string, string> props)
         {
             var env = new StringBuilder();
@@ -411,7 +429,7 @@ namespace MonitoringTools.Minecraft
             }
             if (props.TryGetValue("max-players", out var mp)) env.Append($"-e MAX_PLAYERS={Escape(mp)} ");
             if (props.TryGetValue("level-seed", out var seed) && seed.Length > 0) env.Append($"-e SEED=\"{Escape(seed)}\" ");
-            return $"create --name {s.ContainerName} --label monitoring-tools.server={s.Id} -p {s.Port}:25565 -v {volume}:/data {env}-i -t itzg/minecraft-server:latest";
+            return $"create --name {s.ContainerName} --label monitoring-tools.server={s.Id} -p {s.Port}:25565 -v {volume}:/data {env}-i -t {DockerImage(s)}";
         }
 
         /// <summary>The live process of a local process server, or null when it is not running from this app.</summary>

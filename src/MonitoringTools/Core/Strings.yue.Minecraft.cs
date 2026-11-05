@@ -475,6 +475,8 @@ namespace MonitoringTools.Core
                 m => Inner(m.Groups[1].Value) + Inner(m.Groups[2].Value));
             AddFn(@"^The world was (reset|replaced)\.( The old world is in the backup (.+?)\.)?$", m =>
                 (m.Groups[1].Value.ToLowerInvariant() == "reset" ? "世界已重設。" : "世界已取代。") + (m.Groups[2].Success ? "舊世界喺備份 " + m.Groups[3].Value + " 入面。" : ""));
+            AddFn(@"^The world was (reset|replaced)\. The old world is kept on the host in (.+?)\.$", m =>
+                (m.Groups[1].Value.ToLowerInvariant() == "reset" ? "世界已重設。" : "世界已取代。") + "舊世界留喺主機嘅 " + m.Groups[2].Value + "。");
             Add(@"^Saved (.+\.zip)\.$", "已儲存 $1。");
             Add(@"^The server already has a world folder ""(.+)""\. Use Replace to swap it, which backs it up first\.$", "伺服器已經有世界資料夾「$1」。用「取代」去對調，會先備份。");
 
