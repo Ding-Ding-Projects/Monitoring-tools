@@ -4,6 +4,13 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.35 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.35)
+
+- Fix world pre-generation stall: staging server pauses itself when empty ([`fdb6267`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/fdb6267197cf320982367d7a14e44037d21505ce))
+- Record v1.0.34 figures and changelog ([`5c61233`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/5c61233855c1db64f4d6ea8f62e259ed697760b0))
+
 ## 1.0.34 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.34)
