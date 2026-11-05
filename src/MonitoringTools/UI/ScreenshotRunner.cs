@@ -41,6 +41,13 @@ namespace MonitoringTools.UI
                     App.Current.Shutdown(0);
                     return;
                 }
+                if (Environment.GetEnvironmentVariable("MT_ONLY") == "datasec")   // quick loop for the data and security dialogs
+                {
+                    await DataSecScenes();
+                    File.WriteAllText(Path.Combine(_dir, "index.json"), JsonSerializer.Serialize(Index, new JsonSerializerOptions { WriteIndented = true }));
+                    App.Current.Shutdown(0);
+                    return;
+                }
                 if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1")   // quick loop while developing these scenes
                 {
                     await Wave6ScenesAsync();
@@ -132,6 +139,7 @@ namespace MonitoringTools.UI
                 await LookScenes(cc);
                 await ScaleScenes(cc);
                 await ConvertScenes();
+                await DataSecScenes();
                 await Wave6Scenes(cc);
                 cc.Close();
 

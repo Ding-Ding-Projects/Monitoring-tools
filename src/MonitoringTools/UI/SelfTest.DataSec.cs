@@ -41,7 +41,7 @@ namespace MonitoringTools.UI
             if (a is JsonObject oa && b is JsonObject ob) return oa.Count == ob.Count && oa.All(kv => ob.ContainsKey(kv.Key) && DsSame(kv.Value, ob[kv.Key]));
             if (a is JsonArray aa && b is JsonArray ab) return aa.Count == ab.Count && aa.Zip(ab).All(p => DsSame(p.First, p.Second));
             if (a == null || b == null) return a == null && b == null;
-            var ea = a.GetValue<JsonElement>(); var eb = b.GetValue<JsonElement>();
+            var ea = JsonSerializer.SerializeToElement(a); var eb = JsonSerializer.SerializeToElement(b);
             if (ea.ValueKind == JsonValueKind.Number && eb.ValueKind == JsonValueKind.Number) return ea.GetDouble() == eb.GetDouble();
             return ea.ValueKind == eb.ValueKind && ea.GetRawText() == eb.GetRawText();
         }
@@ -532,7 +532,7 @@ namespace MonitoringTools.UI
                 {
                     await DsWait(d.Ready);
                     if (d.Banner.Kind != BannerKind.Error || !d.Banner.TitleText.StartsWith("Invalid JSON at line 5, column")) return "banner: " + d.Banner.TitleText;
-                    if (!d.Banner.BodyText.Contains("Nothing can be converted until it is fixed")) return "no stop notice";
+                    if (!DsText(d).Contains("Nothing can be converted until it is fixed")) return "no stop notice";
                     if (d.PrimaryButton.IsEnabled) return "Convert is on for an invalid file";
                     if (!DsText(d).Contains("\"path\"")) return "the offending line is not shown";
                     var go = d.FindButton("Go to the error"); if (go == null || d.FindButton("Copy message") == null) return "missing actions";

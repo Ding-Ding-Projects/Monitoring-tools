@@ -62,7 +62,7 @@ namespace MonitoringTools.UI.Dialogs
             Visibility = Visibility.Collapsed;
         }
 
-        public void Set(BannerKind kind, string title, string body)
+        public void Set(BannerKind kind, string title, string body, bool literalBody = false)
         {
             Kind = kind;
             Brush bg, fg; string icon;
@@ -76,9 +76,10 @@ namespace MonitoringTools.UI.Dialogs
             Background = bg; _title.Foreground = fg; _body.Foreground = fg;
             _icon.Content = Ui.Icon(icon, fg, 22, 1.8);
             _title.Text = title; _body.Text = body ?? "";
+            Core.Language.SetLiteral(_body, literalBody);
             _body.Visibility = string.IsNullOrEmpty(body) ? Visibility.Collapsed : Visibility.Visible;
             Visibility = Visibility.Visible;
-            AutomationProperties.SetName(this, title + (string.IsNullOrEmpty(body) ? "" : ". " + body));
+            AutomationProperties.SetName(this, title + (string.IsNullOrEmpty(body) || literalBody ? "" : ". " + body));
             AutomationProperties.SetLiveSetting(this, kind == BannerKind.Error ? AutomationLiveSetting.Assertive : AutomationLiveSetting.Polite);
             try { UIElementAutomationPeer.FromElement(this)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged); } catch { }
         }

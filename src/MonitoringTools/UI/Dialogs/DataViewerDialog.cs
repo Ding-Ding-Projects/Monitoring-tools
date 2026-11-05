@@ -129,7 +129,7 @@ namespace MonitoringTools.UI.Dialogs
             else
             {
                 var where = p.ErrorLine > 0 ? " at line " + p.ErrorLine + (p.ErrorColumn > 0 ? ", column " + p.ErrorColumn : "") : "";
-                _banner.Set(BannerKind.Error, "Invalid " + kind + where, p.ErrorMessage + (p.ErrorLine > 0 ? " Nothing can be converted until it is fixed." : ""));
+                _banner.Set(BannerKind.Error, "Invalid " + kind + where, p.ErrorMessage, literalBody: p.Format != DataKind.Csv);
                 _errorHost.Content = ErrorPanel(p);
             }
             // separator chips for CSV
@@ -153,6 +153,7 @@ namespace MonitoringTools.UI.Dialogs
         private FrameworkElement ErrorPanel(DataProbe p)
         {
             var sp = new StackPanel();
+            if (p.ErrorLine > 0) sp.Children.Add(Note("Nothing can be converted until it is fixed.", new Thickness(0, 0, 0, 8)));
             if (p.Context.Length > 0)
             {
                 var block = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12.5, Foreground = Ui.Res("B.Text") };
@@ -192,13 +193,15 @@ namespace MonitoringTools.UI.Dialogs
             if (_text == null || _probe.ErrorLine <= 0) return;
             try
             {
-                int line = Math.Min(_probe.ErrorLine - 1, Math.Max(0, _text.LineCount - 1));
-                int start = _text.GetCharacterIndexFromLineIndex(line);
-                int len = _text.GetLineLength(line);
+                var all = _text.Text;
+                int line = Math.Max(0, _probe.ErrorLine - 1), start = 0;
+                for (int i = 0; i < line; i++) { int nl = all.IndexOf('\n', start); if (nl < 0) break; start = nl + 1; }
+                int end = all.IndexOf('\n', start); if (end < 0) end = all.Length;
+                int len = Math.Max(0, end - start); if (len > 0 && all[start + len - 1] == '\r') len--;
                 _text.Focus();
-                _text.Select(start + Math.Max(0, Math.Min(_probe.ErrorColumn - 1, len)), 0);
-                _text.ScrollToLine(line);
                 _text.Select(start, len);
+                _text.UpdateLayout();
+                try { _text.ScrollToLine(_text.GetLineIndexFromCharacterIndex(start)); } catch { }
             }
             catch { }
         }

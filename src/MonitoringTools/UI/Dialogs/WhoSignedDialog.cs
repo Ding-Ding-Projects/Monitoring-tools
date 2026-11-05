@@ -185,7 +185,6 @@ namespace MonitoringTools.UI.Dialogs
                 Grid.SetColumn(badge, 1);
                 g.Children.Add(left); g.Children.Add(badge);
                 var b = new Button { Style = Ui.Style("Btn.Row"), HorizontalContentAlignment = HorizontalAlignment.Stretch, Padding = new Thickness(12, 9, 12, 9), Height = double.NaN, Content = g };
-                AutomationProperties.SetName(b, link.Name + ", " + link.Badge);
                 b.Click += (s, e) => { _selectedLink = idx; Status("Selected " + link.Name + ". Open certificate shows its details."); };
                 b.MouseDoubleClick += (s, e) => { _selectedLink = idx; OpenSelected(); };
                 list.Children.Add(b);
