@@ -206,6 +206,12 @@ namespace MonitoringTools.Core
             var r = await ForgePublish.PublishAsync(plan, (i, state, text) => steps.Add($"{i}:{state}:{text}"), cts.Token);
             File.WriteAllText(Path.Combine(dir, "forge-steps.txt"), string.Join(Environment.NewLine, steps.Select(s => s.Replace(token, "***"))));
             if (!r.Ok) return "publish failed (" + r.Failure + "): " + r.Summary.Replace(token, "***");
+            // MT_LIVE_FORGE_EXPECT_CLI=1: the repository must have been created by glab or tea, not the token fallback.
+            if (Environment.GetEnvironmentVariable("MT_LIVE_FORGE_EXPECT_CLI") == "1")
+            {
+                var cli = ForgeHosts.CliName(kind);
+                if (!steps.Any(s => s.Contains("with " + cli))) return $"the repository was not created with {cli}: " + string.Join(" | ", steps.Select(s => s.Replace(token, "***"))).Substring(0, Math.Min(600, string.Join(" | ", steps).Length));
+            }
 
             // Read the pushed file back from the server's own API, so the check proves the push landed.
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
