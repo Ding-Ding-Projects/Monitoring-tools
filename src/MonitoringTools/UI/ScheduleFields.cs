@@ -62,20 +62,14 @@ namespace MonitoringTools.UI
             Background = Ui.Res("B.Sunken");
             BorderBrush = Ui.Res("B.LineStrong");
             FirstDayOfWeek = DayOfWeek.Monday;
-            var cal = new Style(typeof(System.Windows.Controls.Calendar));
-            cal.Setters.Add(new Setter(Control.BackgroundProperty, Ui.Res("B.Surface")));
-            cal.Setters.Add(new Setter(Control.ForegroundProperty, Ui.Res("B.Text")));
-            cal.Setters.Add(new Setter(Control.BorderBrushProperty, Ui.Res("B.LineStrong")));
-            CalendarStyle = cal;
-            // the text part of a date picker has its own white template; it takes the field's theme colours, so the date and its watermark stay readable in the dark theme
-            var box = new Style(typeof(System.Windows.Controls.Primitives.DatePickerTextBox));
-            box.Setters.Add(new Setter(Control.BackgroundProperty, Ui.Res("B.Sunken")));
-            box.Setters.Add(new Setter(Control.ForegroundProperty, Ui.Res("B.Text")));
-            box.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
-            Resources.Add(typeof(System.Windows.Controls.Primitives.DatePickerTextBox), box);
+            CalendarStyle = ThemedCalendarStyle();
+            Style = Ui.Style("DatePicker.Themed");   // the themed container, text part and calendar button
             AutomationProperties.SetName(this, name);
             Value = value;
         }
+
+        /// <summary>The calendar a date field drops down, in the app's surface, text and outline colours.</summary>
+        internal static Style ThemedCalendarStyle() => Ui.Style("Calendar.Themed");
 
         /// <summary>The date as "yyyy-MM-dd", or the empty text when none is chosen.</summary>
         public string Value
