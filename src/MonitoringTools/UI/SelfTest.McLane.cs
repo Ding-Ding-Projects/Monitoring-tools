@@ -355,7 +355,7 @@ namespace MonitoringTools.UI
             {
                 mc.Select("sample-friends");
                 var s = McManagerView.Current;
-                McCommandRun.PositionHook = (srv, who) => Task.FromResult((who == "Ava" ? new[] { 12, 64.0, -3.25 } : null, who == "Ava" ? null : "no such player"));
+                McCommandRun.PositionHook = (srv, who) => Task.FromResult((who == "Ava" ? new[] { 12.5, 64.0, -3.25 } : null, who == "Ava" ? null : "no such player"));
                 try
                 {
                     var v = McManagerView.ValuesFor(s, "tp"); v.Clear(); v["targets"] = "Ben";

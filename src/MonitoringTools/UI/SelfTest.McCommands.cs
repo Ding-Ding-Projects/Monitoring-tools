@@ -90,7 +90,7 @@ namespace MonitoringTools.UI
                 if (McPosition.Axis(true, "") != "~" || McPosition.Axis(true, "0") != "~" || McPosition.Axis(true, "5") != "~5" || McPosition.Axis(true, "-3") != "~-3" || McPosition.Axis(false, "12") != "12") return "an axis was written wrongly";
                 if (McPosition.Join(new[] { (true, ""), (true, "5"), (false, "-340") }) != "~ ~5 -340") return "the axes were joined wrongly";
                 var p = McPosition.FromDataReply("Ava has the following entity data: [12.5d, 64.0d, -3.25d]");
-                if (p == null || p[0] != 12 || p[1] != 64 || p[2] != -3.25) return "the data get reply was not read";
+                if (p == null || p[0] != 12.5 || p[1] != 64 || p[2] != -3.25) return "the data get reply was not read";
                 var sel = new McSelector { Base = "@a", MaxDistance = 10, Limit = 2, Sort = "nearest", GameMode = "survival" }.ToString();
                 if (sel != "@a[distance=..10,limit=2,sort=nearest,gamemode=survival]") return "the selector came out as " + sel;
                 return McSelector.Parse(sel)?.ToString() == sel ? null : "the selector did not read back";
