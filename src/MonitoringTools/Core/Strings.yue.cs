@@ -445,6 +445,7 @@ namespace MonitoringTools.Core
             AddDocSys(t);
             AddArchiveDisk(t);
             AddDataSec(t);
+            AddMedia(t);
             return t;
         }
 
@@ -468,6 +469,7 @@ namespace MonitoringTools.Core
             AddMcLanePatterns(p);
             AddArchiveDiskPatterns(p);
             AddDataSecPatterns(p);
+            AddMediaPatterns(p);
             AddMorePatterns(p);
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), fn));

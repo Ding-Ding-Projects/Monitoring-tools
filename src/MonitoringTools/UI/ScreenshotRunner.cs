@@ -162,6 +162,7 @@ namespace MonitoringTools.UI
                 await DocSysScenes();
                 await ArchiveDiskScenes();
                 await DataSecScenes();
+                await MediaDialogScenes();
                 await Wave6Scenes(cc);
                 await InstallCardSceneAsync(cc);
                 cc.Close();

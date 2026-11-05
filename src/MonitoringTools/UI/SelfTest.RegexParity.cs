@@ -629,8 +629,14 @@ namespace MonitoringTools.UI
                     if (b.VisibleTabs.Contains("Files") || !b.VisibleTabs.Contains("Build") || !b.VisibleTabs.Contains("Help")) return "hidden tab: " + string.Join(",", b.VisibleTabs);
                     Press(card, "Start on Test"); await Task.Delay(150);
                     if (settings.RegexDefaultTab != "Test") return "the start view was not stored";
-                    b.Close(); await Task.Delay(400);
-                    f.OpenBuilder(); await Task.Delay(450);
+                    // wait for the close to finish, then past the guard that stops the closing click reopening it
+                    b.Close();
+                    for (var i = 0; i < 30 && b.IsOpen; i++) await Task.Delay(100);
+                    if (b.IsOpen) return "the builder did not close";
+                    await Task.Delay(400);
+                    f.OpenBuilder();
+                    for (var i = 0; i < 30 && !(b.IsOpen && b.Tab == "Test"); i++) await Task.Delay(100);
+                    if (!b.IsOpen) return "the builder did not reopen";
                     if (b.Tab != "Test") return "the builder opened on " + b.Tab + " instead of Test";
                     f.OpenBuilder("Help"); await Task.Delay(300);
                     Press(card, "Reset preferences"); await Task.Delay(300);

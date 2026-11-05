@@ -41,6 +41,7 @@ To remove it, right-click the tray icon and choose **Uninstall service**.
   - **File tools sheet**: one tab each for move and copy, batch Base64 encode and decode (plus copy as Base64 text or a data URI), and password encryption (AES-256-GCM, `.mtenc` files next to the originals).
   - **Data and security tools**: five separate dialogs open from the notice: Hash and verify (SHA-256, SHA-1, MD5, SHA-512 against a pasted checksum), Who signed this? (Authenticode verdict, publisher and chain), a certificate inspector with PEM, DER and PKCS#12 conversion, a CSV, JSON and YAML viewer and converter, and an encoding and line endings converter with backups.
   - **Base64 text** on the clipboard offers decode; any text offers encode.
+  - **Media tool dialogs**: Trim and To GIF for a copied video, Edit audio (trim, fades, loudness target), Resize, Privacy and Make icon for copied pictures. Each is its own window with a live preview, a progress view, a clear result and never overwrites. See `docs/features/files/media-dialogs.md`.
   - **Images, video and audio**: save, convert and quick command chips such as `:mp4`, `:gif`, `:mp3`, `:webp`. Drag the preview out of the toast into any drop target.
   - **Docker**: a copied `compose.yaml` / `docker-compose.yml` offers up, down, pull, restart and logs; a `Dockerfile` offers build and build-and-run. Each button explains what it will do.
   - **JSON, colors, email addresses** get their own previews and actions.
