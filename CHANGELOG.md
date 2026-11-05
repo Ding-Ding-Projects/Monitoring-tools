@@ -4,6 +4,13 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.58 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.58)
+
+- Add the site redesign design canvas ([`f7c2d1d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/f7c2d1d1b10c3167abf79c33330776885a4ef05c))
+- Record v1.0.57 figures and changelog ([`c5bec44`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c5bec4488a4b6a9604d44f731650ee57c7ce0d7d))
+
 ## 1.0.57 (2026-11-05)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.57)
