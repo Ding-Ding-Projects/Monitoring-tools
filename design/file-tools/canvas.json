@@ -1,0 +1,176 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-05T09:00:00Z"
+  },
+  "title": "Monitoring Tools file tools",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "VideoTrim.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1712,
+      "h": 1352,
+      "title": "1 · Trim and cut video",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "VideoToGif.dc.html": {
+      "x": 2060,
+      "y": 0,
+      "w": 1752,
+      "h": 1442,
+      "title": "2 · Video to GIF or short clip",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "AudioEdit.dc.html": {
+      "x": 0,
+      "y": 1562,
+      "w": 1752,
+      "h": 1342,
+      "title": "3 · Trim, fade and loudness",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ImagesResize.dc.html": {
+      "x": 2060,
+      "y": 1562,
+      "w": 1872,
+      "h": 1282,
+      "title": "4 · Resize, crop and compress",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ImagePrivacy.dc.html": {
+      "x": 0,
+      "y": 3024,
+      "w": 1912,
+      "h": 1481,
+      "title": "5 · Image privacy clean-up",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "MakeIcon.dc.html": {
+      "x": 2060,
+      "y": 3024,
+      "w": 1832,
+      "h": 1276,
+      "title": "6 · Make an icon",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ExtractArchive.dc.html": {
+      "x": 0,
+      "y": 4625,
+      "w": 1832,
+      "h": 1303,
+      "title": "7 · Extract an archive",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "HashVerify.dc.html": {
+      "x": 2060,
+      "y": 4625,
+      "w": 1712,
+      "h": 1232,
+      "title": "8 · Hash and verify",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "WhoSigned.dc.html": {
+      "x": 0,
+      "y": 6048,
+      "w": 1752,
+      "h": 1240,
+      "title": "9 · Who signed this?",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "CertInspector.dc.html": {
+      "x": 2060,
+      "y": 6048,
+      "w": 1752,
+      "h": 1262,
+      "title": "10 · Certificate inspector",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "DataViewer.dc.html": {
+      "x": 0,
+      "y": 7430,
+      "w": 1792,
+      "h": 1525,
+      "title": "11 · Data viewer and converter",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "EncodingLines.dc.html": {
+      "x": 2060,
+      "y": 7430,
+      "w": 1872,
+      "h": 1310,
+      "title": "12 · Encoding and line endings",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "SubtitleTiming.dc.html": {
+      "x": 0,
+      "y": 9075,
+      "w": 1792,
+      "h": 1348,
+      "title": "13 · Subtitle timing",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "FontInstall.dc.html": {
+      "x": 2060,
+      "y": 9075,
+      "w": 1752,
+      "h": 1243,
+      "title": "14 · Font preview and install",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "DiscImage.dc.html": {
+      "x": 0,
+      "y": 10543,
+      "w": 1752,
+      "h": 1226,
+      "title": "15 · Disc image",
+      "expand": "fill",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "VideoTrim.dc.html",
+    "VideoToGif.dc.html",
+    "AudioEdit.dc.html",
+    "ImagesResize.dc.html",
+    "ImagePrivacy.dc.html",
+    "MakeIcon.dc.html",
+    "ExtractArchive.dc.html",
+    "HashVerify.dc.html",
+    "WhoSigned.dc.html",
+    "CertInspector.dc.html",
+    "DataViewer.dc.html",
+    "EncodingLines.dc.html",
+    "SubtitleTiming.dc.html",
+    "FontInstall.dc.html",
+    "DiscImage.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "x": 0,
+      "y": -300,
+      "text": "File tools: one dialog per format, opened from the clipboard notice",
+      "kind": "title1",
+      "maxW": 3400
+    }
+  },
+  "designSystems": []
+}
