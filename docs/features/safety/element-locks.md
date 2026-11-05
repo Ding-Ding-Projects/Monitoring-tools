@@ -12,9 +12,16 @@ Right-click (or press Shift+F10 or the Menu key on) a button, a setting row or a
 ## What a locked element does
 
 - It is dimmed and shows a lock chip. Its tooltip and accessible help text say it is locked.
-- Clicking it, or pressing Enter or Space on it, opens the unlock prompt beside it instead of doing its action. A programmatic click is refused too.
-- Locks are keyed by page and the element's visible text, so the same words on two pages are separate locks.
+- Clicking it, or pressing Enter or Space on it, opens the unlock prompt beside it instead of doing its action. A programmatic click is refused too. The release of a stopped click is stopped as well, a middle click (which closes a tab) is stopped, and so are the keys that change a value: the arrows, Home, End, Page Up and Down, F4 and Alt+Down (which open a drop-down list) and Delete (which closes a tab).
+- Locks are keyed by page and the element's words. When two lockable elements in one window say exactly the same words, the second is keyed as `<words> #2`, the third `<words> #3`, and so on, in the order the window lays them out, so each is locked on its own. The first keeps the plain words. Locks saved before positions were added carry the plain words, so they still hold, on the first element that says them (before, such a lock held on every element with those words).
+- A drop-down list is keyed by its name, not by the value it shows, so choosing another value does not lose its lock. A tab of the control centre's tab strip shows on every page, so its lock is kept under the tab strip and holds on every page (a tab lock made before this is still found on the page it was made on).
 - Locks survive restarts. After a restart every lock is closed again.
+
+## What can be locked
+
+Buttons of every kind (buttons, toggle buttons, switches, radio buttons), drop-down lists (the app's own and WPF's), tabs (the control centre's tab strip tabs and WPF tabs), setting rows, list rows, search results and cards. Keyboard focus does not move into a locked tab, because a tab is chosen the moment it takes focus.
+
+**Menu items.** An element's right-click menu is a separate window, so the lock handlers of the window it belongs to never see it. Its own items are locked from the menu itself: right-click an item, or press the Menu key or Shift+F10 on it, and choose **Lock this menu item…** (or Unlock this menu item…, Lock again, Remove this lock). A menu item's lock is keyed by the element the menu is for and the item's label, so "Press" in one button's menu is locked apart from "Press" in another's. A locked item is dimmed with the lock chip; clicking it, pressing Enter or Space on it, or choosing it any other way opens its unlock prompt, and a click posted to the menu's window from another program is stopped by the menu window's own hook.
 
 ## The unlock prompt
 
@@ -38,7 +45,10 @@ The Safety page lists every lock, searchable, with its policy, state, and button
 ## What is not done, and why
 
 - Credentials are salted PBKDF2 hashes and a protected local file, not the Windows Credential Manager vault.
-- Locking whole tabs, tab groups and individual appearance values is not done. This app has no user tabs, and the appearance editor is outside this feature. Cards, buttons and setting rows are covered.
+- Locking a whole tab group at once is not done; each tab is locked on its own.
+- A position key moves when an earlier element with the same words appears or disappears (for example a row added above it), so its lock then holds on whichever element is now in that position.
+- A locked radio button or switch can still be changed through UI Automation's own select or toggle pattern (an assistive technology calling it directly): the self-test shows a locked radio button is still selected that way. Pointer, keyboard and programmatic clicks are stopped.
+- The windows that hold radio buttons and drop-down lists today (the file tool dialogs) offer Copy text only from their element menu, by design, so locks are not offered there; the lock types are proven in windows that carry locks.
 - The command palette is not yet wired to refuse locked actions. `ElementMenu.KeyOfText` and `Locks.IsLocked(pageId, key)` are available for it.
 - Bulk locking of many elements at once is not offered.
 - The wizard is a separate small window beside the element, not an in-place popover.

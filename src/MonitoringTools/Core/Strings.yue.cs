@@ -439,6 +439,7 @@ namespace MonitoringTools.Core
             AddRegexParity(t);
             AddMcFiles(t);
             AddLane4(t);
+            AddLockTypes(t);
             AddToasts(t);
             AddUpdate(t);
             AddMcLane(t);

@@ -103,6 +103,19 @@ namespace MonitoringTools.Core
         public static LockEntry Find(string pageId, string key) { EnsureLoaded(); lock (Gate) return _list.FirstOrDefault(l => l.PageId == pageId && l.Key == key); }
         public static LockEntry ById(string id) { EnsureLoaded(); lock (Gate) return _list.FirstOrDefault(l => l.Id == id); }
 
+        /// <summary>
+        /// True when some lock on this page is keyed by these words, either alone (the first element that says them, and every lock saved
+        /// before keys carried a position) or with a position suffix (" #2" for the second element that says them). A quick test that lets
+        /// the caller skip working out an element's position when nothing on the page could match it.
+        /// </summary>
+        public static bool AnyFor(string pageId, string baseKey)
+        {
+            if (string.IsNullOrEmpty(baseKey)) return false;
+            EnsureLoaded();
+            var prefix = baseKey + " #";
+            lock (Gate) return _list.Any(l => l.PageId == pageId && (l.Key == baseKey || l.Key.StartsWith(prefix, StringComparison.Ordinal)));
+        }
+
         private static bool PersistLocks()
         {
             string json; lock (Gate) json = JsonSerializer.Serialize(_list);
