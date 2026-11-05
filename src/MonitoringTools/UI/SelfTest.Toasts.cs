@@ -15,8 +15,9 @@ namespace MonitoringTools.UI
 {
     public static partial class SelfTest
     {
-        private static string ToastTexts(DependencyObject root) => string.Join(" | ", Descend<TextBlock>(root).Select(t => t.Text));
-        private static bool Has(DependencyObject root, string text) => Descend<TextBlock>(root).Any(t => t.Text != null && t.Text.Contains(text));
+        private static string TbText(TextBlock t) => new System.Windows.Documents.TextRange(t.ContentStart, t.ContentEnd).Text.Trim();
+        private static string ToastTexts(DependencyObject root) => string.Join(" | ", Descend<TextBlock>(root).Select(TbText));
+        private static bool Has(DependencyObject root, string text) => Descend<TextBlock>(root).Any(t => TbText(t).Contains(text));
 
         private static async Task<bool> ToastWait(Func<bool> cond, int ms = 4000)
         {
@@ -149,16 +150,16 @@ namespace MonitoringTools.UI
                     InstallRunner.PathForTest = m => m == InstallManager.Winget ? fake : null;
                     var steps = new List<string>();
                     var c = InstallCommands.Parse("winget install --id Git.Git -e");
-                    var r = InstallRunner.RunAsync(c, steps.Add, CancellationToken.None).GetAwaiter().GetResult();
+                    var r = Task.Run(() => InstallRunner.RunAsync(c, steps.Add, CancellationToken.None)).GetAwaiter().GetResult();
                     if (!r.Ok || r.ExitCode != 0) return $"fake winget failed: {r.ExitCode} {r.Message}";
                     if (!r.Output.Contains("ARGS: install --id Git.Git -e")) return "arguments were not passed exactly: " + r.Output;
                     if (!steps.SequenceEqual(new[] { "check", "install" })) return "steps were " + string.Join(",", steps);
                     if (string.IsNullOrEmpty(r.LogPath) || !File.Exists(r.LogPath) || !File.ReadAllText(r.LogPath).Contains("winget install --id Git.Git -e")) return "no log with the exact command";
                     Environment.SetEnvironmentVariable("FAKE_EXIT", "7");
-                    var bad = InstallRunner.RunAsync(c, null, CancellationToken.None).GetAwaiter().GetResult();
+                    var bad = Task.Run(() => InstallRunner.RunAsync(c, null, CancellationToken.None)).GetAwaiter().GetResult();
                     if (bad.Ok || bad.ExitCode != 7 || !bad.Message.Contains("exit code 7")) return $"a failing run reported {bad.Ok} {bad.ExitCode} {bad.Message}";
                     InstallRunner.PathForTest = m => null;
-                    var none = InstallRunner.RunAsync(c, null, CancellationToken.None).GetAwaiter().GetResult();
+                    var none = Task.Run(() => InstallRunner.RunAsync(c, null, CancellationToken.None)).GetAwaiter().GetResult();
                     if (none.Ok || !none.Message.Contains("not installed")) return "a missing winget was not reported: " + none.Message;
                     return null;
                 }

@@ -98,6 +98,9 @@ namespace MonitoringTools.Clip
                 return item;
             }
 
+            var install = MonitoringTools.Core.InstallCommands.Parse(t);
+            if (install != null) { item.Kind = ClipKind.Install; item.Install = install; return item; }
+
             if (!t.Contains('\n'))
             {
                 if (UrlRx.IsMatch(t)) { item.Kind = ClipKind.Url; item.Text = t; return item; }

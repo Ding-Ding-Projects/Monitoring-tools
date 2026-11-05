@@ -62,7 +62,7 @@ namespace MonitoringTools.UI
                 "Windows shows its consent prompt every time for choco. The app never answers, hides or pre-approves it.",
                 "Each run is logged in Activity with the exact command.",
             })
-                rules.Children.Add(new TextBlock { Text = (n++) + ". " + rule, Style = Ui.Style("T.Body"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 2), MaxWidth = 640 });
+                rules.Children.Add(new TextBlock { Text = (n++) + ". " + rule, Style = Ui.Style("T.Body"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 2), MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left });
             card.Children.Add(rules);
 
             var refusedHead = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, Appearance.Gap(12), 0, 6) };
@@ -89,7 +89,7 @@ namespace MonitoringTools.UI
             card.Children.Add(new TextBlock
             {
                 Text = "A refused command still gets a toast that says why, with Copy command. It is never silently ignored.",
-                Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0), MaxWidth = 640
+                Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0), MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left
             });
             return card;
         }
