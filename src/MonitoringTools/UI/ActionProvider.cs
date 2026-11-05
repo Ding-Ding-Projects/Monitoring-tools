@@ -355,7 +355,18 @@ namespace MonitoringTools.UI
         {
             var img = item.Image;
             if (img == null) return;
-            l.Add(A("Save PNG", Icons.Image, () => Reveal(Converter.SaveBitmap(img, "png")), primary: true, done: "Saved"));
+            var otp = AuthenticatorQr(img);
+            if (otp != null)
+            {
+                var name = string.IsNullOrEmpty(otp.Issuer) ? otp.Account : otp.Issuer + (string.IsNullOrEmpty(otp.Account) ? "" : " · " + otp.Account);
+                l.Add(new ToastAction
+                {
+                    Label = "Register for codes", Icon = Icons.Shield, Primary = true, Done = "Registered",
+                    Tip = $"This picture is an authenticator code for {name}. Adds it to the built-in authenticator (Safety page), stored encrypted for this Windows account.",
+                    Run = () => RegisterAuthenticator(otp, name),
+                });
+            }
+            l.Add(A("Save PNG", Icons.Image, () => Reveal(Converter.SaveBitmap(img, "png")), primary: otp == null, done: "Saved"));
             l.Add(A("Save JPG", null, () => Reveal(Converter.SaveBitmap(img, "jpg")), done: "Saved"));
             l.Add(A("Save + copy as file", Icons.Clipboard, () => { var p = Converter.SaveBitmap(img, "png"); ClipboardWatcher.SetFiles(p); }, done: "Copied"));
             l.Add(A("Open in Paint", null, () =>
@@ -369,6 +380,37 @@ namespace MonitoringTools.UI
                 var f = id;
                 l.Add(new ToastAction { Label = ":" + f, Chip = true, HandsOff = true, Tip = $"Save as {Formats.Find(f)?.Label} in your media folder", Run = () => { var p = Converter.SaveBitmap(img, f); if (p != null) Reveal(p); } });
             }
+        }
+
+        /// <summary>The authenticator account in a copied QR code picture, or null. Large pictures are skipped so a
+        /// screenshot never stalls the toast.</summary>
+        internal static OtpParams AuthenticatorQr(System.Windows.Media.Imaging.BitmapSource img)
+        {
+            try
+            {
+                if (img == null || (long)img.PixelWidth * img.PixelHeight > 8_000_000) return null;
+                if (!QrDecoder.TryDecode(img, out var text, out _) || text == null) return null;
+                text = text.Trim();
+                if (!text.StartsWith("otpauth://totp/", StringComparison.OrdinalIgnoreCase)) return null;
+                return Totp.TryParseUri(text, out var p, out _) ? p : null;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>Adds the account unless the same secret is already there, and says what happened without ever showing the secret.</summary>
+        internal static string RegisterAuthenticator(OtpParams p, string name)
+        {
+            var secret = Base32.Normalize(p.Secret);
+            if (Authenticator.All.Any(a => a.Secret == secret))
+            {
+                App.Toasts?.ShowNotice("Already registered", name + " is already in the authenticator.", App.Toasts.Mint, 4, icon: Icons.Shield);
+                return "already";
+            }
+            var err = Authenticator.Add(p);
+            if (err != null) { App.Toasts?.ShowNotice("Not registered", err, App.Toasts.Amber, 6, icon: Icons.Shield); return err; }
+            App.Toasts?.ShowNotice("Registered for codes", name + " now shows its codes on the Safety page.", App.Toasts.Mint, 5,
+                new List<ToastAction> { new ToastAction { Label = "Show codes", Icon = Icons.Shield, Primary = true, HandsOff = true, Run = () => App.Current.OpenControlCentre("safety") } }, Icons.Shield);
+            return null;
         }
 
         private static void AudioClip(ClipItem item, List<ToastAction> l)

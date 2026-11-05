@@ -6,6 +6,8 @@ Live one-time codes for any account, calculated on this computer.
 
 Paste an `otpauth://totp/…` link or a base32 secret and press **Add account**. A link brings its issuer, algorithm (SHA-1, SHA-256 or SHA-512), digits (6 to 8) and period (1 to 3600 seconds), and these are honoured. A bare secret uses the choices on screen, defaulting to SHA-1, 6 digits, 30 seconds. **Paste from clipboard** fills the field from copied text. **Read a QR from the clipboard** and **Read a QR from a file…** decode a setup QR picture into the same field (see [QR pairing](qr-pairing.md)).
 
+**Straight from a copied picture.** When you copy a picture of a setup QR code (a screenshot of a website's two-factor page, for example), the clipboard toast offers **Register for codes** as its first action. It names the issuer and account, never the secret. Pressing it adds the account to this list, stored encrypted for this Windows account like every other account; copying the same code again says it is already registered instead of adding a second copy. A QR code that is not an `otpauth://totp/` link offers nothing extra, and pictures over 8 megapixels are not scanned, so a large screenshot never slows the toast down.
+
 ## The list
 
 Each account shows its code in large grouped digits, a countdown ring with the seconds as a number, an optional peek at the next code (on by default, a switch turns it off), and buttons to copy, move up or down, edit the label, show as a QR code, and remove (after a two-key confirmation). **Show as QR** reveals the secret, so it needs the two-key confirmation; when Windows Hello is available, **Show as QR (Windows Hello)** reveals it after Windows Hello confirms it is you instead. The list is searchable.

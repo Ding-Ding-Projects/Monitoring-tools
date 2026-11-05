@@ -30,6 +30,14 @@ namespace MonitoringTools.Core
             Add("Game mode is off. Anything held back shows now.", "遊戲模式關咗。之前擋住嘅嘢而家出返嚟。");
             Add("Game mode settings", "遊戲模式設定");
             Add("Stop these notices", "唔再通知");
+
+            // ---- authenticator code from a copied QR picture
+            Add("Register for codes", "登記驗證碼");
+            Add("Registered", "已登記");
+            Add("Already registered", "已經登記咗");
+            Add("Not registered", "登記唔到");
+            Add("Registered for codes", "已登記驗證碼");
+            Add("Show codes", "睇驗證碼");
         }
 
         private static void AddUpdatePatterns(List<(Regex, Func<Match, string>)> p)
@@ -37,6 +45,10 @@ namespace MonitoringTools.Core
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline), fn));
 
+            Add(@"^(.+) is already in the authenticator\.$", "$1 已經喺驗證器入面。");
+            Add(@"^(.+) now shows its codes on the Safety page\.$", "$1 嘅驗證碼而家喺「安全」頁顯示。");
+            Add(@"^This picture is an authenticator code for (.+)\. Adds it to the built-in authenticator \(Safety page\), stored encrypted for this Windows account\.$",
+                "呢張圖係 $1 嘅驗證碼。會加入內置驗證器（「安全」頁），用呢個 Windows 帳戶加密儲存。");
             Add(@"^(.+) detected$", "偵測到 $1");
             Add(@"^(.+) closed$", "$1 已關閉");
             Add(@"^Up to date \(([\d.]+)\)\. Checked ([\d:]+)\.$", "已經係最新（$1）。$2 檢查過。");

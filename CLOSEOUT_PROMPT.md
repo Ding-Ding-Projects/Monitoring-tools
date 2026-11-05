@@ -20,12 +20,11 @@ and mod commands, peak history; pre-generation stall fixed (empty servers pause 
 translated; encrypted local history; QR up to version 40; real pointer-click checks.
 
 Next steps:
-0. New request, not started: when a copied image holds an otpauth:// QR code, offer to register it
-   for TOTP codes (secret encrypted for this Windows account, current code with countdown, copy).
-   The QR decoder already exists (QR pairing); a TOTP routine exists for element locks.
-1. Branch worktree-agent-aa24b41c13dfee312 holds unfinished work: SSH world import, reset and
-   replace from the app, and Forge and NeoForge live runs. Read its last commit message for what is
-   finished, finish it, run the full self-test (--selftest on a hidden desktop), and merge to main.
+0. Done since: a copied otpauth:// QR picture offers "Register for codes" (built-in authenticator),
+   and SSH world import, reset and replace from the app are merged and checked.
+1. Forge and NeoForge live runs: the Java-matched image fix is merged; run
+   MT_LIVE_ONLY=minecraft-lane MT_LIVE_LANE=forge (then neoforge) with a long wait (the Forge
+   installer took about 25 minutes) and update the console and command builder row.
 2. Confirm a real background update: the release after v1.0.36 should install itself on the
    maintainer's computer; check the log in %LOCALAPPDATA%\MonitoringTools\logs for "Update:" lines.
 3. The history retention self-test check failed twice in other runs; it now names the refused save.

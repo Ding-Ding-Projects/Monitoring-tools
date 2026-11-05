@@ -846,6 +846,7 @@ namespace MonitoringTools.UI
             await McChecksAsync();
             await Lane4ChecksAsync(dir);
             await UpdateChecksAsync(dir);
+            TotpQrChecks();
             // ---- docs and pages
             Check("docs: the offline docs embed every article", () => Docs.All.Count >= 25 ? null : "only " + Docs.All.Count + " articles");
             await CheckAsync("pages: every control-centre page builds and gets a search bar", async () =>

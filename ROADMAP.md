@@ -39,7 +39,7 @@ finished (a dropped item would be struck through or moved to the last section wi
 ## In progress
 
 - [ ] Minecraft servers: Bedrock edition, a world generator with seed preview, and a recorded acceptance check per target on real hardware
-- [ ] Register a TOTP account when a copied image holds an `otpauth://` QR code: offer "Register for codes" on the image toast, keep the secret encrypted for this Windows account, show the current code with its countdown and copy it (requested 2026-11-04, not started)
+- [x] Register a TOTP account when a copied image holds an `otpauth://` QR code: "Register for codes" on the image toast adds it to the built-in authenticator (encrypted for this Windows account, codes on the Safety page); checked by the self-test
 - [ ] SSH world import, reset and replace from the app, and Forge and NeoForge live runs (on branch `worktree-agent-aa24b41c13dfee312`, unfinished)
 
 ## Still to build from the shared app requirements
