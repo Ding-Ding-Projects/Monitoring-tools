@@ -56,6 +56,23 @@
       "target": "7zr"
     },
     {
+      "name": "7zip-full",
+      "purpose": "7z.exe with 7z.dll, the full 7-Zip command line: reads RAR archives (RAR4 and RAR5) in the Extract an archive window",
+      "license": "LGPL-2.1-or-later with the unRAR license restriction (7-Zip 26.05, 7z.exe and 7z.dll; the unRAR code is used only to decode RAR archives and may not be used to create a RAR compressor); source: https://github.com/ip7z/7zip",
+      "repository": "ip7z/7zip",
+      "tag": "26.05",
+      "assetPattern": "^7z[0-9]+-x64\\.exe$",
+      "asset": "7z2605-x64.exe",
+      "sha256": "fd99e86f57d8f429ef5ed045bf98315af962e2309b0f1ba87a147a44c71647d0",
+      "extractWith": "7zr",
+      "extract": {
+        "7z.exe": "7z.exe",
+        "7z.dll": "7z.dll",
+        "License.txt": "License.txt"
+      },
+      "target": "7zip-full"
+    },
+    {
       "name": "7zip",
       "purpose": "7za.exe, the standalone 7-Zip command line: 7z archives, encrypted zip, AES-256, split volumes and the archive test step",
       "license": "LGPL-2.1-or-later (7-Zip 26.05 extra package, 7za.exe; contains no unRAR code); source: https://github.com/ip7z/7zip",

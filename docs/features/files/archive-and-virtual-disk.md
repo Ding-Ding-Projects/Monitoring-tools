@@ -55,6 +55,8 @@ FAT32 is disabled above 32 GB (Windows formats FAT32 only up to 32 GB here) and 
 
 7-Zip 26.05 (`7za.exe` from the official extra package, LGPL, contains no unRAR code) is pinned in `deps/manifest.json` by SHA-256 and fetched by `download-dependencies` like FFmpeg. The package is a `.7z` file, so the pinned `7zr.exe` (also digest-pinned, a build tool that is not bundled) opens it. A build without `.deps\7zip` keeps zip and tar.gz and switches the 7-Zip-only options off with the reason.
 
+The full 7-Zip 26.05 command line (`7z.exe` with `7z.dll`, taken from the official `7z2605-x64.exe` package, which `7zr.exe` also opens) is pinned the same way as `7zip-full` and bundled only to read RAR archives in the Extract an archive window and in archive search. Its licence is LGPL-2.1-or-later with the unRAR licence restriction: the unRAR code in `7z.dll` is used only to decode RAR archives and may not be used to create a RAR compressor; the app never writes RAR. Both licence texts (`License.txt`) travel inside the app next to the programs they cover.
+
 ## Verification
 
 Self-test checks (run with `MT_ONLY=archivedisk`, or as part of the full self-test) drive the real windows and read the results back independently. Nothing in the self-test creates, attaches or formats a real virtual disk: `VhdHelper.Diskpart` and the elevation are replaced by test hooks, so the request file, the scripts, the status and command files, the copy, the confirmation and the cleanup run for real and diskpart does not. A real end-to-end run needs the person to approve the Windows consent prompt.

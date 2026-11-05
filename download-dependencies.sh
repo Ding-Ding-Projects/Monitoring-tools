@@ -57,7 +57,7 @@ for dep in manifest["dependencies"]:
             say(f'{dep["name"]}: installed {dep["tag"]} to {target}')
             continue
         if dep.get("extractWith"):
-            # A .7z archive: needs a 7-Zip extractor on this machine (7zz, 7z or 7zr). Without one the 7-Zip features stay off in the cross-built app.
+            # A .7z archive or a 7-Zip installer exe (itself a 7z archive): needs a 7-Zip extractor on this machine (7zz, 7z or 7zr). Without one the 7-Zip features (and RAR reading) stay off in the cross-built app.
             opener = next((c for c in ("7zz", "7z", "7zr") if shutil.which(c)), None)
             if not opener:
                 say(f'{dep["name"]}: skipped, no 7z, 7zz or 7zr command is installed to open {asset["name"]}; archives with 7-Zip stay off in this build')

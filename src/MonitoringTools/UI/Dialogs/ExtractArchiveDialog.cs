@@ -20,7 +20,7 @@ namespace MonitoringTools.UI.Dialogs
     /// "Extract an archive" (design/file-tools, board 7). Lists the contents with check marks, searches them, picks a destination
     /// and a rule for names that exist (Ask stops at each one and lets the person choose), and extracts on a worker thread with
     /// progress and Cancel. A path that would leave the destination is refused and counted. Zip, tar, tar.gz, tgz and gz use the
-    /// .NET libraries; 7z, xz, bz2, tar.xz, tar.bz2 and AES-encrypted zip go through the bundled 7-Zip. RAR cannot be read.
+    /// .NET libraries; 7z, xz, bz2, tar.xz, tar.bz2 and AES-encrypted zip go through the bundled 7-Zip (7za); RAR4 and RAR5 go through the bundled full 7-Zip (7z.exe with 7z.dll).
     /// </summary>
     public sealed class ExtractArchiveDialog : FileToolDialog
     {
@@ -213,7 +213,7 @@ namespace MonitoringTools.UI.Dialogs
             var copy = Ui.Button("Copy details", () => { try { Clipboard.SetText(reason); } catch { } }, "Btn.Ghost", DocIcons.Copy);
             SetBody(Banner(BannerKind.Bad, "This archive cannot be opened here", reason),
                     Card(new StackPanel { Children = { Text("WHAT WAS NOT CHANGED", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("Nothing was extracted and the archive was not changed.", 13) } }));
-            SetFooterClose("Zip, 7z, tar, gz, xz and bz2 archives open here.", copy);
+            SetFooterClose(ArchiveTools.RarAvailable ? "Zip, 7z, RAR, tar, gz, xz and bz2 archives open here." : "Zip, 7z, tar, gz, xz and bz2 archives open here.", copy);
         }
 
         // ------------------------------------------------------------ extraction

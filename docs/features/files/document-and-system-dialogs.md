@@ -18,8 +18,13 @@ not change when something fails. They follow the design in `design/file-tools/` 
   `7za l -slt` lists a 7z, a single xz or bz2 file is one entry named after the file, and a tar.xz or tar.bz2 is read as a tar
   stream decompressed by `7za x -so`, so its full tree is listed. 7-Zip always gets a password switch and a closed input, so it
   never stops to ask. bzip2 does not store the unpacked size, so a bz2 entry shows 0 bytes until it is extracted.
-* **RAR is not supported.** The `7za` build bundled here contains no RAR decoder, so a `.rar` opens a "cannot be opened here" state
-  that says why and changes nothing. Reading RAR would need the full 7-Zip (`7z.exe` with `7z.dll`), which is not bundled.
+* **RAR (RAR4 and RAR5).** `7za` contains no RAR decoder, so `.rar` goes through the bundled full 7-Zip command line instead
+  (`7z.exe` with `7z.dll` from the official 7-Zip 26.05 x64 package, also fetched by `download-dependencies.bat`). It is listed with
+  `7z l -slt`, tested and extracted exactly like a 7z: the same password switch and closed input, the same hidden unpacking folder,
+  the same zip-slip refusal and the same Cancel behaviour. A password RAR (encrypted data) shows its names and asks for the password;
+  a RAR with encrypted names opens in the "names hidden" state. 7za is still used for every other format. A build without the full
+  7-Zip says so in the "cannot be opened here" state and changes nothing. `7z.dll` carries the unRAR code under its licence
+  restriction: it is used only to decode RAR archives, and the app never creates RAR archives.
 * **Contents.** A tree with check marks (a folder's check selects everything under it and shows a mixed state), sizes and dates,
   Select all and None, and a search with the same plain text and regex builder as every other search. Up and Down move between rows,
   Right and Left expand and collapse, Space toggles, `/` or Ctrl+F focuses the search. Only the first 1,000 visible rows are drawn;
@@ -35,7 +40,7 @@ not change when something fails. They follow the design in `design/file-tools/` 
   moved into place under the rule for names that exist, and the hidden folder is always removed. A cancel while 7-Zip is unpacking
   therefore leaves nothing in the destination.
 * **Passwords.** Zip entries protected with the traditional zip password scheme are decrypted by the app; AES-encrypted zip entries
-  and password 7z archives go through 7-Zip. The password is checked on the first locked file (`7za t` for 7-Zip formats) before
+  and password 7z and RAR archives go through 7-Zip. The password is checked on the first locked file (`7za t`, or `7z t` for RAR) before
   anything is written, is used once and is not stored; a wrong one says "Nothing was extracted". A 7z whose file names are
   encrypted opens in the password state with "names hidden" and lists its files only after the password is accepted.
 
@@ -81,8 +86,11 @@ SRT and WebVTT are read by the app's own parser; times are whole milliseconds.
 
 The self-test group `MT_ONLY=docsys` drives each window on files it creates: a zip with zip-slip entries, a password zip, tar, tar.gz and gz;
 7z, xz, bz2, tar.xz and tar.bz2 made with the bundled 7-Zip command line (a tar.xz with an escaping path, a password 7z, a 7z with encrypted names,
-an AES-256 zip with a `../` name patched into its headers, and a cancel while 7-Zip unpacks); a damaged 7z and a RAR header (no RAR file can be
-made without WinRAR, so only the refusal is checked); the Ask question answered with Replace, Skip and Keep both plus the apply-to-all switch, and
+an AES-256 zip with a `../` name patched into its headers, and a cancel while 7-Zip unpacks); RAR archives built byte by byte from the documented
+RAR 4.x and RAR 5.0 formats, because no RAR file can be made without WinRAR (a stored RAR4 and a stored RAR5 with a file in a subfolder, listed
+and extracted with SHA-256 compared; a RAR4 with a `..\evil.txt` entry that must be refused; a RAR5 with AES-256 encrypted data and one with
+encrypted names, each tried with a wrong and then the right password; and a cancel while the full 7-Zip unpacks a large stored RAR5); a damaged
+7z and a damaged RAR; the Ask question answered with Replace, Skip and Keep both plus the apply-to-all switch, and
 Cancel during the question; a font collection copied from the system fonts folder, with a face picked and the install recorded; an image mounted
 for real and ejected from its tray row;
 SRT and VTT samples for shift, stretch, convert and problem cues; a font file copied from the system fonts folder (the install step is replaced
@@ -97,5 +105,7 @@ The quick capture loop is `MT_ONLY=docsys` with `--screenshots`.
 ![Disc image](../../screenshots/docsys-disc-mounted.png)
 ![Ask for a name that exists](../../screenshots/docsys-extract-ask.png)
 ![A 7z with encrypted names](../../screenshots/docsys-extract-7z-names-locked.png)
+![A RAR archive listed through the full 7-Zip](../../screenshots/docsys-extract-rar.png)
+![A RAR entry that would escape the folder is refused](../../screenshots/docsys-extract-rar-refused.png)
 ![A font collection](../../screenshots/docsys-font-collection.png)
 ![Eject from the tray menu](../../screenshots/docsys-tray-mounted.png)

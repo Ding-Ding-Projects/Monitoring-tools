@@ -83,7 +83,7 @@ foreach ($dep in $manifest.dependencies) {
         $tmp = Join-Path $cacheDir "$($dep.name)-extract"
         if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
         if ($dep.extractWith) {
-            # A .7z archive: opened with the pinned 7zr.exe that an earlier entry installed (build time only).
+            # A .7z archive or a 7-Zip installer exe (itself a 7z archive): opened with the pinned 7zr.exe that an earlier entry installed (build time only).
             $opener = Join-Path (Join-Path $depsDir $dep.extractWith) "$($dep.extractWith).exe"
             if (-not (Test-Path $opener)) { throw "$($dep.extractWith).exe is needed to open $($asset.name) but is not installed. It must be listed before $($dep.name) in deps/manifest.json." }
             & $opener x "-o$tmp" $archive -y | Out-Null
