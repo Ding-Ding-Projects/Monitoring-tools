@@ -49,7 +49,7 @@ namespace MonitoringTools.UI
         private void Chip(TextBlock t, HorizontalAlignment h)
         {
             t.FontSize = 12; t.FontWeight = FontWeights.Medium; t.Foreground = Brushes.White;
-            Children.Add(new Border { CornerRadius = new CornerRadius(6), Background = new SolidColorBrush(Color.FromArgb(200, 8, 9, 12)), Padding = new Thickness(7, 2, 7, 3), Margin = new Thickness(8), HorizontalAlignment = h, VerticalAlignment = VerticalAlignment.Bottom, Child = t, IsHitTestVisible = false });
+            Children.Add(new Border { CornerRadius = new CornerRadius(8), Background = new SolidColorBrush(Color.FromArgb(200, 8, 9, 12)), Padding = new Thickness(7, 2, 7, 3), Margin = new Thickness(8), HorizontalAlignment = h, VerticalAlignment = VerticalAlignment.Bottom, Child = t, IsHitTestVisible = false });
         }
 
         private void MoveTo(double x) { _pos = Math.Clamp(ActualWidth <= 0 ? 0.5 : x / ActualWidth, 0, 1); Place(); }
@@ -258,7 +258,7 @@ namespace MonitoringTools.UI
 
             // empty view
             var empty = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 24, 0, 24) };
-            var tile = new Border { Width = 56, Height = 56, CornerRadius = new CornerRadius(18), Background = Ui.Res("B.Sunken"), Child = Ui.Icon(Icons.Image, Ui.Res("B.TextSoft"), 24, 1.8), HorizontalAlignment = HorizontalAlignment.Center };
+            var tile = new Border { Width = 56, Height = 56, CornerRadius = new CornerRadius(16), Background = Ui.Res("B.Sunken"), Child = Ui.Icon(Icons.Image, Ui.Res("B.TextSoft"), 24, 1.8), HorizontalAlignment = HorizontalAlignment.Center };
             empty.Children.Add(tile);
             empty.Children.Add(new TextBlock { Text = "No pictures to work on", FontSize = 16, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 14, 0, 6) });
             var hint = FT.Body("Copy pictures (JPG, PNG, WebP, BMP, GIF, TIFF, HEIC) and open this tool from the notice, or drop them here.", 13); hint.TextAlignment = TextAlignment.Center; hint.MaxWidth = 520; hint.Margin = new Thickness(0, 0, 0, 14);
@@ -351,7 +351,7 @@ namespace MonitoringTools.UI
             it.Check.Margin = new Thickness(10, 0, 8, 0);
             var thumb = new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(8), Background = Ui.Res("B.Sunken"), Margin = new Thickness(0, 4, 10, 4), Child = it.Thumb != null ? (UIElement)new Image { Source = it.Thumb, Stretch = Stretch.UniformToFill } : Ui.Icon(Icons.Image, Ui.Res("B.TextMute"), 18, 1.6), ClipToBounds = true };
             var names = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            var name = new TextBlock { Text = it.Name, FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = it.Path };
+            var name = new TextBlock { Text = it.Name, FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = it.Path };
             Core.Language.SetLiteral(name, true);
             it.Dims = new TextBlock { Text = $"{it.W}×{it.H} · {Ui.Bytes(it.Bytes)}", FontSize = 12, Foreground = it == _current ? Ui.Res("B.OnSecondaryContainer") : Ui.Res("B.TextSoft") };
             names.Children.Add(name); names.Children.Add(it.Dims);
@@ -445,8 +445,8 @@ namespace MonitoringTools.UI
                     g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                     string icon = it.Status == Pic.Done ? Icons.Check : it.Status == Pic.Failed ? MediaIcons.Warn : it.Status == Pic.Working ? MediaIcons.Refresh : Icons.Clock;
                     var ic = Ui.Icon(icon, it.Status == Pic.Failed ? Ui.Res("B.Amber") : Ui.Res("B.TextSoft"), 15, 1.8); ic.Margin = new Thickness(2, 0, 12, 0);
-                    var n = new TextBlock { Text = it.Name, FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text") }; Core.Language.SetLiteral(n, true);
-                    var r = new TextBlock { FontSize = 13, Foreground = Ui.Res("B.TextSoft"), Text = it.Status == Pic.Done ? Ui.Bytes(it.OutBytes) : it.Status == Pic.Working ? "working…" : it.Status == Pic.Failed ? "Not saved" : "waiting" };
+                    var n = new TextBlock { Text = it.Name, FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text") }; Core.Language.SetLiteral(n, true);
+                    var r = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextSoft"), Text = it.Status == Pic.Done ? Ui.Bytes(it.OutBytes) : it.Status == Pic.Working ? "working…" : it.Status == Pic.Failed ? "Not saved" : "waiting" };
                     Grid.SetColumn(n, 1); Grid.SetColumn(r, 2);
                     g.Children.Add(ic); g.Children.Add(n); g.Children.Add(r); rows.Children.Add(g);
                 }
@@ -494,8 +494,8 @@ namespace MonitoringTools.UI
                 var g = new Grid { Margin = new Thickness(0, 5, 0, 5) };
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var ic = Ui.Icon(r.Ok ? Icons.Check : MediaIcons.Warn, r.Ok ? Ui.Res("B.TextSoft") : Ui.Res("B.Amber"), 15, 1.8); ic.Margin = new Thickness(2, 0, 12, 0);
-                var n = new TextBlock { Text = System.IO.Path.GetFileName(r.Source), FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis }; Core.Language.SetLiteral(n, true);
-                var t = new TextBlock { FontSize = 13, Foreground = r.Ok ? Ui.Res("B.TextSoft") : Ui.Res("B.Amber"), TextWrapping = TextWrapping.Wrap, MaxWidth = 380 };
+                var n = new TextBlock { Text = System.IO.Path.GetFileName(r.Source), FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis }; Core.Language.SetLiteral(n, true);
+                var t = new TextBlock { FontSize = 12, Foreground = r.Ok ? Ui.Res("B.TextSoft") : Ui.Res("B.Amber"), TextWrapping = TextWrapping.Wrap, MaxWidth = 380 };
                 if (r.Ok) t.Text = Ui.Bytes(r.OutputBytes) + (r.TargetMissed ? " (target not reached)" : "");
                 else { t.Inlines.Add(new System.Windows.Documents.Run("Not saved: ")); var reason = new System.Windows.Documents.Run(Short(r.Error)); Core.Language.SetLiteral(reason, true); t.Inlines.Add(reason); }
                 Grid.SetColumn(n, 1); Grid.SetColumn(t, 2);

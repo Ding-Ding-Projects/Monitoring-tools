@@ -145,7 +145,7 @@ namespace MonitoringTools.UI.Dialogs
             g.ColumnDefinitions.Add(new ColumnDefinition()); g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var inner = new Grid(); inner.Children.Add(box); inner.Children.Add(plain);
             Grid.SetColumn(eye, 1); g.Children.Add(inner); g.Children.Add(eye);
-            var f = new Border { Height = 42, CornerRadius = new CornerRadius(10), Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Padding = new Thickness(12, 0, 6, 0), Child = g };
+            var f = new Border { Height = 42, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Padding = new Thickness(12, 0, 6, 0), Child = g };
             box.GotKeyboardFocus += (s, e) => f.BorderBrush = Ui.Res("B.Mint"); box.LostKeyboardFocus += (s, e) => f.BorderBrush = Ui.Res("B.LineStrong");
             plain.GotKeyboardFocus += (s, e) => f.BorderBrush = Ui.Res("B.Mint"); plain.LostKeyboardFocus += (s, e) => f.BorderBrush = Ui.Res("B.LineStrong");
             frame = f; shown = plain;
@@ -173,13 +173,13 @@ namespace MonitoringTools.UI.Dialogs
             var days = new TextBlock { Text = d.Expiry, FontSize = 28, Foreground = expired ? Ui.Res("B.Danger") : Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Bottom };
             AutomationProperties.SetName(days, d.Expiry + ". " + (expired ? "Expired " : "Expires ") + d.NotAfter.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
             head.Children.Add(days);
-            head.Children.Add(new TextBlock { Text = (expired ? "Expired " : "Expires ") + d.NotAfter.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), FontSize = 13, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(12, 0, 0, 5), VerticalAlignment = VerticalAlignment.Bottom });
+            head.Children.Add(new TextBlock { Text = (expired ? "Expired " : "Expires ") + d.NotAfter.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(12, 0, 0, 5), VerticalAlignment = VerticalAlignment.Bottom });
             Body.Children.Add(head);
 
             var lab = new Grid();
             lab.ColumnDefinitions.Add(new ColumnDefinition()); lab.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            lab.Children.Add(new TextBlock { Text = expired ? "Expired" : soon ? "Valid, ending soon" : "Valid", FontSize = 13, FontWeight = FontWeights.Medium, Foreground = tone });
-            var range = new TextBlock { Text = "from " + d.NotBefore.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + " to " + d.NotAfter.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), FontSize = 13, Foreground = Ui.Res("B.TextSoft") };
+            lab.Children.Add(new TextBlock { Text = expired ? "Expired" : soon ? "Valid, ending soon" : "Valid", FontSize = 12, FontWeight = FontWeights.Medium, Foreground = tone });
+            var range = new TextBlock { Text = "from " + d.NotBefore.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + " to " + d.NotAfter.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), FontSize = 12, Foreground = Ui.Res("B.TextSoft") };
             Grid.SetColumn(range, 1); lab.Children.Add(range);
             Body.Children.Add(lab);
             double life = Math.Max(1, (d.NotAfter - d.NotBefore).TotalSeconds);
@@ -198,8 +198,8 @@ namespace MonitoringTools.UI.Dialogs
                 ("Thumbprint (SHA-1)", Value(d.Sha1, true))));
             Body.Children.Add(Label("Allowed uses", true));
             var uses = new WrapPanel { Margin = new Thickness(0, 0, 0, 12) };
-            if (d.Uses.Count == 0) uses.Children.Add(new TextBlock { Text = "Not restricted by the certificate.", FontSize = 13, Foreground = Ui.Res("B.TextSoft") });
-            foreach (var u in d.Uses) uses.Children.Add(new Border { CornerRadius = new CornerRadius(8), Background = Ui.Res("B.MintWash"), Padding = new Thickness(10, 3, 10, 4), Margin = new Thickness(0, 0, 6, 6), Child = new TextBlock { Text = u, FontSize = 12.5, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.OnPrimaryContainer") } });
+            if (d.Uses.Count == 0) uses.Children.Add(new TextBlock { Text = "Not restricted by the certificate.", FontSize = 12, Foreground = Ui.Res("B.TextSoft") });
+            foreach (var u in d.Uses) uses.Children.Add(new Border { CornerRadius = new CornerRadius(8), Background = Ui.Res("B.MintWash"), Padding = new Thickness(10, 3, 10, 4), Margin = new Thickness(0, 0, 6, 6), Child = new TextBlock { Text = u, FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.OnPrimaryContainer") } });
             Body.Children.Add(uses);
             if (d.HasPrivateKey) Body.Children.Add(Note("This file holds a private key. It is never shown here.", new Thickness(0, 0, 0, 4)));
             if (d.CertCount > 1) Body.Children.Add(Note("The file holds " + d.CertCount + " certificates. This is the first.", new Thickness(0, 0, 0, 4)));

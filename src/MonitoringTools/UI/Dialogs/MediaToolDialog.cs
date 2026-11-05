@@ -92,12 +92,12 @@ namespace MonitoringTools.UI
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             head.ColumnDefinitions.Add(new ColumnDefinition());
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var tile = new Border { Width = 44, Height = 44, CornerRadius = new CornerRadius(14), Background = Ui.Res("B.TertiaryContainer"), Child = Ui.Icon(icon, Ui.Res("B.OnTertiaryContainer"), 22, 1.8), VerticalAlignment = VerticalAlignment.Top };
+            var tile = new Border { Width = 44, Height = 44, CornerRadius = new CornerRadius(16), Background = Ui.Res("B.TertiaryContainer"), Child = Ui.Icon(icon, Ui.Res("B.OnTertiaryContainer"), 22, 1.8), VerticalAlignment = VerticalAlignment.Top };
             var texts = new StackPanel { Margin = new Thickness(14, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
-            texts.Children.Add(new TextBlock { Text = ToolName, FontSize = 20, FontFamily = Ui.Font("F.Display"), Foreground = Ui.Res("B.Text"), FontWeight = FontWeights.Medium });
-            _fileLine.FontSize = 13; _fileLine.FontWeight = FontWeights.Medium; _fileLine.Foreground = Ui.Res("B.Text"); _fileLine.FontFamily = Ui.Font("F.Body"); _fileLine.TextTrimming = TextTrimming.CharacterEllipsis; _fileLine.Margin = new Thickness(0, 0, 8, 0);
+            texts.Children.Add(new TextBlock { Text = ToolName, FontSize = 22, FontFamily = Ui.Font("F.Display"), Foreground = Ui.Res("B.Text"), FontWeight = FontWeights.Medium });
+            _fileLine.FontSize = 12; _fileLine.FontWeight = FontWeights.Medium; _fileLine.Foreground = Ui.Res("B.Text"); _fileLine.FontFamily = Ui.Font("F.Body"); _fileLine.TextTrimming = TextTrimming.CharacterEllipsis; _fileLine.Margin = new Thickness(0, 0, 8, 0);
             Core.Language.SetLiteral(_fileLine, true);
-            _summary.FontSize = 13; _summary.Foreground = Ui.Res("B.TextSoft"); _summary.FontFamily = Ui.Font("F.Body"); _summary.TextWrapping = TextWrapping.Wrap;
+            _summary.FontSize = 12; _summary.Foreground = Ui.Res("B.TextSoft"); _summary.FontFamily = Ui.Font("F.Body"); _summary.TextWrapping = TextWrapping.Wrap;
             _fileRow.Children.Add(_fileLine); _fileRow.Children.Add(_summary);
             texts.Children.Add(_fileRow);
             var closeBtn = Ui.Button("", Close, "Btn.Ghost", Icons.Close);
@@ -115,7 +115,7 @@ namespace MonitoringTools.UI
             _footer.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             _footer.ColumnDefinitions.Add(new ColumnDefinition());
             _footer.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            _status.FontSize = 13; _status.Foreground = Ui.Res("B.TextSoft"); _status.FontFamily = Ui.Font("F.Body"); _status.TextWrapping = TextWrapping.Wrap; _status.VerticalAlignment = VerticalAlignment.Center; _status.Margin = new Thickness(4, 0, 12, 0);
+            _status.FontSize = 12; _status.Foreground = Ui.Res("B.TextSoft"); _status.FontFamily = Ui.Font("F.Body"); _status.TextWrapping = TextWrapping.Wrap; _status.VerticalAlignment = VerticalAlignment.Center; _status.Margin = new Thickness(4, 0, 12, 0);
             AutomationProperties.SetLiveSetting(_status, AutomationLiveSetting.Polite);
             _leftActions.VerticalAlignment = VerticalAlignment.Center;
             var right = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };

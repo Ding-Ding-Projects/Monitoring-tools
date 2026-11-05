@@ -119,8 +119,8 @@ namespace MonitoringTools.UI
             var tiles = new Grid();
             tiles.ColumnDefinitions.Add(new ColumnDefinition()); tiles.ColumnDefinitions.Add(new ColumnDefinition());
             _lightTile = new WrapPanel(); _darkTile = new WrapPanel();
-            var lt = new Border { CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3)), Padding = new Thickness(12), Margin = new Thickness(0, 0, 6, 0), Child = _lightTile, MinHeight = 236 };
-            var dt = new Border { CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(Color.FromRgb(0x20, 0x20, 0x20)), Padding = new Thickness(12), Margin = new Thickness(6, 0, 0, 0), Child = _darkTile, MinHeight = 236 };
+            var lt = new Border { CornerRadius = new CornerRadius(16), Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3)), Padding = new Thickness(12), Margin = new Thickness(0, 0, 6, 0), Child = _lightTile, MinHeight = 236 };
+            var dt = new Border { CornerRadius = new CornerRadius(16), Background = new SolidColorBrush(Color.FromRgb(0x20, 0x20, 0x20)), Padding = new Thickness(12), Margin = new Thickness(6, 0, 0, 0), Child = _darkTile, MinHeight = 236 };
             AutomationProperties.SetName(lt, "Preview of every size on a light background"); AutomationProperties.SetName(dt, "Preview of every size on a dark background");
             Grid.SetColumn(dt, 1); tiles.Children.Add(lt); tiles.Children.Add(dt);
             right.Children.Add(tiles);

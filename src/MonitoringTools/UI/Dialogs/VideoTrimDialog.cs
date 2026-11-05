@@ -118,7 +118,7 @@ namespace MonitoringTools.UI
             pg.Children.Add(_playBtn);
             _previewTime = new TextBlock { Text = "0:00.000", FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Brushes.White };
             Core.Language.SetLiteral(_previewTime, true);
-            pg.Children.Add(new Border { CornerRadius = new CornerRadius(6), Background = new SolidColorBrush(Color.FromArgb(190, 8, 9, 12)), Padding = new Thickness(7, 2, 7, 3), Margin = new Thickness(8), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Bottom, Child = _previewTime });
+            pg.Children.Add(new Border { CornerRadius = new CornerRadius(8), Background = new SolidColorBrush(Color.FromArgb(190, 8, 9, 12)), Padding = new Thickness(7, 2, 7, 3), Margin = new Thickness(8), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Bottom, Child = _previewTime });
             var previewBox = FT.Rounded(pg, 16);
             top.Children.Add(previewBox);
 

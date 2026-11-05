@@ -45,7 +45,7 @@ namespace MonitoringTools.UI
             public RangeTimeline Owner; public bool IsStart;
             public Handle()
             {
-                Width = 14; CornerRadius = new CornerRadius(7); Background = Ui.Res("B.Mint"); Focusable = true; FocusVisualStyle = null; Cursor = Cursors.SizeWE;
+                Width = 14; CornerRadius = new CornerRadius(8); Background = Ui.Res("B.Mint"); Focusable = true; FocusVisualStyle = null; Cursor = Cursors.SizeWE;
                 Child = new Border { Width = 2, Background = Ui.Res("B.MintInk"), CornerRadius = new CornerRadius(1), Height = 18, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
                 BorderBrush = Brushes.Transparent; BorderThickness = new Thickness(2);
             }

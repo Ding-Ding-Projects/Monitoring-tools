@@ -43,7 +43,7 @@ namespace MonitoringTools.UI.Dialogs
     internal sealed class BannerBox : Border
     {
         private readonly TextBlock _title = new TextBlock { FontSize = 14, FontWeight = FontWeights.Medium, TextWrapping = TextWrapping.Wrap };
-        private readonly TextBlock _body = new TextBlock { FontSize = 13, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) };
+        private readonly TextBlock _body = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) };
         private readonly ContentControl _icon = new ContentControl { VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 1, 14, 0) };
         public DataBannerKind Kind { get; private set; }
         public string TitleText => _title.Text;
@@ -96,12 +96,12 @@ namespace MonitoringTools.UI.Dialogs
         protected readonly string ToolName;
         protected readonly string FileLabel;
         protected readonly StackPanel Body = new StackPanel();
-        protected readonly TextBlock StatusText = new TextBlock { FontSize = 13, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+        protected readonly TextBlock StatusText = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
         protected readonly StackPanel FooterSecondary = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         internal readonly Button CancelButton;
         internal readonly Button PrimaryButton;
-        private readonly TextBlock _summary = new TextBlock { FontSize = 13, TextTrimming = TextTrimming.CharacterEllipsis };
-        private readonly TextBlock _fileText = new TextBlock { FontSize = 13, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis };
+        private readonly TextBlock _summary = new TextBlock { FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis };
+        private readonly TextBlock _fileText = new TextBlock { FontSize = 12, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis };
         private CancellationTokenSource _cts = new CancellationTokenSource();
         private readonly ScrollViewer _scroll;
         protected CancellationToken Token => _cts.Token;
@@ -168,9 +168,9 @@ namespace MonitoringTools.UI.Dialogs
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             head.ColumnDefinitions.Add(new ColumnDefinition());
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var tile = new Border { Width = 44, Height = 44, CornerRadius = new CornerRadius(14), Background = Ui.Res("B.TertiaryContainer"), Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Top, Child = Ui.Icon(icon, Ui.Res("B.OnTertiaryContainer"), 22, 1.8) };
+            var tile = new Border { Width = 44, Height = 44, CornerRadius = new CornerRadius(16), Background = Ui.Res("B.TertiaryContainer"), Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Top, Child = Ui.Icon(icon, Ui.Res("B.OnTertiaryContainer"), 22, 1.8) };
             var titles = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            var title = new TextBlock { Text = ToolName, Style = Ui.Style("T.Title"), FontSize = 20, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis };
+            var title = new TextBlock { Text = ToolName, Style = Ui.Style("T.Title"), FontSize = 22, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis };
             var line = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 0) };
             Core.Language.SetLiteral(_fileText, true); _fileText.Text = FileLabel; _fileText.Foreground = Ui.Res("B.Text"); _fileText.MaxWidth = 420; _fileText.Margin = new Thickness(0, 0, 8, 0);
             _summary.Foreground = Ui.Res("B.TextSoft");
@@ -248,7 +248,7 @@ namespace MonitoringTools.UI.Dialogs
         {
             var t = new TextBlock
             {
-                Text = section ? text.ToUpperInvariant() : text, FontSize = section ? 12 : 13, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"),
+                Text = section ? text.ToUpperInvariant() : text, FontSize = section ? 12 : 12, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"),
                 Foreground = section ? Ui.Res("B.Mint") : Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap, Margin = margin ?? new Thickness(0, 4, 0, 6),
             };
             return t;
@@ -256,7 +256,7 @@ namespace MonitoringTools.UI.Dialogs
 
         protected static TextBlock Note(string text, Thickness? margin = null) => new TextBlock
         {
-            Text = text, FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = margin ?? new Thickness(0, 0, 0, 8),
+            Text = text, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = margin ?? new Thickness(0, 0, 0, 8),
         };
 
         /// <summary>A sunken card of label and value rows.</summary>
@@ -268,7 +268,7 @@ namespace MonitoringTools.UI.Dialogs
             for (int i = 0; i < rows.Length; i++)
             {
                 g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                var l = new TextBlock { Text = rows[i].Label, FontSize = 13, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(0, 4, 8, 4), VerticalAlignment = VerticalAlignment.Top, TextWrapping = TextWrapping.Wrap };
+                var l = new TextBlock { Text = rows[i].Label, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(0, 4, 8, 4), VerticalAlignment = VerticalAlignment.Top, TextWrapping = TextWrapping.Wrap };
                 Grid.SetRow(l, i);
                 var v = rows[i].Value; if (v is FrameworkElement fe) fe.Margin = new Thickness(0, 4, 0, 4);
                 Grid.SetRow(v, i); Grid.SetColumn(v, 1);
@@ -279,7 +279,7 @@ namespace MonitoringTools.UI.Dialogs
 
         protected static TextBlock Value(string text, bool mono = false)
         {
-            var t = new TextBlock { Text = text, FontSize = mono ? 12.5 : 13, FontFamily = mono ? Ui.Font("F.Mono") : Ui.Font("F.Body"), Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap };
+            var t = new TextBlock { Text = text, FontSize = mono ? 12 : 12, FontFamily = mono ? Ui.Font("F.Mono") : Ui.Font("F.Body"), Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap };
             if (mono) Core.Language.SetLiteral(t, true);      // hashes, serials and similar are data, never translated
             return t;
         }
@@ -292,7 +292,7 @@ namespace MonitoringTools.UI.Dialogs
         {
             Brush bg = good ? Ui.Res("B.MintWash") : warn ? Ui.Res("B.AmberWash") : Ui.Res("B.DangerWash");
             Brush fg = good ? Ui.Res("B.OnPrimaryContainer") : warn ? Ui.Res("B.Amber") : Ui.Res("B.Danger");
-            return new Border { CornerRadius = new CornerRadius(6), Padding = new Thickness(8, 1, 8, 2), Background = bg, VerticalAlignment = VerticalAlignment.Center, Child = new TextBlock { Text = text, FontSize = 11.5, Foreground = fg } };
+            return new Border { CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 1, 8, 2), Background = bg, VerticalAlignment = VerticalAlignment.Center, Child = new TextBlock { Text = text, FontSize = 11, Foreground = fg } };
         }
 
         protected static Button Action(string label, string icon, Action onClick, string style = "Btn.Ghost")
@@ -415,7 +415,7 @@ namespace MonitoringTools.UI.Dialogs
         {
             var sp = new StackPanel();
             sp.Children.Add(new TextBlock { Text = title, FontSize = 14, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text") });
-            if (!string.IsNullOrEmpty(detail)) sp.Children.Add(new TextBlock { Text = detail, FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
+            if (!string.IsNullOrEmpty(detail)) sp.Children.Add(new TextBlock { Text = detail, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
             var cb = new CheckBox { Style = Ui.Style("Switch"), Content = sp, IsChecked = on, Margin = new Thickness(0, 2, 0, 8) };
             AutomationProperties.SetName(cb, title);
             cb.Checked += (s, e) => changed?.Invoke(true); cb.Unchecked += (s, e) => changed?.Invoke(false);
@@ -429,7 +429,7 @@ namespace MonitoringTools.UI.Dialogs
             Child = new ScrollViewer { Content = content, MaxHeight = maxHeight, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto },
         };
 
-        protected static TextBlock Mono(string text, double size = 12.5) { var t = new TextBlock { Text = text, FontFamily = Ui.Font("F.Mono"), FontSize = size, Foreground = Ui.Res("B.Text") }; Core.Language.SetLiteral(t, true); return t; }
+        protected static TextBlock Mono(string text, double size = 12) { var t = new TextBlock { Text = text, FontFamily = Ui.Font("F.Mono"), FontSize = TypeScale.Snap(size), Foreground = Ui.Res("B.Text") }; Core.Language.SetLiteral(t, true); return t; }
 
         /// <summary>Opens the dialog and brings it to the front.</summary>
         protected void Present() { Show(); Activate(); }

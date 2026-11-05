@@ -52,7 +52,7 @@ namespace MonitoringTools.UI.Dialogs
         internal bool Scanned => _scan != null;
         internal List<ExcludeRule> Excludes { get; } = new List<ExcludeRule>();
 
-        private readonly TextBlock _summaryLine1 = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap };
+        private readonly TextBlock _summaryLine1 = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap };
         private readonly TextBlock _summaryLine2 = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) };
         private readonly TextBlock _strengthText = new TextBlock { FontSize = 12, HorizontalAlignment = HorizontalAlignment.Right, FontFamily = Ui.Font("F.Body") };
         private System.Windows.Controls.ProgressBar _strengthBar;
@@ -133,7 +133,7 @@ namespace MonitoringTools.UI.Dialogs
             var left = new StackPanel();
             left.Children.Add(DialogParts.Section(Icons.Archive, "Archive"));
             left.Children.Add(DialogParts.Label("Name"));
-            NameBox = new TextBox { Style = Ui.Style("Input"), Text = o.Name, FontFamily = Ui.Font("F.Body"), FontSize = 15, Height = 48, MaxLength = 120 };
+            NameBox = new TextBox { Style = Ui.Style("Input"), Text = o.Name, FontFamily = Ui.Font("F.Body"), FontSize = 14, Height = 48, MaxLength = 120 };
             AutomationProperties.SetName(NameBox, "Name");
             AutomationProperties.SetHelpText(NameBox, "The archive's name. The format adds its own ending.");
             _suffix = new TextBlock { Text = o.Suffix, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), FontSize = 14, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 14, 0), IsHitTestVisible = false };
@@ -141,7 +141,7 @@ namespace MonitoringTools.UI.Dialogs
             left.Children.Add(new Grid { Children = { NameBox, _suffix } });
 
             left.Children.Add(DialogParts.Label("Save in"));
-            FolderBox = new TextBox { Style = Ui.Style("Input"), Text = o.OutFolder, Height = 48, FontSize = 13 };
+            FolderBox = new TextBox { Style = Ui.Style("Input"), Text = o.OutFolder, Height = 48, FontSize = 12 };
             AutomationProperties.SetName(FolderBox, "Save in");
             var browse = Ui.Button("", Browse, "Btn.Icon", "M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z");
             browse.Margin = new Thickness(0); browse.HorizontalAlignment = HorizontalAlignment.Right; browse.VerticalAlignment = VerticalAlignment.Center;
@@ -250,16 +250,16 @@ namespace MonitoringTools.UI.Dialogs
             right.Children.Add(parentRow);
             right.Children.Add(DialogParts.Label("Exclude patterns"));
             _excludeChips = new WrapPanel();
-            ExcludeBox = new TextBox { Background = Brushes.Transparent, BorderThickness = new Thickness(0), Foreground = Ui.Res("B.Text"), CaretBrush = Ui.Res("B.Mint"), FontFamily = Ui.Font("F.Mono"), FontSize = 13, MinWidth = 150, Height = 30, VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(2, 2, 0, 2), FocusVisualStyle = null };
+            ExcludeBox = new TextBox { Background = Brushes.Transparent, BorderThickness = new Thickness(0), Foreground = Ui.Res("B.Text"), CaretBrush = Ui.Res("B.Mint"), FontFamily = Ui.Font("F.Mono"), FontSize = 12, MinWidth = 150, Height = 30, VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(2, 2, 0, 2), FocusVisualStyle = null };
             AutomationProperties.SetName(ExcludeBox, "Add an exclude pattern");
             ExcludeBox.ToolTip = "Type a pattern and press Enter. Glob: node_modules, *.tmp, build/**. Regex: tested against the relative path.";
-            var hint = new TextBlock { Text = "add pattern…", Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), FontSize = 13, IsHitTestVisible = false, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+            var hint = new TextBlock { Text = "add pattern…", Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), FontSize = 12, IsHitTestVisible = false, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
             ExcludeBox.TextChanged += (s, e) => hint.Visibility = ExcludeBox.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
             ExcludeBox.KeyDown += (s, e) => { if (e.Key == Key.Enter) { e.Handled = true; AddExclude(ExcludeBox.Text, false); } else if (e.Key == Key.Back && ExcludeBox.Text.Length == 0 && Excludes.Count > 0) RemoveExclude(Excludes[^1]); };
             var inputHost = new Grid { MinWidth = 160, Margin = new Thickness(0, 0, 0, 0) };
             inputHost.Children.Add(hint); inputHost.Children.Add(ExcludeBox);
             _excludeChips.Children.Add(inputHost);
-            right.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(14), Padding = new Thickness(8, 8, 8, 6), MinHeight = 72, Child = _excludeChips });
+            right.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(16), Padding = new Thickness(8, 8, 8, 6), MinHeight = 72, Child = _excludeChips });
             var modeRow = new Grid { Margin = new Thickness(0, 10, 0, 0) };
             modeRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); modeRow.ColumnDefinitions.Add(new ColumnDefinition()); modeRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             ExcludeMode = new Segmented("Exclude pattern type", new[] { new Choice("glob", "Glob"), new Choice("regex", "Regex") }, "glob");
@@ -288,7 +288,7 @@ namespace MonitoringTools.UI.Dialogs
             Grid.SetColumn(right, 2); cols.Children.Add(left); cols.Children.Add(right);
             var scroll = new StackPanel(); scroll.Children.Add(cols); scroll.Children.Add(after);
 
-            var summary = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(14), Padding = new Thickness(14, 12, 14, 12), Margin = new Thickness(0, 16, 0, 0) };
+            var summary = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(16), Padding = new Thickness(14, 12, 14, 12), Margin = new Thickness(0, 16, 0, 0) };
             var sg = new Grid(); sg.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); sg.ColumnDefinitions.Add(new ColumnDefinition());
             var sicon = Ui.Icon(DialogParts.Info, Ui.Res("B.TextSoft"), 18); sicon.Margin = new Thickness(0, 1, 12, 0); sicon.VerticalAlignment = VerticalAlignment.Top;
             var st = new StackPanel(); st.Children.Add(_summaryLine1); st.Children.Add(_summaryLine2);
@@ -338,9 +338,9 @@ namespace MonitoringTools.UI.Dialogs
             try { if (!dir) size = new FileInfo(p).Length; } catch { }
             var sp = new StackPanel { Orientation = Orientation.Horizontal };
             sp.Children.Add(new ContentControl { Content = Ui.Icon(dir ? Icons.Folder : Icons.File, Ui.Res("B.TextSoft"), 16), Margin = new Thickness(0, 0, 8, 0), Focusable = false, VerticalAlignment = VerticalAlignment.Center });
-            sp.Children.Add(new TextBlock { Text = Path.GetFileName(p).Length == 0 ? p : Path.GetFileName(p), FontFamily = Ui.Font("F.Body"), FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center, MaxWidth = 220, TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = p });
+            sp.Children.Add(new TextBlock { Text = Path.GetFileName(p).Length == 0 ? p : Path.GetFileName(p), FontFamily = Ui.Font("F.Body"), FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center, MaxWidth = 220, TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = p });
             if (!dir) sp.Children.Add(new TextBlock { Text = Ui.Bytes(size), FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) });
-            return new Border { CornerRadius = new CornerRadius(18), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Padding = new Thickness(12, 6, 14, 6), Margin = new Thickness(0, 0, 8, 8), Child = sp };
+            return new Border { CornerRadius = new CornerRadius(16), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), Padding = new Thickness(12, 6, 14, 6), Margin = new Thickness(0, 0, 8, 8), Child = sp };
         }
 
         private static ControlTemplate PasswordTemplate() => (ControlTemplate)System.Windows.Markup.XamlReader.Parse(
@@ -453,7 +453,7 @@ namespace MonitoringTools.UI.Dialogs
                 var rule = r;
                 var b = new Button { Style = Ui.Style("Btn.Chip"), Height = 30, Margin = new Thickness(0, 0, 8, 6), Padding = new Thickness(10, 0, 8, 0) };
                 var sp = new StackPanel { Orientation = Orientation.Horizontal };
-                sp.Children.Add(new TextBlock { Text = (r.Regex ? ".* " : "") + r.Pattern, FontFamily = Ui.Font("F.Mono"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Foreground = Ui.Res("B.Text") });
+                sp.Children.Add(new TextBlock { Text = (r.Regex ? ".* " : "") + r.Pattern, FontFamily = Ui.Font("F.Mono"), FontSize = 12, VerticalAlignment = VerticalAlignment.Center, Foreground = Ui.Res("B.Text") });
                 sp.Children.Add(new ContentControl { Content = Ui.Icon(Icons.Close, Ui.Res("B.TextSoft"), 11), Margin = new Thickness(8, 0, 0, 0), Focusable = false, VerticalAlignment = VerticalAlignment.Center });
                 b.Content = sp;
                 AutomationProperties.SetName(b, "Exclude pattern " + r.Pattern + ", press to remove");
@@ -561,8 +561,8 @@ namespace MonitoringTools.UI.Dialogs
             root.Children.Add(_pBar);
             var nums = new Grid { Margin = new Thickness(0, 12, 0, 0) };
             nums.ColumnDefinitions.Add(new ColumnDefinition()); nums.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            _pBytes = new TextBlock { FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), Text = "Starting…" };
-            _pRate = new TextBlock { FontSize = 13, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") };
+            _pBytes = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), Text = "Starting…" };
+            _pRate = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") };
             Grid.SetColumn(_pRate, 1); nums.Children.Add(_pBytes); nums.Children.Add(_pRate);
             root.Children.Add(nums);
             _pFile = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Mono"), TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 8, 0, 0), Height = 18 };
@@ -602,7 +602,7 @@ namespace MonitoringTools.UI.Dialogs
                     : new System.Windows.Shapes.Ellipse { Width = 12, Height = 12, Stroke = Ui.Res("B.LineStrong"), StrokeThickness = 1.6 };
                 glyph.VerticalAlignment = VerticalAlignment.Center; glyph.Margin = new Thickness(0, 0, 8, 0);
                 panel.Children.Add(glyph);
-                panel.Children.Add(new TextBlock { Text = label, FontFamily = Ui.Font("F.Body"), FontSize = 13, FontWeight = current ? FontWeights.Medium : FontWeights.Normal, Foreground = current ? Ui.Res("B.Text") : Ui.Res("B.TextSoft") });
+                panel.Children.Add(new TextBlock { Text = label, FontFamily = Ui.Font("F.Body"), FontSize = 12, FontWeight = current ? FontWeights.Medium : FontWeights.Normal, Foreground = current ? Ui.Res("B.Text") : Ui.Res("B.TextSoft") });
                 AutomationProperties.SetName(panel, label + (done ? ", done" : current ? ", in progress" : ", waiting"));
             }
         }
@@ -648,17 +648,17 @@ namespace MonitoringTools.UI.Dialogs
             void Row(string label, UIElement value)
             {
                 g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                var l = new TextBlock { Text = label, FontSize = 13, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 7, 0, 7), VerticalAlignment = VerticalAlignment.Center };
+                var l = new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 7, 0, 7), VerticalAlignment = VerticalAlignment.Center };
                 Grid.SetRow(l, row); Grid.SetRow(value, row); Grid.SetColumn(value, 1);
                 if (value is FrameworkElement fe) fe.Margin = new Thickness(0, 7, 0, 7);
                 g.Children.Add(l); g.Children.Add(value); row++;
             }
             long pct = r.SourceBytes > 0 ? 100 * r.ArchiveBytes / r.SourceBytes : 0;
-            Row("Size", new TextBlock { Text = $"{Ui.Bytes(r.ArchiveBytes)} from {Ui.Bytes(r.SourceBytes)} ({pct}%)", FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
+            Row("Size", new TextBlock { Text = $"{Ui.Bytes(r.ArchiveBytes)} from {Ui.Bytes(r.SourceBytes)} ({pct}%)", FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
             Row("Test", r.Tested ? DialogParts.Pill(r.TestOk ? "No errors" : "Failed", r.TestOk ? "mint" : "danger") : DialogParts.Pill("Not tested", "neutral"));
-            _originals = new TextBlock { Text = "Kept", FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap };
+            _originals = new TextBlock { Text = "Kept", FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap };
             Row("Originals", _originals);
-            Row("Saved in", new TextBlock { Text = Path.GetDirectoryName(r.Primary), FontSize = 12.5, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Mono"), TextWrapping = TextWrapping.Wrap });
+            Row("Saved in", new TextBlock { Text = Path.GetDirectoryName(r.Primary), FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Mono"), TextWrapping = TextWrapping.Wrap });
             root.Children.Add(g);
             if (r.Tested && !string.IsNullOrEmpty(r.TestDetail)) root.Children.Add(DialogParts.Hint(r.TestDetail + " (" + r.Backend + ")"));
             var copy = Ui.Button("Copy path", () => { ClipboardWatcher.SetText(r.Primary); App.Toasts?.ShowNotice("Copied", r.Primary, App.Toasts.Mint, 3, icon: Icons.Clipboard); }, "Btn.Ghost", DialogParts.Copy);

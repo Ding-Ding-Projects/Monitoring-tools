@@ -136,7 +136,7 @@ namespace MonitoringTools.UI.Dialogs
             if (p.Format == DataKind.Csv && (p.Valid || p.ErrorLine > 0))
             {
                 var panel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
-                panel.Children.Add(new TextBlock { Text = "Separator", FontSize = 13, Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) });
+                panel.Children.Add(new TextBlock { Text = "Separator", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) });
                 int sel = _delimiter == null ? 3 : _delimiter == ',' ? 0 : _delimiter == ';' ? 1 : 2;
                 var chips = Chips("Separator", new[] { "Comma", "Semicolon", "Tab", "Auto" }, sel, i => { _delimiter = i == 0 ? ',' : i == 1 ? ';' : i == 2 ? (char?)'\t' : null; Load(); });
                 panel.Children.Add(chips.Element);
@@ -156,7 +156,7 @@ namespace MonitoringTools.UI.Dialogs
             if (p.ErrorLine > 0) sp.Children.Add(Note("Nothing can be converted until it is fixed.", new Thickness(0, 0, 0, 8)));
             if (p.Context.Length > 0)
             {
-                var block = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12.5, Foreground = Ui.Res("B.Text") };
+                var block = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text") };
                 for (int i = 0; i < p.Context.Length; i++)
                 {
                     int ln = p.ContextFirstLine + i;
@@ -219,7 +219,7 @@ namespace MonitoringTools.UI.Dialogs
         {
             _text = new TextBox
             {
-                Text = _probe.Text, IsReadOnly = true, IsReadOnlyCaretVisible = true, FontFamily = Ui.Font("F.Mono"), FontSize = 12.5, Foreground = Ui.Res("B.Text"), Background = Brushes.Transparent,
+                Text = _probe.Text, IsReadOnly = true, IsReadOnlyCaretVisible = true, FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text"), Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0), AcceptsReturn = true, TextWrapping = TextWrapping.NoWrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
                 MaxHeight = 300, MinHeight = 120, CaretBrush = Ui.Res("B.Mint"), SelectionBrush = Ui.Res("B.Mint"),
             };
@@ -272,7 +272,7 @@ namespace MonitoringTools.UI.Dialogs
                     g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(widths[c]) });
                     var t = new TextBlock
                     {
-                        Text = c < r.Length ? r[c] : "", FontSize = 13, Foreground = Ui.Res("B.Text"), Margin = new Thickness(10, 7, 10, 7), TextTrimming = TextTrimming.CharacterEllipsis,
+                        Text = c < r.Length ? r[c] : "", FontSize = 12, Foreground = Ui.Res("B.Text"), Margin = new Thickness(10, 7, 10, 7), TextTrimming = TextTrimming.CharacterEllipsis,
                         FontFamily = aligns[c] ? Ui.Font("F.Mono") : Ui.Font("F.Body"), TextAlignment = aligns[c] ? TextAlignment.Right : TextAlignment.Left,
                     };
                     int cc = c;

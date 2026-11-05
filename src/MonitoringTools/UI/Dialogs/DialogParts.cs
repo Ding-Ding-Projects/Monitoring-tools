@@ -125,7 +125,7 @@ namespace MonitoringTools.UI.Dialogs
             Child = g;
             AutomationProperties.SetName(this, name);
             KeyboardNavigation.SetDirectionalNavigation(_list, KeyboardNavigationMode.Cycle);
-            var card = new Border { Background = Ui.Res("B.Raised"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(14), Padding = new Thickness(6), Margin = new Thickness(0, 6, 12, 12), Child = new ScrollViewer { Content = _list, MaxHeight = 280, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }, Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"] };
+            var card = new Border { Background = Ui.Res("B.Raised"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(16), Padding = new Thickness(6), Margin = new Thickness(0, 6, 12, 12), Child = new ScrollViewer { Content = _list, MaxHeight = 280, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }, Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"] };
             _popup = new Popup { Child = card, PlacementTarget = this, Placement = PlacementMode.Bottom, StaysOpen = false, AllowsTransparency = true, PopupAnimation = PopupAnimation.Fade };
             _popup.Opened += (s, e) => { card.MinWidth = Math.Max(0, ActualWidth - 12); BuildList(); };
             _popup.Closed += (s, e) => Paint();
@@ -197,7 +197,7 @@ namespace MonitoringTools.UI.Dialogs
 
     internal static class DialogParts
     {
-        public static TextBlock Label(string text) => new TextBlock { Text = text, FontFamily = Ui.Font("F.Body"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(0, 14, 0, 6) };
+        public static TextBlock Label(string text) => new TextBlock { Text = text, FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(0, 14, 0, 6) };
 
         public static TextBlock Hint(string text) => new TextBlock { Text = text, FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 6, 0, 0) };
 
@@ -236,12 +236,12 @@ namespace MonitoringTools.UI.Dialogs
         {
             Brush wash = tone == "amber" ? Ui.Res("B.AmberWash") : tone == "danger" ? Ui.Res("B.DangerWash") : Ui.Res("B.Sunken");
             Brush ink = tone == "amber" ? Ui.Res("B.Amber") : tone == "danger" ? Ui.Res("B.Danger") : Ui.Res("B.TextSoft");
-            var tb = new TextBlock { Text = text, FontFamily = Ui.Font("F.Body"), FontSize = 13, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+            var tb = new TextBlock { Text = text, FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
             var g = new Grid();
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); g.ColumnDefinitions.Add(new ColumnDefinition());
             var icon = Ui.Icon(iconPath, ink, 18); icon.Margin = new Thickness(0, 0, 12, 0); icon.VerticalAlignment = VerticalAlignment.Top;
             g.Children.Add(icon); Grid.SetColumn(tb, 1); g.Children.Add(tb);
-            return new Border { Background = wash, CornerRadius = new CornerRadius(14), Padding = new Thickness(14, 12, 14, 12), Child = g };
+            return new Border { Background = wash, CornerRadius = new CornerRadius(16), Padding = new Thickness(14, 12, 14, 12), Child = g };
         }
 
         public static Border Pill(string text, string tone = "mint")
@@ -251,7 +251,7 @@ namespace MonitoringTools.UI.Dialogs
             var sp = new StackPanel { Orientation = Orientation.Horizontal };
             if (tone == "mint") sp.Children.Add(new ContentControl { Content = Ui.Icon(Icons.Check, fg, 12, 2), Margin = new Thickness(0, 0, 6, 0), Focusable = false, VerticalAlignment = VerticalAlignment.Center });
             sp.Children.Add(new TextBlock { Text = text, FontSize = 12, FontWeight = FontWeights.Medium, Foreground = fg, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
-            return new Border { Background = bg, CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 3, 10, 4), HorizontalAlignment = HorizontalAlignment.Left, Child = sp };
+            return new Border { Background = bg, CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 3, 10, 4), HorizontalAlignment = HorizontalAlignment.Left, Child = sp };
         }
 
         public static ProgressBar Bar() => new ProgressBar

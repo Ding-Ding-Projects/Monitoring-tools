@@ -30,7 +30,7 @@ namespace MonitoringTools.UI.Dialogs
         private readonly ContentControl _hashHost = new ContentControl { Margin = new Thickness(0, 0, 0, 10) };
         private readonly WrapPanel _copyRow = new WrapPanel();
         private readonly TextBox _expected = new TextBox { Style = Ui.Style("Input"), Height = 42, MaxLength = 4000, AcceptsReturn = false };
-        private readonly TextBlock _hint = new TextBlock { Text = "Paste here to check it", FontSize = 13, Foreground = Ui.Res("B.TextMute"), IsHitTestVisible = false, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0) };
+        private readonly TextBlock _hint = new TextBlock { Text = "Paste here to check it", FontSize = 12, Foreground = Ui.Res("B.TextMute"), IsHitTestVisible = false, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(14, 0, 0, 0) };
         private readonly TextBlock _expectedNote = Note("Spaces, dashes and capitals are ignored. Pasting a whole checksum line works too.");
         private readonly ContentControl _compare = new ContentControl();
         private string _algorithm = HashEngine.Algorithms[0];
@@ -169,7 +169,7 @@ namespace MonitoringTools.UI.Dialogs
                 _bar = new ProgressBar { Height = 8, Minimum = 0, Maximum = 100, Margin = new Thickness(0, 10, 0, 10), Foreground = Ui.Res("B.Mint"), Background = Ui.Res("B.Line"), BorderThickness = new Thickness(0) };
                 AutomationProperties.SetName(_bar, "Reading the file");
                 _pct = new TextBlock { FontSize = 28, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Bottom };
-                _detail = new TextBlock { FontSize = 13, Foreground = Ui.Res("B.TextSoft") };
+                _detail = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextSoft") };
             }
             double pct = total > 0 ? done * 100.0 / total : 0;
             _bar.Value = pct; _pct.Text = Math.Floor(pct) + "%";
@@ -181,7 +181,7 @@ namespace MonitoringTools.UI.Dialogs
             {
                 var top = new StackPanel { Orientation = Orientation.Horizontal };
                 top.Children.Add(_pct);
-                top.Children.Add(new TextBlock { Text = "Reading the file", FontSize = 13, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(12, 0, 0, 5), VerticalAlignment = VerticalAlignment.Bottom });
+                top.Children.Add(new TextBlock { Text = "Reading the file", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(12, 0, 0, 5), VerticalAlignment = VerticalAlignment.Bottom });
                 var sp = new StackPanel(); sp.Children.Add(top); sp.Children.Add(_bar); sp.Children.Add(_detail);
                 _progressCard = new Border { CornerRadius = new CornerRadius(16), Background = Ui.Res("B.Sunken"), Padding = new Thickness(16, 12, 16, 12), Child = sp };
             }
@@ -199,12 +199,12 @@ namespace MonitoringTools.UI.Dialogs
             _copyRow.Visibility = Visibility.Visible;
         }
 
-        private static Border HashBlock(TextBlock t) => new Border { CornerRadius = new CornerRadius(14), Background = Ui.Res("B.Sunken"), Padding = new Thickness(14, 10, 14, 10), Child = t };
+        private static Border HashBlock(TextBlock t) => new Border { CornerRadius = new CornerRadius(16), Background = Ui.Res("B.Sunken"), Padding = new Thickness(14, 10, 14, 10), Child = t };
 
         /// <summary>The hash in groups of eight; with <paramref name="other"/> the groups that differ are marked, with <paramref name="all"/> the whole value is.</summary>
         private static TextBlock Highlight(string hex, string other, bool danger, bool all)
         {
-            var t = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap };
+            var t = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap };
             int groups = (hex.Length + 7) / 8;
             for (int i = 0; i < groups; i++)
             {

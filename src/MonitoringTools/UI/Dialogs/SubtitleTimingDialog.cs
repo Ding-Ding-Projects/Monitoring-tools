@@ -165,12 +165,12 @@ namespace MonitoringTools.UI.Dialogs
             _shiftBox = Field("Move all by, in seconds", _shiftText, true);
             _shiftBox.TextChanged += (s, e) => { _shiftText = _shiftBox.Text; Recalculate(); };
             var unit = new Grid(); unit.Children.Add(_shiftBox);
-            unit.Children.Add(new TextBlock { Text = "seconds", FontSize = 13, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0), IsHitTestVisible = false });
+            unit.Children.Add(new TextBlock { Text = "seconds", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0), IsHitTestVisible = false });
             l.Children.Add(unit);
             _hint = Hint("Negative moves earlier."); l.Children.Add(_hint);
             var r = new StackPanel(); r.Children.Add(FieldLabel("Result for the first and last cue"));
             _resultText = Text("", 13, Ui.Res("B.TextSoft")); _resultText.FontFamily = Ui.Font("F.Mono");
-            r.Children.Add(new Border { Height = 42, CornerRadius = new CornerRadius(10), Background = Ui.Res("B.Surface"), Padding = new Thickness(14, 0, 14, 0), Child = new Grid { Children = { _resultText } } });
+            r.Children.Add(new Border { Height = 42, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.Surface"), Padding = new Thickness(14, 0, 14, 0), Child = new Grid { Children = { _resultText } } });
             _resultText.VerticalAlignment = VerticalAlignment.Center;
             AutomationProperties.SetName(_resultText, "Result for the first and last cue");
             Grid.SetColumn(r, 1); g.Children.Add(l); g.Children.Add(r);

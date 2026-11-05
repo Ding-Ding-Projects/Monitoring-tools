@@ -111,7 +111,7 @@ namespace MonitoringTools.UI
         private void ShowNothing(bool anyPicture)
         {
             var sp = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 24, 0, 24) };
-            sp.Children.Add(new Border { Width = 56, Height = 56, CornerRadius = new CornerRadius(18), Background = Ui.Res("B.Sunken"), Child = Ui.Icon(Icons.Check, Ui.Res("B.Mint"), 24, 2), HorizontalAlignment = HorizontalAlignment.Center });
+            sp.Children.Add(new Border { Width = 56, Height = 56, CornerRadius = new CornerRadius(16), Background = Ui.Res("B.Sunken"), Child = Ui.Icon(Icons.Check, Ui.Res("B.Mint"), 24, 2), HorizontalAlignment = HorizontalAlignment.Center });
             sp.Children.Add(new TextBlock { Text = anyPicture ? "Nothing to clean" : "No pictures to clean", FontSize = 16, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 14, 0, 6) });
             var t = FT.Body(anyPicture ? (_items.Count == 1 ? "This picture has no location, camera, date or author data. It is safe to share as it is." : "These pictures have no location, camera, date or author data. They are safe to share as they are.")
                                        : "Copy JPEG, PNG, TIFF or WebP pictures and open this tool from the notice.", 13);
@@ -183,7 +183,7 @@ namespace MonitoringTools.UI
                 cb.Margin = new Thickness(8, 0, 6, 0); cb.IsEnabled = it.Report.Supported;
                 var thumb = new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(8), Background = Ui.Res("B.Sunken"), Margin = new Thickness(0, 4, 10, 4), ClipToBounds = true, Child = it.Thumb != null ? (UIElement)new Image { Source = it.Thumb, Stretch = Stretch.UniformToFill } : Ui.Icon(Icons.Image, Ui.Res("B.TextMute"), 18, 1.6) };
                 var names = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                var n = new TextBlock { Text = it.Name, FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = it.Path }; Core.Language.SetLiteral(n, true);
+                var n = new TextBlock { Text = it.Name, FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = it.Path }; Core.Language.SetLiteral(n, true);
                 names.Children.Add(n);
                 names.Children.Add(new TextBlock { Text = it.Report.Summary, FontSize = 12, Foreground = it == _current ? Ui.Res("B.OnSecondaryContainer") : Ui.Res("B.TextSoft"), TextTrimming = TextTrimming.CharacterEllipsis });
                 FrameworkElement badge = !it.Report.Supported ? FT.Badge("Unsupported", BannerKind.Info, MediaIcons.Warn)

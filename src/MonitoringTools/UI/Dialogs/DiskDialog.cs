@@ -47,7 +47,7 @@ namespace MonitoringTools.UI.Dialogs
         internal bool OriginalsDeleted { get; private set; }
         internal string ErrorText { get; private set; }
 
-        private readonly TextBlock _line1 = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap };
+        private readonly TextBlock _line1 = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap };
         private readonly TextBlock _line2 = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) };
         internal string SummaryText => _line1.Text + "\n" + _line2.Text;
         private TextBlock _suffix, _freeHint, _typeHint, _formatHint, _labelHint, _contentsHint, _letterHint;
@@ -120,7 +120,7 @@ namespace MonitoringTools.UI.Dialogs
             var left = new StackPanel();
             left.Children.Add(DialogParts.Section(DialogParts.DiskIcon, "Disk file"));
             left.Children.Add(DialogParts.Label("Save in"));
-            FolderBox = new TextBox { Style = Ui.Style("Input"), Text = parent, Height = 48, FontSize = 13, Padding = new Thickness(0, 0, 44, 0) };
+            FolderBox = new TextBox { Style = Ui.Style("Input"), Text = parent, Height = 48, FontSize = 12, Padding = new Thickness(0, 0, 44, 0) };
             AutomationProperties.SetName(FolderBox, "Save in");
             var browse = Ui.Button("", () => PickFolder(FolderBox), "Btn.Icon", Icons.Folder); browse.Margin = new Thickness(0);
             AutomationProperties.SetName(browse, "Browse for the folder the disk file is saved in"); browse.ToolTip = "Choose the folder for the disk file.";
@@ -128,7 +128,7 @@ namespace MonitoringTools.UI.Dialogs
             _freeHint = DialogParts.Hint(" "); left.Children.Add(_freeHint);
 
             left.Children.Add(DialogParts.Label("Name"));
-            NameBox = new TextBox { Style = Ui.Style("Input"), Text = baseName, Height = 48, FontFamily = Ui.Font("F.Body"), FontSize = 15, Padding = new Thickness(0, 0, 60, 0), MaxLength = 100 };
+            NameBox = new TextBox { Style = Ui.Style("Input"), Text = baseName, Height = 48, FontFamily = Ui.Font("F.Body"), FontSize = 14, Padding = new Thickness(0, 0, 60, 0), MaxLength = 100 };
             AutomationProperties.SetName(NameBox, "Name");
             _suffix = new TextBlock { Text = ".vhdx", Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), FontSize = 14, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 14, 0), IsHitTestVisible = false };
             left.Children.Add(new Grid { Children = { NameBox, _suffix } });
@@ -172,7 +172,7 @@ namespace MonitoringTools.UI.Dialogs
             right.Children.Add(_fatNote);
 
             right.Children.Add(DialogParts.Label("Volume label"));
-            LabelBox = new TextBox { Style = Ui.Style("Input"), Text = baseName.Length > 32 ? baseName[..32] : baseName, Height = 48, FontFamily = Ui.Font("F.Body"), FontSize = 15, MaxLength = 32 };
+            LabelBox = new TextBox { Style = Ui.Style("Input"), Text = baseName.Length > 32 ? baseName[..32] : baseName, Height = 48, FontFamily = Ui.Font("F.Body"), FontSize = 14, MaxLength = 32 };
             AutomationProperties.SetName(LabelBox, "Volume label");
             right.Children.Add(LabelBox);
             _labelHint = DialogParts.Hint("NTFS: up to 32 characters. FAT32 and exFAT: up to 11."); right.Children.Add(_labelHint);
@@ -183,14 +183,14 @@ namespace MonitoringTools.UI.Dialogs
             var letters = VhdEngine.FreeLetters();
             _letterRow = new Grid { Margin = new Thickness(0, 12, 0, 0) };
             var lg = (Grid)_letterRow; lg.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) }); lg.ColumnDefinitions.Add(new ColumnDefinition());
-            var lstack = new StackPanel(); lstack.Children.Add(new TextBlock { Text = "Letter", FontSize = 13, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 6) });
+            var lstack = new StackPanel(); lstack.Children.Add(new TextBlock { Text = "Letter", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 6) });
             LetterBox = new Dropdown("Drive letter", letters.Select(l => new Choice(l, l + ":")), letters.FirstOrDefault() ?? "");
             lstack.Children.Add(LetterBox);
             _letterHint = DialogParts.Hint("Next free letter. Folder mode needs an empty NTFS folder, such as D:\\Mounts\\Work."); _letterHint.VerticalAlignment = VerticalAlignment.Center; _letterHint.Margin = new Thickness(14, 22, 0, 0);
             Grid.SetColumn(_letterHint, 1); lg.Children.Add(lstack); lg.Children.Add(_letterHint);
             right.Children.Add(_letterRow);
             _folderRow = new StackPanel { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 12, 0, 0) };
-            MountFolderBox = new TextBox { Style = Ui.Style("Input"), Height = 48, FontSize = 13, Padding = new Thickness(0, 0, 44, 0) };
+            MountFolderBox = new TextBox { Style = Ui.Style("Input"), Height = 48, FontSize = 12, Padding = new Thickness(0, 0, 44, 0) };
             AutomationProperties.SetName(MountFolderBox, "Empty NTFS folder to mount into");
             var browse2 = Ui.Button("", () => PickFolder(MountFolderBox), "Btn.Icon", Icons.Folder); browse2.Margin = new Thickness(0);
             AutomationProperties.SetName(browse2, "Browse for the mount folder"); browse2.ToolTip = "Choose an empty folder on an NTFS drive.";
@@ -207,7 +207,7 @@ namespace MonitoringTools.UI.Dialogs
             cols.ColumnDefinitions.Add(new ColumnDefinition()); cols.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) }); cols.ColumnDefinitions.Add(new ColumnDefinition());
             Grid.SetColumn(right, 2); cols.Children.Add(left); cols.Children.Add(right);
 
-            var summary = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(14), Padding = new Thickness(14, 12, 14, 12), Margin = new Thickness(0, 16, 0, 0) };
+            var summary = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(16), Padding = new Thickness(14, 12, 14, 12), Margin = new Thickness(0, 16, 0, 0) };
             var sg = new Grid(); sg.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); sg.ColumnDefinitions.Add(new ColumnDefinition());
             var sicon = Ui.Icon(DialogParts.Info, Ui.Res("B.TextSoft"), 18); sicon.Margin = new Thickness(0, 1, 12, 0); sicon.VerticalAlignment = VerticalAlignment.Top;
             var st = new StackPanel(); st.Children.Add(_line1); st.Children.Add(_line2);
@@ -495,7 +495,7 @@ namespace MonitoringTools.UI.Dialogs
             AutomationProperties.SetName(_bar, "Copy progress");
             var nums = new Grid { Margin = new Thickness(0, 10, 0, 0) };
             nums.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); nums.ColumnDefinitions.Add(new ColumnDefinition());
-            _copyBytes = new TextBlock { FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") };
+            _copyBytes = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") };
             _copyFile = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Mono"), HorizontalAlignment = HorizontalAlignment.Right, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(16, 0, 0, 0) };
             Grid.SetColumn(_copyFile, 1); nums.Children.Add(_copyBytes); nums.Children.Add(_copyFile);
             if (ContentsBox.SelectedId != "empty") { root.Children.Add(_bar); root.Children.Add(nums); }
@@ -580,12 +580,12 @@ namespace MonitoringTools.UI.Dialogs
             void Row(string label, UIElement value)
             {
                 g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                var l = new TextBlock { Text = label, FontSize = 13, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 7, 0, 7), VerticalAlignment = VerticalAlignment.Center };
+                var l = new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 7, 0, 7), VerticalAlignment = VerticalAlignment.Center };
                 Grid.SetRow(l, row); Grid.SetRow(value, row); Grid.SetColumn(value, 1);
                 if (value is FrameworkElement fe) fe.Margin = new Thickness(0, 7, 0, 7);
                 g.Children.Add(l); g.Children.Add(value); row++;
             }
-            TextBlock T(string t, bool mono = false) => new TextBlock { Text = t, FontSize = mono ? 12.5 : 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font(mono ? "F.Mono" : "F.Body"), TextWrapping = TextWrapping.Wrap };
+            TextBlock T(string t, bool mono = false) => new TextBlock { Text = t, FontSize = mono ? 12 : 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font(mono ? "F.Mono" : "F.Body"), TextWrapping = TextWrapping.Wrap };
             Row("File", T(r.File, true));
             long onDisk = 0; try { onDisk = new FileInfo(r.File).Length; } catch { }
             Row("Size on " + DriveName(r.File), T(Ui.Bytes(onDisk) + (r.Fixed ? "" : ", grows as needed")));

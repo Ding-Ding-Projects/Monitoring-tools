@@ -186,7 +186,7 @@ namespace MonitoringTools.UI.Dialogs
             _pwShown.TextChanged += (s, e) => { if (_pwShown.IsVisible) { _lastPassword = _pwShown.Text; _pw.Password = _pwShown.Text; } };
             _pwError = new TextBlock { Text = error ?? "", FontSize = 12, Foreground = Ui.Res("B.Danger"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0), FontFamily = Ui.Font("F.Body"), Visibility = error == null ? Visibility.Collapsed : Visibility.Visible };
             AutomationProperties.SetLiveSetting(_pwError, AutomationLiveSetting.Assertive);
-            _showPw = new CheckBox { Style = Ui.Style("Switch"), Content = new TextBlock { Text = "Show the password while typing", FontSize = 13, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.Text") }, Margin = new Thickness(0, 12, 0, 0) };
+            _showPw = new CheckBox { Style = Ui.Style("Switch"), Content = new TextBlock { Text = "Show the password while typing", FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.Text") }, Margin = new Thickness(0, 12, 0, 0) };
             AutomationProperties.SetName(_showPw, "Show the password while typing");
             _showPw.Checked += (s, e) => { _pwShown.Text = _pw.Password; _pw.Visibility = Visibility.Collapsed; _pwShown.Visibility = Visibility.Visible; _pwShown.Focus(); };
             _showPw.Unchecked += (s, e) => { _pw.Password = _pwShown.Text; _pwShown.Visibility = Visibility.Collapsed; _pw.Visibility = Visibility.Visible; _pw.Focus(); };

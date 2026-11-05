@@ -39,7 +39,7 @@ namespace MonitoringTools.UI.Dialogs
         private readonly BannerBox _banner = new BannerBox();
         private readonly ContentControl _problem = new ContentControl();
         private readonly TextBlock _previewLabel = Label("", false, new Thickness(0, 6, 0, 6));
-        private readonly TextBlock _preview = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12.5, Foreground = Ui.Res("B.Text") };
+        private readonly TextBlock _preview = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text") };
         static EncodingLinesDialog() { }
         private readonly ContentControl _tableHost = new ContentControl();
         private readonly ContentControl _doneHost = new ContentControl();
@@ -121,8 +121,8 @@ namespace MonitoringTools.UI.Dialogs
             AutomationProperties.SetName(r.Check, "Convert " + Path.GetFileName(info.Path));
             r.Check.Checked += (s, e) => Refresh(); r.Check.Unchecked += (s, e) => Refresh();
             r.Check.GotKeyboardFocus += (s, e) => Select(r);
-            r.Enc = new TextBlock { FontSize = 13, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
-            r.Ends = new TextBlock { FontSize = 13, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center };
+            r.Enc = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+            r.Ends = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center };
             r.Badge = new ContentControl { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
             return r;
         }
@@ -139,12 +139,12 @@ namespace MonitoringTools.UI.Dialogs
             {
                 var g = new Grid();
                 ColumnsFor(g);
-                var name = new TextBlock { Text = DataToolWindow.Middle(Path.GetFileName(r.Info.Path), 40), FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0), ToolTip = r.Info.Path };
+                var name = new TextBlock { Text = DataToolWindow.Middle(Path.GetFileName(r.Info.Path), 40), FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0), ToolTip = r.Info.Path };
                 Core.Language.SetLiteral(name, true);
                 Core.Language.SetLiteral(r.Info.Path == null ? name : name, true);
                 Grid.SetColumn(r.Check, 0); Grid.SetColumn(name, 1); Grid.SetColumn(r.Enc, 2); Grid.SetColumn(r.Ends, 3); Grid.SetColumn(r.Badge, 4);
                 g.Children.Add(r.Check); g.Children.Add(name); g.Children.Add(r.Enc); g.Children.Add(r.Ends); g.Children.Add(r.Badge);
-                r.Box = new Border { Child = g, CornerRadius = new CornerRadius(10), Padding = new Thickness(0, 8, 6, 8), Background = Brushes.Transparent, Cursor = Cursors.Hand };
+                r.Box = new Border { Child = g, CornerRadius = new CornerRadius(12), Padding = new Thickness(0, 8, 6, 8), Background = Brushes.Transparent, Cursor = Cursors.Hand };
                 var rr = r;
                 r.Box.MouseLeftButtonDown += (s, e) => { if (!(e.OriginalSource is DependencyObject d && IsInside<CheckBox>(d))) Select(rr); };
                 _table.Children.Add(r.Box);
@@ -210,7 +210,7 @@ namespace MonitoringTools.UI.Dialogs
             Status(willChange == 0 ? (ok == _rows.Count(r => !r.Info.Binary) ? "Nothing to change: every file already matches." : "Nothing is ticked that would change.") : willChange + " of " + _rows.Count + (_rows.Count == 1 ? " file" : " files") + " will change", false);
         }
 
-        private static Border Tag(string text) => new Border { CornerRadius = new CornerRadius(6), Padding = new Thickness(8, 1, 8, 2), Background = Ui.Res("B.TertiaryContainer"), Child = new TextBlock { Text = text, FontSize = 11.5, Foreground = Ui.Res("B.OnTertiaryContainer") } };
+        private static Border Tag(string text) => new Border { CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 1, 8, 2), Background = Ui.Res("B.TertiaryContainer"), Child = new TextBlock { Text = text, FontSize = 11, Foreground = Ui.Res("B.OnTertiaryContainer") } };
 
         private void ShowProblem()
         {
@@ -318,7 +318,7 @@ namespace MonitoringTools.UI.Dialogs
                     else seg.Append(ch);
                 }
                 if (seg.Length > 0) _preview.Inlines.Add(new Run(seg.ToString()));
-                if (end != "") _preview.Inlines.Add(new Run(" " + end + " ") { FontSize = 9, Background = Ui.Res("B.AmberWash"), Foreground = Ui.Res("B.Amber") });
+                if (end != "") _preview.Inlines.Add(new Run(" " + end + " ") { FontSize = 11, Background = Ui.Res("B.AmberWash"), Foreground = Ui.Res("B.Amber") });
                 _preview.Inlines.Add(new LineBreak());
             }
             if (!_showMixed && !_preview.Inlines.Any()) _preview.Inlines.Add(new Run("(empty file)"));

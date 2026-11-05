@@ -40,7 +40,7 @@ namespace MonitoringTools.UI.Dialogs
         private readonly List<Node> _roots = new List<Node>();
         private readonly StackPanel _rows = new StackPanel();
         private readonly ScrollViewer _scroll;
-        private readonly TextBlock _empty = new TextBlock { FontSize = 13, Margin = new Thickness(16, 14, 16, 14), TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body") };
+        private readonly TextBlock _empty = new TextBlock { FontSize = 12, Margin = new Thickness(16, 14, 16, 14), TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body") };
         private Func<string, bool> _filter;
         private readonly bool _checkFolders;
         private readonly string _label;
@@ -212,7 +212,7 @@ namespace MonitoringTools.UI.Dialogs
             else left.Children.Add(new Border { Width = 28 });
 
             left.Children.Add(new ContentControl { Content = Ui.Icon(n.IsDir ? Icons.Folder : Icons.File, Ui.Res("B.TextSoft"), 16, 1.8), Margin = new Thickness(6, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center, IsTabStop = false });
-            var name = new TextBlock { Text = Active ? n.Path : n.Name, FontSize = 13, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 380 };
+            var name = new TextBlock { Text = Active ? n.Path : n.Name, FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 380 };
             name.ToolTip = n.Path;
             left.Children.Add(name);
             if (!string.IsNullOrEmpty(n.Note))
@@ -221,11 +221,11 @@ namespace MonitoringTools.UI.Dialogs
 
             if (!n.IsDir)
             {
-                var size = new TextBlock { Text = Ui.Bytes(n.Size), FontSize = 13, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.TextSoft"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
+                var size = new TextBlock { Text = Ui.Bytes(n.Size), FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.TextSoft"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
                 Grid.SetColumn(size, 1); g.Children.Add(size);
                 if (n.Modified.HasValue)
                 {
-                    var when = new TextBlock { Text = n.Modified.Value.ToString("d MMM yyyy", System.Globalization.CultureInfo.CurrentCulture), FontSize = 13, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.TextSoft"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
+                    var when = new TextBlock { Text = n.Modified.Value.ToString("d MMM yyyy", System.Globalization.CultureInfo.CurrentCulture), FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.TextSoft"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
                     Grid.SetColumn(when, 2); g.Children.Add(when);
                 }
             }
@@ -242,7 +242,7 @@ namespace MonitoringTools.UI.Dialogs
 
         private static Border CheckBox(bool? state)
         {
-            var b = new Border { Width = 20, Height = 20, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(2), VerticalAlignment = VerticalAlignment.Center };
+            var b = new Border { Width = 20, Height = 20, CornerRadius = new CornerRadius(4), BorderThickness = new Thickness(2), VerticalAlignment = VerticalAlignment.Center };
             if (state == false) { b.BorderBrush = Ui.Res("B.LineStrong"); b.Background = Brushes.Transparent; }
             else
             {

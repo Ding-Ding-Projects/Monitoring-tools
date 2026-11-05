@@ -16,7 +16,7 @@ namespace MonitoringTools.UI.Dialogs
     {
         protected readonly ContentControl Body = new ContentControl { IsTabStop = false };
         protected readonly TextBlock TitleText = new TextBlock { FontFamily = Ui.Font("F.Display"), FontSize = 22, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis };
-        protected readonly TextBlock SubText = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"), TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 2, 0, 0) };
+        protected readonly TextBlock SubText = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 2, 0, 0) };
         private readonly ContentControl _icon = new ContentControl { Focusable = false, VerticalAlignment = VerticalAlignment.Center };
         private readonly Border _card;
         private double _cardWidth = 840;

@@ -20,16 +20,16 @@ namespace MonitoringTools.UI
         // ------------------------------------------------------------ text
 
         public static TextBlock Label(string text, double size = 12, Brush fg = null, FontWeight? weight = null, Thickness? margin = null) =>
-            new TextBlock { Text = text, FontSize = size, FontFamily = Ui.Font("F.Body"), Foreground = fg ?? Ui.Res("B.TextSoft"), FontWeight = weight ?? FontWeights.Medium, TextWrapping = TextWrapping.Wrap, Margin = margin ?? new Thickness(0, 0, 0, 5) };
+            new TextBlock { Text = text, FontSize = TypeScale.Snap(size), FontFamily = Ui.Font("F.Body"), Foreground = fg ?? Ui.Res("B.TextSoft"), FontWeight = weight ?? FontWeights.Medium, TextWrapping = TextWrapping.Wrap, Margin = margin ?? new Thickness(0, 0, 0, 5) };
 
         public static TextBlock Eyebrow(string text, Thickness? margin = null) =>
             new TextBlock { Text = text.ToUpperInvariant(), FontSize = 12, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.Mint"), Margin = margin ?? new Thickness(0, 0, 0, 8) };
 
-        public static TextBlock Body(string text, double size = 13, Brush fg = null, Thickness? margin = null) =>
-            new TextBlock { Text = text, FontSize = size, FontFamily = Ui.Font("F.Body"), Foreground = fg ?? Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = margin ?? new Thickness(0) };
+        public static TextBlock Body(string text, double size = 12, Brush fg = null, Thickness? margin = null) =>
+            new TextBlock { Text = text, FontSize = TypeScale.Snap(size), FontFamily = Ui.Font("F.Body"), Foreground = fg ?? Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = margin ?? new Thickness(0) };
 
-        public static TextBlock Mono(string text, double size = 13, Brush fg = null) =>
-            new TextBlock { Text = text, FontSize = size, FontFamily = Ui.Font("F.Mono"), Foreground = fg ?? Ui.Res("B.Text") };
+        public static TextBlock Mono(string text, double size = 12, Brush fg = null) =>
+            new TextBlock { Text = text, FontSize = TypeScale.Snap(size), FontFamily = Ui.Font("F.Mono"), Foreground = fg ?? Ui.Res("B.Text") };
 
         /// <summary>The middle of a long file name replaced by an ellipsis, keeping the start and the extension.</summary>
         public static string Middle(string name, int max = 40)
@@ -62,7 +62,7 @@ namespace MonitoringTools.UI
             ic.VerticalAlignment = VerticalAlignment.Top; ic.Margin = new Thickness(0, 2, 14, 0);
             var sp = new StackPanel();
             sp.Children.Add(new TextBlock { Text = title, FontSize = 14, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), Foreground = fg, TextWrapping = TextWrapping.Wrap });
-            if (!string.IsNullOrEmpty(text)) sp.Children.Add(new TextBlock { Text = text, FontSize = 13, FontFamily = Ui.Font("F.Body"), Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
+            if (!string.IsNullOrEmpty(text)) sp.Children.Add(new TextBlock { Text = text, FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
             if (!string.IsNullOrEmpty(detail))
             {
                 var d = new TextBlock { Text = detail, FontSize = 12, FontFamily = Ui.Font("F.Mono"), Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0), MaxWidth = 640 };
@@ -190,7 +190,7 @@ namespace MonitoringTools.UI
             var g = new Grid();
             g.Children.Add(box);
             box.Padding = new Thickness(0, 0, 40, 0);
-            g.Children.Add(new TextBlock { Text = unit, FontSize = 13, Foreground = Ui.Res("B.TextSoft"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0), IsHitTestVisible = false });
+            g.Children.Add(new TextBlock { Text = unit, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0), IsHitTestVisible = false });
             return g;
         }
 
@@ -354,7 +354,7 @@ namespace MonitoringTools.UI
                 for (int i = 0; i < labels.Length; i++)
                 {
                     int idx = i;
-                    var b = new Button { Style = Ui.Style("Btn.Ghost"), Height = 36, Padding = new Thickness(16, 0, 16, 0), Margin = new Thickness(0), FontSize = 13 };
+                    var b = new Button { Style = Ui.Style("Btn.Ghost"), Height = 36, Padding = new Thickness(16, 0, 16, 0), Margin = new Thickness(0), FontSize = 12 };
                     b.Click += (s, e) => Select(idx, true);
                     b.PreviewKeyDown += (s, e) =>
                     {
@@ -406,7 +406,7 @@ namespace MonitoringTools.UI
         }
 
         /// <summary>A round, dark, translucent icon button laid over a picture (the play button of a preview).</summary>
-        public static Button OverlayButton(string icon, string accessibleName, Action click, double size = 44)
+        public static Button OverlayButton(string icon, string accessibleName, Action click, double size = 45)
         {
             var b = new Button { Style = Ui.Style("Btn.Icon"), Width = size, Height = size, Background = new SolidColorBrush(Color.FromArgb(180, 20, 24, 28)), Foreground = Brushes.White, Content = Ui.Icon(icon, Brushes.White, size * 0.45, 2), Margin = new Thickness(0), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
             b.Click += (s, e) => click?.Invoke();
@@ -462,10 +462,10 @@ namespace MonitoringTools.UI
                 var sp = new StackPanel();
                 var top = new StackPanel { Orientation = Orientation.Horizontal };
                 _pct = new TextBlock { Text = "0%", FontSize = 28, FontFamily = Ui.Font("F.Display"), Foreground = Ui.Res("B.Text"), VerticalAlignment = VerticalAlignment.Bottom };
-                _caption = new TextBlock { FontSize = 13, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(12, 0, 0, 4), VerticalAlignment = VerticalAlignment.Bottom, TextWrapping = TextWrapping.Wrap };
+                _caption = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(12, 0, 0, 4), VerticalAlignment = VerticalAlignment.Bottom, TextWrapping = TextWrapping.Wrap };
                 top.Children.Add(_pct); top.Children.Add(_caption);
                 _bar = MakeBar(accessibleName);
-                _detail = new TextBlock { FontSize = 13, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap };
+                _detail = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap };
                 sp.Children.Add(top); sp.Children.Add(_bar); sp.Children.Add(_detail);
                 Child = sp;
                 AutomationProperties.SetLiveSetting(_caption, AutomationLiveSetting.Polite);

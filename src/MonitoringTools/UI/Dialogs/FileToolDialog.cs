@@ -71,13 +71,13 @@ namespace MonitoringTools.UI.Dialogs
 
             _tile = new Border
             {
-                Width = 44, Height = 44, CornerRadius = new CornerRadius(14), VerticalAlignment = VerticalAlignment.Top,
+                Width = 44, Height = 44, CornerRadius = new CornerRadius(16), VerticalAlignment = VerticalAlignment.Top,
                 Background = Ui.Res("B.TertiaryContainer"), Child = Ui.Icon(icon, Ui.Res("B.OnTertiaryContainer"), 22, 1.8)
             };
-            _title.Text = toolName; _title.Style = Ui.Style("T.Title"); _title.FontSize = 20; _title.FontWeight = FontWeights.Medium;
-            _fileLine.Text = name; _fileLine.FontSize = 13; _fileLine.FontWeight = FontWeights.Medium; _fileLine.FontFamily = Ui.Font("F.Body");
+            _title.Text = toolName; _title.Style = Ui.Style("T.Title"); _title.FontSize = 22; _title.FontWeight = FontWeights.Medium;
+            _fileLine.Text = name; _fileLine.FontSize = 12; _fileLine.FontWeight = FontWeights.Medium; _fileLine.FontFamily = Ui.Font("F.Body");
             _fileLine.Foreground = Ui.Res("B.Text"); _fileLine.TextTrimming = TextTrimming.CharacterEllipsis; _fileLine.ToolTip = filePath;
-            _summary.FontSize = 13; _summary.FontFamily = Ui.Font("F.Body"); _summary.Foreground = Ui.Res("B.TextSoft"); _summary.TextWrapping = TextWrapping.Wrap;
+            _summary.FontSize = 12; _summary.FontFamily = Ui.Font("F.Body"); _summary.Foreground = Ui.Res("B.TextSoft"); _summary.TextWrapping = TextWrapping.Wrap;
             AutomationProperties.SetLiveSetting(_summary, AutomationLiveSetting.Polite);
 
             var close = Ui.Button("", Close, "Btn.Icon", Icons.Close);
@@ -100,7 +100,7 @@ namespace MonitoringTools.UI.Dialogs
             head.Children.Add(_tile); head.Children.Add(titles); head.Children.Add(close);
 
             var scroll = new ScrollViewer { Content = _bodyHost, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
-            _status.FontSize = 13; _status.FontFamily = Ui.Font("F.Body"); _status.Foreground = Ui.Res("B.TextSoft"); _status.TextWrapping = TextWrapping.Wrap; _status.VerticalAlignment = VerticalAlignment.Center;
+            _status.FontSize = 12; _status.FontFamily = Ui.Font("F.Body"); _status.Foreground = Ui.Res("B.TextSoft"); _status.TextWrapping = TextWrapping.Wrap; _status.VerticalAlignment = VerticalAlignment.Center;
             AutomationProperties.SetLiveSetting(_status, AutomationLiveSetting.Polite);
             _footer.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             _footer.ColumnDefinitions.Add(new ColumnDefinition());
@@ -187,9 +187,9 @@ namespace MonitoringTools.UI.Dialogs
 
         // ------------------------------------------------------------ small builders shared by every tool
 
-        internal static TextBlock Text(string text, double size = 13, Brush fg = null, FontWeight? weight = null, TextWrapping wrap = TextWrapping.Wrap)
+        internal static TextBlock Text(string text, double size = 12, Brush fg = null, FontWeight? weight = null, TextWrapping wrap = TextWrapping.Wrap)
         {
-            var t = new TextBlock { Text = text, FontSize = size, FontFamily = Ui.Font("F.Body"), Foreground = fg ?? Ui.Res("B.Text"), TextWrapping = wrap };
+            var t = new TextBlock { Text = text, FontSize = TypeScale.Snap(size), FontFamily = Ui.Font("F.Body"), Foreground = fg ?? Ui.Res("B.Text"), TextWrapping = wrap };
             if (weight.HasValue) t.FontWeight = weight.Value;
             return t;
         }
@@ -221,7 +221,7 @@ namespace MonitoringTools.UI.Dialogs
             var ic = Ui.Icon(icon, ink, 20, 1.8); ic.VerticalAlignment = VerticalAlignment.Top; ic.Margin = new Thickness(0, 1, 12, 0);
             var col = new StackPanel();
             col.Children.Add(new TextBlock { Text = title, FontSize = 14, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), Foreground = fg, TextWrapping = TextWrapping.Wrap });
-            if (!string.IsNullOrEmpty(text)) col.Children.Add(new TextBlock { Text = text, FontSize = 13, FontFamily = Ui.Font("F.Body"), Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
+            if (!string.IsNullOrEmpty(text)) col.Children.Add(new TextBlock { Text = text, FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
             Grid.SetColumn(col, 1);
             g.Children.Add(ic); g.Children.Add(col);
             var b = new Border { CornerRadius = new CornerRadius(16), Background = bg, Padding = new Thickness(14, 12, 14, 12), Margin = new Thickness(0, 0, 0, 10), Child = g };
@@ -281,7 +281,7 @@ namespace MonitoringTools.UI.Dialogs
         /// <summary>A text field in the design's shape (42 px, sunken). Mono for times and codes.</summary>
         internal static TextBox Field(string accessibleName, string text = "", bool mono = false)
         {
-            var t = new TextBox { Style = Ui.Style("Input"), Text = text, Height = 42, FontFamily = Ui.Font(mono ? "F.Mono" : "F.Body"), FontSize = mono ? 13 : 14 };
+            var t = new TextBox { Style = Ui.Style("Input"), Text = text, Height = 42, FontFamily = Ui.Font(mono ? "F.Mono" : "F.Body"), FontSize = mono ? 12 : 14 };
             AutomationProperties.SetName(t, accessibleName);
             return t;
         }
