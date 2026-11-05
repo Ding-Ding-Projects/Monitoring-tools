@@ -103,7 +103,7 @@
   },
   {
     "file": "command-palette.png",
-    "caption": "Command palette (Ctrl\u002BShift\u002BF)",
+    "caption": "Command palette (Ctrl+Shift+F)",
     "width": 1360,
     "height": 1120
   },
@@ -763,7 +763,7 @@
   },
   {
     "file": "mc-commands-give.png",
-    "caption": "Minecraft servers: the command builder giving an item, with the online players, the version\u0027s item list searched for diamond and the coloured command line (sample data)",
+    "caption": "Minecraft servers: the command builder giving an item, with the online players, the version's item list searched for diamond and the coloured command line (sample data)",
     "width": 2088,
     "height": 1576
   },
@@ -775,7 +775,7 @@
   },
   {
     "file": "mc-commands-tree.png",
-    "caption": "Minecraft servers: Every command, walking effect give through the server\u0027s own command tree with a control per argument (sample data)",
+    "caption": "Minecraft servers: Every command, walking effect give through the server's own command tree with a control per argument (sample data)",
     "width": 2088,
     "height": 1576
   },
@@ -883,7 +883,7 @@
   },
   {
     "file": "mc-create-bedrock.png",
-    "caption": "New server: Bedrock edition, with Mojang\u0027s newest Windows server",
+    "caption": "New server: Bedrock edition, with Mojang's newest Windows server",
     "width": 2088,
     "height": 1576
   },
@@ -904,5 +904,131 @@
     "caption": "Minecraft servers: an adopted Paper server that was started outside the app (sample process)",
     "width": 2088,
     "height": 1576
+  },
+  {
+    "file": "datasec-hash-computing.png",
+    "caption": "Hash and verify: reading a 3 GB file, with progress and Cancel",
+    "width": 1520,
+    "height": 992
+  },
+  {
+    "file": "datasec-hash-ready.png",
+    "caption": "Hash and verify: the SHA-256 in groups of eight, ready for a pasted checksum",
+    "width": 1520,
+    "height": 946
+  },
+  {
+    "file": "datasec-hash-match.png",
+    "caption": "Hash and verify: it matches the publisher's checksum",
+    "width": 1520,
+    "height": 1094
+  },
+  {
+    "file": "datasec-hash-mismatch.png",
+    "caption": "Hash and verify: it does not match, with the first differing group marked",
+    "width": 1520,
+    "height": 1366
+  },
+  {
+    "file": "datasec-signed-valid.png",
+    "caption": "Who signed this?: a signed system file, valid, with its certificate chain",
+    "width": 1560,
+    "height": 1316
+  },
+  {
+    "file": "datasec-signed-none.png",
+    "caption": "Who signed this?: a file that is not signed",
+    "width": 1560,
+    "height": 782
+  },
+  {
+    "file": "datasec-signed-broken.png",
+    "caption": "Who signed this?: the file changed after it was signed",
+    "width": 1560,
+    "height": 697
+  },
+  {
+    "file": "datasec-signed-untrusted.png",
+    "caption": "Who signed this?: signed, but the issuer is not trusted on this computer",
+    "width": 1560,
+    "height": 1137
+  },
+  {
+    "file": "datasec-cert-valid.png",
+    "caption": "Certificate inspector: a valid certificate with its countdown",
+    "width": 1560,
+    "height": 1137
+  },
+  {
+    "file": "datasec-cert-expiring.png",
+    "caption": "Certificate inspector: expiring soon",
+    "width": 1560,
+    "height": 1285
+  },
+  {
+    "file": "datasec-cert-expired.png",
+    "caption": "Certificate inspector: expired",
+    "width": 1560,
+    "height": 1285
+  },
+  {
+    "file": "datasec-cert-password.png",
+    "caption": "Certificate inspector: a PKCS#12 file asks for its password",
+    "width": 1560,
+    "height": 745
+  },
+  {
+    "file": "datasec-cert-convert.png",
+    "caption": "Certificate inspector: convert to PKCS#12 with the private key and a new password",
+    "width": 1560,
+    "height": 1113
+  },
+  {
+    "file": "datasec-data-table.png",
+    "caption": "Data viewer: a valid CSV as a table with the conversion options",
+    "width": 1600,
+    "height": 1600
+  },
+  {
+    "file": "datasec-data-done.png",
+    "caption": "Data viewer: converted, with the size and how numbers were typed",
+    "width": 1600,
+    "height": 1507
+  },
+  {
+    "file": "datasec-data-error.png",
+    "caption": "Data viewer: invalid JSON with line, column and context",
+    "width": 1600,
+    "height": 1034
+  },
+  {
+    "file": "datasec-data-text.png",
+    "caption": "Data viewer: YAML in the text view",
+    "width": 1600,
+    "height": 1328
+  },
+  {
+    "file": "datasec-encoding-batch.png",
+    "caption": "Encoding and line endings: a batch of four, with what each file is and will become",
+    "width": 1680,
+    "height": 1516
+  },
+  {
+    "file": "datasec-encoding-mixed.png",
+    "caption": "Encoding and line endings: a file that mixes line endings",
+    "width": 1680,
+    "height": 1656
+  },
+  {
+    "file": "datasec-encoding-done.png",
+    "caption": "Encoding and line endings: converted, with Undo from backups",
+    "width": 1680,
+    "height": 1270
+  },
+  {
+    "file": "datasec-encoding-error.png",
+    "caption": "Encoding and line endings: a byte that is not valid stops the file, nothing is written",
+    "width": 1680,
+    "height": 847
   }
 ]
