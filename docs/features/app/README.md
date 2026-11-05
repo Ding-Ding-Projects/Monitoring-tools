@@ -12,5 +12,6 @@ How Monitoring Tools runs, and how to move around inside it.
 | [Accessibility audit](accessibility-audit.md) | The named accessibility checklist: names, keyboard reach, target size, contrast |
 | [Bulk actions](bulk-actions.md) | One select mode for lists: choose several, copy, export, duplicate or remove together |
 | [Guided forms and setting subtitles](guided-forms.md) | Step-by-step forms for adding a DNS profile, a shortcut and a Minecraft server, and the subtitle every setting carries |
+| [The project site](project-site.md) | The documentation site: search, palette, tabs, menus, settings, toy locks, and what a static site cannot do |
 
 Not applicable: this category has no HTTP API, so it has no Postman collection.

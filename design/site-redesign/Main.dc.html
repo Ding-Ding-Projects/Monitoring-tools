@@ -107,7 +107,7 @@ Monitoring Tools</a>
 <div style="flex:1 1 220px;display:flex;align-items:center;gap:10px;min-height:46px;padding:0 6px 0 16px;border-radius:999px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);max-width:360px;margin-left:auto">
 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--onv)"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"></path></svg>
 <label for="q" style="position:absolute;left:-9999px">Search the site</label>
-<input id="q" placeholder="Search 107 articles" style="flex:1;min-width:0;border:0;background:transparent;font:400 14px Roboto;color:var(--on);outline:none">
+<input id="q" placeholder="Search 91 articles" style="flex:1;min-width:0;border:0;background:transparent;font:400 14px Roboto;color:var(--on);outline:none">
 <span class="kbd">Ctrl⇧F</span>
 <button aria-label="Regex builder for this search" style="min-height:36px;min-width:40px;border:0;border-radius:999px;background:var(--s3);color:var(--p);font:600 13px 'Roboto Mono';cursor:pointer">.*</button>
 </div>
@@ -154,7 +154,7 @@ Download installer</a>
 <section style="border-bottom:1px solid var(--line);background:var(--s)">
 <div class="wrap" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr))">
 <div style="padding:30px 0;border-right:1px solid var(--line)"><p class="tag" style="margin:0">Areas</p><p class="num mono" style="--n:17;margin:8px 0 0;font:600 40px 'Roboto Mono';letter-spacing:-.02em"></p></div>
-<div style="padding:30px 0 30px 32px;border-right:1px solid var(--line)"><p class="tag" style="margin:0">Articles</p><p class="num mono" style="--n:107;margin:8px 0 0;font:600 40px 'Roboto Mono';letter-spacing:-.02em"></p></div>
+<div style="padding:30px 0 30px 32px;border-right:1px solid var(--line)"><p class="tag" style="margin:0">Articles</p><p class="num mono" style="--n:91;margin:8px 0 0;font:600 40px 'Roboto Mono';letter-spacing:-.02em"></p></div>
 <div style="padding:30px 0 30px 32px;border-right:1px solid var(--line)"><p class="tag" style="margin:0">Lines at v1.0.57</p><p class="mono" style="margin:8px 0 0;font:600 40px 'Roboto Mono';letter-spacing:-.02em">112,943</p></div>
 <div style="padding:30px 0 30px 32px"><p class="tag" style="margin:0">Needs internet</p><p class="mono" style="margin:8px 0 0;font:600 40px 'Roboto Mono';letter-spacing:-.02em">never</p></div>
 </div>
@@ -208,7 +208,7 @@ Download installer</a>
 </section>
 
 <section class="wrap" style="padding-top:80px;padding-bottom:40px;display:flex;flex-direction:column;gap:24px">
-<div><span class="tag">Every feature, none left out</span><h2 style="margin:10px 0 0;font:700 56px/1 Roboto;letter-spacing:-.035em">17 areas. 107 articles.</h2></div>
+<div><span class="tag">Every feature, none left out</span><h2 style="margin:10px 0 0;font:700 56px/1 Roboto;letter-spacing:-.035em">17 areas. 91 articles.</h2></div>
 <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 16px;border-top:1px solid var(--line);padding-top:16px">
 <sc-for list="{{areas}}" as="a" hint-placeholder-count="9">
 <a class="area" href="Docs.dc.html">
@@ -217,7 +217,7 @@ Download installer</a>
 <span class="mono" style="margin-left:auto;font-size:13px;color:var(--p)">{{a.n}}</span>
 </a>
 </sc-for>
-<a class="area" href="Docs.dc.html" style="color:var(--p)"><span class="glyph" style="background:transparent;box-shadow:inset 0 0 0 1px var(--line)"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span style="font:600 16px Roboto">Browse all 107 articles</span></a>
+<a class="area" href="Docs.dc.html" style="color:var(--p)"><span class="glyph" style="background:transparent;box-shadow:inset 0 0 0 1px var(--line)"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span><span style="font:600 16px Roboto">Browse all 91 articles</span></a>
 </div>
 </section>
 
@@ -267,23 +267,23 @@ class Component extends DCLogic {
       groups: [['all','All'],['files','Files'],['clip','Clipboard'],['net','Network'],['search','Search'],['yours','Make it yours']].map(([k,label]) => ({ label, on: String(g===k), pick: () => this.setState({ group: k }) })),
       tasks: shown,
       areas: [
-        ['Clipboard','Toasts and the searchable history',4,'M9 4h6v3H9zM6 6h12v15H6z'],
-        ['Quick commands','Convert media, push a repo, run scripts',5,'M4 17l6-5-6-5M12 19h8'],
-        ['Network','Internet watch, DNS profiles, public IP',4,'M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01'],
-        ['Files and Docker','File tools and Docker actions',7,'M4 6h6l2 2h8v11H4z'],
-        ['Search','Search bars and the regex builder',4,'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4'],
-        ['Minecraft servers','Create, manage, generate worlds',14,'M5 5h14v14H5zM5 12h14M12 5v14'],
-        ['Appearance','Theme, colour, density, motion',12,'M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.2-1.6-.4-1 .3-2 1.4-2H17a4 4 0 0 0 4-4c0-5-4-10.4-9-10.4z'],
-        ['Appearance editor','Per-element editors, colour picker',6,'M4 20h4L19 9l-4-4L4 16zM14 6l4 4'],
-        ['Safety','Authenticator, locks, unlock ladder',7,'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z'],
-        ['Language and voice','English, Cantonese, both; humour',9,'M4 5h10M9 3v2M6 5c1 5 4 8 8 9M12 5c-1 5-4 8-8 9M14 20l4-9 4 9'],
+        ['Clipboard','Toasts and the searchable history',3,'M9 4h6v3H9zM6 6h12v15H6z'],
+        ['Quick commands','Convert media, push a repo, run scripts',4,'M4 17l6-5-6-5M12 19h8'],
+        ['Network','Internet watch, DNS profiles, public IP',3,'M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01'],
+        ['Files and Docker','File tools and Docker actions',6,'M4 6h6l2 2h8v11H4z'],
+        ['Search','Search bars and the regex builder',3,'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4'],
+        ['Minecraft servers','Create, manage, generate worlds',13,'M5 5h14v14H5zM5 12h14M12 5v14'],
+        ['Appearance','Theme, colour, density, motion',11,'M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.2-1.6-.4-1 .3-2 1.4-2H17a4 4 0 0 0 4-4c0-5-4-10.4-9-10.4z'],
+        ['Appearance editor','Per-element editors, colour picker',5,'M4 20h4L19 9l-4-4L4 16zM14 6l4 4'],
+        ['Safety','Authenticator, locks, unlock ladder',6,'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z'],
+        ['Language and voice','English, Cantonese, both; humour',8,'M4 5h10M9 3v2M6 5c1 5 4 8 8 9M12 5c-1 5-4 8-8 9M14 20l4-9 4 9'],
         ['The app itself','How it runs, tray icon, palette',10,'M3 12h4l3-7 4 14 3-7h4'],
-        ['Modes','School, ADHD helpers, schedules',6,'M12 3v9l6 3M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18z'],
-        ['Records','Changelog, exports, history',5,'M6 3h9l4 4v14H6zM14 3v5h5'],
-        ['Tools','Drawing, editor hand-off, publishing',7,'M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5L15 12l-3-3z'],
-        ['Ollama','Manage local AI models',3,'M12 3l8 4.5v9L12 21l-8-4.5v-9z'],
-        ['Tabs','The browser-style tab strip',2,'M3 8h6l1.5-2H21v12H3z'],
-        ['Game mode','Popups wait while you play',2,'M6 9h4M8 7v4M15 10h.01M18 8h.01M5 5h14a3 3 0 0 1 3 3l-1 8a3 3 0 0 1-5 1.5L14 16h-4l-2 1.5A3 3 0 0 1 3 16L2 8a3 3 0 0 1 3-3z']
+        ['Modes','School, ADHD helpers, schedules',5,'M12 3v9l6 3M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18z'],
+        ['Records','Changelog, exports, history',4,'M6 3h9l4 4v14H6zM14 3v5h5'],
+        ['Tools','Drawing, editor hand-off, publishing',6,'M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5L15 12l-3-3z'],
+        ['Ollama','Manage local AI models',2,'M12 3l8 4.5v9L12 21l-8-4.5v-9z'],
+        ['Tabs','The browser-style tab strip',1,'M3 8h6l1.5-2H21v12H3z'],
+        ['Game mode','Popups wait while you play',1,'M6 9h4M8 7v4M15 10h.01M18 8h.01M5 5h14a3 3 0 0 1 3 3l-1 8a3 3 0 0 1-5 1.5L14 16h-4l-2 1.5A3 3 0 0 1 3 16L2 8a3 3 0 0 1 3-3z']
       ].map(([label,blurb,n,icon]) => ({label,blurb,n,icon}))
     };
   }

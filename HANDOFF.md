@@ -12,6 +12,25 @@ checked; anything unchecked is labelled.
   publishes the next normal release and deploys the site (`.github/workflows/build.yml`).
 - Latest release at the time of writing: v1.0.36 (see [CHANGELOG.md](CHANGELOG.md)).
 
+## Site redesign (2026-11-05, evening)
+
+- **Design:** [design/site-redesign](design/site-redesign/HANDOFF.md), eleven boards in the "Night shift monitor"
+  direction, with local renders and review notes.
+- **Built:** `site/src/style.css`, `site/src/app.js` and the page templates in `scripts/build-site.mjs` were replaced.
+  New pages: `diagram/` (interactive workflow) and `settings/` (language, humour, colour, text size, motion, tab
+  dock, presets, export and import, toy locks, toy authenticator, notification centre). New across every page:
+  browser-style tabs, right-click menus with working shortcuts, a command palette that jumps to elements, the
+  regex builder with tokens and an explanation, notifications and the language switch.
+- **Release facts:** the version, the installer URL (the immutable asset of that release) and the line counts are
+  read from the README's release-figures block, which the release workflow writes.
+- **Guard:** the build fails if a shared site feature is missing from the pages that must carry it (`SITE_FEATURES`).
+- **Article:** [docs/features/app/project-site.md](docs/features/app/project-site.md) documents the site and what a
+  static site cannot do.
+- **Checked:** the build passes its guards; Chrome renders of every page in dark and light at 1440 px and at 360 px
+  with no sideways scroll and no script errors; palette, right-click menu, toy lock with a wrong and a right code,
+  Alt+T, settings language and accent, tab grouping and the diagram were driven in Chrome.
+- **Not checked:** a screen reader, a real phone or touch screen, and the deployed site until the next Pages run.
+
 ## State on 2026-11-05 (afternoon)
 
 - **main:** 1946faf, pushed. Releases v1.0.51, v1.0.52 and v1.0.53 published green as normal

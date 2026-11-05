@@ -160,14 +160,14 @@ class Component extends DCLogic {
     const steps = labels.map((label, i) => ({ label, mark: done[i] ? '✓' : String(i+1), doneS: String(done[i]), markCls: done[i] ? 'mark on' : 'mark', bg: done[i] ? 'var(--p)' : 'var(--s2)', ink: done[i] ? 'var(--onp)' : 'var(--on)', dot: done[i] ? 'var(--onp)' : 'var(--s3)', dotInk: done[i] ? 'var(--p)' : 'var(--on)', toggle: () => { const d = done.slice(); d[i] = !d[i]; this.setState({ done: d }); } }));
     const n = done.filter(Boolean).length;
     const cats = [
-      ['Clipboard','What the toast shows, and getting old copies back.',4,'Clipboard toasts','M9 4h6v3H9zM6 6h12v15H6z'],
-      ['Quick commands','Type a suffix after a copied path and the work happens.',5,'Convert media','M4 17l6-5-6-5M12 19h8'],
-      ['Network','Why the internet dropped, and the repairs.',4,'Internet watch','M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01'],
-      ['Files and Docker','Move, encrypt, hash and inspect files; compose files.',7,'File tools','M4 6h6l2 2h8v11H4z'],
-      ['Search','Search bars everywhere and the full regex builder.',4,'Regex builder','M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4'],
-      ['Minecraft servers','Create, run and back up servers; generate worlds.',14,'Create a server','M5 5h14v14H5zM5 12h14M12 5v14'],
-      ['Appearance','Theme, colour seed, density, text size, motion.',12,'Theme','M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.2-1.6-.4-1 .3-2 1.4-2H17a4 4 0 0 0 4-4c0-5-4-10.4-9-10.4z'],
-      ['Safety','The authenticator, element locks, the unlock ladder.',7,'Element locks','M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z']
+      ['Clipboard','What the toast shows, and getting old copies back.',3,'Clipboard toasts','M9 4h6v3H9zM6 6h12v15H6z'],
+      ['Quick commands','Type a suffix after a copied path and the work happens.',4,'Convert media','M4 17l6-5-6-5M12 19h8'],
+      ['Network','Why the internet dropped, and the repairs.',3,'Internet watch','M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01'],
+      ['Files and Docker','Move, encrypt, hash and inspect files; compose files.',6,'File tools','M4 6h6l2 2h8v11H4z'],
+      ['Search','Search bars everywhere and the full regex builder.',3,'Regex builder','M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4'],
+      ['Minecraft servers','Create, run and back up servers; generate worlds.',13,'Create a server','M5 5h14v14H5zM5 12h14M12 5v14'],
+      ['Appearance','Theme, colour seed, density, text size, motion.',11,'Theme','M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.2-1.6-.4-1 .3-2 1.4-2H17a4 4 0 0 0 4-4c0-5-4-10.4-9-10.4z'],
+      ['Safety','The authenticator, element locks, the unlock ladder.',6,'Element locks','M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z']
     ].map(([label,intro,c,first,icon], i) => ({label,intro,n:c,first,icon,i}));
     const tabs = ['Build','Test','Replace','Explain','Library'];
     return {

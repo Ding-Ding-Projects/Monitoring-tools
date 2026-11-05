@@ -28,6 +28,7 @@ app's site, so the direction was replaced with "Night shift monitor" before the 
 | Safety | Unlock ladder rungs did not match the app. | Copied the four real rungs from `docs/features/safety/unlock-ladder.md`. |
 | Safety | Empty PIN dots were nearly invisible. | Brighter empty dots. |
 | All pages | At 390 px the desktop boards kept their columns and the page scrolled sideways. | A phone layer: one column, smaller display type, scrolling tab and nav rows, hidden side panels. |
+| Home, Docs, phone home | The boards said 107 articles and per-area counts that included each area's index page. | Corrected to the 91 articles and the real per-area counts the site build reports. |
 | Releases | At 390 px the duration wrapped onto two lines in its readout. | Readouts stay on one line at a smaller size on phones. |
 
 ## Still open
