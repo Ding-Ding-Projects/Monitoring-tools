@@ -43,6 +43,12 @@ namespace MonitoringTools.UI
             var local = b.ReadLocalValue(AutomationProperties.NameProperty);
             if (local != DependencyProperty.UnsetValue && !(local is string blank && blank.Length == 0)) return;   // already named, or already bound
             if (AutomationProperties.GetLabeledBy(b) != null) return;
+            // an icon-only button has no text to read: its tooltip is its name
+            if (string.IsNullOrWhiteSpace(Converter.Instance.Convert(b.Content, typeof(string), null, CultureInfo.InvariantCulture) as string) && b.ToolTip is string tip && !string.IsNullOrWhiteSpace(tip))
+            {
+                AutomationProperties.SetName(b, tip);
+                return;
+            }
             var binding = new Binding("Content") { Source = b, Mode = BindingMode.OneWay, Converter = Converter.Instance };
             b.SetBinding(AutomationProperties.NameProperty, binding);
         }

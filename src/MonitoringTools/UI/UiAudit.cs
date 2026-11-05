@@ -234,9 +234,10 @@ namespace MonitoringTools.UI
                 start.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
                 var cur = Keyboard.FocusedElement as DependencyObject;
                 if (cur == null || Window.GetWindow(cur) != w) { Count("traversal-unavailable"); return; }
-                int steps = 0;
+                int steps = 0; var trail = new List<string>();
                 for (; steps < 600 && cur != null; steps++)
                 {
+                    trail.Add(Trunc(Describe(cur), 45));
                     if (!reached.Add(cur)) break;
                     if (cur is UIElement ue) ue.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
                     else if (cur is FrameworkContentElement fce) fce.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));   // a link inside text

@@ -535,7 +535,7 @@ namespace MonitoringTools.UI
                     var tb = new TextBlock
                     {
                         FontFamily = Ui.Font("F.Display"), FontWeight = FontWeights.SemiBold, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap,
-                        FontSize = level <= 2 ? 20 : level == 3 ? 16 : 14, Margin = new Thickness(0, level <= 2 ? 18 : 12, 0, 8)
+                        FontSize = level <= 2 ? 22 : level == 3 ? 16 : 14, Margin = new Thickness(0, level <= 2 ? 18 : 12, 0, 8)
                     };
                     HelpInlines(tb, text, a);
                     AutomationProperties.SetHeadingLevel(tb, level <= 2 ? AutomationHeadingLevel.Level2 : AutomationHeadingLevel.Level3);

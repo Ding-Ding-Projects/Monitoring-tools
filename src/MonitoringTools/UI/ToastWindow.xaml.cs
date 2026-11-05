@@ -154,7 +154,7 @@ namespace MonitoringTools.UI
             if (rest.Count > 0)
             {
                 var more = Ui.Button($"More · {rest.Count}", null, "Btn.Ghost");
-                more.Foreground = Ui.Res("B.TextMute");
+                more.Foreground = Ui.Res("B.TextSoft");
                 more.Click += (s, e) =>
                 {
                     bool open = overflow.Visibility != Visibility.Visible;

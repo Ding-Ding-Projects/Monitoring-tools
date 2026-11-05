@@ -203,7 +203,7 @@ namespace MonitoringTools.UI.Search
             AutomationProperties.SetName(t, name);
             var tpl = new ControlTemplate(typeof(ToggleButton));
             var bd = new FrameworkElementFactory(typeof(Border), "Bd");
-            bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(compact ? 14 : 20));
+            bd.SetValue(Border.CornerRadiusProperty, new CornerRadius(compact ? 12 : 20));
             bd.SetValue(Border.BackgroundProperty, Brushes.Transparent);
             bd.SetValue(Border.BorderBrushProperty, Brushes.Transparent);
             bd.SetValue(Border.BorderThicknessProperty, new Thickness(1));

@@ -51,7 +51,7 @@ namespace MonitoringTools.UI
                     var tb = Para(null, Ui.Res("B.Text"));
                     tb.FontFamily = Ui.Font("F.Display");
                     tb.FontWeight = FontWeights.SemiBold;
-                    tb.FontSize = level == 1 ? 18 : level == 2 ? 16 : 14;
+                    tb.FontSize = level == 1 ? 22 : level == 2 ? 16 : 14;
                     AddInlines(tb, h.Groups[2].Value);
                     root.Children.Add(tb); shown++; continue;
                 }

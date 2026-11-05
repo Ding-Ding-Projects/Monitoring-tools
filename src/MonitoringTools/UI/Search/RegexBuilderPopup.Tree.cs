@@ -160,7 +160,7 @@ namespace MonitoringTools.UI.Search
             var hasKids = n.Children.Count > 0;
             var collapsed = _collapsed.Contains(n.Key);
             var text = n.Text(_tree.Pattern);
-            var chev = new TextBlock { Text = hasKids ? (collapsed ? "▸" : "▾") : "", Width = 16, FontSize = 12, Foreground = Ui.Res("B.TextMute"), VerticalAlignment = VerticalAlignment.Center };
+            var chev = new TextBlock { Text = hasKids ? (collapsed ? "▸" : "▾") : "", Width = 16, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center };
             if (hasKids) { chev.Cursor = Cursors.Hand; chev.MouseLeftButtonDown += (o, e) => { e.Handled = true; Toggle(n); }; }
             var code = Ui.Mono(Snippet(text, 24), Ui.Res("B.Mint"), 12);
             code.MinWidth = 84; code.Margin = new Thickness(0, 0, 10, 0); code.VerticalAlignment = VerticalAlignment.Center; Core.Language.SetLiteral(code, true);   // the pattern text itself

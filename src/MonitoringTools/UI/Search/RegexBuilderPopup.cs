@@ -590,7 +590,7 @@ namespace MonitoringTools.UI.Search
             {
                 var s = t.Steps[i];
                 var row = new DockPanel { Margin = new Thickness(0, 1, 0, 1) };
-                var num = Ui.Mono("#" + (i + 1), Ui.Res("B.TextMute"), 11); num.MinWidth = 52;
+                var num = Ui.Mono("#" + (i + 1), Ui.Res("B.TextSoft"), 11); num.MinWidth = 52;
                 var kind = Ui.Mono(s.Kind.ToString().ToLowerInvariant(), Ui.Res(s.Kind switch { RegexTrace.StepKind.Fail => "B.Danger", RegexTrace.StepKind.Backtrack => "B.Amber", RegexTrace.StepKind.Match or RegexTrace.StepKind.Done => "B.Mint", _ => "B.TextSoft" }), 11); kind.MinWidth = 70;
                 DockPanel.SetDock(num, Dock.Left); row.Children.Add(num);
                 DockPanel.SetDock(kind, Dock.Left); row.Children.Add(kind);

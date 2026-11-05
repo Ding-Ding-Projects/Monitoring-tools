@@ -392,7 +392,7 @@ namespace MonitoringTools.UI
                 Scan("colour picker", pickerWindow); pickerWindow.Close();
 
                 // the history panel
-                var history = new Window { Width = 560, Height = 640, Title = "History panel", Content = new ScrollViewer { Content = HistoryPanel.Build("selftest:audit", () => "one\ntwo", t => { }, "text") } };
+                var history = new Window { Width = 560, Height = 640, Background = (Brush)Application.Current.Resources["B.Window"], Title = "History panel", Content = new ScrollViewer { Content = HistoryPanel.Build("selftest:audit", () => "one\ntwo", t => { }, "text") } };
                 history.Resources.MergedDictionaries.Add(Application.Current.Resources);
                 history.Show(); await Settle(500);
                 Scan("history panel", history); history.Close();
