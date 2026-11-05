@@ -173,10 +173,17 @@ namespace MonitoringTools.UI
         {
             var b = new Border
             {
-                Background = Ui.Res("B.Surface"), CornerRadius = new CornerRadius(24), Padding = new Thickness(Appearance.Gap(pad + 4)),
-                BorderBrush = edge == null ? Brushes.Transparent : new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge)),
+                Background = Ui.Res("B.Surface"), CornerRadius = new CornerRadius(28), Padding = new Thickness(Appearance.Gap(pad + 4)),
+                BorderBrush = edge == null ? Brushes.Transparent : Brushes.Transparent,
                 BorderThickness = new Thickness(edge == null ? 0 : 1), Margin = new Thickness(0, 0, 0, Appearance.Gap(16)), Child = child
             };
+            // the tinted edges are theme roles, so they follow light and dark
+            if (edge != null)
+            {
+                string role = edge switch { "#FF3A2F5A" => "B.VioletWash", "#FF2B4A3F" => "B.SecondaryContainer", "#FF4A3A22" => "B.AmberWash", "#FF4A2525" => "B.DangerWash", "#FF3DD6A6" => "B.Mint", _ => null };
+                if (role != null) b.SetResourceReference(Border.BorderBrushProperty, role);
+                else b.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge));
+            }
             // Material 3 filled card: no outline; a soft tonal lift on hover that glides instead of snapping.
             var tint = new SolidColorBrush(((SolidColorBrush)Ui.Res("B.Surface")).Color);
             b.Background = tint;
@@ -450,7 +457,7 @@ namespace MonitoringTools.UI
             Grid.SetColumn(chip, c0); g.Children.Add(chip);
             var mid = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
             var prev = Core.PathDisplay.Shown(it.Preview ?? "").Replace("\r", " ").Replace("\n", " ");
-            mid.Children.Add(LiteralText(new TextBlock { Text = prev.Length > 140 ? prev[..140] + "…" : prev, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = it.Kind == ClipKind.Files ? Ui.Font("F.Mono") : Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis }));
+            mid.Children.Add(LiteralText(new TextBlock { Text = prev.Length > 140 ? prev[..140] + "…" : prev, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = it.Kind == ClipKind.Files ? Ui.Font("F.Mono") : Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis }));
             mid.Children.Add(Ui.Mono($"{it.Kind.ToString().ToLowerInvariant()} · {it.At:HH:mm:ss}", Ui.Res("B.TextMute"), 11));
             Grid.SetColumn(mid, c0 + 1); g.Children.Add(mid);
             var btns = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
@@ -642,12 +649,12 @@ namespace MonitoringTools.UI
             // editor with a line-number gutter
             var code = new TextBox
             {
-                Text = Shortcuts.ReadScript(sc), AcceptsReturn = true, AcceptsTab = true, FontFamily = Ui.Font("F.Mono"), FontSize = 13,
+                Text = Shortcuts.ReadScript(sc), AcceptsReturn = true, AcceptsTab = true, FontFamily = Ui.Font("F.Mono"), FontSize = 12,
                 Foreground = Ui.Res("B.Text"), Background = Brushes.Transparent, BorderThickness = new Thickness(0), CaretBrush = Ui.Res("B.Mint"),
                 SelectionBrush = Ui.Res("B.Mint"), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
                 TextWrapping = TextWrapping.NoWrap, MinHeight = 260, MaxHeight = 420, Padding = new Thickness(4, 10, 10, 10)
             };
-            var gutter = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, Foreground = Ui.Res("B.TextMute"), TextAlignment = TextAlignment.Right, Padding = new Thickness(10, 10, 8, 10), MinWidth = 40 };
+            var gutter = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextAlignment = TextAlignment.Right, Padding = new Thickness(10, 10, 8, 10), MinWidth = 40 };
             var gutterScroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Hidden, Content = gutter, IsHitTestVisible = false };
             void Lines() => gutter.Text = string.Join("\n", Enumerable.Range(1, Math.Max(1, code.LineCount < 1 ? code.Text.Split('\n').Length : code.LineCount)));
             code.TextChanged += (s, e) => Lines();
@@ -851,14 +858,14 @@ namespace MonitoringTools.UI
                 var proc = p;
                 if (_gameBulk.Selecting)
                 {
-                    var line = new TextBlock { Text = proc, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 5, 0, 5) }; Core.Language.SetLiteral(line, true);
+                    var line = new TextBlock { Text = proc, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 5, 0, 5) }; Core.Language.SetLiteral(line, true);
                     SearchScope.SetItem(line, "watched game process");
                     g.Children.Add(_gameBulk.Wrap(proc, line, proc));
                     continue;
                 }
-                var chip = new Border { Height = 32, CornerRadius = new CornerRadius(16), Background = Ui.Res("B.VioletWash"), BorderBrush = new SolidColorBrush(Color.FromRgb(0x3A, 0x2F, 0x5A)), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(12, 0, 4, 0) };
+                var chip = new Border { Height = 32, CornerRadius = new CornerRadius(16), Background = Ui.Res("B.VioletWash"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(12, 0, 4, 0) };
                 var sp = new StackPanel { Orientation = Orientation.Horizontal };
-                sp.Children.Add(LiteralText(new TextBlock { Text = proc, Foreground = new SolidColorBrush(Color.FromRgb(0xD8, 0xCC, 0xFF)), FontSize = 12, FontFamily = Ui.Font("F.Mono"), VerticalAlignment = VerticalAlignment.Center }));
+                sp.Children.Add(LiteralText(new TextBlock { Text = proc, Foreground = Ui.Res("B.Violet"), FontSize = 12, FontFamily = Ui.Font("F.Mono"), VerticalAlignment = VerticalAlignment.Center }));
                 var x = new Button { Style = Ui.Style("Btn.Row"), Width = 24, Height = 24, Padding = new Thickness(0), Margin = new Thickness(6, 0, 0, 0), Content = Ui.Icon(Icons.Close, Ui.Res("B.Violet"), 9, 2.5), ToolTip = "Remove" };
                 x.Click += (o, e) => { s.GameProcesses.Remove(proc); Settings.Save(); Navigate("game", animate: false); };
                 sp.Children.Add(x);
@@ -1086,7 +1093,7 @@ namespace MonitoringTools.UI
         {
             var sp = new StackPanel();
             sp.Children.Add(new TextBlock { Text = label, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
-            sp.Children.Add(new TextBlock { Text = value, Style = Ui.Style("T.Title"), FontSize = 18, Margin = new Thickness(0, 4, 0, 0) });
+            sp.Children.Add(new TextBlock { Text = value, Style = Ui.Style("T.Title"), FontSize = 16, Margin = new Thickness(0, 4, 0, 0) });
             return sp;
         }
 
@@ -1157,7 +1164,7 @@ namespace MonitoringTools.UI
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 g.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 6, 12, 0), VerticalAlignment = VerticalAlignment.Top, Background = Ui.Res(o.End == null ? "B.Amber" : "B.TextMute") });
                 var mid = new StackPanel();
-                mid.Children.Add(new TextBlock { Text = o.Cause ?? "Connection lost", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
+                mid.Children.Add(new TextBlock { Text = o.Cause ?? "Connection lost", Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
                 mid.Children.Add(Ui.Mono($"{o.Start:ddd HH:mm}{(o.End == null ? " · ongoing" : "")}", Ui.Res("B.TextMute"), 11));
                 Grid.SetColumn(mid, 1); g.Children.Add(mid);
                 var len = Ui.Mono(o.Length.TotalHours >= 1 ? $"{(int)o.Length.TotalHours} h {o.Length.Minutes} m" : $"{(int)o.Length.TotalMinutes} m {o.Length.Seconds:00} s", Ui.Res(o.End == null ? "B.Amber" : "B.TextSoft"));
@@ -1183,7 +1190,7 @@ namespace MonitoringTools.UI
             var wash = e.Ok ? Ui.Res("B.MintWash") : Ui.Res("B.AmberWash");
             g.Children.Add(Ui.IconChip(KindIcon(e.Kind), accent, wash, 28, 14));
             var mid = new StackPanel { Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
-            mid.Children.Add(new TextBlock { Text = e.Title, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
+            mid.Children.Add(new TextBlock { Text = e.Title, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
             if (!string.IsNullOrWhiteSpace(e.Detail)) mid.Children.Add(LiteralText(new TextBlock { Text = e.Detail, Style = Ui.Style("T.Mono"), FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis }));
             Grid.SetColumn(mid, 1); g.Children.Add(mid);
             var when = Ui.Mono(Ago(e.At), Ui.Res("B.TextMute"), 11);
@@ -1339,7 +1346,7 @@ namespace MonitoringTools.UI
             row.ColumnDefinitions.Add(new ColumnDefinition());
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var box = Input(_playText);
-            box.FontSize = 13; box.Height = 40;
+            box.FontSize = 12; box.Height = 40;
             row.Children.Add(box);
             var run = Ui.Button("Run it", null, "Btn.Accent", Icons.Play);
             run.Height = 40; run.Margin = new Thickness(0, 0, 0, 8);
@@ -1415,7 +1422,7 @@ namespace MonitoringTools.UI
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                g.Children.Add(new TextBlock { Text = k, Foreground = Ui.Res("B.TextMute"), FontSize = 13, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
+                g.Children.Add(new TextBlock { Text = k, Foreground = Ui.Res("B.TextMute"), FontSize = 12, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
                 var t = Ui.Mono(v, Ui.Res("B.TextSoft")); t.VerticalAlignment = VerticalAlignment.Center;
                 Grid.SetColumn(t, 1); g.Children.Add(t);
                 var b = Ui.Button("Open", open); b.Margin = new Thickness(8, 0, 0, 0);

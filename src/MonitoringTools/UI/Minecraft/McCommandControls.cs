@@ -59,12 +59,12 @@ namespace MonitoringTools.UI.Minecraft
 
         private static TextBlock Label(string text, bool optional)
         {
-            var t = new TextBlock { Text = text, FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 6), TextWrapping = TextWrapping.Wrap };
+            var t = new TextBlock { Text = text, FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 6), TextWrapping = TextWrapping.Wrap };
             if (optional) t.Text = text + " (optional)";
             return t;
         }
 
-        private static TextBlock Hint(string text) => new TextBlock { Text = text, FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 2, 0, 0) };
+        private static TextBlock Hint(string text) => new TextBlock { Text = text, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 2, 0, 0) };
 
         /// <summary>The control for an argument node, chosen by its parser.</summary>
         internal static McFieldView For(ServerDef s, McCommandNode n, string label, bool optional, string value, Action<string> set, McRegistries reg, PositionReader readPos, bool literalNames = false)
@@ -271,7 +271,7 @@ namespace MonitoringTools.UI.Minecraft
             sp.Children.Add(explain);
             sp.Children.Add(filters);
             var nameRow = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
-            var or = new TextBlock { Text = "Or type a name", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) };
+            var or = new TextBlock { Text = "Or type a name", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 8) };
             nameRow.Children.Add(or);
             nameRow.Children.Add(nameBox);
             sp.Children.Add(nameRow);
@@ -305,7 +305,7 @@ namespace MonitoringTools.UI.Minecraft
                 rel[i] = p.StartsWith("~", StringComparison.Ordinal);
                 var num = rel[i] ? p.Substring(1) : p;
                 var cell = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 14, 8) };
-                var axis = new TextBlock { Text = names[i], FontFamily = Ui.Font("F.Mono"), FontSize = 13, Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
+                var axis = new TextBlock { Text = names[i], FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
                 Core.Language.SetLiteral(axis, true);
                 cell.Children.Add(axis);
                 Button t = null;
@@ -395,7 +395,7 @@ namespace MonitoringTools.UI.Minecraft
                 {
                     var i = id;
                     var stack = new StackPanel { Width = 168, HorizontalAlignment = HorizontalAlignment.Left };
-                    stack.Children.Add(new TextBlock { Text = McRegistries.Readable(id), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
+                    stack.Children.Add(new TextBlock { Text = McRegistries.Readable(id), FontSize = 12, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis });
                     stack.Children.Add(new TextBlock { Text = id, FontSize = 11, FontFamily = Ui.Font("F.Mono"), Opacity = 0.75, TextTrimming = TextTrimming.CharacterEllipsis });
                     var b = new Button { Style = Ui.Style("Btn.Chip"), Content = stack, Height = double.NaN, Width = 196, HorizontalContentAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(0, 0, 6, 6), ToolTip = id };
                     McUi.Paint(b, id == current);

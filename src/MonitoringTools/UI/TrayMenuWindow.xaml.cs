@@ -39,7 +39,7 @@ namespace MonitoringTools.UI
             head.ColumnDefinitions.Add(new ColumnDefinition());
             head.Children.Add(Ui.IconChip(Icons.Pulse, Ui.Res("B.Mint"), Ui.Res("B.MintWash"), 34, 18));
             var hs = new StackPanel { Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
-            hs.Children.Add(new TextBlock { Text = "Monitoring Tools", Style = Ui.Style("T.Title"), FontSize = 15 });
+            hs.Children.Add(new TextBlock { Text = "Monitoring Tools", Style = Ui.Style("T.Title"), FontSize = 14 });
             var st = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 0) };
             st.Children.Add(new Border { Width = 7, Height = 7, CornerRadius = new CornerRadius(4), Background = new SolidColorBrush(Color.FromRgb(dot.R, dot.G, dot.B)), Margin = new Thickness(0, 1, 6, 0), VerticalAlignment = VerticalAlignment.Center });
             st.Children.Add(Ui.Mono(status, Ui.Res("B.TextMute"), 11));
@@ -128,7 +128,7 @@ namespace MonitoringTools.UI
             var g = new Grid { Height = 38, Margin = new Thickness(10, 0, 10, 0) };
             var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = value, Tag = Ui.Res(accent), HorizontalAlignment = HorizontalAlignment.Stretch };
             var content = new StackPanel { Orientation = Orientation.Horizontal };
-            content.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
+            content.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
             if (note != null)
             {
                 var n = Ui.Mono(note, Ui.Res(accent), 11);
@@ -147,7 +147,7 @@ namespace MonitoringTools.UI
             var sp = new StackPanel { Margin = new Thickness(10, 6, 10, 4) };
             var top = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 6) };
             top.Children.Add(new ContentControl { Content = Ui.Icon(icon, Ui.Res("B.TextSoft"), 16), Margin = new Thickness(0, 0, 10, 0) });
-            top.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
+            top.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
             sp.Children.Add(top);
             var wrap = new WrapPanel { Margin = new Thickness(26, 0, 0, 0) };
             foreach (var (l, a) in chips)

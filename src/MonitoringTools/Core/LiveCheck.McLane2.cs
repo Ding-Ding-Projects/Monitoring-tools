@@ -239,6 +239,29 @@ namespace MonitoringTools.Core
             return Has(levelDat, b.ToArray());
         }
 
+        /// <summary>
+        /// A game rule as newer versions store it (26.1 and later name rules in snake case, possibly namespaced, and write typed tags): a byte tag
+        /// for a true or false rule, an int tag for a number. Returns an excerpt around the name when the value is not found, to show what is there.
+        /// </summary>
+        private static bool RuleStoredTyped(byte[] levelDat, string rule, int value, bool isBool, out string excerpt)
+        {
+            excerpt = null;
+            foreach (var name in new[] { rule, "minecraft:" + rule })
+            {
+                var nb = Encoding.ASCII.GetBytes(name);
+                var head = new List<byte> { isBool ? (byte)1 : (byte)3, 0, (byte)nb.Length }; head.AddRange(nb);
+                var tail = isBool ? new byte[] { (byte)value } : new byte[] { (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value };
+                head.AddRange(tail);
+                if (Has(levelDat, head.ToArray())) return true;
+                for (int i = 0; i + nb.Length <= levelDat.Length && excerpt == null; i++)
+                {
+                    int j = 0; while (j < nb.Length && levelDat[i + j] == nb[j]) j++;
+                    if (j == nb.Length) excerpt = name + " found, bytes around it: " + BitConverter.ToString(levelDat.Skip(Math.Max(0, i - 4)).Take(nb.Length + 14).ToArray());
+                }
+            }
+            return false;
+        }
+
         /// <summary>Which of the needles appear in the decompressed chunk data of the region files in a folder (block and biome ids sit in the chunk palettes).</summary>
         private static HashSet<string> InChunks(string regionFolder, IEnumerable<string> needles, int maxChunks = 400, bool fullOnly = false)
         {
@@ -332,8 +355,12 @@ namespace MonitoringTools.Core
             try
             {
                 // ---- a normal world with the Nether and the End pre-generated, and two game rules
+                // rule names come from the jar's own list: 26.1 and later write them in snake case
+                var facts = await WorldGenerator.JarFactsAsync(Version, _ => { });
+                bool snake = facts.GameRules.Any(r => r.Name == "keep_inventory");
+                string keepName = snake ? "keep_inventory" : "keepInventory", tickName = snake ? "random_tick_speed" : "randomTickSpeed";
                 var a = new WorldGenOptions { Version = Version, Seed = "lane", RadiusChunks = 2, PreGenNether = true, PreGenEnd = true, EulaAccepted = true, Destination = root, WorldName = "normal", BorderToSize = true };
-                a.GameRules["keepInventory"] = "true"; a.GameRules["randomTickSpeed"] = "7";
+                a.GameRules[keepName] = "true"; a.GameRules[tickName] = "7";
                 var (pa, na, fa) = await Generate(a);
                 if (fa != null) return "the normal world failed: " + fa;
                 if (na != null) return "the normal world said: " + na;
@@ -341,9 +368,17 @@ namespace MonitoringTools.Core
                 if (overworld.Count == 0 || nether.Count == 0 || end.Count == 0) return $"region files: overworld {overworld.Count}, Nether {nether.Count}, End {end.Count}";
                 Say($"regions: overworld {overworld.Count}, Nether {nether.Count}, End {end.Count} ({(overworld.Concat(nether).Concat(end).Sum(f => new FileInfo(f).Length)) / 1024} KB)");
                 var level = Gunzip(Path.Combine(pa, "level.dat"));
-                if (!RuleStored(level, "keepInventory", "true")) return "level.dat does not hold keepInventory=true";
-                if (!RuleStored(level, "randomTickSpeed", "7")) return "level.dat does not hold randomTickSpeed=7";
-                Say("level.dat holds keepInventory=true and randomTickSpeed=7 (the defaults are false and 3)");
+                if (!snake)
+                {
+                    if (!RuleStored(level, "keepInventory", "true")) return "level.dat does not hold keepInventory=true";
+                    if (!RuleStored(level, "randomTickSpeed", "7")) return "level.dat does not hold randomTickSpeed=7";
+                }
+                else
+                {
+                    if (!RuleStoredTyped(level, keepName, 1, true, out var ex1)) return "level.dat does not hold " + keepName + "=true: " + (ex1 ?? "the name is not in the file");
+                    if (!RuleStoredTyped(level, tickName, 7, false, out var ex2)) return "level.dat does not hold " + tickName + "=7: " + (ex2 ?? "the name is not in the file");
+                }
+                Say($"level.dat holds {keepName}=true and {tickName}=7 (the defaults are false and 3)");
 
                 // ---- a normal world, Nether and End, written as a ZIP
                 var z = new WorldGenOptions { Version = Version, Seed = "lane", RadiusChunks = 2, PreGenNether = true, PreGenEnd = true, EulaAccepted = true, Destination = root, WorldName = "normalzip", AsZip = true };

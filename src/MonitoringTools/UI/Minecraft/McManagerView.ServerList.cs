@@ -96,7 +96,7 @@ namespace MonitoringTools.UI.Minecraft
         {
             if (_found == null) return;
             _found.Children.Clear();
-            if (Found.Count == 0) _found.Children.Add(new TextBlock { Text = "None found.", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(4, 2, 0, 0) });
+            if (Found.Count == 0) _found.Children.Add(new TextBlock { Text = "None found.", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(4, 2, 0, 0) });
             foreach (var f in Found)
             {
                 var g = new Grid { Margin = new Thickness(0, 6, 0, 0) };
@@ -179,7 +179,7 @@ namespace MonitoringTools.UI.Minecraft
                 var badge = new Border
                 {
                     BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new System.Windows.Thickness(1), CornerRadius = new CornerRadius(8), Padding = new Thickness(6, 2, 8, 3), Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center,
-                    Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { new ContentControl { Content = Ui.Icon(McUi.TargetIcon(s.Target), Ui.Res("B.TextSoft"), 12), Margin = new Thickness(0, 0, 4, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center }, new TextBlock { Text = McUi.TargetLabel(s.Target), FontSize = 11.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") } } }
+                    Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { new ContentControl { Content = Ui.Icon(McUi.TargetIcon(s.Target), Ui.Res("B.TextSoft"), 12), Margin = new Thickness(0, 0, 4, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center }, new TextBlock { Text = McUi.TargetLabel(s.Target), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") } } }
                 };
                 Grid.SetColumn(badge, 2);
                 g.Children.Add(dot); g.Children.Add(text); g.Children.Add(badge);

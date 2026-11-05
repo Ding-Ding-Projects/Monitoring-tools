@@ -84,11 +84,11 @@ namespace MonitoringTools.UI.Minecraft
                     var row = new Grid();
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                    var mark = new TextBlock { Text = done ? "✓" : (i + 1).ToString(), FontSize = 13, FontWeight = FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Foreground = Ui.Res(done || cur ? "B.MintInk" : "B.TextSoft"), FontFamily = Ui.Font("F.Body") };
+                    var mark = new TextBlock { Text = done ? "✓" : (i + 1).ToString(), FontSize = 12, FontWeight = FontWeights.SemiBold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Foreground = Ui.Res(done || cur ? "B.MintInk" : "B.TextSoft"), FontFamily = Ui.Font("F.Body") };
                     Core.Language.SetLiteral(mark, true);
-                    row.Children.Add(new Border { Width = 30, Height = 30, CornerRadius = new CornerRadius(15), Background = Ui.Res(done || cur ? "B.Mint" : "B.Raised"), Child = mark, Margin = new Thickness(0, 0, 12, 0) });
+                    row.Children.Add(new Border { Width = 30, Height = 30, CornerRadius = new CornerRadius(16), Background = Ui.Res(done || cur ? "B.Mint" : "B.Raised"), Child = mark, Margin = new Thickness(0, 0, 12, 0) });
                     var t = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                    t.Children.Add(new TextBlock { Text = StepTitles[i], FontSize = 13.5, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                    t.Children.Add(new TextBlock { Text = StepTitles[i], FontSize = 14, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     var sum = done ? Summary(d, i) : "";
                     if (sum.Length > 0) { var st = McUi.Literal(sum, cur ? "B.OnSecondaryContainer" : "B.TextMute", 11.5); t.Children.Add(st); }
                     Grid.SetColumn(t, 1); row.Children.Add(t);
@@ -244,7 +244,7 @@ namespace MonitoringTools.UI.Minecraft
                     g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                     var id = McUi.Literal(v.Id, "B.Text", 14.5, mono: true);
                     g.Children.Add(id);
-                    var meta = new TextBlock { Text = v.Type.Replace("old_", "old ") + " · " + v.Released.ToString("d MMM yyyy", CultureInfo.InvariantCulture), FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
+                    var meta = new TextBlock { Text = v.Type.Replace("old_", "old ") + " · " + v.Released.ToString("d MMM yyyy", CultureInfo.InvariantCulture), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
                     Grid.SetColumn(meta, 1); g.Children.Add(meta);
                     var row = McUi.Row(g, "Version " + v.Id);
                     bool sel = v.Id == d.Version;
@@ -266,7 +266,7 @@ namespace MonitoringTools.UI.Minecraft
                         Core.Language.Refresh(note);
                     };
                     list.Children.Add(row);
-                    if (sel) Dispatcher.BeginInvoke(new Action(() => { var sh = McUi.Shape(row); if (sh != null) sh.CornerRadius = new CornerRadius(26); }), System.Windows.Threading.DispatcherPriority.Loaded);
+                    if (sel) Dispatcher.BeginInvoke(new Action(() => { var sh = McUi.Shape(row); if (sh != null) sh.CornerRadius = new CornerRadius(28); }), System.Windows.Threading.DispatcherPriority.Loaded);
                 }
                 if (hits.Count == 0) list.Children.Add(McUi.Body("No versions match.", "B.TextMute", 12.5));
                 Core.Language.Refresh(list);
@@ -305,7 +305,7 @@ namespace MonitoringTools.UI.Minecraft
                 sp.Children.Add(McUi.Title($"Server software for Bedrock {d.BedrockVersion}", 18));
                 var card = new StackPanel { Width = 320 };
                 card.Children.Add(new TextBlock { Text = "Bedrock Dedicated Server", FontSize = 16, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body") });
-                card.Children.Add(new TextBlock { Text = "Mojang's own server for Bedrock players on phones, consoles and Windows.", FontSize = 12.5, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 4, 0, 6) });
+                card.Children.Add(new TextBlock { Text = "Mojang's own server for Bedrock players on phones, consoles and Windows.", FontSize = 12, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 4, 0, 6) });
                 var b = new Border { Background = Ui.Res("B.SecondaryContainer"), CornerRadius = new CornerRadius(20), Padding = new Thickness(16, 14, 16, 14), Margin = new Thickness(0, 10, 0, 0), Child = card, HorizontalAlignment = HorizontalAlignment.Left };
                 System.Windows.Documents.TextElement.SetForeground(b, Ui.Res("B.OnSecondaryContainer"));
                 sp.Children.Add(b);
@@ -328,7 +328,7 @@ namespace MonitoringTools.UI.Minecraft
                     bool ok = f == Flavour.Vanilla || (list != null && list.Unavailable == null);
                     var card = new StackPanel { Width = 168 };
                     card.Children.Add(new TextBlock { Text = f.ToString(), FontSize = 16, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body") });
-                    card.Children.Add(new TextBlock { Text = McSoftware.Describe(f), FontSize = 12.5, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 4, 0, 6) });
+                    card.Children.Add(new TextBlock { Text = McSoftware.Describe(f), FontSize = 12, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 4, 0, 6) });
                     var bt = new TextBlock { Text = build, FontSize = 12, FontFamily = Ui.Font("F.Mono"), Opacity = 0.75, TextWrapping = TextWrapping.Wrap };
                     card.Children.Add(bt);
                     var b = McUi.Row(card, f + ": " + build);
@@ -449,8 +449,8 @@ namespace MonitoringTools.UI.Minecraft
                     Ready.TryGetValue(t, out var ok);
                     var card = new StackPanel { Width = 240 };
                     var ic = Ui.Icon(icon, Ui.Res("B.Mint"), 20); ic.HorizontalAlignment = HorizontalAlignment.Left; card.Children.Add(ic);
-                    card.Children.Add(new TextBlock { Text = name, FontSize = 15.5, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 8, 0, 2), HorizontalAlignment = HorizontalAlignment.Left });
-                    card.Children.Add(new TextBlock { Text = note, FontSize = 12.5, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Opacity = 0.85 });
+                    card.Children.Add(new TextBlock { Text = name, FontSize = 16, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 8, 0, 2), HorizontalAlignment = HorizontalAlignment.Left });
+                    card.Children.Add(new TextBlock { Text = note, FontSize = 12, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Opacity = 0.85 });
                     card.Children.Add(new TextBlock { Text = ready ?? "Pick it to check.", FontSize = 12, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0), Foreground = Ui.Res(ready == null || ready == "Checking…" ? "B.TextMute" : ok ? "B.Mint" : "B.Amber") });
                     var b = McUi.Row(card, name + ". " + (ready ?? ""));
                     bool sel = d.Target == t;
@@ -518,7 +518,7 @@ namespace MonitoringTools.UI.Minecraft
         private FrameworkElement ResourceStep(McCreateDraft d)
         {
             var sp = new StackPanel();
-            sp.Children.Add(new TextBlock { Text = "Name", FontSize = 13, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") });
+            sp.Children.Add(new TextBlock { Text = "Name", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") });
             var name = McUi.Field(d.Name, "Server name", 320, "Also used as the message of the day");
             name.TextChanged += (o, e) => d.Name = name.Text;
             sp.Children.Add(name);
@@ -545,7 +545,7 @@ namespace MonitoringTools.UI.Minecraft
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(300) });
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var t = new StackPanel { Margin = new Thickness(0, 0, 16, 0) };
-                t.Children.Add(new TextBlock { Text = label, FontSize = 15, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
+                t.Children.Add(new TextBlock { Text = label, FontSize = 14, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
                 t.Children.Add(McUi.Body(help, "B.TextSoft", 12.5));
                 g.Children.Add(t);
                 var nb = new McNumberBox(label, value, min, max, step, unit) { MinWidth = 200 };
@@ -582,7 +582,7 @@ namespace MonitoringTools.UI.Minecraft
                 host.Children.Clear();
                 if (d.WorldMode == "new")
                 {
-                    host.Children.Add(new TextBlock { Text = "Seed (empty picks one at random)", FontSize = 13, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") });
+                    host.Children.Add(new TextBlock { Text = "Seed (empty picks one at random)", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") });
                     var seed = McUi.Field(d.Seed, "Seed", 320, "For example 4127803392");
                     seed.TextChanged += (o, e) => d.Seed = seed.Text;
                     host.Children.Add(seed);
@@ -618,7 +618,7 @@ namespace MonitoringTools.UI.Minecraft
                         {
                             any = true;
                             var bb = bk;
-                            var row = McUi.Row(new TextBlock { Text = $"{other.Name} · {bk.When:yyyy-MM-dd HH:mm} · {bk.Reason} · {Ui.Bytes(bk.Size)}", FontFamily = Ui.Font("F.Body"), FontSize = 13 }, "Backup of " + other.Name + " from " + bk.When.ToString("yyyy-MM-dd HH:mm"));
+                            var row = McUi.Row(new TextBlock { Text = $"{other.Name} · {bk.When:yyyy-MM-dd HH:mm} · {bk.Reason} · {Ui.Bytes(bk.Size)}", FontFamily = Ui.Font("F.Body"), FontSize = 12 }, "Backup of " + other.Name + " from " + bk.When.ToString("yyyy-MM-dd HH:mm"));
                             Core.Language.SetLiteral(row, true);
                             bool sel = d.WorldSource == bk.Path;
                             row.Background = (sel ? Ui.Res("B.SecondaryContainer") : System.Windows.Media.Brushes.Transparent);
@@ -647,7 +647,7 @@ namespace MonitoringTools.UI.Minecraft
                 var g = new Grid { Margin = new Thickness(0, 0, 0, 0) };
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(170) });
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                g.Children.Add(new TextBlock { Text = k, FontSize = 13.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") });
+                g.Children.Add(new TextBlock { Text = k, FontSize = 14, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body") });
                 var vt = literal ? McUi.Literal(v, "B.Text", 13.5) : McUi.Body(v, "B.Text", 13.5);
                 Grid.SetColumn(vt, 1); g.Children.Add(vt);
                 table.Children.Add(new Border { BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(0, 0, 0, 1), Padding = new Thickness(0, 10, 0, 10), Child = g });
@@ -667,7 +667,7 @@ namespace MonitoringTools.UI.Minecraft
             Fill();
             sp.Children.Add(new Border { Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(20), Padding = new Thickness(18, 4, 18, 4), Child = table, Margin = new Thickness(0, 0, 0, 14) });
             var eula = new CheckBox { Style = Ui.Style("Switch"), IsChecked = d.Eula, Margin = new Thickness(0, 4, 0, 6) };
-            var eulaText = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text"), FontSize = 13.5, FontFamily = Ui.Font("F.Body") };
+            var eulaText = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") };
             eulaText.Inlines.Add(new System.Windows.Documents.Run("I accept the "));
             eulaText.Inlines.Add(Markdown.MakeLink("Minecraft EULA", "https://aka.ms/MinecraftEULA"));
             eulaText.Inlines.Add(new System.Windows.Documents.Run(" for this server"));

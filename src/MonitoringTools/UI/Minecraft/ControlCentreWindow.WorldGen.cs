@@ -144,7 +144,7 @@ namespace MonitoringTools.UI
                     var row = new Grid { Margin = new Thickness(0, 0, 0, 4) };
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 180 });
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                    var name = new TextBlock { Text = def.Name, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
+                    var name = new TextBlock { Text = def.Name, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
                     row.Children.Add(name);
                     FrameworkElement ctl;
                     if (def.Kind == RuleKind.Bool)
@@ -452,8 +452,8 @@ namespace MonitoringTools.UI
             estimate.TextWrapping = TextWrapping.Wrap; estimate.Margin = new Thickness(0, 0, 0, 8);
             sp.Children.Add(estimate);
             Estimate();
-            dimNether = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.PreGenNether, Margin = new Thickness(0, 4, 0, 2), Content = new StackPanel { Children = { new TextBlock { Text = "Also pre-generate the Nether (default off)", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") }, new TextBlock { Text = "Runs the same bounded procedure in the Nether when the jar supports it. Off by default.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) } } } };
-            dimEnd = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.PreGenEnd, Margin = new Thickness(0, 2, 0, 2), Content = new StackPanel { Children = { new TextBlock { Text = "Also pre-generate the End (default off)", Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") }, new TextBlock { Text = "Runs the same bounded procedure in the End when the jar supports it. Off by default.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) } } } };
+            dimNether = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.PreGenNether, Margin = new Thickness(0, 4, 0, 2), Content = new StackPanel { Children = { new TextBlock { Text = "Also pre-generate the Nether (default off)", Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body") }, new TextBlock { Text = "Runs the same bounded procedure in the Nether when the jar supports it. Off by default.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) } } } };
+            dimEnd = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.PreGenEnd, Margin = new Thickness(0, 2, 0, 2), Content = new StackPanel { Children = { new TextBlock { Text = "Also pre-generate the End (default off)", Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body") }, new TextBlock { Text = "Runs the same bounded procedure in the End when the jar supports it. Off by default.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) } } } };
             dimNether.ToolTip = "Runs the same bounded forceload procedure in the Nether with execute in minecraft:the_nether, when the jar supports it.";
             dimEnd.ToolTip = "Runs the same bounded forceload procedure in the End with execute in minecraft:the_end, when the jar supports it.";
             dimNether.Checked += (a, b) => o.PreGenNether = true; dimNether.Unchecked += (a, b) => o.PreGenNether = false;
@@ -480,7 +480,7 @@ namespace MonitoringTools.UI
 
             // ---- EULA and actions
             var eula = new CheckBox { Style = Ui.Style("Switch"), IsChecked = o.EulaAccepted, Margin = new Thickness(0, 10, 0, 6) };
-            var eulaText = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") };
+            var eulaText = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body") };
             eulaText.Inlines.Add(new System.Windows.Documents.Run("I accept the "));
             eulaText.Inlines.Add(Markdown.MakeLink("Minecraft EULA", "https://aka.ms/MinecraftEULA"));
             eulaText.Inlines.Add(new System.Windows.Documents.Run(" so a private server may run once to build this world"));

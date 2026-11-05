@@ -35,10 +35,10 @@ namespace MonitoringTools.UI
         private readonly FrameworkElement[] _built;
         private readonly TextBlock _progress = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.TextMute") };
         private readonly StackPanel _segments = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 12) };
-        private readonly TextBlock _title = new TextBlock { Style = Ui.Style("T.Title"), FontSize = 18 };
+        private readonly TextBlock _title = new TextBlock { Style = Ui.Style("T.Title"), FontSize = 16 };
         private readonly TextBlock _help = new TextBlock { Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 12) };
         private readonly ContentControl _host = new ContentControl { IsTabStop = false };
-        private readonly TextBlock _error = new TextBlock { Foreground = Ui.Res("B.Danger"), FontSize = 13, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
+        private readonly TextBlock _error = new TextBlock { Foreground = Ui.Res("B.Danger"), FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
         private readonly Button _back, _next, _cancelBtn;
         private int _index;
         private bool _errorIsProblem;
@@ -62,7 +62,7 @@ namespace MonitoringTools.UI
         {
             _steps = steps; _finish = finish; _cancel = cancel;
             _built = new FrameworkElement[steps.Count];
-            Background = Ui.Res("B.Surface"); CornerRadius = new CornerRadius(24); Padding = new Thickness(22); Margin = new Thickness(0, 0, 0, 16);
+            Background = Ui.Res("B.Surface"); CornerRadius = new CornerRadius(28); Padding = new Thickness(22); Margin = new Thickness(0, 0, 0, 16);
             AutomationProperties.SetName(this, title);
 
             var root = new StackPanel();

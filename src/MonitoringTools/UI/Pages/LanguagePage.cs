@@ -84,7 +84,7 @@ namespace MonitoringTools.UI
             head.ColumnDefinitions.Add(new ColumnDefinition());
             head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             head.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
-            var value = new TextBlock { Foreground = Ui.Res("B.Mint"), FontSize = 13, FontFamily = Ui.Font("F.Body"), FontWeight = FontWeights.SemiBold };
+            var value = new TextBlock { Foreground = Ui.Res("B.Mint"), FontSize = 12, FontFamily = Ui.Font("F.Body"), FontWeight = FontWeights.SemiBold };
             Grid.SetColumn(value, 1); head.Children.Add(value);
             row.Children.Add(head);
 
@@ -219,7 +219,7 @@ namespace MonitoringTools.UI
             rateHead.ColumnDefinitions.Add(new ColumnDefinition());
             rateHead.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             rateHead.Children.Add(new TextBlock { Text = "Speaking rate", Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
-            var rateValue = new TextBlock { Foreground = Ui.Res("B.Mint"), FontSize = 13, FontFamily = Ui.Font("F.Body"), FontWeight = FontWeights.SemiBold };
+            var rateValue = new TextBlock { Foreground = Ui.Res("B.Mint"), FontSize = 12, FontFamily = Ui.Font("F.Body"), FontWeight = FontWeights.SemiBold };
             Lang.SetLiteral(rateValue, true);
             Grid.SetColumn(rateValue, 1); rateHead.Children.Add(rateValue);
             rate.Children.Add(rateHead);

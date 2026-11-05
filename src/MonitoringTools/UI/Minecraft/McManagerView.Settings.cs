@@ -112,7 +112,7 @@ namespace MonitoringTools.UI.Minecraft
             FrameworkElement Head(string label, McApplies applies, string key, string def, bool changed)
             {
                 var w = new WrapPanel();
-                w.Children.Add(new TextBlock { Text = label, FontSize = 15, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 10, 2), VerticalAlignment = VerticalAlignment.Center });
+                w.Children.Add(new TextBlock { Text = label, FontSize = 14, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 10, 2), VerticalAlignment = VerticalAlignment.Center });
                 var (txt, icon, bg, fg) = applies switch
                 {
                     McApplies.Now => ("Applies now", Icons.Bolt, "B.MintWash", "B.Mint"),
@@ -127,7 +127,7 @@ namespace MonitoringTools.UI.Minecraft
 
             TextBlock KeyLine(string key, string def)
             {
-                var t = new TextBlock { Text = key + (def == null ? "" : " · default " + (def.Length == 0 ? "(empty)" : def)), FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 2, 0, 0) };
+                var t = new TextBlock { Text = key + (def == null ? "" : " · default " + (def.Length == 0 ? "(empty)" : def)), FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 2, 0, 0) };
                 Core.Language.SetLiteral(t, true);
                 return t;
             }
@@ -147,7 +147,7 @@ namespace MonitoringTools.UI.Minecraft
                         var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = (cur ?? d.Default) == "true", IsEnabled = !off, Margin = new Thickness(0, 4, 0, 4) };
                         var text = new StackPanel();
                         text.Children.Add(Head(d.Label, applies, d.Key, d.Default, changed));
-                        text.Children.Add(new TextBlock { Text = help + (off ? $" Not available on {s.Version}." : ""), Style = Ui.Style("T.Body"), FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap });
+                        text.Children.Add(new TextBlock { Text = help + (off ? $" Not available on {s.Version}." : ""), Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap });
                         text.Children.Add(KeyLine(d.Key, d.Default));
                         cb.Content = text;
                         AutomationProperties.SetName(cb, d.Label);
@@ -182,7 +182,7 @@ namespace MonitoringTools.UI.Minecraft
                         box.ValueChanged += x => Set(d.Key, x.ToString(CultureInfo.InvariantCulture));
                         var col = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
                         col.Children.Add(box);
-                        var range = new TextBlock { Text = $"{d.Min} to {d.Max}{(d.Unit.Length > 0 ? " " + d.Unit : "")}", FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 4, 0, 0) };
+                        var range = new TextBlock { Text = $"{d.Min} to {d.Max}{(d.Unit.Length > 0 ? " " + d.Unit : "")}", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 4, 0, 0) };
                         col.Children.Add(range);
                         Grid.SetColumn(col, 1); grid.Children.Add(col);
                         row = grid;
@@ -312,7 +312,7 @@ namespace MonitoringTools.UI.Minecraft
                     var row = new Grid();
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                    row.Children.Add(new TextBlock { Text = grp, FontSize = 13.5, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                    row.Children.Add(new TextBlock { Text = grp, FontSize = 14, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     var c = new TextBlock { Text = CountOf(grp).ToString(), FontSize = 12, FontFamily = Ui.Font("F.Body"), Opacity = 0.8, Margin = new Thickness(8, 0, 0, 0) };
                     Grid.SetColumn(c, 1); row.Children.Add(c);
                     var b = McUi.Row(row, grp + ", " + CountOf(grp) + " settings");
@@ -320,7 +320,7 @@ namespace MonitoringTools.UI.Minecraft
                     b.Foreground = Ui.Res(on ? "B.OnSecondaryContainer" : "B.TextSoft");
                     b.Click += (o, e) => { SettingsGroup = gg; search.State.SetQuery(""); Groups(); Fill(); };
                     groupButtons.Children.Add(b);
-                    if (on) Dispatcher.BeginInvoke(new Action(() => { var sh = McUi.Shape(b); if (sh != null) sh.CornerRadius = new CornerRadius(24); }), System.Windows.Threading.DispatcherPriority.Loaded);
+                    if (on) Dispatcher.BeginInvoke(new Action(() => { var sh = McUi.Shape(b); if (sh != null) sh.CornerRadius = new CornerRadius(28); }), System.Windows.Threading.DispatcherPriority.Loaded);
                 }
             }
 

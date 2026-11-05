@@ -153,7 +153,7 @@ namespace MonitoringTools.UI.Minecraft
                 stack.Children.Add(new TextBlock { Text = peak?.ToString() ?? "–", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) });
                 stack.Children.Add(new Border { Height = peak == null ? 3 : Math.Max(4, 52.0 * peak.Value / top), CornerRadius = new CornerRadius(6), Background = Ui.Res(peak == null ? "B.LineStrong" : day.Date == DateTime.Now.Date ? "B.Mint" : "B.SecondaryContainer"), HorizontalAlignment = HorizontalAlignment.Stretch });
                 col.Children.Add(stack);
-                var label = new TextBlock { Text = day.ToString("ddd", System.Globalization.CultureInfo.InvariantCulture), FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 4, 0, 0) };
+                var label = new TextBlock { Text = day.ToString("ddd", System.Globalization.CultureInfo.InvariantCulture), FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 4, 0, 0) };
                 Core.Language.SetLiteral(label, true);
                 Grid.SetRow(label, 1); col.Children.Add(label);
                 AutomationProperties.SetName(col, day.ToString("dddd", System.Globalization.CultureInfo.InvariantCulture) + ": " + (peak == null ? "no reading" : "peak " + peak.Value + (peak == 1 ? " player" : " players")));
@@ -194,10 +194,10 @@ namespace MonitoringTools.UI.Minecraft
             var sp = new StackPanel();
             var top = new StackPanel { Orientation = Orientation.Horizontal };
             top.Children.Add(new ContentControl { Content = Ui.Icon(icon, Ui.Res("B.Mint"), 14), Margin = new Thickness(0, 0, 8, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center });
-            top.Children.Add(new TextBlock { Text = label, FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+            top.Children.Add(new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
             sp.Children.Add(top);
             sp.Children.Add(new TextBlock { Text = value, FontSize = 24, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Display"), Margin = new Thickness(0, 6, 0, 4), TextWrapping = TextWrapping.Wrap });
-            sp.Children.Add(new TextBlock { Text = note, FontSize = 11.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+            sp.Children.Add(new TextBlock { Text = note, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
             var c = McUi.Card(sp, 16);
             Ui.Liftable(c);
             c.Margin = new Thickness(0, 0, 12, 12);

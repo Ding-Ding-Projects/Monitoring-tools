@@ -43,7 +43,7 @@ namespace MonitoringTools.UI.Tabs
         public StripTab(TabStrip owner, TabInfo info, bool vertical, bool compact, string accentKey, int position, int size)
         {
             _o = owner; TabId = info.Id; IsActive = info.Active; _vertical = vertical;
-            Height = Appearance.Row(40); CornerRadius = new CornerRadius(19);
+            Height = Appearance.Row(40); CornerRadius = new CornerRadius(20);
             System.Windows.Documents.TextElement.SetFontSize(this, 14); System.Windows.Documents.TextElement.SetFontFamily(this, Ui.Font("F.Body"));
             Focusable = true; KeyboardNavigation.SetIsTabStop(this, false); FocusVisualStyle = null; Cursor = Cursors.Hand; AllowDrop = true;
             Margin = vertical ? new Thickness(0, 0, 0, Appearance.Gap(2)) : new Thickness(0, 0, 4, 0);
@@ -53,9 +53,9 @@ namespace MonitoringTools.UI.Tabs
             var fg = info.Active ? "B.OnSecondaryContainer" : "B.TextSoft";
 
             var grid = new Grid();
-            _hi = new Border { CornerRadius = new CornerRadius(19), Opacity = 0, IsHitTestVisible = false };
+            _hi = new Border { CornerRadius = new CornerRadius(20), Opacity = 0, IsHitTestVisible = false };
             _hi.SetResourceReference(BackgroundProperty, "B.Text");
-            _ring = new Border { CornerRadius = new CornerRadius(19), BorderThickness = new Thickness(2), Opacity = 0, IsHitTestVisible = false };
+            _ring = new Border { CornerRadius = new CornerRadius(20), BorderThickness = new Thickness(2), Opacity = 0, IsHitTestVisible = false };
             _ring.SetResourceReference(BorderBrushProperty, "B.Mint");
             grid.Children.Add(_hi);
             grid.Children.Add(_ring);

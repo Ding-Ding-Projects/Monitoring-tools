@@ -188,6 +188,7 @@ namespace MonitoringTools.Core
                     Application.Current?.Dispatcher.BeginInvoke(new Action(Apply));
                 };
             }
+            MonitoringTools.UI.AccessibleLabels.Install();
             if (!_densityHooked)
             {
                 _densityHooked = true;
@@ -226,6 +227,20 @@ namespace MonitoringTools.Core
             Set("OnSecondaryContainer", r[5]);
             Set("TertiaryContainer", r[6]);
             Set("OnTertiaryContainer", r[7]);
+
+            // the warning, accent and error families have a dark and a light set, so text in them stays readable on either theme
+            if (dark)
+            {
+                Set("Amber", Color.FromRgb(0xFF, 0xB9, 0x5F)); Set("AmberInk", Color.FromRgb(0x46, 0x2A, 0x00)); Set("AmberWash", Color.FromRgb(0x3B, 0x2A, 0x12));
+                Set("Violet", Color.FromRgb(0xCF, 0xBC, 0xFF)); Set("VioletWash", Color.FromRgb(0x2B, 0x26, 0x40));
+                Set("Danger", Color.FromRgb(0xFF, 0xB4, 0xAB)); Set("DangerWash", Color.FromRgb(0x93, 0x00, 0x0A));
+            }
+            else
+            {
+                Set("Amber", Color.FromRgb(0x7A, 0x4A, 0x00)); Set("AmberInk", Color.FromRgb(0xFF, 0xFF, 0xFF)); Set("AmberWash", Color.FromRgb(0xFF, 0xDD, 0xB3));
+                Set("Violet", Color.FromRgb(0x62, 0x47, 0xB0)); Set("VioletWash", Color.FromRgb(0xE9, 0xDD, 0xFF));
+                Set("Danger", Color.FromRgb(0xBA, 0x1A, 0x1A)); Set("DangerWash", Color.FromRgb(0xFF, 0xDA, 0xD6));
+            }
 
             foreach (Window w in app.Windows) ScaleFor(w);
             if (_densityWasCompact != Compact)

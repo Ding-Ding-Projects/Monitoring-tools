@@ -93,7 +93,7 @@ namespace MonitoringTools.UI
 
             var hexBox = Input(s.LogoCustomHex, 140, "#RRGGBB");
             var hexNote = new TextBlock { Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.Danger"), Margin = new Thickness(0, 0, 0, 6) };
-            var swatch = new Border { Width = 28, Height = 28, CornerRadius = new CornerRadius(14), BorderThickness = new Thickness(1), BorderBrush = Ui.Res("B.LineStrong"), Margin = new Thickness(0, 0, 10, 8), Background = new SolidColorBrush(Appearance.LogoColor) };
+            var swatch = new Border { Width = 28, Height = 28, CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), BorderBrush = Ui.Res("B.LineStrong"), Margin = new Thickness(0, 0, 10, 8), Background = new SolidColorBrush(Appearance.LogoColor) };
             void CommitHex()
             {
                 var t = hexBox.Text.Trim();
@@ -145,7 +145,7 @@ namespace MonitoringTools.UI
                 var b = new Border { CornerRadius = new CornerRadius(20), Padding = new Thickness(18, 8, 18, 8), Margin = new Thickness(0, 0, 10, 8) };
                 b.SetResourceReference(Border.BackgroundProperty, bg ?? "B.Surface");
                 if (border != null) { b.BorderThickness = new Thickness(1); b.SetResourceReference(Border.BorderBrushProperty, border); }
-                var t = new TextBlock { Text = text, FontSize = 13, FontFamily = Ui.Font("F.Body") };
+                var t = new TextBlock { Text = text, FontSize = 12, FontFamily = Ui.Font("F.Body") };
                 t.SetResourceReference(TextBlock.ForegroundProperty, fg);
                 b.Child = t;
                 return b;

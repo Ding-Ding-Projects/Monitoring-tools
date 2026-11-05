@@ -28,7 +28,7 @@ namespace MonitoringTools.UI.Minecraft
             Grid.SetColumn(now, 1); head.Children.Add(now);
             card.Children.Add(head);
             var noteRow = new StackPanel { Margin = new Thickness(0, 10, 0, 0) };
-            noteRow.Children.Add(new TextBlock { Text = "Note for the next backup (optional)", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) });
+            noteRow.Children.Add(new TextBlock { Text = "Note for the next backup (optional)", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) });
             noteBox.Width = 360;
             noteRow.Children.Add(noteBox);
             card.Children.Add(noteRow);
@@ -65,10 +65,10 @@ namespace MonitoringTools.UI.Minecraft
                     g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                     g.Children.Add(new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.TertiaryContainer"), Child = Ui.Icon(b.Reason == "Scheduled" ? Icons.Clock : Icons.Archive, Ui.Res("B.OnTertiaryContainer"), 18), Margin = new Thickness(0, 0, 14, 0) });
                     var t = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                    var when = new TextBlock { Text = b.When.ToString("yyyy-MM-dd HH:mm"), FontSize = 14.5, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") };
+                    var when = new TextBlock { Text = b.When.ToString("yyyy-MM-dd HH:mm"), FontSize = 14, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") };
                     Core.Language.SetLiteral(when, true);
                     t.Children.Add(when);
-                    t.Children.Add(new TextBlock { Text = $"{b.Reason} · {Ui.Bytes(b.Size)} · {McUi.Age(b.When)}", FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                    t.Children.Add(new TextBlock { Text = $"{b.Reason} · {Ui.Bytes(b.Size)} · {McUi.Age(b.When)}", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     if (b.Contents.Count > 0) t.Children.Add(McUi.Literal(string.Join(", ", b.Contents) + (b.Note.Length > 0 ? " · " + b.Note : ""), "B.TextMute", 12));
                     Grid.SetColumn(t, 1); g.Children.Add(t);
                     var bb = b;

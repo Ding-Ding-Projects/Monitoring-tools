@@ -158,7 +158,7 @@ namespace MonitoringTools.UI.Minecraft
             else
             {
                 var value = McCommandControls.Text(node.Value, "Value of " + path, node.Type == SnbtType.String ? 320 : 160, McSnbt.TypeHelp(node.Type));
-                var note = new TextBlock { FontSize = 11.5, Foreground = Ui.Res("B.Danger"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, -4, 0, 0) };
+                var note = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.Danger"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, -4, 0, 0) };
                 void Note() { var p = McSnbt.CheckValue(node.Type, node.Value); note.Text = p ?? ""; note.Visibility = p == null ? Visibility.Collapsed : Visibility.Visible; value.BorderBrush = Ui.Res(p == null ? "B.LineStrong" : "B.Danger"); Core.Language.Refresh(note); }
                 value.TextChanged += (o, e) => { node.Value = value.Text; Note(); Report(); };
                 sp.Children.Add(value);

@@ -218,7 +218,7 @@ namespace MonitoringTools.UI
             _boardFrame.Child = scroller;
 
             _toolbarHost.Background = Ui.Res("B.Raised");
-            _toolbarHost.CornerRadius = new CornerRadius(26);
+            _toolbarHost.CornerRadius = new CornerRadius(28);
             _toolbarHost.Padding = new Thickness(10, 8, 10, 2);
             _toolbarHost.Margin = new Thickness(12, 12, 12, 8);
             _toolbarHost.HorizontalAlignment = HorizontalAlignment.Left;
@@ -280,15 +280,15 @@ namespace MonitoringTools.UI
             {
                 // Minimised: a disc that still shows the active tool.
                 var disc = new Button { Style = Ui.Style("Btn.Accent"), Width = 52, Height = 52, Padding = new Thickness(0), Margin = new Thickness(0, 0, 0, 6) };
-                disc.Content = new TextBlock { Text = ActiveToolName().Substring(0, 2), FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                disc.Content = new TextBlock { Text = ActiveToolName().Substring(0, 2), FontSize = 14, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
                 disc.ToolTip = $"Drawing toolbar, minimised. Active tool: {ActiveToolName()}. Click to expand.";
                 AutomationProperties.SetName(disc, "Expand the drawing toolbar, active tool " + ActiveToolName());
                 disc.Click += (s, e) => { Settings.Current.DrawToolbarMinimised = false; Settings.Save(); SwapToolbar(); };
-                _toolbarHost.CornerRadius = new CornerRadius(30);
+                _toolbarHost.CornerRadius = new CornerRadius(28);
                 _toolbarHost.Child = disc;
                 return;
             }
-            _toolbarHost.CornerRadius = new CornerRadius(26);
+            _toolbarHost.CornerRadius = new CornerRadius(28);
             Panel row = vertical ? new StackPanel { Orientation = Orientation.Vertical, Width = 168 } : new WrapPanel { Orientation = Orientation.Horizontal, MaxWidth = Math.Max(480, ActualWidth - 60) };
 
             // The first group changes shape: tools, a palette, or size sliders.
@@ -382,7 +382,7 @@ namespace MonitoringTools.UI
         /// <summary>Rebuilds the toolbar with a short fade, or instantly under reduced motion or Low stimulation.</summary>
         private void SwapToolbar()
         {
-            _toolbarHost.CornerRadius = new CornerRadius(26);
+            _toolbarHost.CornerRadius = new CornerRadius(28);
             DockPanel.SetDock(_toolbarHost, DockFromSetting());
             RebuildToolbar();
             if (Appearance.ReduceMotion || Modes.ReduceMotion) { _toolbarHost.Opacity = 1; return; }

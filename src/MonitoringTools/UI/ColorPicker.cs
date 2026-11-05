@@ -718,7 +718,7 @@ namespace MonitoringTools.UI
             };
             var hint = new Border
             {
-                Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(14), Padding = new Thickness(14, 8, 14, 8),
+                Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(12), Padding = new Thickness(14, 8, 14, 8),
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 24, 0, 0),
                 Child = new TextBlock { Text = "Click a pixel to pick its colour. Esc cancels.", Foreground = Ui.Res("B.Text"), FontSize = 14 }
             };

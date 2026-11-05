@@ -21,7 +21,7 @@ namespace MonitoringTools.UI.Minecraft
 
         public static Border Card(UIElement child, double pad = 20, string bg = "B.Surface") => new Border
         {
-            Background = Ui.Res(bg), CornerRadius = new CornerRadius(24), Padding = new Thickness(Appearance.Gap(pad)), Margin = new Thickness(0, 0, 0, Appearance.Gap(14)), Child = child
+            Background = Ui.Res(bg), CornerRadius = new CornerRadius(28), Padding = new Thickness(Appearance.Gap(pad)), Margin = new Thickness(0, 0, 0, Appearance.Gap(14)), Child = child
         };
 
         public static TextBlock Title(string text, double size = 18) => new TextBlock { Text = text, Style = Ui.Style("T.Title"), FontSize = size, TextWrapping = TextWrapping.Wrap };
@@ -234,13 +234,13 @@ namespace MonitoringTools.UI.Minecraft
             g.Children.Add(dec); g.Children.Add(Box); g.Children.Add(inc);
             if (unit.Length > 0)
             {
-                var u = new TextBlock { Text = unit, Foreground = Ui.Res("B.TextMute"), FontSize = 13, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 4, 0) };
+                var u = new TextBlock { Text = unit, Foreground = Ui.Res("B.TextMute"), FontSize = 12, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 4, 0) };
                 Grid.SetColumn(u, 2); g.Children.Add(u);
             }
             var stack = new StackPanel();
             stack.Children.Add(g);
             Child = stack;
-            _problem = new TextBlock { FontSize = 11.5, Foreground = Ui.Res("B.Danger"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(10, 0, 10, 6), Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap };
+            _problem = new TextBlock { FontSize = 12, Foreground = Ui.Res("B.Danger"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(10, 0, 10, 6), Visibility = Visibility.Collapsed, TextWrapping = TextWrapping.Wrap };
             AutomationProperties.SetLiveSetting(_problem, AutomationLiveSetting.Polite);
             stack.Children.Add(_problem);
             Box.TextChanged += (s, e) => Parse();

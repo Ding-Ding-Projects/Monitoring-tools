@@ -30,7 +30,7 @@ namespace MonitoringTools.UI
 
             var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, MaxWidth = 220 };
             text.Children.Add(new TextBlock { Text = "Dim sum", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
-            text.Children.Add(new TextBlock { Text = name, Style = Ui.Style("T.Title"), FontSize = 17, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 6) });
+            text.Children.Add(new TextBlock { Text = name, Style = Ui.Style("T.Title"), FontSize = 16, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 6) });
             text.Children.Add(new TextBlock { Text = "Image from " + Modes.DimSumSource, Style = Ui.Style("T.Body"), FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap });
             var close = Ui.Button("Dismiss", Close, "Btn.Ghost");
             close.Margin = new Thickness(0, 8, 0, 0); close.Focusable = false;
@@ -41,7 +41,7 @@ namespace MonitoringTools.UI
             var card = new Border
             {
                 Background = Ui.Res("B.Surface"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(18), Padding = new Thickness(14), Child = row, Margin = new Thickness(12)
+                CornerRadius = new CornerRadius(16), Padding = new Thickness(14), Child = row, Margin = new Thickness(12)
             };
             AutomationProperties.SetName(card, "Dim sum surprise: " + name);
             AutomationProperties.SetLiveSetting(card, AutomationLiveSetting.Polite);

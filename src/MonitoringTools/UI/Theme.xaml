@@ -149,7 +149,7 @@
     </Style>
     <!-- Chip: 32 high, 8 corner, outlined until selected. Code paints the selected state. -->
     <Style x:Key="Btn.Chip" TargetType="Button" BasedOn="{StaticResource Btn.Ghost}">
-        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontSize" Value="12"/>
         <Setter Property="Height" Value="32"/>
         <Setter Property="Padding" Value="14,0"/>
         <Setter Property="Background" Value="Transparent"/>
@@ -252,7 +252,7 @@
                         </Grid.ColumnDefinitions>
                         <ContentPresenter VerticalAlignment="Center" Margin="0,0,16,0"/>
                         <Grid Grid.Column="1" Width="52" Height="32" VerticalAlignment="Center">
-                            <Border x:Name="Focus" CornerRadius="19" BorderBrush="{DynamicResource B.Mint}" BorderThickness="2" Margin="-3" Opacity="0"/>
+                            <Border x:Name="Focus" CornerRadius="20" BorderBrush="{DynamicResource B.Mint}" BorderThickness="2" Margin="-3" Opacity="0"/>
                             <Border x:Name="Track" CornerRadius="16" Background="{DynamicResource B.Sunken}" BorderBrush="{DynamicResource B.LineStrong}" BorderThickness="2"/>
                             <Border x:Name="Thumb" Width="16" Height="16" CornerRadius="12" HorizontalAlignment="Left" VerticalAlignment="Center"
                                     Margin="8,0,0,0" Background="{DynamicResource B.LineStrong}">
@@ -294,7 +294,7 @@
         <Setter Property="CaretBrush" Value="{DynamicResource B.Mint}"/>
         <Setter Property="SelectionBrush" Value="{DynamicResource B.Mint}"/>
         <Setter Property="FontFamily" Value="{DynamicResource F.Mono}"/>
-        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontSize" Value="12"/>
         <Setter Property="Height" Value="40"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template">

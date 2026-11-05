@@ -571,7 +571,7 @@ namespace MonitoringTools.UI
                     g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                     g.Children.Add(Ui.Mono(SafetyWhen(h.At), Ui.Res("B.TextMute")));
                     var tx = new StackPanel(); Grid.SetColumn(tx, 1);
-                    tx.Children.Add(new TextBlock { Text = h.Action, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                    tx.Children.Add(new TextBlock { Text = h.Action, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     if (h.Detail.Length > 0) tx.Children.Add(SafetyLine(h.Detail, "B.TextMute", 12));
                     g.Children.Add(tx);
                     SearchScope.SetItem(g, "safety history");

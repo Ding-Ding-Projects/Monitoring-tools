@@ -197,7 +197,7 @@ namespace MonitoringTools.UI
                 Lane4Notes["qr-photo-factors-v" + pv2] = string.Join(", ", diag2);
                 Lane4Notes["qr-photo-limit"] = "single degradations on a version 9 code: " + Lane4Notes["qr-photo-factors"];
                 Lane4Notes["qr-photo-failed"] = string.Join(" | ", failures);
-                return ok >= 14 && failures.All(f => f.StartsWith("v24 ")) ? null : ok + " of " + tried + " decoded (" + Lane4Notes["qr-photo-factors"] + "); failed: " + string.Join(" | ", failures.Take(6));
+                return ok == tried ? null : ok + " of " + tried + " decoded (" + Lane4Notes["qr-photo-factors"] + "); failed: " + string.Join(" | ", failures.Take(6));
             });
 
             Check("qr: pictures made by an independent encoder decode (when MT_QR_FOREIGN names a folder of them)", () =>

@@ -264,10 +264,10 @@ namespace MonitoringTools.UI
                     info.Children.Add(new Border
                     {
                         Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.TertiaryContainer"), Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Center,
-                        Child = new TextBlock { Text = initial, FontWeight = FontWeights.Bold, FontSize = 15, Foreground = Ui.Res("B.OnTertiaryContainer"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontFamily = Ui.Font("F.Body") }
+                        Child = new TextBlock { Text = initial, FontWeight = FontWeights.Bold, FontSize = 14, Foreground = Ui.Res("B.OnTertiaryContainer"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontFamily = Ui.Font("F.Body") }
                     });
                     var words = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                    words.Children.Add(new TextBlock { Text = m.Name, Foreground = Ui.Res("B.Text"), FontSize = 15, FontFamily = Ui.Font("F.Body") });
+                    words.Children.Add(new TextBlock { Text = m.Name, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
                     var chipsRow = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
                     foreach (var x in new[] { Ollama.Bytes(m.Size), m.Family, m.ParameterSize, m.Quantization }.Where(x => !string.IsNullOrWhiteSpace(x)))
                         chipsRow.Children.Add(Ui.Pill(x));

@@ -89,7 +89,7 @@ namespace MonitoringTools.UI
 
         private static TextBlock Para(string text, Brush fg)
         {
-            var t = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 13, Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 4), LineHeight = 19 };
+            var t = new TextBlock { FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = fg, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 4), LineHeight = 19 };
             if (text != null) t.Text = text;
             return t;
         }

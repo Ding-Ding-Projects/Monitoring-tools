@@ -36,7 +36,7 @@ namespace MonitoringTools.UI
             var chip = Ui.IconChip(icon, Ui.Res("B.Mint"), Ui.Res("B.MintWash"), 36, 18);
             chip.HorizontalAlignment = HorizontalAlignment.Left;
             sp.Children.Add(chip);
-            sp.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 17, Margin = new Thickness(0, 14, 0, 6) });
+            sp.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 16, Margin = new Thickness(0, 14, 0, 6) });
             sp.Children.Add(new TextBlock { Text = body, Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), LineHeight = 19, MinHeight = 58 });
             var b = Ui.Button(button, act, primary ? "Btn.Accent" : "Btn.Ghost");
             b.HorizontalAlignment = HorizontalAlignment.Left;
@@ -45,7 +45,7 @@ namespace MonitoringTools.UI
             var card = new Border
             {
                 Background = Ui.Res(tint ?? "B.Surface"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(24), Padding = new Thickness(18), Margin = new Thickness(7), Child = sp,
+                CornerRadius = new CornerRadius(28), Padding = new Thickness(18), Margin = new Thickness(7), Child = sp,
                 RenderTransformOrigin = new Point(0.5, 0.5)
             };
             // lift on hover

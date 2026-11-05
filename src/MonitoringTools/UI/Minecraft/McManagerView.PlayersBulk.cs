@@ -79,6 +79,7 @@ namespace MonitoringTools.UI.Minecraft
                 ItemContainerStyle = PlayerItemStyle(),
             };
             ScrollViewer.SetVerticalScrollBarVisibility(b.List, ScrollBarVisibility.Disabled);   // the page scrolls, not the list
+            System.Windows.Input.KeyboardNavigation.SetTabNavigation(b.List, System.Windows.Input.KeyboardNavigationMode.Continue);   // the switches inside each row are reached with Tab
             ScrollViewer.SetHorizontalScrollBarVisibility(b.List, ScrollBarVisibility.Disabled);
             AutomationProperties.SetName(b.List, "Players");
             AutomationProperties.SetHelpText(b.List, "Select several players with Ctrl or Shift and a click or the arrow keys, or press Ctrl+A for all shown.");
@@ -93,7 +94,7 @@ namespace MonitoringTools.UI.Minecraft
             AutomationProperties.SetLiveSetting(b.Result, AutomationLiveSetting.Polite);
             b.Say = (t, fg) => { b.Result.Text = t; b.Result.Foreground = Ui.Res(fg); Core.Language.Refresh(b.Result); };
 
-            StackPanel Labelled(string label, TextBox box) { var c = new StackPanel { Margin = new Thickness(0, 0, 12, 4) }; c.Children.Add(new TextBlock { Text = label, FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); c.Children.Add(box); return c; }
+            StackPanel Labelled(string label, TextBox box) { var c = new StackPanel { Margin = new Thickness(0, 0, 12, 4) }; c.Children.Add(new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); c.Children.Add(box); return c; }
             b.Reason = McUi.Field("", "Reason for kick or ban", 220, "Optional. Sent with the kick or ban to every selected player.");
             b.Target = McUi.Field("", "Teleport to", 200, "A player's name, or three coordinates such as 10 64 -20. A ~ means relative to the player.");
             b.Item = McUi.Field("", "Item to give", 200, "An item id such as minecraft:diamond.");

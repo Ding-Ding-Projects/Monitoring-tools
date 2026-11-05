@@ -132,6 +132,7 @@ namespace MonitoringTools.UI
             if (root == null) return;
             Language.Refresh(root);
             Visit(where, root, 0);
+            if (UiAudit.Active) UiAudit.Collect(where, root);
         }
 
         internal static void ScanAllWindows(string where)

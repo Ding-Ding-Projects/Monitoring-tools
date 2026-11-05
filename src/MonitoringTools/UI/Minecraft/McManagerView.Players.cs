@@ -36,7 +36,7 @@ namespace MonitoringTools.UI.Minecraft
 
             var addRow = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
             var nameBox = McUi.Field("", "Add a player by name", 220, "A Minecraft name: 1 to 16 letters, digits or underscores.");
-            var nameCol = new StackPanel(); nameCol.Children.Add(new TextBlock { Text = "Add a player by name", FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); nameCol.Children.Add(nameBox); addRow.Children.Add(nameCol);
+            var nameCol = new StackPanel(); nameCol.Children.Add(new TextBlock { Text = "Add a player by name", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); nameCol.Children.Add(nameBox); addRow.Children.Add(nameCol);
             var result = McUi.Body("", "B.TextMute", 12.5);
             AutomationProperties.SetLiveSetting(result, AutomationLiveSetting.Polite);
 

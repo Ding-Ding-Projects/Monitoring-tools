@@ -29,7 +29,7 @@ namespace MonitoringTools.UI.Minecraft
             var addRow = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
             var nameBox = McUi.Field("", "Add a player by name", 220, "A Bedrock name: 1 to 32 letters, digits, spaces and . _ # -");
             var xuidBox = McUi.Field("", "Xbox user id (optional)", 220, "Needed to make a player an operator while the server is stopped, until the server has learned it. 6 to 20 digits.");
-            StackPanel Labelled(string label, UIElement box) { var c = new StackPanel { Margin = new Thickness(0, 0, 12, 4) }; c.Children.Add(new TextBlock { Text = label, FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); c.Children.Add(box); return c; }
+            StackPanel Labelled(string label, UIElement box) { var c = new StackPanel { Margin = new Thickness(0, 0, 12, 4) }; c.Children.Add(new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 4) }); c.Children.Add(box); return c; }
             addRow.Children.Add(Labelled("Add a player by name", nameBox));
             addRow.Children.Add(Labelled("Xbox user id (optional)", xuidBox));
             var result = McUi.Body("", "B.TextMute", 12.5);
@@ -318,7 +318,7 @@ namespace MonitoringTools.UI.Minecraft
                     g.Children.Add(new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.MintWash"), Child = Ui.Icon(Icons.Globe, Ui.Res("B.Mint"), 18), Margin = new Thickness(0, 0, 14, 0) });
                     var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
                     text.Children.Add(McUi.Literal(w.Name, "B.Text", 14.5));
-                    text.Children.Add(new TextBlock { Text = $"{Ui.Bytes(w.Size)}{(w.Title.Length > 0 && w.Title != w.Name ? " · " + w.Title : "")}{(w.InUse ? " · the world the server uses" : "")}", FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                    text.Children.Add(new TextBlock { Text = $"{Ui.Bytes(w.Size)}{(w.Title.Length > 0 && w.Title != w.Name ? " · " + w.Title : "")}{(w.InUse ? " · the world the server uses" : "")}", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                     Grid.SetColumn(text, 1); g.Children.Add(text);
                     var ww = w;
                     var dl = Ui.Button("Download ZIP", () => DownloadWorldZip(s, ww.Rel, ww.Name, say), "Btn.Ghost", Icons.Archive);
@@ -421,7 +421,7 @@ namespace MonitoringTools.UI.Minecraft
                         var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
                         text.Children.Add(McUi.Literal(d.Name, "B.Text", 14.5));
                         var sd = d.Kind == "Overworld" && seed != null ? " · seed " + seed : "";
-                        text.Children.Add(new TextBlock { Text = d.Exists ? $"{d.Kind} · {Ui.Bytes(d.Size)}{sd} · on the host" : $"{d.Kind} · not made yet; the server makes it on its first start", FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+                        text.Children.Add(new TextBlock { Text = d.Exists ? $"{d.Kind} · {Ui.Bytes(d.Size)}{sd} · on the host" : $"{d.Kind} · not made yet; the server makes it on its first start", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                         Grid.SetColumn(text, 1); g.Children.Add(text);
                         if (d.Exists)
                         {

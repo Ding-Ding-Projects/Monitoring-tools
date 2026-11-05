@@ -94,7 +94,7 @@ namespace MonitoringTools.UI.Minecraft
                                 host.Children.Add(row);
                                 return;
                             }
-                            host.Children.Add(new TextBlock { Text = "Time of day", FontSize = 13, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 4, 0, 4) });
+                            host.Children.Add(new TextBlock { Text = "Time of day", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 4, 0, 4) });
                             host.Children.Add(timeBox);
                             if (d.Repeat == McRepeat.Weekly)
                             {

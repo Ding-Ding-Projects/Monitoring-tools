@@ -80,7 +80,7 @@ namespace MonitoringTools.UI.Search
             _field = field;
             _s = field.State;
 
-            var title = new TextBlock { Text = "Regex builder", Style = Ui.Style("T.Title"), FontSize = 15, VerticalAlignment = VerticalAlignment.Center };
+            var title = new TextBlock { Text = "Regex builder", Style = Ui.Style("T.Title"), FontSize = 14, VerticalAlignment = VerticalAlignment.Center };
             _engine = Ui.Mono("", Ui.Res("B.TextMute"), 11);
             _engine.VerticalAlignment = VerticalAlignment.Center; _engine.Margin = new Thickness(12, 0, 0, 0); _engine.TextWrapping = TextWrapping.Wrap;
             var close = Ui.Button("", Close, "Btn.Icon", Icons.Close);
@@ -501,10 +501,10 @@ namespace MonitoringTools.UI.Search
             sp.Children.Add(controls);
 
             sp.Children.Add(Eyebrow("Pattern (current token highlighted)"));
-            _dbgPattern = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
+            _dbgPattern = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
             sp.Children.Add(Panel(_dbgPattern));
             sp.Children.Add(Eyebrow("Subject (current position highlighted)"));
-            _dbgText = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 13, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
+            _dbgText = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") };
             Core.Language.SetLiteral(_dbgPattern, true); Core.Language.SetLiteral(_dbgText, true);   // the pattern and the subject text are the person's own
             sp.Children.Add(Panel(_dbgText));
             _dbgInfo = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 8, 0, 4), Foreground = Ui.Res("B.Text") };
@@ -695,7 +695,7 @@ namespace MonitoringTools.UI.Search
             var head = new DockPanel();
             var state = Ui.Mono(r.Supported ? (r.TimedOut ? "hit the limit" : "supported") : "not supported", Ui.Res(r.Supported ? (r.TimedOut ? "B.Amber" : "B.Mint") : "B.Danger"), 11);
             DockPanel.SetDock(state, Dock.Right); head.Children.Add(state);
-            head.Children.Add(new TextBlock { Text = r.Mode, FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
+            head.Children.Add(new TextBlock { Text = r.Mode, FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
             sp.Children.Add(head);
             if (!r.Supported) sp.Children.Add(Note(r.Note));
             else
@@ -794,7 +794,7 @@ namespace MonitoringTools.UI.Search
         private static FrameworkElement BenchRow(RegexBench.SubjectBench r)
         {
             var sp = new StackPanel();
-            sp.Children.Add(new TextBlock { Text = r.Label, FontSize = 13, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
+            sp.Children.Add(new TextBlock { Text = r.Label, FontSize = 12, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body") });
             if (r.Skipped) { sp.Children.Add(Note(r.Verdict)); }
             else
             {
@@ -961,7 +961,7 @@ namespace MonitoringTools.UI.Search
                 DockPanel.SetDock(del, Dock.Right); line.Children.Add(del);
                 DockPanel.SetDock(use, Dock.Right); line.Children.Add(use);
                 var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                text.Children.Add(new TextBlock { Text = item.Name, Foreground = Ui.Res("B.Text"), FontSize = 13, FontFamily = Ui.Font("F.Body") });
+                text.Children.Add(new TextBlock { Text = item.Name, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body") });
                 text.Children.Add(Ui.Mono(item.Pattern, Ui.Res("B.Mint"), 11));
                 if (Settings.Current.RegexPatternTests != null && Settings.Current.RegexPatternTests.TryGetValue(item.Name ?? "", out var tl) && tl.Count > 0)
                     text.Children.Add(Ui.Mono($"{tl.Count} expected outcome(s) saved with it", Ui.Res("B.TextMute"), 11));

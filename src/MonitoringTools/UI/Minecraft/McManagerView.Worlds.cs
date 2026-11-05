@@ -66,7 +66,7 @@ namespace MonitoringTools.UI.Minecraft
                         var fileSeed = McWorlds.Seed(d.Folder);
                         seed = fileSeed != null ? " · seed " + fileSeed : props.TryGetValue("level-seed", out var ps) && ps.Length > 0 ? " · seed " + ps : "";
                     }
-                    var meta = new TextBlock { Text = d.Exists ? $"{d.Kind} · {Ui.Bytes(d.Size)}{seed}{(IsUp(s) && d.Kind == "Overworld" ? " · in use" : "")}" : $"{d.Kind} · not made yet; the server makes it on its first start", FontSize = 12.5, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap };
+                    var meta = new TextBlock { Text = d.Exists ? $"{d.Kind} · {Ui.Bytes(d.Size)}{seed}{(IsUp(s) && d.Kind == "Overworld" ? " · in use" : "")}" : $"{d.Kind} · not made yet; the server makes it on its first start", FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap };
                     text.Children.Add(meta);
                     Grid.SetColumn(text, 1); g.Children.Add(text);
                     if (d.Exists)

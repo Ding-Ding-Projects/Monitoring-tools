@@ -52,6 +52,7 @@ namespace MonitoringTools.UI
             Directory.CreateDirectory(dir);
             if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "lane4qr") { QrLane4Checks(); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "audit") { await AuditChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "lane4clicks") { await ClicksLane4Async(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "lane4")
             {
@@ -363,7 +364,7 @@ namespace MonitoringTools.UI
             Check("appearance: export then import round-trips, and a bad file changes nothing", () =>
             {
                 const string key = "selftest|Round trip";
-                var original = new ElementStyle { Foreground = "#FF112233", FontSize = 17, Italic = true, Pressed = new StateLook { Foreground = "#FF445566" } };
+                var original = new ElementStyle { Foreground = "#FF112233", FontSize = 16, Italic = true, Pressed = new StateLook { Foreground = "#FF445566" } };
                 ElementStyles.Store(key, original.Clone(), false);
                 try
                 {
@@ -841,6 +842,7 @@ namespace MonitoringTools.UI
             });
 
             await LanguageChecksAsync();
+            await AuditChecksAsync(dir);
             await RegexExplainChecksAsync(dir);
             await RunNumberFieldsAsync();
             await McChecksAsync();

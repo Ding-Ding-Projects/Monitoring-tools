@@ -422,7 +422,7 @@ namespace MonitoringTools.UI.Minecraft
             var values = ValuesFor(s, task.Id);
             var card = new StackPanel();
             var head = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 16) };
-            head.Children.Add(new Border { Width = 44, Height = 44, CornerRadius = new CornerRadius(14), Background = Ui.Res("B.MintWash"), Child = Ui.Icon(TaskIcon(task.Icon), Ui.Res("B.Mint"), 20), Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Top });
+            head.Children.Add(new Border { Width = 44, Height = 44, CornerRadius = new CornerRadius(12), Background = Ui.Res("B.MintWash"), Child = Ui.Icon(TaskIcon(task.Icon), Ui.Res("B.Mint"), 20), Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Top });
             var ht = new StackPanel();
             var title = McUi.Title(task.Label, 20);
             AutomationProperties.SetHeadingLevel(title, AutomationHeadingLevel.Level3);
@@ -454,7 +454,7 @@ namespace MonitoringTools.UI.Minecraft
                 if (f.IsChoice)
                 {
                     var wrap = new StackPanel { Margin = new Thickness(0, 0, 0, 14) };
-                    var choiceLabel = new TextBlock { Text = f.Label + (f.Optional ? " (optional)" : ""), FontSize = 13, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 6) }; if (task.Live) Core.Language.SetLiteral(choiceLabel, true); wrap.Children.Add(choiceLabel);
+                    var choiceLabel = new TextBlock { Text = f.Label + (f.Optional ? " (optional)" : ""), FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 0, 0, 6) }; if (task.Live) Core.Language.SetLiteral(choiceLabel, true); wrap.Children.Add(choiceLabel);
                     values.TryGetValue(f.Id, out var cur);
                     if (string.IsNullOrEmpty(cur) && !f.Optional) cur = f.Options[0];
                     void Set(string v)
@@ -596,12 +596,12 @@ namespace MonitoringTools.UI.Minecraft
             var card = new StackPanel();
             var head = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
             head.Children.Add(new ContentControl { Content = Ui.Icon(Icons.Code, Ui.Res("B.Mint"), 16), Margin = new Thickness(0, 0, 8, 0), IsTabStop = false, VerticalAlignment = VerticalAlignment.Center });
-            head.Children.Add(new TextBlock { Text = "The command", FontSize = 15, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) });
+            head.Children.Add(new TextBlock { Text = "The command", FontSize = 14, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) });
             head.Children.Add(new TextBlock { Text = "Each part is coloured by what it is. Click a part to go to its field.", FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap });
             card.Children.Add(head);
             _tokens = new WrapPanel();
             AutomationProperties.SetName(_tokens, "The exact command line");
-            card.Children.Add(new Border { Background = Ui.Res("B.Ground"), CornerRadius = new CornerRadius(14), Padding = new Thickness(12, 10, 6, 6), Child = _tokens });
+            card.Children.Add(new Border { Background = Ui.Res("B.Ground"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10, 6, 6), Child = _tokens });
             var statusRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 10) };
             var statusIcon = new ContentControl { IsTabStop = false, Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Top };
             statusRow.Children.Add(statusIcon);
@@ -654,7 +654,7 @@ namespace MonitoringTools.UI.Minecraft
                     var field = steps[i].Field ?? steps[i].Node.Name;
                     var label = steps[i].Node.IsArgument && McCommandTasks.Labels.ContainsKey(field) ? McCommandTasks.LabelOf(field) : steps[i].Node.IsLiteral && steps[i].Field != null ? McCommandTasks.LabelOf(steps[i].Field) : null;
                     var (bg, fg, kindName) = Tone(kind);
-                    var tb = new TextBlock { Text = empty ? "<" + (label ?? steps[i].Node.Name) + ">" : text.Trim(), FontFamily = Ui.Font("F.Mono"), FontSize = 15, Foreground = Ui.Res(empty ? "B.TextMute" : fg), FontStyle = empty ? FontStyles.Italic : FontStyles.Normal };
+                    var tb = new TextBlock { Text = empty ? "<" + (label ?? steps[i].Node.Name) + ">" : text.Trim(), FontFamily = Ui.Font("F.Mono"), FontSize = 14, Foreground = Ui.Res(empty ? "B.TextMute" : fg), FontStyle = empty ? FontStyles.Italic : FontStyles.Normal };
                     Core.Language.SetLiteral(tb, true);
                     var part = new Button { Style = Ui.Style("Btn.Row"), Content = new Border { Background = Ui.Res(empty ? "B.Raised" : bg), CornerRadius = new CornerRadius(7), Padding = new Thickness(7, 2, 7, 3), Child = tb }, Height = double.NaN, Padding = new Thickness(0), Margin = new Thickness(0, 0, 6, 6) };
                     var tip = kindName + " · " + (label ?? (kind == McCommandTree.PartKind.Command ? "the command" : steps[i].Node.Name));

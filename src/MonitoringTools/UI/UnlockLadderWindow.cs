@@ -104,7 +104,7 @@ namespace MonitoringTools.UI
             if (owner != null && owner.IsVisible) Owner = owner;
             _frame = new Border
             {
-                Background = Ui.Res("B.Raised"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(24),
+                Background = Ui.Res("B.Raised"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(28),
                 Padding = new Thickness(20), Margin = new Thickness(14), Width = 400,
                 Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"]
             };
@@ -167,7 +167,7 @@ namespace MonitoringTools.UI
             var body = new StackPanel();
             body.Children.Add(new TextBlock { Text = "UNLOCK", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
             var label = entry.Label.Length > 70 ? entry.Label.Substring(0, 70) + "…" : entry.Label;
-            body.Children.Add(new TextBlock { Text = label, Style = Ui.Style("T.Title"), FontSize = 18, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
+            body.Children.Add(new TextBlock { Text = label, Style = Ui.Style("T.Title"), FontSize = 16, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
             body.Children.Add(SafetyUi.Text(Locks.Describe(entry.Policy) + " lock", 12, "B.TextMute", null, 2));
             body.Children.Add(_step);
             body.Children.Add(_pwFrame);
@@ -290,7 +290,7 @@ namespace MonitoringTools.UI
         private readonly LockEntry _e;
         private readonly Action _changed;
         private readonly StackPanel _stage = new StackPanel();
-        private readonly TextBlock _title = new TextBlock { Style = Ui.Style("T.Title"), FontSize = 18, TextWrapping = TextWrapping.Wrap };
+        private readonly TextBlock _title = new TextBlock { Style = Ui.Style("T.Title"), FontSize = 16, TextWrapping = TextWrapping.Wrap };
         private readonly TextBlock _clock = SafetyUi.Text("", 14, "B.Amber", FontWeights.SemiBold, 6);
         private readonly TextBlock _msg = SafetyUi.Live("Ladder status");
         private readonly DispatcherTimer _tick = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };

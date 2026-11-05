@@ -175,7 +175,7 @@ namespace MonitoringTools.UI
                 {
                     var sp = new StackPanel();
                     sp.Children.Add(new TextBlock { Text = "Commit message for :push", Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), FontSize = 12, Margin = new Thickness(0, 0, 0, 6) });
-                    var box = new TextBox { Style = Ui.Style("Input"), Text = string.IsNullOrWhiteSpace(s.CommitTemplate) ? GitPush.SuggestedTemplate : s.CommitTemplate, Height = 40, FontSize = 13 };
+                    var box = new TextBox { Style = Ui.Style("Input"), Text = string.IsNullOrWhiteSpace(s.CommitTemplate) ? GitPush.SuggestedTemplate : s.CommitTemplate, Height = 40, FontSize = 12 };
                     AutomationProperties.SetName(box, "Commit message for :push");
                     var preview = Note("");
                     void Refresh() => preview.Text = "Preview: " + GitPush.Expand(box.Text, @"C:\Code\my-repo", "main", 3);
@@ -284,14 +284,14 @@ namespace MonitoringTools.UI
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 var dot = new Border
                 {
-                    Width = 28, Height = 28, CornerRadius = new CornerRadius(14),
+                    Width = 28, Height = 28, CornerRadius = new CornerRadius(12),
                     Background = done ? Ui.Res("B.Mint") : now ? Ui.Res("B.MintWash") : Ui.Res("B.Raised"),
                     BorderBrush = now ? Ui.Res("B.Mint") : Ui.Res("B.LineStrong"), BorderThickness = new Thickness(now ? 2 : 1),
                     Child = done ? (UIElement)Ui.Icon(Icons.Check, Ui.Res("B.MintInk"), 11, 3)
                                  : new TextBlock { Text = (i + 1).ToString(), FontSize = 11, FontFamily = Ui.Font("F.Mono"), Foreground = Ui.Res(now ? "B.Mint" : "B.TextMute"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
                 };
                 g.Children.Add(dot);
-                var t = new TextBlock { Text = _steps[i].Name + (_steps[i].Optional ? " · optional" : ""), FontSize = 13, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res(now ? "B.Text" : done ? "B.TextSoft" : "B.TextMute"), FontWeight = now ? FontWeights.SemiBold : FontWeights.Normal, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                var t = new TextBlock { Text = _steps[i].Name + (_steps[i].Optional ? " · optional" : ""), FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res(now ? "B.Text" : done ? "B.TextSoft" : "B.TextMute"), FontWeight = now ? FontWeights.SemiBold : FontWeights.Normal, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                 Grid.SetColumn(t, 1);
                 g.Children.Add(t);
                 var b = new Button { Style = Ui.Style("Btn.Row"), Content = g, Margin = new Thickness(-8, 0, 0, 4), IsEnabled = i <= Math.Max(_index, Settings.Current.OnboardingStep), HorizontalContentAlignment = HorizontalAlignment.Left };

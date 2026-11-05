@@ -13,7 +13,7 @@
             </TransformGroup>
         </Grid.RenderTransform>
 
-        <Border x:Name="Card" CornerRadius="24" Background="{DynamicResource B.Raised}" BorderThickness="1"
+        <Border x:Name="Card" CornerRadius="28" Background="{DynamicResource B.Raised}" BorderThickness="1"
                 Effect="{StaticResource Fx.Shadow}">
             <Border.BorderBrush>
                 <SolidColorBrush x:Name="CardBorder" Color="{DynamicResource C.Line}"/>

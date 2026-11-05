@@ -202,7 +202,7 @@ Write-Output 'Copied to the clipboard.'
             FrameworkElement StepOptions()
             {
                 var sp = new StackPanel();
-                sp.Children.Add(new TextBlock { Text = $"Runs with: {(preset.Shell == ScriptShell.Batch ? "a batch file (.bat)" : "PowerShell (.ps1)")}, set by the starting point you chose.", Foreground = Ui.Res("B.TextSoft"), FontSize = 13, Margin = new Thickness(0, 0, 0, 8), TextWrapping = TextWrapping.Wrap });
+                sp.Children.Add(new TextBlock { Text = $"Runs with: {(preset.Shell == ScriptShell.Batch ? "a batch file (.bat)" : "PowerShell (.ps1)")}, set by the starting point you chose.", Foreground = Ui.Res("B.TextSoft"), FontSize = 12, Margin = new Thickness(0, 0, 0, 8), TextWrapping = TextWrapping.Wrap });
                 FrameworkElement Sw(string label, string sub, bool initial, Action<bool> set, string accent)
                 {
                     var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = initial, Tag = Ui.Res(accent), Margin = new Thickness(0, 4, 0, 10) };
@@ -222,7 +222,7 @@ Write-Output 'Copied to the clipboard.'
             }
 
             // step 4: review
-            var review = new TextBlock { Foreground = Ui.Res("B.Text"), FontSize = 13, TextWrapping = TextWrapping.Wrap };
+            var review = new TextBlock { Foreground = Ui.Res("B.Text"), FontSize = 12, TextWrapping = TextWrapping.Wrap };
             var preview = Ui.Mono("", Ui.Res("B.TextSoft"), 12);
             preview.TextWrapping = TextWrapping.NoWrap;
             FrameworkElement StepReview()
