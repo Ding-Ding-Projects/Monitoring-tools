@@ -237,6 +237,10 @@ namespace MonitoringTools.Core
                         double expect = Math.Sqrt(la * la + lb * lb);
                         if (Math.Abs(hyp - expect) / hyp > 0.2) continue;
                         double score = (legMax - legMin) / legMax + Math.Abs(hyp - expect) / hyp;
+                        // a real finder is seen on about 2.5 scan rows per pixel of module size; stray ring patterns in the data are seen once
+                        // or twice. Prefer the triple whose weakest finder is well supported, so a tidy-looking triple of strays cannot win.
+                        double support = t.Min(f => Math.Min(1.0, f.Count / (2.0 * f.Size)));
+                        score += (1 - support) * 0.5;
                         if (score >= best) continue;
                         best = score;
                         // in image coordinates (y down) the top-right to bottom-left order has a positive cross product
@@ -296,6 +300,31 @@ namespace MonitoringTools.Core
             {
                 double den = g * x + h * y + 1;
                 return ((a * x + b * y + c) / den, (d * x + e * y + f) / den);
+            }
+        }
+
+        /// <summary>
+        /// Fits the map on the finder centres plus every alignment pattern that was found, then throws away alignment patterns that
+        /// disagree with the fit by more than a third of a module and refits. A pattern that is matched in the wrong place (a stray
+        /// ring in blurred data) would otherwise drag the whole map off and wreck a large code.
+        /// </summary>
+        private static Perspective FitTrimmed(List<double> mxs, List<double> mys, List<double> ixs, List<double> iys, int baseCount, double modulePx)
+        {
+            var mx = new List<double>(mxs); var my = new List<double>(mys); var ix = new List<double>(ixs); var iy = new List<double>(iys);
+            Perspective fit = null;
+            while (true)
+            {
+                fit = new Perspective(mx.ToArray(), my.ToArray(), ix.ToArray(), iy.ToArray());
+                if (!fit.Valid) return null;
+                int worst = -1; double worstErr = 0.33 * modulePx;
+                for (int i = baseCount; i < mx.Count; i++)
+                {
+                    var p = fit.Map(mx[i], my[i]);
+                    double err = Math.Sqrt((p.X - ix[i]) * (p.X - ix[i]) + (p.Y - iy[i]) * (p.Y - iy[i]));
+                    if (err > worstErr) { worstErr = err; worst = i; }
+                }
+                if (worst < 0 || mx.Count - 1 <= baseCount) return fit;
+                mx.RemoveAt(worst); my.RemoveAt(worst); ix.RemoveAt(worst); iy.RemoveAt(worst);
             }
         }
 
@@ -440,8 +469,8 @@ namespace MonitoringTools.Core
                                 { mxs.Add(gx); mys.Add(gy); ixs.Add(fx); iys.Add(fy); }
                             }
                         if (mxs.Count <= baseCount) break;
-                        var refined = new Perspective(mxs.ToArray(), mys.ToArray(), ixs.ToArray(), iys.ToArray());
-                        if (!refined.Valid) break;
+                        var refined = FitTrimmed(mxs, mys, ixs, iys, baseCount, Math.Sqrt(exX * exX + exY * exY));
+                        if (refined == null || !refined.Valid) break;
                         tf = refined;
                         candidates.Insert(0, refined);
                     }

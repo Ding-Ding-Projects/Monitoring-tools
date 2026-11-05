@@ -239,6 +239,29 @@ namespace MonitoringTools.Core
             return Has(levelDat, b.ToArray());
         }
 
+        /// <summary>
+        /// A game rule as newer versions store it (26.1 and later name rules in snake case, possibly namespaced, and write typed tags): a byte tag
+        /// for a true or false rule, an int tag for a number. Returns an excerpt around the name when the value is not found, to show what is there.
+        /// </summary>
+        private static bool RuleStoredTyped(byte[] levelDat, string rule, int value, bool isBool, out string excerpt)
+        {
+            excerpt = null;
+            foreach (var name in new[] { rule, "minecraft:" + rule })
+            {
+                var nb = Encoding.ASCII.GetBytes(name);
+                var head = new List<byte> { isBool ? (byte)1 : (byte)3, 0, (byte)nb.Length }; head.AddRange(nb);
+                var tail = isBool ? new byte[] { (byte)value } : new byte[] { (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value };
+                head.AddRange(tail);
+                if (Has(levelDat, head.ToArray())) return true;
+                for (int i = 0; i + nb.Length <= levelDat.Length && excerpt == null; i++)
+                {
+                    int j = 0; while (j < nb.Length && levelDat[i + j] == nb[j]) j++;
+                    if (j == nb.Length) excerpt = name + " found, bytes around it: " + BitConverter.ToString(levelDat.Skip(Math.Max(0, i - 4)).Take(nb.Length + 14).ToArray());
+                }
+            }
+            return false;
+        }
+
         /// <summary>Which of the needles appear in the decompressed chunk data of the region files in a folder (block and biome ids sit in the chunk palettes).</summary>
         private static HashSet<string> InChunks(string regionFolder, IEnumerable<string> needles, int maxChunks = 400, bool fullOnly = false)
         {
@@ -309,6 +332,16 @@ namespace MonitoringTools.Core
             return "not found";
         }
 
+        // Where a world keeps each dimension's region files: DIM-1 and DIM1 folders up to 1.21, and under dimensions/minecraft/ in 26.1 and later.
+        private static bool IsNetherDir(string d) => d.Contains("DIM-1") || d.Contains("the_nether");
+        private static bool IsEndDir(string d) => d.Contains("DIM1") || d.Contains("the_end");
+        private static string RegionDir(string world, string which)
+        {
+            var all = Directory.Exists(world) ? Directory.GetDirectories(world, "region", SearchOption.AllDirectories) : new string[0];
+            var hit = which == "nether" ? all.FirstOrDefault(IsNetherDir) : which == "end" ? all.FirstOrDefault(IsEndDir) : all.FirstOrDefault(d => !IsNetherDir(d) && !IsEndDir(d));
+            return hit ?? Path.Combine(world, "region-not-found-" + which);
+        }
+
         private static List<string> RegionFiles(string folder) => Directory.Exists(folder) ? Directory.GetFiles(folder, "r.*.mca").Where(f => new FileInfo(f).Length > 8192).ToList() : new List<string>();
 
         private static async Task<(string Path, string Note, string Fail)> Generate(WorldGenOptions o)
@@ -332,18 +365,45 @@ namespace MonitoringTools.Core
             try
             {
                 // ---- a normal world with the Nether and the End pre-generated, and two game rules
+                // rule names come from the jar's own list: 26.1 and later write them in snake case
+                var facts = await WorldGenerator.JarFactsAsync(Version, _ => { });
+                bool snake = facts.GameRules.Any(r => r.Name == "keep_inventory");
+                string keepName = snake ? "keep_inventory" : "keepInventory", tickName = snake ? "random_tick_speed" : "randomTickSpeed";
                 var a = new WorldGenOptions { Version = Version, Seed = "lane", RadiusChunks = 2, PreGenNether = true, PreGenEnd = true, EulaAccepted = true, Destination = root, WorldName = "normal", BorderToSize = true };
-                a.GameRules["keepInventory"] = "true"; a.GameRules["randomTickSpeed"] = "7";
+                a.GameRules[keepName] = "true"; a.GameRules[tickName] = "7";
                 var (pa, na, fa) = await Generate(a);
                 if (fa != null) return "the normal world failed: " + fa;
                 if (na != null) return "the normal world said: " + na;
-                var overworld = RegionFiles(Path.Combine(pa, "region")); var nether = RegionFiles(Path.Combine(pa, "DIM-1", "region")); var end = RegionFiles(Path.Combine(pa, "DIM1", "region"));
+                var overworld = RegionFiles(RegionDir(pa, "overworld")); var nether = RegionFiles(RegionDir(pa, "nether")); var end = RegionFiles(RegionDir(pa, "end"));
                 if (overworld.Count == 0 || nether.Count == 0 || end.Count == 0) return $"region files: overworld {overworld.Count}, Nether {nether.Count}, End {end.Count}";
                 Say($"regions: overworld {overworld.Count}, Nether {nether.Count}, End {end.Count} ({(overworld.Concat(nether).Concat(end).Sum(f => new FileInfo(f).Length)) / 1024} KB)");
                 var level = Gunzip(Path.Combine(pa, "level.dat"));
-                if (!RuleStored(level, "keepInventory", "true")) return "level.dat does not hold keepInventory=true";
-                if (!RuleStored(level, "randomTickSpeed", "7")) return "level.dat does not hold randomTickSpeed=7";
-                Say("level.dat holds keepInventory=true and randomTickSpeed=7 (the defaults are false and 3)");
+                if (!snake)
+                {
+                    if (!RuleStored(level, "keepInventory", "true")) return "level.dat does not hold keepInventory=true";
+                    if (!RuleStored(level, "randomTickSpeed", "7")) return "level.dat does not hold randomTickSpeed=7";
+                }
+                else
+                {
+                    // 26.1 and later keep game rules in their own data file beside level.dat, so every .dat file of the world is searched
+                    string RuleWhere(string rule, int val, bool isBool, out string why)
+                    {
+                        why = null;
+                        foreach (var dat in Directory.GetFiles(pa, "*.dat", SearchOption.AllDirectories))
+                        {
+                            byte[] raw; try { raw = Gunzip(dat); } catch { continue; }
+                            if (RuleStoredTyped(raw, rule, val, isBool, out var ex)) return Path.GetRelativePath(pa, dat);
+                            why ??= ex == null ? null : Path.GetRelativePath(pa, dat) + ": " + ex;
+                        }
+                        return null;
+                    }
+                    var k1 = RuleWhere(keepName, 1, true, out var ex1);
+                    if (k1 == null) return "no .dat file of the world holds " + keepName + "=true: " + (ex1 ?? "the name is not in any of them (" + string.Join(", ", Directory.GetFiles(pa, "*.dat", SearchOption.AllDirectories).Select(f => Path.GetRelativePath(pa, f))) + ")");
+                    var k2 = RuleWhere(tickName, 7, false, out var ex2);
+                    if (k2 == null) return "no .dat file of the world holds " + tickName + "=7: " + (ex2 ?? "the name is not in any of them");
+                    Say($"the rules are stored in {k1} and {k2}");
+                }
+                Say($"the world's stored game rules hold {keepName}=true and {tickName}=7 (the defaults are false and 3)");
 
                 // ---- a normal world, Nether and End, written as a ZIP
                 var z = new WorldGenOptions { Version = Version, Seed = "lane", RadiusChunks = 2, PreGenNether = true, PreGenEnd = true, EulaAccepted = true, Destination = root, WorldName = "normalzip", AsZip = true };
@@ -353,7 +413,7 @@ namespace MonitoringTools.Core
                 if (!pz.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) || !File.Exists(pz)) return "the normal ZIP was not written: " + pz;
                 var zdir = Path.Combine(root, "normalzip-unzipped"); ZipFile.ExtractToDirectory(pz, zdir);
                 var zr = Directory.GetDirectories(zdir, "region", SearchOption.AllDirectories);
-                int zo = zr.Where(d => !d.Contains("DIM")).SelectMany(RegionFiles).Count(), zn = zr.Where(d => d.Contains("DIM-1")).SelectMany(RegionFiles).Count(), ze = zr.Where(d => d.Contains("DIM1")).SelectMany(RegionFiles).Count();
+                int zo = zr.Where(d => !IsNetherDir(d) && !IsEndDir(d)).SelectMany(RegionFiles).Count(), zn = zr.Where(d => IsNetherDir(d)).SelectMany(RegionFiles).Count(), ze = zr.Where(d => IsEndDir(d)).SelectMany(RegionFiles).Count();
                 if (zo == 0 || zn == 0 || ze == 0 || Directory.GetFiles(zdir, "level.dat", SearchOption.AllDirectories).Length == 0) return $"the normal ZIP holds overworld {zo}, Nether {zn}, End {ze} region files (or no level.dat)";
                 Say($"normal world ZIP {new FileInfo(pz).Length / 1024} KB: overworld {zo}, Nether {zn}, End {ze} region files and a level.dat");
 
@@ -368,14 +428,14 @@ namespace MonitoringTools.Core
                 if (!pb.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) || !File.Exists(pb)) return "the ZIP was not written: " + pb;
                 var unzip = Path.Combine(root, "flat-unzipped");
                 ZipFile.ExtractToDirectory(pb, unzip);
-                var flatRegion = Directory.GetDirectories(unzip, "region", SearchOption.AllDirectories).FirstOrDefault(d => !d.Contains("DIM"));
+                var flatRegion = Directory.GetDirectories(unzip, "region", SearchOption.AllDirectories).FirstOrDefault(d => !IsNetherDir(d) && !IsEndDir(d));
                 var flatLevel = Directory.GetFiles(unzip, "level.dat", SearchOption.AllDirectories).FirstOrDefault();
                 if (flatRegion == null || flatLevel == null) return "the ZIP has no overworld region folder or no level.dat";
                 var inFlat = InChunks(flatRegion, new[] { "minecraft:emerald_block", "minecraft:gold_block", "minecraft:bedrock", "minecraft:plains" });
                 if (!inFlat.Contains("minecraft:emerald_block") || !inFlat.Contains("minecraft:gold_block")) return "the chunks do not hold the custom layers; found " + string.Join(",", inFlat);
                 Say($"ZIP {new FileInfo(pb).Length / 1024} KB, {RegionFiles(flatRegion).Count} region files; the chunks hold {string.Join(", ", inFlat.OrderBy(x => x))}");
-                var flatNether = Directory.GetDirectories(unzip, "region", SearchOption.AllDirectories).Where(d => d.Contains("DIM-1")).SelectMany(RegionFiles).Count();
-                var flatEnd = Directory.GetDirectories(unzip, "region", SearchOption.AllDirectories).Where(d => d.Contains("DIM1")).SelectMany(RegionFiles).Count();
+                var flatNether = Directory.GetDirectories(unzip, "region", SearchOption.AllDirectories).Where(d => IsNetherDir(d)).SelectMany(RegionFiles).Count();
+                var flatEnd = Directory.GetDirectories(unzip, "region", SearchOption.AllDirectories).Where(d => IsEndDir(d)).SelectMany(RegionFiles).Count();
                 if (flatNether == 0 || flatEnd == 0) return $"the superflat ZIP holds Nether {flatNether} and End {flatEnd} region files";
                 Say($"the superflat ZIP also holds {flatNether} Nether and {flatEnd} End region files");
 
@@ -384,10 +444,10 @@ namespace MonitoringTools.Core
                 var (pc, nc, fc) = await Generate(c);
                 if (fc != null) return "the single biome world failed: " + fc;
                 if (nc != null) return "the single biome world said: " + nc;
-                var biomes = InChunks(Path.Combine(pc, "region"), new[] { "minecraft:cherry_grove", "minecraft:plains", "minecraft:forest", "minecraft:ocean" }, 2000, fullOnly: true);
+                var biomes = InChunks(RegionDir(pc, "overworld"), new[] { "minecraft:cherry_grove", "minecraft:plains", "minecraft:forest", "minecraft:ocean" }, 2000, fullOnly: true);
                 if (!biomes.Contains("minecraft:cherry_grove")) return "the chunks do not hold cherry_grove; found " + string.Join(",", biomes);
-                if (biomes.Any(x => x != "minecraft:cherry_grove")) return "the chunks hold other biomes too: " + string.Join(",", biomes) + "; plains sits at " + ChunkContext(Path.Combine(pc, "region"), "minecraft:plains");
-                var bNether = RegionFiles(Path.Combine(pc, "DIM-1", "region")).Count; var bEnd = RegionFiles(Path.Combine(pc, "DIM1", "region")).Count;
+                if (biomes.Any(x => x != "minecraft:cherry_grove")) return "the chunks hold other biomes too: " + string.Join(",", biomes) + "; plains sits at " + ChunkContext(RegionDir(pc, "overworld"), "minecraft:plains");
+                var bNether = RegionFiles(RegionDir(pc, "nether")).Count; var bEnd = RegionFiles(RegionDir(pc, "end")).Count;
                 if (bNether == 0 || bEnd == 0) return $"the single biome world holds Nether {bNether} and End {bEnd} region files";
                 Say($"the single biome world holds {bNether} Nether and {bEnd} End region files");
                 Say("the finished overworld chunks hold only minecraft:cherry_grove (chunks saved part way, as neighbours of the area, carry a placeholder plains palette and are not counted)");
