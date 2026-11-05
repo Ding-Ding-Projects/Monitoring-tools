@@ -20,6 +20,14 @@ namespace MonitoringTools.UI
     // two elements with the same words are locked apart, and that a lock saved with the words alone still holds on the first of them.
     public static partial class SelfTest
     {
+        /// <summary>The control centre's open tabs, so a check that switches tabs can put them back.</summary>
+        private static Action SaveTabs()
+        {
+            var st = Settings.Current;
+            var open = st.OpenTabs.ToList(); var pinned = st.PinnedTabs.ToList(); var active = st.ActiveTab;
+            return () => { st.OpenTabs = open; st.PinnedTabs = pinned; st.ActiveTab = active; };
+        }
+
         private static MouseButtonEventArgs MouseArgs(UIElement target, RoutedEvent ev) =>
             new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = ev, Source = target };
 
@@ -120,6 +128,7 @@ namespace MonitoringTools.UI
                 var problems = new List<string>();
                 var proof = new Dictionary<string, string>();
                 ElementMenu.KeepOpenForTest = true;
+                var restoreTabs = SaveTabs();
 
                 // a window that carries locks, built from the app's own controls
                 var radioA = new RadioButton { Content = "Walk choice A", GroupName = "lockwalk", IsChecked = true, Margin = new Thickness(4) };
@@ -246,6 +255,7 @@ namespace MonitoringTools.UI
                     ClosePrompts();
                     host.Close();
                     cc?.Close();
+                    restoreTabs();
                 }
             });
 
@@ -257,6 +267,7 @@ namespace MonitoringTools.UI
                 var problems = new List<string>();
                 var made = new List<(string, string)>();
                 ControlCentreWindow cc = null;
+                var restoreTabs = SaveTabs();
                 try
                 {
                     host.Show(); await Wave6Flows.Settle(host, 500);
@@ -314,6 +325,7 @@ namespace MonitoringTools.UI
                     foreach (var (pg, k) in made) { var ent = Locks.Find(pg, k); if (ent != null) { try { new Locks.Session(ent).Submit("4826"); } catch { } Locks.Remove(ent.Id); } }
                     host.Close();
                     cc?.Close();
+                    restoreTabs();
                 }
             });
         }

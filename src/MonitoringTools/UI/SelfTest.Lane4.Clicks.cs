@@ -132,6 +132,7 @@ namespace MonitoringTools.UI
                 var problems = new System.Collections.Generic.List<string>();
                 ControlCentreWindow cc = null;
                 ElementMenu.KeepOpenForTest = true;
+                var restoreTabs = SaveTabs();
                 void Lock(string page, string key) { var err = Locks.Create(page, key, key, LockPolicy.Pin, 5, "4826", null, null); if (err == null) made.Add((page, key)); else problems.Add("lock not made on " + key + ": " + err); }
                 async Task Click(string name, Window w, FrameworkElement el, Func<string> value)
                 {
@@ -211,6 +212,7 @@ namespace MonitoringTools.UI
                     foreach (var (pg, k) in made) { var e = Locks.Find(pg, k); if (e != null) { try { new Locks.Session(e).Submit("4826"); } catch { } Locks.Remove(e.Id); } }
                     host.Close();
                     cc?.Close();
+                    restoreTabs();
                 }
             });
         }
