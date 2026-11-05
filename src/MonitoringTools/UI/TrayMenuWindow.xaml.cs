@@ -65,6 +65,20 @@ namespace MonitoringTools.UI
             }));
             Rows.Children.Add(Rule());
 
+            // disc images this app mounted, each with Eject
+            var mounted = Core.DocTools.DiscImageTools.MountedSnapshot();
+            if (mounted.Count > 0)
+            {
+                foreach (var (image, drive) in mounted)
+                {
+                    var name = System.IO.Path.GetFileName(image);
+                    var row = Row(Dialogs.DocIcons.Eject, $"Eject {name}", drive, () => EjectFromTray(image, name));
+                    System.Windows.Automation.AutomationProperties.SetName(row, $"Eject {name}");
+                    Rows.Children.Add(row);
+                }
+                Rows.Children.Add(Rule());
+            }
+
             // switches
             Rows.Children.Add(Toggle("Clipboard toasts", "popup when you copy", s.ClipboardEnabled, v => { s.ClipboardEnabled = v; Settings.Save(); App.Tray.Refresh(); }));
             Rows.Children.Add(Toggle("Network alerts", "popup when the link drops", s.NetworkEnabled, v => { s.NetworkEnabled = v; Settings.Save(); App.Tray.Refresh(); }));
@@ -160,6 +174,19 @@ namespace MonitoringTools.UI
             sp.Children.Add(wrap);
             return sp;
         }
+
+        // -------------------------------------------------------------- disc images
+
+        /// <summary>Ejects an image this app mounted, off the interface thread, and says how it went.</summary>
+        internal static System.Threading.Tasks.Task EjectFromTray(string image, string name) => System.Threading.Tasks.Task.Run(() =>
+        {
+            var err = Core.DocTools.DiscImageTools.Dismount(image);
+            App.Current?.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (err == null) App.Toasts.ShowNotice($"Ejected {name}", "The drive is gone and the image file can be moved or deleted.", App.Toasts.Mint, 4, icon: Dialogs.DocIcons.Eject);
+                else App.Toasts.ShowNotice($"Could not eject {name}", err, App.Toasts.Amber, 6, icon: Dialogs.DocIcons.Eject);
+            }));
+        });
 
         // -------------------------------------------------------------- service actions
 

@@ -52,10 +52,15 @@ namespace MonitoringTools.UI
         // file says about itself: data the person owns, not wording of the app.
         private static bool DocTestData(string text)
         {
-            foreach (var k in new[] { "Aa Gg 123", "Quick brown fox", "Sphinx of black quartz", "Microsoft supplied font", "Welcome back to the show", "Today we are fixing", "First, the hinge", "Now the latch", "Line that runs long", "Starts before the last", "network share that does not allow mounting", "SOURCES", "assets", "project", "src" })
+            foreach (var k in new[] { "Aa Gg 123", "Quick brown fox", "Sphinx of black quartz", "Microsoft supplied font", "Welcome back to the show", "Today we are fixing", "First, the hinge", "Now the latch", "Line that runs long", "Starts before the last", "network share that does not allow mounting", "SOURCES", "assets", "project", "src", "The five boxing wizards" })
                 if (text.Contains(k) && !text.Contains("Collapse") && !text.Contains("Expand")) return true;
+            if (DocFontNames.Any(n => text == n || text.StartsWith(n + " ·") || text.StartsWith(n + " (") || text.EndsWith(" " + n) || text.EndsWith(", " + n))) return true;
+            if (text is "docs" or "deep" or "pack" or "sub") return true;   // folder names inside the archives the check made
             return text == "Fine" || text.StartsWith("Arial ·") || text.StartsWith("Arial (") || text.Contains("Arial · Regular");
         }
+
+        // the face names of the font collection the check copied: the font's own words, not the app's
+        private static readonly HashSet<string> DocFontNames = new HashSet<string>(StringComparer.Ordinal);
 
         private static async Task Pump(int ms = 250) { await Task.Delay(ms); }
 
@@ -184,6 +189,8 @@ namespace MonitoringTools.UI
             await SubtitleDocChecksAsync();
             await FontDocChecksAsync();
             await DiscDocChecksAsync();
+            await FontCollectionDocChecksAsync();
+            await TrayEjectDocChecksAsync();
 
             Check("language: every visible string in the archive, subtitle, font and disc image dialogs has a Cantonese entry", () =>
                 DocLanguageGaps.Count == 0 ? null : DocLanguageGaps.Count + " untranslated: " + string.Join(" | ", DocLanguageGaps.Take(500)));
@@ -313,7 +320,7 @@ namespace MonitoringTools.UI
                 finally { d?.Close(); }
             });
 
-            await CheckAsync("archive dialog: tar, tar.gz and gz are listed and extracted, a tar path that escapes the folder is refused, and 7z reports that it needs 7-Zip", async () =>
+            await CheckAsync("archive dialog: tar, tar.gz and gz are listed and extracted, a tar path that escapes the folder is refused, and a damaged 7z and a RAR say they cannot be opened", async () =>
             {
                 var t = DocTmp("tar");
                 byte[] B(string s) => Encoding.UTF8.GetBytes(s);
@@ -327,6 +334,7 @@ namespace MonitoringTools.UI
                 var tgz = Path.Combine(t, "bundle.tar.gz"); WriteTar(new GZipStream(File.Create(tgz), CompressionLevel.Optimal), false);
                 var gz = Path.Combine(t, "notes.txt.gz"); using (var o = new GZipStream(File.Create(gz), CompressionLevel.Optimal)) o.Write(B("GZIPPED"));
                 var seven = Path.Combine(t, "old.7z"); File.WriteAllBytes(seven, new byte[] { 0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C, 0, 4, 0, 0, 0, 0 });
+                var rar = Path.Combine(t, "old.rar"); File.WriteAllBytes(rar, new byte[] { 0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00, 0, 0, 0, 0 });
                 // tar with an escaping path
                 var d1 = ExtractArchiveDialog.Open(tar);
                 try
@@ -363,14 +371,26 @@ namespace MonitoringTools.UI
                 try
                 {
                     await Pump(300);
-                    if (d4.State != ArchiveState.CannotRead) return "7z state is " + d4.State;
+                    if (d4.State != ArchiveState.CannotRead) return "a damaged 7z opened in state " + d4.State;
                     var text = Drive.TextOf(d4);
-                    if (!text.Contains("needs 7-Zip")) return "the 7z state does not say 7-Zip is needed: " + text;
-                    await DocAudit("archive cannot read", d4);
+                    if (!text.Contains("could not be read as 7z") || !text.Contains("Nothing was extracted and the archive was not changed.")) return "the damaged 7z state does not say so: " + text;
                 }
                 finally { d4?.Close(); }
+                var d5 = ExtractArchiveDialog.Open(rar);
+                try
+                {
+                    await Pump(300);
+                    if (d5.State != ArchiveState.CannotRead) return "a RAR opened in state " + d5.State;
+                    var text = Drive.TextOf(d5);
+                    if (!text.Contains("does not include the RAR decoder")) return "the RAR state does not say why: " + text;
+                    await DocAudit("archive cannot read", d5);
+                }
+                finally { d5?.Close(); }
                 return null;
             });
+
+            await SevenZipDocChecksAsync();
+            await AskRuleDocChecksAsync();
 
             Check("archive engine: Cancel stops before any file is written, removes the .part file and reports Canceled", () =>
             {
@@ -746,6 +766,7 @@ namespace MonitoringTools.UI
                     if (File.ReadAllText(Path.Combine(root, "HELLO.TXT")) != "HELLO-FROM-ISO") return "file content on the drive is wrong";
                     var again = await Task.Run(() => DiscImageTools.AttachedDrive(iso));
                     if (again != res.Drive) return "AttachedDrive says " + again + ", expected " + res.Drive;
+                    if (!DiscImageTools.MountedSnapshot().Any(m => m.Image == iso && m.Drive == res.Drive)) return "the mount is not in the list of images this app mounted";
                     return null;
                 }
                 finally

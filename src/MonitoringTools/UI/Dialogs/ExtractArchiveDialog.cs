@@ -14,12 +14,13 @@ using MonitoringTools.UI.Search;
 namespace MonitoringTools.UI.Dialogs
 {
     /// <summary>The states of the archive dialog.</summary>
-    public enum ArchiveState { Ready, Password, Working, Done, CannotRead }
+    public enum ArchiveState { Ready, Password, Working, Conflict, Done, CannotRead }
 
     /// <summary>
     /// "Extract an archive" (design/file-tools, board 7). Lists the contents with check marks, searches them, picks a destination
-    /// and a rule for names that exist, and extracts on a worker thread with progress and Cancel. A path that would leave the
-    /// destination is refused and counted. Zip, tar, tar.gz, tgz and gz open here; 7z and rar need 7-Zip, which is not bundled.
+    /// and a rule for names that exist (Ask stops at each one and lets the person choose), and extracts on a worker thread with
+    /// progress and Cancel. A path that would leave the destination is refused and counted. Zip, tar, tar.gz, tgz and gz use the
+    /// .NET libraries; 7z, xz, bz2, tar.xz, tar.bz2 and AES-encrypted zip go through the bundled 7-Zip. RAR cannot be read.
     /// </summary>
     public sealed class ExtractArchiveDialog : FileToolDialog
     {
@@ -27,7 +28,10 @@ namespace MonitoringTools.UI.Dialogs
         private readonly CheckTree _tree;
         private readonly SearchField _search;
         private TextBox _dest;
-        private int _ruleIndex = 2;                                  // Skip, Replace, Keep both
+        private int _ruleIndex = 3;                                  // Ask, Skip, Replace, Keep both
+        private OverwriteRule? _askAll;                              // the answer chosen for every remaining name, once the switch is on
+        private TaskCompletionSource<OverwriteRule> _pending;        // the question on screen, answered by a button
+        private ExtractProgress _lastProgress;
         private readonly TextBlock _selectedLine = Text("", 13);
         private Button _extract;
         private PasswordBox _pw; private TextBox _pwShown; private CheckBox _showPw; private TextBlock _pwError;
@@ -78,14 +82,14 @@ namespace MonitoringTools.UI.Dialogs
         private static string DefaultFolder(string file)
         {
             var n = Path.GetFileName(file);
-            foreach (var ext in new[] { ".tar.gz", ".tgz", ".zip", ".tar", ".gz", ".7z", ".rar" })
+            foreach (var ext in new[] { ".tar.gz", ".tar.xz", ".tar.bz2", ".tgz", ".txz", ".tbz2", ".tbz", ".zip", ".tar", ".gz", ".xz", ".bz2", ".7z", ".rar" })
                 if (n.EndsWith(ext, StringComparison.OrdinalIgnoreCase)) { n = n[..^ext.Length]; break; }
             return Path.Combine(Path.GetDirectoryName(file), n.Length == 0 ? "extracted" : n);
         }
 
         protected override bool EnterRunsPrimary => State != ArchiveState.Working;
 
-        protected override void OnEscape() { if (State == ArchiveState.Working) _cts?.Cancel(); Close(); }
+        protected override void OnEscape() { if (State == ArchiveState.Working || State == ArchiveState.Conflict) _cts?.Cancel(); Close(); }
 
         private string Summary()
         {
@@ -121,18 +125,19 @@ namespace MonitoringTools.UI.Dialogs
             destRow.ColumnDefinitions.Add(new ColumnDefinition()); destRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             Grid.SetColumn(choose, 1); destRow.Children.Add(_dest); destRow.Children.Add(choose);
 
-            var rule = Segmented("If a file already exists", new[] { "Skip", "Replace", "Keep both" }, _ruleIndex, i => { _ruleIndex = i; ShowReadyKeepState(); });
+            var rule = Segmented("If a file already exists", new[] { "Ask", "Skip", "Replace", "Keep both" }, _ruleIndex, i => { _ruleIndex = i; ShowReadyKeepState(); });
 
             var left = new StackPanel { Margin = new Thickness(0, 0, 16, 0) };
             left.Children.Add(FieldLabel("Extract to")); left.Children.Add(destRow); left.Children.Add(Hint("A new folder is made from the archive name."));
             var right = new StackPanel();
             right.Children.Add(FieldLabel("If a file already exists")); right.Children.Add(rule);
+            if (_ruleIndex == 0) right.Children.Add(Hint("You choose for each file that already exists."));
             var two = new Grid();
             two.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.4, GridUnitType.Star) }); two.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             Grid.SetColumn(right, 1); two.Children.Add(left); two.Children.Add(right);
 
             var notes = new List<UIElement>();
-            if (_info.Format == "zip" && _info.Entries.Any(e => e.Unsafe && !e.IsDirectory))
+            if (_info.Entries.Any(e => e.Unsafe && !e.IsDirectory))
                 notes.Add(Banner(BannerKind.Warn, "Some paths in this archive are unsafe", "Entries that would land outside the destination folder are refused and counted when it finishes."));
 
             var cancel = Ui.Button("Cancel", Close, "Btn.Ghost");
@@ -176,8 +181,10 @@ namespace MonitoringTools.UI.Dialogs
         private void ShowPassword(string error)
         {
             State = ArchiveState.Password;
-            SetSummary(_info.FileCount == 1 ? "encrypted · 1 file" : $"encrypted · {_info.FileCount} files");
-            var banner = Banner(BannerKind.Info, "This archive needs a password", "The file names are visible, the contents are locked. The password is used once and not stored.", DocIcons.Lock);
+            SetSummary(_info.NamesLocked ? "encrypted · names hidden" : _info.FileCount == 1 ? "encrypted · 1 file" : $"encrypted · {_info.FileCount} files");
+            var banner = _info.NamesLocked
+                ? Banner(BannerKind.Info, "This archive needs a password", "Even the file names are locked, so the list appears after the password. The password is used once and not stored.", DocIcons.Lock)
+                : Banner(BannerKind.Info, "This archive needs a password", "The file names are visible, the contents are locked. The password is used once and not stored.", DocIcons.Lock);
             _pw = new PasswordBox { Height = 42, FontSize = 14, Padding = new Thickness(10, 0, 10, 0), VerticalContentAlignment = VerticalAlignment.Center, Background = Ui.Res("B.Sunken"), Foreground = Ui.Res("B.Text"), CaretBrush = Ui.Res("B.Mint"), BorderBrush = error == null ? Ui.Res("B.LineStrong") : Ui.Res("B.Danger"), BorderThickness = new Thickness(1) };
             AutomationProperties.SetName(_pw, "Password");
             _pwShown = Field("Password", _lastPassword ?? ""); _pwShown.Visibility = Visibility.Collapsed;
@@ -206,7 +213,7 @@ namespace MonitoringTools.UI.Dialogs
             var copy = Ui.Button("Copy details", () => { try { Clipboard.SetText(reason); } catch { } }, "Btn.Ghost", DocIcons.Copy);
             SetBody(Banner(BannerKind.Bad, "This archive cannot be opened here", reason),
                     Card(new StackPanel { Children = { Text("WHAT WAS NOT CHANGED", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("Nothing was extracted and the archive was not changed.", 13) } }));
-            SetFooterClose("Zip, tar, tar.gz, tgz and gz archives open here.", copy);
+            SetFooterClose("Zip, 7z, tar, gz, xz and bz2 archives open here.", copy);
         }
 
         // ------------------------------------------------------------ extraction
@@ -236,7 +243,7 @@ namespace MonitoringTools.UI.Dialogs
         }
 
         internal void SetDestinationForTest(string folder) { _destText = folder; if (_dest != null) _dest.Text = folder; }
-        internal void SetRuleForTest(OverwriteRule r) { _ruleIndex = r == OverwriteRule.Skip ? 0 : r == OverwriteRule.Replace ? 1 : 2; }
+        internal void SetRuleForTest(OverwriteRule r) { _ruleIndex = r == OverwriteRule.Ask ? 0 : r == OverwriteRule.Skip ? 1 : r == OverwriteRule.Replace ? 2 : 3; }
         internal void SetPasswordForTest(string pw) { _lastPassword = pw; if (_pw != null) _pw.Password = pw; }
 
         private void Run(List<ArchiveEntry> picked, string password)
@@ -244,17 +251,38 @@ namespace MonitoringTools.UI.Dialogs
             var dest = (_destText ?? "").Trim();
             if (dest.Length == 0) { SetStatus("Choose a folder to extract into."); return; }
             try { dest = Path.GetFullPath(dest); } catch { SetStatus("That folder name is not valid."); return; }
-            var rule = _ruleIndex == 0 ? OverwriteRule.Skip : _ruleIndex == 1 ? OverwriteRule.Replace : OverwriteRule.KeepBoth;
+            var rule = _ruleIndex == 0 ? OverwriteRule.Ask : _ruleIndex == 1 ? OverwriteRule.Skip : _ruleIndex == 2 ? OverwriteRule.Replace : OverwriteRule.KeepBoth;
             _cts = new CancellationTokenSource();
+            _askAll = null;
             var progress = BuildWorkingUi(dest);
             var token = _cts.Token;
-            LastRun = Task.Run(() => ArchiveTools.Extract(_info, picked, dest, rule, password, progress, token)).ContinueWith(t =>
+            LastRun = Task.Run(() => ArchiveTools.Extract(_info, picked, dest, rule, password, progress, token, (entry, existing) => AskOnScreen(entry, existing, dest, token))).ContinueWith(t =>
             {
                 Dispatcher.Invoke(() => ShowDone(t.IsFaulted ? new ExtractResult { Error = t.Exception?.GetBaseException().Message, Destination = dest } : t.Result));
             });
         }
 
         private Progress<ExtractProgress> BuildWorkingUi(string dest)
+        {
+            _lastProgress = null;
+            BuildWorkingVisuals(dest);
+            return new Progress<ExtractProgress>(p =>
+            {
+                _lastProgress = p;
+                if (State == ArchiveState.Working) ShowProgress(p, dest);
+            });
+        }
+
+        private void ShowProgress(ExtractProgress p, string dest)
+        {
+            double frac = p.TotalBytes > 0 ? (double)p.Bytes / p.TotalBytes : (p.Total > 0 ? (double)p.Done / p.Total : 0);
+            _bigPercent.Text = $"{(int)Math.Min(100, frac * 100)}%";
+            _bar.Value = Math.Min(100, frac * 100);
+            _fileOf.Text = $"File {Math.Max(1, p.Done)} of {p.Total}";
+            _current.Text = $"{p.Current} → {PathDisplay.Shown(dest)} · {Ui.Bytes(p.Bytes)} of {Ui.Bytes(p.TotalBytes)}";
+        }
+
+        private void BuildWorkingVisuals(string dest)
         {
             State = ArchiveState.Working;
             SetSummary("extracting");
@@ -268,15 +296,60 @@ namespace MonitoringTools.UI.Dialogs
             var disabled = Ui.Button("Extract", null, "Btn.Accent"); disabled.IsEnabled = false;
             SetBody(Card(card));
             SetFooter("Cancel stops now; files already written are kept.", null, new[] { cancel, disabled });
-            return new Progress<ExtractProgress>(p =>
+            if (_lastProgress != null) ShowProgress(_lastProgress, dest);
+        }
+
+        // ------------------------------------------------------------ Ask: one question for each name that exists
+
+        /// <summary>Called on the worker thread for each name that already exists. Blocks until a button answers; Cancel stops the extraction.</summary>
+        private OverwriteRule AskOnScreen(ArchiveEntry entry, string existing, string dest, CancellationToken token)
+        {
+            if (_askAll.HasValue) return _askAll.Value;
+            var tcs = new TaskCompletionSource<OverwriteRule>(TaskCreationOptions.RunContinuationsAsynchronously);
+            Dispatcher.Invoke(() => ShowConflict(entry, existing, dest, tcs));
+            using (token.Register(() => tcs.TrySetCanceled()))
             {
-                if (State != ArchiveState.Working) return;
-                double frac = p.TotalBytes > 0 ? (double)p.Bytes / p.TotalBytes : (p.Total > 0 ? (double)p.Done / p.Total : 0);
-                _bigPercent.Text = $"{(int)Math.Min(100, frac * 100)}%";
-                _bar.Value = Math.Min(100, frac * 100);
-                _fileOf.Text = $"File {Math.Max(1, p.Done)} of {p.Total}";
-                _current.Text = $"{p.Current} → {PathDisplay.Shown(dest)} · {Ui.Bytes(p.Bytes)} of {Ui.Bytes(p.TotalBytes)}";
-            });
+                try { return tcs.Task.GetAwaiter().GetResult(); }
+                catch (TaskCanceledException) { throw new OperationCanceledException(token); }
+            }
+        }
+
+        private void ShowConflict(ArchiveEntry entry, string existing, string dest, TaskCompletionSource<OverwriteRule> tcs)
+        {
+            State = ArchiveState.Conflict;
+            _pending = tcs;
+            SetSummary("waiting for you");
+            var name = Path.GetFileName(existing);
+            FileInfo fi = null; try { fi = new FileInfo(existing); } catch { }
+            string When(DateTime? d) => d.HasValue ? d.Value.ToString("yyyy-MM-dd HH:mm") : "date not stored";
+            var rows = new List<(string, string)>
+            {
+                ("In the folder", fi != null && fi.Exists ? $"{Ui.Bytes(fi.Length)} · {When(fi.LastWriteTime)}" : "—"),
+                ("In the archive", $"{Ui.Bytes(entry.Size)} · {When(entry.Modified)}"),
+                ("Path", entry.Path)
+            };
+            var all = new CheckBox { Style = Ui.Style("Switch"), Content = new TextBlock { Text = "Do the same for every other file that already exists", FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.Text") }, Margin = new Thickness(0, 4, 0, 0) };
+            AutomationProperties.SetName(all, "Do the same for every other file that already exists");
+            void Answer(OverwriteRule r)
+            {
+                if (_pending != tcs) return;
+                if (all.IsChecked == true) _askAll = r;
+                _pending = null;
+                BuildWorkingVisuals(dest);
+                tcs.TrySetResult(r);
+            }
+            var cancel = Ui.Button("Cancel", () => _cts?.Cancel(), "Btn.Ghost");
+            AutomationProperties.SetName(cancel, "Cancel the extraction");
+            var skip = Ui.Button("Skip", () => Answer(OverwriteRule.Skip), "Btn.Ghost");
+            AutomationProperties.SetName(skip, "Skip this file");
+            var keep = Ui.Button("Keep both", () => Answer(OverwriteRule.KeepBoth), "Btn.Ghost");
+            AutomationProperties.SetName(keep, "Keep both files");
+            var replace = Ui.Button("Replace", () => Answer(OverwriteRule.Replace), "Btn.Accent");
+            AutomationProperties.SetName(replace, "Replace the file in the folder");
+            SetBody(Banner(BannerKind.Warn, $"{name} already exists", "Choose what happens to this file. The extraction waits for your answer."), KeyValues(rows), all);
+            SetFooter("Keep both saves the new file under a numbered name.", null, new[] { cancel, skip, keep, replace }, replace);
+            SetStatus($"{name} already exists in the folder.");
+            replace.Focus();
         }
 
         /// <summary>Shows the Working state at a fixed progress, for captures (nothing is extracted).</summary>
@@ -299,8 +372,9 @@ namespace MonitoringTools.UI.Dialogs
             var parts = new List<UIElement>();
             var bytes = Ui.Bytes(r.Bytes);
             if (r.WrongPassword) parts.Add(Banner(BannerKind.Bad, "Wrong password for this archive", "Nothing more was extracted. Files already written are kept."));
-            else if (r.Error != null) parts.Add(Banner(BannerKind.Bad, "Extraction stopped", r.Error + " Files already written are kept."));
+            else if (r.Error != null && r.Extracted == 0) parts.Add(Banner(BannerKind.Bad, "Extraction stopped", r.Error + " Files already written are kept."));
             else if (r.Canceled) parts.Add(Banner(BannerKind.Warn, r.Extracted == 1 ? "Stopped after 1 file" : $"Stopped after {r.Extracted} files", "Files already written are kept; the one in progress was removed."));
+            else if (r.Error != null && r.Extracted > 0) parts.Add(Banner(BannerKind.Warn, r.Extracted == 1 ? "Extracted 1 file, with a problem" : $"Extracted {r.Extracted} files, with a problem", r.Error));
             else
             {
                 var title = r.Extracted == 1 ? $"Extracted 1 file, {bytes}" : $"Extracted {r.Extracted} files, {bytes}";
