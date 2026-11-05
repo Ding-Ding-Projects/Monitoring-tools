@@ -26,9 +26,9 @@ checked; anything unchecked is labelled.
   backups and worlds; Bedrock on Docker and over SSH; item and NBT editors; live plugin commands;
   peak history. The pre-generation stall's cause is proven (an empty 1.21.2+ server pauses after
   60 s) and fixed with `pause-when-empty-seconds=0`.
-- **Unfinished:** SSH world import, reset and replace from this app, and Forge and NeoForge live
-  runs, were in progress on branch `worktree-agent-aa24b41c13dfee312` when work stopped (see that
-  branch's last commit for its state). The history retention self-test check failed twice in other
+- **Since then, done:** SSH world import, reset and replace from this app (self-test and a live
+  OpenSSH run), and Forge and NeoForge live runs through the command builder (both passed).
+  The history retention self-test check failed twice in other
   runs and never in four runs here; it now reports the exact refused save if it fails again.
 - **Done:** register a TOTP account when a copied image holds an `otpauth://` QR
   code (see ROADMAP.md).

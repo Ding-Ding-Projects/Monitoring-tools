@@ -143,7 +143,7 @@ server.
 - Plugin and mod commands depend on what `help` prints: a plugin that registers a command without usage text gets a
   form with one text field for its words, and one the server does not list in `help` is not offered. The live check ran
   Paper (its `help` index, 15 commands) and a Fabric server with the spark mod (`/spark`, whose usage Fabric prints as
-  `[<args>]`, so its form is one optional text field). A real Forge 1.21.4 server answered `list`, `help` (mod commands `config` and `forge`) and `/time set day` in the live check; NeoForge was not yet run. Over RCON the reply to
+  `[<args>]`, so its form is one optional text field). A real Forge 1.21.4 server answered `list`, `help` (mod commands `config` and `forge`) and `/time set day` in the live check, and so did a real NeoForge 1.21.4 server (mod commands `config` and `neoforge`). Over RCON the reply to
   `help` comes back as one run of text, so the reader splits glued usage lines apart again.
 - The component editor builds six components with controls and any other by id and SNBT; item *predicates* (the
   `item_predicate` parser used by `clear` and `execute if items`) keep the id list and a typed value.
