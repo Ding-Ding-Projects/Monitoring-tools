@@ -173,7 +173,7 @@ namespace MonitoringTools.UI
         {
             var savedSecs = Settings.Current.ToastSeconds;
             var sink = new List<string>();
-            int ran = 0; InstallCommand last = null; string mode = "ok";
+            int ran = 0; InstallCommand last = null; string mode = "ok"; TaskCompletionSource<bool> gate = null;   // holds the fake install until a check has read the running state
             string logFile = Path.Combine(Path.GetTempPath(), "mt-install-log-" + Guid.NewGuid().ToString("N") + ".log");
             File.WriteAllText(logFile, "log");
             InstallRunner.PathForTest = m => "C:\\fake\\" + m;
@@ -185,7 +185,7 @@ namespace MonitoringTools.UI
                 try
                 {
                     if (c.Manager == InstallManager.Chocolatey) step?.Invoke("consent");
-                    await Task.Delay(mode == "hang" ? 60000 : 250, ct);
+                    if (gate != null) await gate.Task.WaitAsync(ct); else await Task.Delay(mode == "hang" ? 60000 : 250, ct);
                 }
                 catch (OperationCanceledException) { return new InstallResult { Cancelled = true, Message = "Cancelled. The install was stopped." }; }
                 step?.Invoke("install");
@@ -200,7 +200,7 @@ namespace MonitoringTools.UI
             {
                 await CheckAsync("install toast: choco offers names, source and the consent note, and runs nothing until Install is pressed", async () =>
                 {
-                    ran = 0; mode = "ok";
+                    gate?.TrySetResult(true); gate = null; ran = 0; mode = "ok";
                     var w = App.Toasts.ShowClip(ClipItem.FromText("choco install 7zip vlc -y"));
                     await Task.Delay(500); w.UpdateLayout();
                     var t = ToastTexts(w);
@@ -227,15 +227,16 @@ namespace MonitoringTools.UI
 
                 await CheckAsync("install toast: Install runs the exact command, shows the steps, then the versions with Open log and Copy summary", async () =>
                 {
-                    ran = 0; mode = "ok"; sink.Clear();
+                    ran = 0; mode = "ok"; sink.Clear(); var held = gate = new TaskCompletionSource<bool>();
                     var w = App.Toasts.ShowClip(ClipItem.FromText("choco install 7zip vlc -y"));
                     await Task.Delay(300);
                     if (!Press(w, "Install 2 packages")) return "Install 2 packages could not be pressed";
-                    await Task.Delay(120);
+                    await ToastWait(() => ToastTexts(w).Contains("Waiting for the Windows consent prompt"), 3000);
                     var running = ToastTexts(w);
                     if (!running.Contains("Command checked") || !running.Contains("Waiting for the Windows consent prompt") || !running.Contains("The app never answers it for you.")) return "no steps while running: " + running;
                     if (!w.TitleText.Text.Contains("Installing 2 packages")) return "title while running: " + w.TitleText.Text;
                     if (FindButton(w, "Cancel") == null) return "no Cancel while installing";
+                    gate = null; held.TrySetResult(true);   // let the fake install finish now that the running state was read
                     if (!await ToastWait(() => w.TitleText.Text == "Installed")) return "never reached Installed: " + w.TitleText.Text;
                     if (ran != 1) return $"the runner started {ran} times";
                     if (last.Display != "choco install 7zip vlc -y") return "ran '" + last.Display + "'";
@@ -252,7 +253,7 @@ namespace MonitoringTools.UI
 
                 await CheckAsync("install toast: a declined consent prompt is a plain outcome with exit code 1223 and Try again runs it again", async () =>
                 {
-                    ran = 0; mode = "declined";
+                    gate?.TrySetResult(true); gate = null; ran = 0; mode = "declined";
                     var w = App.Toasts.ShowClip(ClipItem.FromText("choco install 7zip"));
                     await Task.Delay(300);
                     Press(w, "Install");
@@ -277,7 +278,7 @@ namespace MonitoringTools.UI
 
                 await CheckAsync("install toast: Cancel stops a waiting install and says so", async () =>
                 {
-                    ran = 0; mode = "hang";
+                    gate?.TrySetResult(true); gate = null; ran = 0; mode = "hang";
                     var w = App.Toasts.ShowClip(ClipItem.FromText("winget install --id Git.Git"));
                     await Task.Delay(300); Press(w, "Install");
                     await Task.Delay(300);
@@ -344,7 +345,7 @@ namespace MonitoringTools.UI
                         if (!InstallToast.AutoEligible(ClipItem.FromText("winget install --id Git.Git -e"), out var why2)) return "plain winget not eligible: " + why2;
 
                         // cancel during the delay
-                        ran = 0; mode = "ok"; InstallToast.ForgetLastAutoForTest();
+                        gate?.TrySetResult(true); gate = null; ran = 0; mode = "ok"; InstallToast.ForgetLastAutoForTest();
                         var item = ClipItem.FromText("winget install --id Git.Git -e");
                         var t1 = App.Toasts.ShowAutoInstall(item);
                         if (t1 == null) return "no countdown toast";
