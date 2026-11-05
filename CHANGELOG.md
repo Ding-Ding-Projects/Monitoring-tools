@@ -4,6 +4,15 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.53 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.53)
+
+- Give the Records page its own words for GitHub errors ([`53ac1b1`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/53ac1b1ca1f968dd2f8e197fe9f13059ffbb61fb))
+- Activate the window before the regex help check reopens the builder ([`acd63eb`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/acd63ebf3d09ed7541052ee72655f7eb44e74de4))
+- Close the last four regex builder parity gaps ([`56321f1`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/56321f1cf9d53e3f1e97462b03aa6754727a6f15))
+- Record v1.0.52 figures and changelog ([`42be22f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/42be22fe74ae548cec8a25c8f3437d226e1541f1))
+
 ## 1.0.52 (2026-11-05)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.52)
