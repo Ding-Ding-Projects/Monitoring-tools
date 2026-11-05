@@ -33,7 +33,7 @@ namespace MonitoringTools.UI
             return p;
         }
 
-        private static string Sha(string file) { using var s = File.OpenRead(file); return Convert.ToHexString(SHA256.HashData(s)); }
+        private static string DocSha(string file) { using var s = File.OpenRead(file); return Convert.ToHexString(SHA256.HashData(s)); }
 
         private static async Task DocAudit(string where, Window w)
         {
@@ -409,7 +409,7 @@ namespace MonitoringTools.UI
             {
                 var t = DocTmp("srt-shift");
                 var src = Path.Combine(t, "episode-04.srt"); File.WriteAllText(src, SampleSrt);
-                var before = Sha(src);
+                var before = DocSha(src);
                 var d = SubtitleTimingDialog.Open(src);
                 try
                 {
@@ -429,7 +429,7 @@ namespace MonitoringTools.UI
                     var saved = SubtitleTools.Read(outPath);
                     var orig = SubtitleTools.Read(src);
                     for (int i = 0; i < 4; i++) if (saved.Cues[i].Start != orig.Cues[i].Start + 2400 || saved.Cues[i].End != orig.Cues[i].End + 2400) return "cue " + (i + 1) + " is wrong";
-                    if (Sha(src) != before) return "the original file was changed";
+                    if (DocSha(src) != before) return "the original file was changed";
                     if (!File.ReadAllText(outPath).Contains("00:00:06,600 --> 00:00:09,200")) return "the file does not carry the shifted first cue";
                     return null;
                 }

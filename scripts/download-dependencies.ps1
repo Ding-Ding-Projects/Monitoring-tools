@@ -73,15 +73,30 @@ foreach ($dep in $manifest.dependencies) {
 
         if (Test-Path $target) { Remove-Item -Recurse -Force $target }
         New-Item -ItemType Directory -Force -Path $target | Out-Null
+        if ($dep.copyAs) {
+            # A single file (an exe) that is used as it is: no archive to open.
+            Copy-Item -Force $archive (Join-Path $target $dep.copyAs)
+            Set-Content -Path $stamp -Value "$($dep.tag) $($dep.sha256)" -NoNewline
+            Say "$($dep.name): installed $($dep.tag) to $target in $([math]::Round($sw.Elapsed.TotalSeconds, 1)) s"
+            continue
+        }
         $tmp = Join-Path $cacheDir "$($dep.name)-extract"
         if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
-        Expand-Archive -Path $archive -DestinationPath $tmp -Force
+        if ($dep.extractWith) {
+            # A .7z archive: opened with the pinned 7zr.exe that an earlier entry installed (build time only).
+            $opener = Join-Path (Join-Path $depsDir $dep.extractWith) "$($dep.extractWith).exe"
+            if (-not (Test-Path $opener)) { throw "$($dep.extractWith).exe is needed to open $($asset.name) but is not installed. It must be listed before $($dep.name) in deps/manifest.json." }
+            & $opener x "-o$tmp" $archive -y | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "$($dep.extractWith) could not open $($asset.name) (exit $LASTEXITCODE)" }
+        } else {
+            Expand-Archive -Path $archive -DestinationPath $tmp -Force
+        }
 
         $extract = $dep.extract.PSObject.Properties
         if ($extract.Name -contains '*') {
             Copy-Item -Recurse -Force (Join-Path $tmp '*') $target
         } else {
-            $top = Get-ChildItem $tmp -Directory | Select-Object -First 1
+            $top = if ($dep.extractWith) { Get-Item $tmp } else { Get-ChildItem $tmp -Directory | Select-Object -First 1 }
             foreach ($p in $extract) {
                 if ($p.Name.EndsWith('/*')) {
                     $dir = Join-Path $top.FullName $p.Name.TrimEnd('*').TrimEnd('/')

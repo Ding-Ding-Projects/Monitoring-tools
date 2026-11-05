@@ -51,6 +51,7 @@ namespace MonitoringTools.Core
         public static string ToolsDir => System.IO.Path.Combine(Settings.DataDir, "tools", PinsKey);
 
         public static bool HasFfmpegBundle => Asm.GetManifestResourceNames().Any(n => n == "bundled/ffmpeg/ffmpeg.exe");
+        public static bool HasSevenZipBundle => Asm.GetManifestResourceNames().Any(n => n == "bundled/7zip/7za.exe");
         public static bool HasGitBundle => Asm.GetManifestResourceNames().Contains("bundled/mingit.zip");
 
         /// <summary>Pinned versions as recorded at build time, for the About page.</summary>
@@ -81,6 +82,23 @@ namespace MonitoringTools.Core
                     ExtractVerified(name, System.IO.Path.Combine(dir, name.Substring("bundled/ffmpeg/".Length)));
             }
             return dir;
+        }
+
+        // -------------------------------------------------------------- 7-Zip
+
+        /// <summary>The bundled 7za.exe (7-Zip extra package, LGPL), extracted and verified once per pinned set. Null when this build carries none.</summary>
+        public static string SevenZipExe()
+        {
+            void T(string m) { try { System.IO.File.AppendAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "mt-7z-trace.txt"), m + "\r\n"); } catch { } }
+            if (!HasSevenZipBundle) return null;
+            var dir = System.IO.Path.Combine(ToolsDir, "7zip");
+            lock (Gate)
+            {
+                foreach (var name in Asm.GetManifestResourceNames().Where(n => n.StartsWith("bundled/7zip/")))
+                    ExtractVerified(name, System.IO.Path.Combine(dir, name.Substring("bundled/7zip/".Length)));
+            }
+            var exe = System.IO.Path.Combine(dir, "7za.exe");
+            return File.Exists(exe) ? exe : null;
         }
 
         // -------------------------------------------------------------- MinGit
@@ -137,11 +155,11 @@ namespace MonitoringTools.Core
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(target));
             string expected;
             using (var sha = SHA256.Create())
-            using (var cs = new CryptoStream(s, sha, CryptoStreamMode.Read))
             using (var f = File.Create(target + ".part"))
             {
-                cs.CopyTo(f);
-                cs.FlushFinalBlock();
+                var buf = new byte[1 << 16]; int n;
+                while ((n = s.Read(buf, 0, buf.Length)) > 0) { sha.TransformBlock(buf, 0, n, null, 0); f.Write(buf, 0, n); }
+                sha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
                 expected = Convert.ToHexString(sha.Hash);
             }
             string written;
@@ -151,7 +169,13 @@ namespace MonitoringTools.Core
                 File.Delete(target + ".part");
                 throw new InvalidDataException($"Bundled {System.IO.Path.GetFileName(target)} failed verification after extraction.");
             }
-            File.Move(target + ".part", target, true);
+            // A freshly written exe is often held for a moment by the virus scanner, so the move is retried before it is called a failure.
+            for (int attempt = 0; ; attempt++)
+            {
+                try { File.Move(target + ".part", target, true); break; }
+                catch (IOException) when (attempt < 40) { System.Threading.Thread.Sleep(250); }
+                catch (UnauthorizedAccessException) when (attempt < 40) { System.Threading.Thread.Sleep(250); }
+            }
             File.WriteAllText(stamp, expected);
         }
     }

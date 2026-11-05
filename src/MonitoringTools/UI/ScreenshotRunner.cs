@@ -52,6 +52,13 @@ namespace MonitoringTools.UI
                     App.Current.Shutdown(0);
                     return;
                 }
+                if (Environment.GetEnvironmentVariable("MT_SHOTS_ONLY") == "archivedisk")   // quick loop for the archive and virtual disk windows
+                {
+                    await ArchiveDiskScenes();
+                    File.WriteAllText(Path.Combine(_dir, "index.json"), JsonSerializer.Serialize(Index, new JsonSerializerOptions { WriteIndented = true }));
+                    App.Current.Shutdown(0);
+                    return;
+                }
                 if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1")   // quick loop while developing these scenes
                 {
                     await Wave6ScenesAsync();
@@ -146,6 +153,7 @@ namespace MonitoringTools.UI
                 await ScaleScenes(cc);
                 await ConvertScenes();
                 await DocSysScenes();
+                await ArchiveDiskScenes();
                 await Wave6Scenes(cc);
                 await InstallCardSceneAsync(cc);
                 cc.Close();

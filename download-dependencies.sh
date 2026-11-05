@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 python3 - "$@" <<'PY'
-import hashlib, json, os, re, shutil, sys, time, urllib.request, zipfile
+import hashlib, json, os, re, shutil, subprocess, sys, time, urllib.request, zipfile
 
 root = os.getcwd()
 deps_dir = os.path.join(root, ".deps")
@@ -51,6 +51,27 @@ for dep in manifest["dependencies"]:
             raise RuntimeError(f'SHA-256 mismatch for {asset["name"]}: expected {dep["sha256"]}, got {digest}')
         shutil.rmtree(target, ignore_errors=True)
         os.makedirs(target)
+        if dep.get("copyAs"):
+            shutil.copyfile(archive, os.path.join(target, dep["copyAs"]))
+            open(stamp, "w").write(want)
+            say(f'{dep["name"]}: installed {dep["tag"]} to {target}')
+            continue
+        if dep.get("extractWith"):
+            # A .7z archive: needs a 7-Zip extractor on this machine (7zz, 7z or 7zr). Without one the 7-Zip features stay off in the cross-built app.
+            opener = next((c for c in ("7zz", "7z", "7zr") if shutil.which(c)), None)
+            if not opener:
+                say(f'{dep["name"]}: skipped, no 7z, 7zz or 7zr command is installed to open {asset["name"]}; archives with 7-Zip stay off in this build')
+                shutil.rmtree(target, ignore_errors=True)
+                continue
+            tmp = os.path.join(cache, dep["name"] + "-extract")
+            shutil.rmtree(tmp, ignore_errors=True)
+            subprocess.run([opener, "x", "-o" + tmp, archive, "-y"], check=True, stdout=subprocess.DEVNULL)
+            for src, dst in dep["extract"].items():
+                shutil.copyfile(os.path.join(tmp, src), os.path.join(target, dst))
+            shutil.rmtree(tmp, ignore_errors=True)
+            open(stamp, "w").write(want)
+            say(f'{dep["name"]}: installed {dep["tag"]} to {target}')
+            continue
         with zipfile.ZipFile(archive) as z:
             if "*" in dep["extract"]:
                 z.extractall(target)
