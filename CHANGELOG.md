@@ -4,6 +4,27 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.52 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.52)
+
+- Put the file tool dialogs on the type and shape scales ([`97bf58e`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/97bf58e8d9f1ec6cd070376d82a860519ce5942b))
+- Retry a failed update check soon, and wait out GitHub's rate limit ([`8d70db6`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8d70db612090c17867a8fb14d0036f3df230ee50))
+- Record v1.0.51 figures and changelog ([`3e0397a`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/3e0397a497fa84cf5b832d431097979a848f200b))
+- Theme the date field and its calendar, and capture every interactive state ([`650cea7`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/650cea732001bf3d40171c15c0c8efa73ca10aad))
+- Set the Material 3 row to partial and name its two gaps ([`5fa9079`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/5fa907992988bd24fc711889d4dd58a58b01da3f))
+- Restore two test values my size remap changed by mistake ([`c5bdb8c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c5bdb8cf802316d3d0d2e5ba409a32bfacf4042c))
+- WIP: plain string button content keeps its native name ([`54490ac`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/54490ac2a6ffceed9106e059be430b34b08b7711))
+- WIP: names follow tooltips, merged code moved onto the type and shape scales ([`931e8d2`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/931e8d260846cdc6aa956ec264b65d9a92b825d6))
+- WIP: accessible names read the rewritten text runs ([`455e84c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/455e84c4492afd44d6d75bd5251281a00af53d87))
+- WIP: audit docs written, rows provisionally marked done pending the full self-test ([`2905c7e`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/2905c7e54f6b3987552da6cfd2d771292410b07c))
+- WIP: keep keyboard focus after text commits, switch state layers ([`3b9cbcc`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/3b9cbcc9db32891d60eef13a3079508f9f4769b1))
+- WIP: date picker theme, audit exception for the colour picker ([`19ed96f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/19ed96fc61d0c201d0fd358393bf50ab4c34da43))
+- WIP: audit run 5 fixes, capture comparison reviewed ([`53a86fe`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/53a86fec081c69a576b5433df2187e930faad251))
+- WIP: button names via first layout, label names for inputs, more font size fixes ([`edc1e1d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/edc1e1d7af88af3627eceb196ec86f153db73b6d))
+- WIP: more accessibility and type scale fixes, 26.x live check passes ([`ed37b58`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ed37b582e74d4b8c89f48fbae6e52b5abc24cda0))
+- WIP: QR decoder fixes, UI audit harness, first accessibility and Material 3 fixes ([`90ba492`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/90ba492211f0b908064b1ebb7b7e8d50e0e5cc09))
+
 ## 1.0.51 (2026-11-05)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.51)
