@@ -515,7 +515,7 @@ namespace MonitoringTools.UI
                     sink.Clear();
                     var item = ClipItem.FromText(original);
                     App.History.Add(item);
-                    int before = App.History.Items.Count, updates = 0;
+                    int before = App.History.Items.Count, updates = 0, ignores = ClipboardWatcher.IgnoreCallsForTest;
                     Action bump = () => updates++;
                     App.History.Updated += bump;
                     try
@@ -533,7 +533,7 @@ namespace MonitoringTools.UI
                         if (sink.Count != 0) return "written after only 350 ms";
                         await Task.Delay(400);
                         if (sink.Count != 1 || sink[0] != original.Replace("Friday", "Monday")) return "writes: " + string.Join(" || ", sink);
-                        if (!ClipboardWatcher.IgnoringForTest) return "the watcher is not told to ignore the app's own write";
+                        if (ClipboardWatcher.IgnoreCallsForTest != ignores + 1) return "the watcher was told to ignore " + (ClipboardWatcher.IgnoreCallsForTest - ignores) + " writes, not 1";
                         if (App.History.Items.Count != before) return "history grew from " + before + " to " + App.History.Items.Count;
                         if (item.Text != original.Replace("Friday", "Monday") || !item.Edited) return $"history entry not updated in place: edited {item.Edited}";
                         if (updates < 1) return "the History page was not told";

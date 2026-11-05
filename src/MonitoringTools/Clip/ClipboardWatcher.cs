@@ -38,11 +38,13 @@ namespace MonitoringTools.Clip
                 Log.Warn("AddClipboardFormatListener failed: " + Marshal.GetLastWin32Error());
         }
 
-        /// <summary>Call before the app itself writes the clipboard so its own copy does not pop a toast.</summary>
         /// <summary>True while the watcher is set to ignore the app's own write. For the self-test.</summary>
         internal static bool IgnoringForTest => DateTime.UtcNow < _ignoreUntil;
+        /// <summary>How many times the watcher has been told to ignore the app's own write. For the self-test, which cannot rely on the 900 ms window still being open.</summary>
+        internal static int IgnoreCallsForTest { get; private set; }
 
-        public static void IgnoreNextChange() => _ignoreUntil = DateTime.UtcNow.AddMilliseconds(900);
+        /// <summary>Call before the app itself writes the clipboard so its own copy does not pop a toast.</summary>
+        public static void IgnoreNextChange() { _ignoreUntil = DateTime.UtcNow.AddMilliseconds(900); IgnoreCallsForTest++; }
 
         /// <summary>Self-test seam: when set, SetText hands the text here instead of touching the real clipboard.</summary>
         internal static Action<string> TextSinkForTest;
