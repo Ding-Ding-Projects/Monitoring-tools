@@ -18,7 +18,7 @@ namespace MonitoringTools.UI
             if (string.IsNullOrEmpty(path)) return null;
             var ext = Path.GetExtension(path).ToLowerInvariant();
             var name = Path.GetFileName(path).ToLowerInvariant();
-            if (name.EndsWith(".tar.gz") || name.EndsWith(".tgz") || ext == ".zip" || ext == ".7z" || ext == ".rar" || ext == ".tar" || ext == ".gz") return "archive";
+            if (ArchiveTools.IsArchive(name)) return "archive";
             if (ext == ".srt" || ext == ".vtt") return "subtitle";
             if (FontTools.IsFont(path)) return "font";
             if (DiscImageTools.IsDiscImage(path)) return "disc";

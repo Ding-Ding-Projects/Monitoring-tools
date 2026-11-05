@@ -26,8 +26,32 @@ namespace MonitoringTools.Core.DocTools
         public static bool IsDiscImage(string path) => Extensions.Contains(System.IO.Path.GetExtension(path ?? "").ToLowerInvariant());
         public static bool CanBrowse(string path) => System.IO.Path.GetExtension(path ?? "").Equals(".iso", StringComparison.OrdinalIgnoreCase);
 
-        /// <summary>Images this app mounted and has not ejected (the tray menu can list them).</summary>
+        /// <summary>Images this app mounted and has not ejected (the tray menu lists them, each with Eject).</summary>
         public static readonly List<string> MountedByApp = new List<string>();
+        private static readonly Dictionary<string, string> MountedDrives = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>Raised (on any thread) when the list of images this app mounted changes.</summary>
+        public static event Action MountedChanged;
+
+        /// <summary>The images this app mounted, with the drive letter each one got.</summary>
+        public static List<(string Image, string Drive)> MountedSnapshot()
+        {
+            lock (MountedByApp) return MountedByApp.Select(p => (p, MountedDrives.TryGetValue(p, out var d) ? d : null)).ToList();
+        }
+
+        /// <summary>Records an image this app mounted (the mount step calls it; captures use it as a stand-in).</summary>
+        internal static void RememberMount(string image, string drive)
+        {
+            lock (MountedByApp) { if (!MountedByApp.Contains(image)) MountedByApp.Add(image); MountedDrives[image] = drive; }
+            MountedChanged?.Invoke();
+        }
+
+        internal static void ForgetMount(string image)
+        {
+            bool had;
+            lock (MountedByApp) { had = MountedByApp.Remove(image); MountedDrives.Remove(image); }
+            if (had) MountedChanged?.Invoke();
+        }
 
         /// <summary>Checks replace the real mount, dismount and status calls.</summary>
         internal static Func<string, MountResult> MountHook;
@@ -173,8 +197,9 @@ namespace MonitoringTools.Core.DocTools
             var line = o.Split('\n').Select(x => x.Trim()).FirstOrDefault(x => x.StartsWith("LETTER="));
             if (code == 0 && line != null)
             {
-                lock (MountedByApp) if (!MountedByApp.Contains(image)) MountedByApp.Add(image);
-                return new MountResult { Ok = true, Drive = line["LETTER=".Length..] + ":" };
+                var drive = line["LETTER=".Length..] + ":";
+                RememberMount(image, drive);
+                return new MountResult { Ok = true, Drive = drive };
             }
             // a failure that left the image attached without a letter must not leave it attached
             Dismount(image);
@@ -186,7 +211,7 @@ namespace MonitoringTools.Core.DocTools
         {
             if (DismountHook != null) return DismountHook(image);
             var (code, _, e) = RunPowerShell("Dismount-DiskImage -ImagePath $env:MT_IMG | Out-Null", image, 30000, default);
-            lock (MountedByApp) MountedByApp.Remove(image);
+            if (code == 0) ForgetMount(image);
             return code == 0 ? null : (string.IsNullOrWhiteSpace(e) ? "Windows did not say why." : e);
         }
 

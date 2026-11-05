@@ -60,10 +60,41 @@ namespace MonitoringTools.UI
             await Task.Delay(1200);
             await Shot(d, "docsys-extract-refused", "Extract an archive: unsafe paths are refused and counted", 300);
             d.Close();
-            var seven = Path.Combine(tmp, "old.7z"); File.WriteAllBytes(seven, new byte[] { 0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C, 0, 4 });
-            d = ExtractArchiveDialog.Open(seven);
+            // 7z through the bundled 7-Zip: the listing, encrypted names, and a RAR that cannot be read
+            var sevenSrc = Path.Combine(tmp, "seven-src"); Directory.CreateDirectory(Path.Combine(sevenSrc, "photos", "2024"));
+            File.WriteAllBytes(Path.Combine(sevenSrc, "photos", "2024", "harbour.jpg"), new byte[420000]); File.WriteAllBytes(Path.Combine(sevenSrc, "photos", "2024", "peak.jpg"), new byte[380000]);
+            File.WriteAllText(Path.Combine(sevenSrc, "trip-notes.txt"), "Ferry at nine."); File.WriteAllBytes(Path.Combine(sevenSrc, "budget.xlsx"), new byte[24000]);
+            var seven = Path.Combine(tmp, "holiday-photos.7z");
+            var hidden = Path.Combine(tmp, "tax-papers.7z");
+            if (CaptureSeven("a", "-t7z", seven, Path.Combine(sevenSrc, "*")) && CaptureSeven("a", "-t7z", "-psecret", "-mhe=on", hidden, Path.Combine(sevenSrc, "*")))
+            {
+                d = ExtractArchiveDialog.Open(seven);
+                await Task.Delay(700);
+                await Shot(d, "docsys-extract-7z", "Extract an archive: a 7z archive listed and extracted through the bundled 7-Zip", 400);
+                d.Close();
+                d = ExtractArchiveDialog.Open(hidden);
+                await Task.Delay(700);
+                await Shot(d, "docsys-extract-7z-names-locked", "Extract an archive: a 7z whose file names are encrypted asks for the password before listing", 400);
+                d.Close();
+            }
+            var rar = Path.Combine(tmp, "old-backup.rar"); File.WriteAllBytes(rar, new byte[] { 0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00 });
+            d = ExtractArchiveDialog.Open(rar);
             await Task.Delay(400);
-            await Shot(d, "docsys-extract-7z", "Extract an archive: a 7z archive says it needs 7-Zip, which is not bundled", 300);
+            await Shot(d, "docsys-extract-rar", "Extract an archive: a RAR says the bundled 7-Zip has no RAR decoder and changes nothing", 300);
+            d.Close();
+
+            // Ask: the question for a name that exists
+            var askZip = Path.Combine(tmp, "report-final.zip");
+            using (var z = ZipFile.Open(askZip, ZipArchiveMode.Create))
+                foreach (var n in new[] { "report.docx", "figures.xlsx" }) { var e = z.CreateEntry(n); using var s = e.Open(); s.Write(new byte[18000]); }
+            var askOut = Path.Combine(tmp, "ask-out"); Directory.CreateDirectory(askOut);
+            File.WriteAllBytes(Path.Combine(askOut, "report.docx"), new byte[16500]);
+            d = ExtractArchiveDialog.Open(askZip);
+            await Task.Delay(400);
+            d.SetRuleForTest(OverwriteRule.Ask); d.SetDestinationForTest(askOut);
+            d.StartForTest();
+            for (int i = 0; i < 50 && d.State != ArchiveState.Conflict; i++) await Task.Delay(100);
+            await Shot(d, "docsys-extract-ask", "Extract an archive: Ask stops at a name that exists and offers Replace, Keep both or Skip, with one answer for the rest", 300);
             d.Close();
 
             // ---- subtitles
@@ -107,6 +138,22 @@ namespace MonitoringTools.UI
                     fd.Close();
                 }
                 finally { FontTools.InstalledHook = null; FontTools.InstallHook = null; FontTools.UninstallHook = null; }
+                // a font collection: every face, with the face picker
+                var ttcSrc = new[] { "cambria.ttc", "msgothic.ttc", "simsun.ttc" }.Select(n => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), n)).FirstOrDefault(p => File.Exists(p) && FontTools.FaceCount(p) > 1);
+                if (ttcSrc != null)
+                {
+                    var ttc = Path.Combine(tmp, Path.GetFileName(ttcSrc)); File.Copy(ttcSrc, ttc, true);
+                    FontTools.InstalledHook = _ => false;
+                    try
+                    {
+                        var cd = FontInstallDialog.Open(ttc);
+                        await Task.Delay(600);
+                        cd.ShowFace(cd.Facts.Faces.Count - 1); await Task.Delay(300);
+                        await Shot(cd, "docsys-font-collection", "Font preview and install: a font collection lists every face, previews the one picked and installs them all", 300);
+                        cd.Close();
+                    }
+                    finally { FontTools.InstalledHook = null; }
+                }
                 var broken = Path.Combine(tmp, "broken-font.otf"); File.WriteAllBytes(broken, Enumerable.Range(0, 400).Select(i => (byte)(i * 7)).ToArray());
                 var bd = FontInstallDialog.Open(broken);
                 await Task.Delay(400);
@@ -140,6 +187,29 @@ namespace MonitoringTools.UI
                 dd.Close();
             }
             finally { DiscImageTools.MountHook = null; DiscImageTools.DismountHook = null; DiscImageTools.StatusHook = null; }
+
+            // the tray menu with an image this app mounted (recorded as a stand-in; nothing is attached)
+            DiscImageTools.RememberMount(iso, "E:");
+            try
+            {
+                var menu = new TrayMenuWindow();
+                menu.ShowAtCursor();
+                await Shot(menu, "docsys-tray-mounted", "Tray menu: a disc image this app mounted, with its drive letter and Eject", 1200);
+                menu.Close();
+            }
+            finally { DiscImageTools.ForgetMount(iso); }
+        }
+
+        private static bool CaptureSeven(params string[] args)
+        {
+            var exe = Core.Archives.ArchiveEngine.SevenZip;
+            if (exe == null) return false;
+            var psi = new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = true };
+            foreach (var a in args) psi.ArgumentList.Add(a);
+            using var p = System.Diagnostics.Process.Start(psi);
+            p.StandardInput.Close();
+            var o = p.StandardOutput.ReadToEndAsync(); var e = p.StandardError.ReadToEndAsync();
+            return p.WaitForExit(60000) && p.ExitCode == 0;
         }
     }
 }

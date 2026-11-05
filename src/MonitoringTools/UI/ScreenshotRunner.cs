@@ -59,6 +59,13 @@ namespace MonitoringTools.UI
                     App.Current.Shutdown(0);
                     return;
                 }
+                if (Environment.GetEnvironmentVariable("MT_ONLY") == "docsys")   // quick loop for the archive, subtitle, font and disc image dialogs
+                {
+                    await DocSysScenes();
+                    File.WriteAllText(Path.Combine(_dir, "index.json"), JsonSerializer.Serialize(Index, new JsonSerializerOptions { WriteIndented = true }));
+                    App.Current.Shutdown(0);
+                    return;
+                }
                 if (Environment.GetEnvironmentVariable("MT_ONLY") == "datasec")   // quick loop for the data and security dialogs
                 {
                     await DataSecScenes();

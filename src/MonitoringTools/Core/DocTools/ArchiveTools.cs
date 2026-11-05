@@ -9,7 +9,8 @@ using System.Threading;
 
 namespace MonitoringTools.Core.DocTools
 {
-    public enum OverwriteRule { KeepBoth, Replace, Skip }
+    /// <summary>What to do when a file of the same name is already in the destination. Ask lets the person choose for each one.</summary>
+    public enum OverwriteRule { KeepBoth, Replace, Skip, Ask }
 
     public sealed class ArchiveEntry
     {
@@ -29,12 +30,16 @@ namespace MonitoringTools.Core.DocTools
     public sealed class ArchiveInfo
     {
         public string File;
-        public string Format;                 // "zip", "tar", "tar.gz", "gz"
+        public string Format;                 // "zip", "tar", "tar.gz", "gz", "7z", "xz", "bz2", "tar.xz", "tar.bz2"
         public List<ArchiveEntry> Entries = new List<ArchiveEntry>();
         public long PackedBytes;
         /// <summary>When set, the archive cannot be read here and this says why in plain words (never a guess).</summary>
         public string Unsupported;
-        public bool NeedsPassword => Entries.Any(e => e.Encrypted && !e.IsDirectory);
+        public bool NeedsPassword => NamesLocked || Entries.Any(e => e.Encrypted && !e.IsDirectory);
+        /// <summary>The file names themselves are encrypted (a 7z made with encrypted headers), so nothing is listed until the password is given.</summary>
+        public bool NamesLocked;
+        /// <summary>Read and extracted through the bundled 7-Zip command line (7z, xz, bz2 and AES-encrypted zip).</summary>
+        public bool UseSevenZip;
         public long UnpackedBytes => Entries.Where(e => !e.IsDirectory).Sum(e => e.Size);
         public int FileCount => Entries.Count(e => !e.IsDirectory);
         internal Dictionary<string, ZipCentral> Central;
@@ -58,14 +63,14 @@ namespace MonitoringTools.Core.DocTools
     public sealed class ExtractProgress { public int Done, Total; public string Current; public long Bytes, TotalBytes; }
 
     /// <summary>
-    /// Reads and extracts archives with the .NET libraries only: zip (System.IO.Compression, plus the traditional
-    /// zip password scheme read by hand), tar, tar.gz, tgz and single-file gz. 7z, rar, xz and bz2 need 7-Zip, which this
-    /// build does not bundle, so those report an honest "cannot read" state instead of failing quietly.
+    /// Reads and extracts archives. Zip (System.IO.Compression, plus the traditional zip password scheme read by hand), tar,
+    /// tar.gz, tgz and single-file gz use the .NET libraries. 7z, xz, bz2, tar.xz, tar.bz2 and AES-encrypted zip go through the
+    /// bundled 7-Zip command line (7za). RAR is not supported by 7za, so it reports an honest "cannot read" state.
     /// Every path inside an archive is checked against the destination first, so a zip-slip entry is refused.
     /// </summary>
-    public static class ArchiveTools
+    public static partial class ArchiveTools
     {
-        public static readonly string[] Extensions = { ".zip", ".7z", ".rar", ".tar", ".gz", ".tgz" };
+        public static readonly string[] Extensions = { ".zip", ".7z", ".rar", ".tar", ".gz", ".tgz", ".xz", ".txz", ".bz2", ".tbz2", ".tbz" };
 
         public static bool IsArchive(string path)
         {
@@ -77,7 +82,8 @@ namespace MonitoringTools.Core.DocTools
         public static bool Readable(string path)
         {
             var n = System.IO.Path.GetFileName(path ?? "").ToLowerInvariant();
-            return n.EndsWith(".zip") || n.EndsWith(".tar") || n.EndsWith(".tar.gz") || n.EndsWith(".tgz") || n.EndsWith(".gz");
+            if (n.EndsWith(".zip") || n.EndsWith(".tar") || n.EndsWith(".tar.gz") || n.EndsWith(".tgz") || n.EndsWith(".gz")) return true;
+            return !n.EndsWith(".rar") && IsArchive(n) && SevenZipAvailable;
         }
 
         // ------------------------------------------------------------------ safety
@@ -108,17 +114,35 @@ namespace MonitoringTools.Core.DocTools
             var n = System.IO.Path.GetFileName(file).ToLowerInvariant();
             try
             {
-                if (n.EndsWith(".zip")) { info.Format = "zip"; ListZip(info); }
-                else if (n.EndsWith(".tar.gz") || n.EndsWith(".tgz")) { info.Format = "tar.gz"; ListTar(info, true); }
-                else if (n.EndsWith(".tar")) { info.Format = "tar"; ListTar(info, false); }
+                if (n.EndsWith(".zip"))
+                {
+                    info.Format = "zip"; ListZip(info);
+                    if (info.Central != null && info.Central.Values.Any(c => c.Method == 99))
+                    {
+                        info.UseSevenZip = true;
+                        if (!SevenZipAvailable) info.Unsupported = "This zip uses AES encryption, which is read through 7-Zip, and 7-Zip is missing from this copy of the app.";
+                    }
+                }
+                else if (n.EndsWith(".tar.gz") || n.EndsWith(".tgz")) { info.Format = "tar.gz"; ListTar(info, () => new GZipStream(File.OpenRead(info.File), CompressionMode.Decompress)); }
+                else if (n.EndsWith(".tar.xz") || n.EndsWith(".txz")) { info.Format = "tar.xz"; if (NeedSeven(info)) ListTar(info, () => SevenZipStream(info.File, CancellationToken.None)); }
+                else if (n.EndsWith(".tar.bz2") || n.EndsWith(".tbz2") || n.EndsWith(".tbz")) { info.Format = "tar.bz2"; if (NeedSeven(info)) ListTar(info, () => SevenZipStream(info.File, CancellationToken.None)); }
+                else if (n.EndsWith(".tar")) { info.Format = "tar"; ListTar(info, () => File.OpenRead(info.File)); }
                 else if (n.EndsWith(".gz")) { info.Format = "gz"; ListGz(info); }
+                else if (n.EndsWith(".xz")) { info.Format = "xz"; if (NeedSeven(info)) ListSingleSeven(info, 3); }
+                else if (n.EndsWith(".bz2")) { info.Format = "bz2"; if (NeedSeven(info)) ListSingleSeven(info, 4); }
+                else if (n.EndsWith(".7z")) { info.Format = "7z"; if (NeedSeven(info)) ListSeven(info, null); }
+                else if (n.EndsWith(".rar"))
+                {
+                    info.Format = "rar";
+                    info.Unsupported = "RAR archives cannot be read here: the 7-Zip command line bundled with this app does not include the RAR decoder. Zip, 7z, tar, gz, xz and bz2 archives open here.";
+                }
                 else
                 {
                     info.Format = System.IO.Path.GetExtension(n).TrimStart('.');
-                    info.Unsupported = $"A {info.Format.ToUpperInvariant()} archive needs 7-Zip to be read, and 7-Zip is not bundled with this build. Zip, tar, tar.gz, tgz and gz archives open here.";
+                    info.Unsupported = "This archive type cannot be read here. Zip, 7z, tar, gz, xz and bz2 archives open here.";
                 }
             }
-            catch (Exception ex) when (ex is InvalidDataException || ex is IOException || ex is UnauthorizedAccessException || ex is FormatException || ex is NotSupportedException)
+            catch (Exception ex) when (ex is InvalidDataException || ex is IOException || ex is UnauthorizedAccessException || ex is FormatException || ex is NotSupportedException || ex is System.ComponentModel.Win32Exception)
             {
                 info.Entries.Clear();
                 info.Unsupported = "This file could not be read as " + (info.Format ?? "an archive") + ": " + ex.Message;
@@ -142,10 +166,9 @@ namespace MonitoringTools.Core.DocTools
             }
         }
 
-        private static void ListTar(ArchiveInfo info, bool gz)
+        private static void ListTar(ArchiveInfo info, Func<Stream> open)
         {
-            using var fs = File.OpenRead(info.File);
-            using Stream s = gz ? new GZipStream(fs, CompressionMode.Decompress) : fs;
+            using Stream s = open();
             using var r = new TarReader(s);
             TarEntry e;
             while ((e = r.GetNextEntry(copyData: false)) != null)
@@ -219,9 +242,12 @@ namespace MonitoringTools.Core.DocTools
         /// Extracts the chosen entries into <paramref name="dest"/>. Runs on the calling thread (call it from a worker).
         /// Each file is written to a .part name and renamed when complete, so Cancel never leaves a half file under a real name.
         /// </summary>
+        /// <param name="ask">Asked for each name that already exists when <paramref name="rule"/> is Ask; it returns Skip, Replace or KeepBoth
+        /// (it may block until the person answers, and throws OperationCanceledException to stop). Without it, Ask behaves like KeepBoth.</param>
         public static ExtractResult Extract(ArchiveInfo info, IEnumerable<ArchiveEntry> selected, string dest, OverwriteRule rule, string password,
-            IProgress<ExtractProgress> progress, CancellationToken ct)
+            IProgress<ExtractProgress> progress, CancellationToken ct, Func<ArchiveEntry, string, OverwriteRule> ask = null)
         {
+            var rules = new Conflicts { Rule = rule, Ask = ask, ByPath = info.Entries.GroupBy(e => e.Path, StringComparer.Ordinal).ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal) };
             var res = new ExtractResult { Destination = dest };
             var picked = selected.Where(e => !e.IsDirectory).ToList();
             res.NotSelected = info.Entries.Count(e => !e.IsDirectory) - picked.Count;
@@ -233,13 +259,19 @@ namespace MonitoringTools.Core.DocTools
                 Directory.CreateDirectory(dest);
                 switch (info.Format)
                 {
-                    case "zip": ExtractZip(info, picked, dest, rule, password, progress, prog, res, ct); break;
-                    case "tar": case "tar.gz": ExtractTar(info, set, dest, rule, progress, prog, res, ct); break;
-                    case "gz": ExtractGz(info, picked, dest, rule, progress, prog, res, ct); break;
+                    case "zip" when info.UseSevenZip: ExtractSevenStaged(info, picked, dest, rules, password, progress, prog, res, ct); break;
+                    case "7z": ExtractSevenStaged(info, picked, dest, rules, password, progress, prog, res, ct); break;
+                    case "zip": ExtractZip(info, picked, dest, rules, password, progress, prog, res, ct); break;
+                    case "tar": ExtractTar(() => File.OpenRead(info.File), set, dest, rules, progress, prog, res, ct); break;
+                    case "tar.gz": ExtractTar(() => new GZipStream(File.OpenRead(info.File), CompressionMode.Decompress), set, dest, rules, progress, prog, res, ct); break;
+                    case "tar.xz": case "tar.bz2": ExtractTar(() => SevenZipStream(info.File, ct), set, dest, rules, progress, prog, res, ct); break;
+                    case "gz": ExtractSingle(() => new GZipStream(File.OpenRead(info.File), CompressionMode.Decompress), picked, dest, rules, progress, prog, res, ct); break;
+                    case "xz": case "bz2": ExtractSingle(() => SevenZipStream(info.File, ct), picked, dest, rules, progress, prog, res, ct); break;
                     default: res.Error = info.Unsupported ?? "This archive type is not supported here."; break;
                 }
             }
             catch (OperationCanceledException) { res.Canceled = true; }
+            catch (Exception) when (ct.IsCancellationRequested) { res.Canceled = true; }
             catch (WrongPasswordException) { res.WrongPassword = true; }
             catch (Exception ex) { res.Error = ex.Message; }
             return res;
@@ -247,9 +279,18 @@ namespace MonitoringTools.Core.DocTools
 
         private sealed class WrongPasswordException : Exception { }
 
+        /// <summary>The rule for names that exist, the person's answer when it is Ask, and the archive entries by path (for the question).</summary>
+        private sealed class Conflicts
+        {
+            public OverwriteRule Rule;
+            public Func<ArchiveEntry, string, OverwriteRule> Ask;
+            public Dictionary<string, ArchiveEntry> ByPath;
+        }
+
         /// <summary>Tries the password on the first locked file without writing anything. Null means it works, "wrong" means it does not, anything else says why it cannot be tried.</summary>
         public static string CheckPassword(ArchiveInfo info, string password)
         {
+            if (info.UseSevenZip || info.Format == "7z") return CheckSevenPassword(info, password);
             var e = info.Entries.FirstOrDefault(x => x.Encrypted && !x.IsDirectory);
             if (e == null) return null;
             try { using var s = OpenEncrypted(info, e.Raw ?? e.Path, password); return null; }
@@ -259,10 +300,17 @@ namespace MonitoringTools.Core.DocTools
         }
 
         /// <summary>Decides what to do with a target that may already exist. Returns the path to write, or null to skip.</summary>
-        private static string Target(string full, OverwriteRule rule, ExtractResult res, string entryPath)
+        private static string Target(string full, Conflicts rules, ExtractResult res, string entryPath)
         {
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(full));
             if (!File.Exists(full)) return full;
+            var rule = rules.Rule;
+            if (rule == OverwriteRule.Ask)
+            {
+                rules.ByPath.TryGetValue(entryPath, out var entry);
+                rule = rules.Ask?.Invoke(entry ?? new ArchiveEntry { Path = entryPath }, full) ?? OverwriteRule.KeepBoth;
+                if (rule == OverwriteRule.Ask) rule = OverwriteRule.KeepBoth;
+            }
             switch (rule)
             {
                 case OverwriteRule.Skip: res.Skipped++; return null;
@@ -299,7 +347,7 @@ namespace MonitoringTools.Core.DocTools
 
         private static ExtractProgress Snapshot(ExtractProgress p, string current) => new ExtractProgress { Done = p.Done, Total = p.Total, Current = current, Bytes = p.Bytes, TotalBytes = p.TotalBytes };
 
-        private static void ExtractZip(ArchiveInfo info, List<ArchiveEntry> picked, string dest, OverwriteRule rule, string password, IProgress<ExtractProgress> progress, ExtractProgress prog, ExtractResult res, CancellationToken ct)
+        private static void ExtractZip(ArchiveInfo info, List<ArchiveEntry> picked, string dest, Conflicts rule, string password, IProgress<ExtractProgress> progress, ExtractProgress prog, ExtractResult res, CancellationToken ct)
         {
             using var z = ZipFile.OpenRead(info.File);
             var byPath = new Dictionary<string, ZipArchiveEntry>(StringComparer.Ordinal);
@@ -325,10 +373,9 @@ namespace MonitoringTools.Core.DocTools
             }
         }
 
-        private static void ExtractTar(ArchiveInfo info, HashSet<string> set, string dest, OverwriteRule rule, IProgress<ExtractProgress> progress, ExtractProgress prog, ExtractResult res, CancellationToken ct)
+        private static void ExtractTar(Func<Stream> open, HashSet<string> set, string dest, Conflicts rule, IProgress<ExtractProgress> progress, ExtractProgress prog, ExtractResult res, CancellationToken ct)
         {
-            using var fs = File.OpenRead(info.File);
-            using Stream s = info.Format == "tar.gz" ? new GZipStream(fs, CompressionMode.Decompress) : fs;
+            using Stream s = open();
             using var r = new TarReader(s);
             TarEntry e;
             while ((e = r.GetNextEntry(copyData: false)) != null)
@@ -345,16 +392,16 @@ namespace MonitoringTools.Core.DocTools
             // a selected path that never appeared (an unsafe path the safe check dropped would have been refused above)
         }
 
-        private static void ExtractGz(ArchiveInfo info, List<ArchiveEntry> picked, string dest, OverwriteRule rule, IProgress<ExtractProgress> progress, ExtractProgress prog, ExtractResult res, CancellationToken ct)
+        /// <summary>A single compressed file (gz, xz, bz2): the one entry is the decompressed stream.</summary>
+        private static void ExtractSingle(Func<Stream> open, List<ArchiveEntry> picked, string dest, Conflicts rule, IProgress<ExtractProgress> progress, ExtractProgress prog, ExtractResult res, CancellationToken ct)
         {
             if (picked.Count == 0) return;
             var pe = picked[0]; prog.Done = 1;
             if (!TrySafePath(dest, pe.Path, out var full)) { res.Refused.Add(pe.Path); return; }
             var target = Target(full, rule, res, pe.Path);
             if (target == null) return;
-            using var fs = File.OpenRead(info.File);
-            using var gz = new GZipStream(fs, CompressionMode.Decompress);
-            WriteOne(gz, target, pe.Modified, res, progress, prog, ct, pe.Path);
+            using var s = open();
+            WriteOne(s, target, pe.Modified, res, progress, prog, ct, pe.Path);
         }
 
         // ------------------------------------------------------------------ the traditional zip password scheme
@@ -376,7 +423,7 @@ namespace MonitoringTools.Core.DocTools
         private static Stream OpenEncrypted(ArchiveInfo info, string name, string password)
         {
             if (info.Central == null || !info.Central.TryGetValue(name, out var c)) throw new InvalidDataException("the entry's header could not be read");
-            if (c.Method == 99) throw new NotSupportedException("this archive uses AES encryption, which needs 7-Zip, and 7-Zip is not bundled with this build");
+            if (c.Method == 99) throw new NotSupportedException("this archive uses AES encryption, which is read through 7-Zip, and 7-Zip is missing from this copy of the app");
             if (string.IsNullOrEmpty(password)) throw new WrongPasswordException();
             byte[] raw;
             using (var fs = File.OpenRead(info.File))

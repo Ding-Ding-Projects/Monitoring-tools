@@ -443,6 +443,7 @@ namespace MonitoringTools.Core
             AddUpdate(t);
             AddMcLane(t);
             AddDocSys(t);
+            AddDocSysMore(t);
             AddArchiveDisk(t);
             AddDataSec(t);
             AddMedia(t);
@@ -457,6 +458,7 @@ namespace MonitoringTools.Core
         {
             var p = new List<(Regex, Func<Match, string>)>();
             AddDocSysPatterns(p);
+            AddDocSysMorePatterns(p);
             AddRegexExplainPatterns(p);
             AddRegexParityPatterns(p);
             AddMinecraftCataloguePatterns(p);

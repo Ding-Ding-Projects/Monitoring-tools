@@ -52,7 +52,8 @@ namespace MonitoringTools.UI.Dialogs
         private DiscImageDialog(string file) : base("Disc image", file, DocIcons.Disc, 780)
         {
             OpenList.Add(this);
-            Closed += (s, e) => { OpenList.Remove(this); _cts?.Cancel(); };
+            Closed += (s, e) => { OpenList.Remove(this); _cts?.Cancel(); DiscImageTools.MountedChanged -= OnMountedChanged; };
+            DiscImageTools.MountedChanged += OnMountedChanged;
             _tree = new CheckTree("Disc image contents", checkFolders: false, maxHeight: 240);
             _destText = Path.Combine(Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file));
             if (DiscImageTools.CanBrowse(file))
@@ -197,6 +198,7 @@ namespace MonitoringTools.UI.Dialogs
         private void ShowMounted()
         {
             State = DiscState.Mounted;
+            _listedByApp = DiscImageTools.MountedSnapshot().Any(m => string.Equals(m.Image, FilePath, StringComparison.OrdinalIgnoreCase));
             SetSummary("mounted as " + _drive);
             var open = Ui.Button($"Open drive {_drive}", () => ActionProvider.Shell(_drive + "\\"), "Btn.Accent", Icons.Folder);
             var eject = Ui.Button("Eject", Eject, "Btn.Chip", DocIcons.Eject); eject.Height = 40; eject.Padding = new Thickness(16, 0, 16, 0);
@@ -222,6 +224,20 @@ namespace MonitoringTools.UI.Dialogs
             SetBody(Banner(BannerKind.Bad, "Windows could not mount this image", reason + " The file may be on a network share that does not allow mounting, or it may not be a valid disc image."), Card(card), row);
             SetFooterClose("Nothing is attached.");
         }
+
+        private bool _listedByApp;
+
+        // an image ejected from the tray menu while this window shows it as mounted goes back to the not-mounted view
+        private void OnMountedChanged() => Dispatcher.BeginInvoke(new Action(() =>
+        {
+            bool listed = DiscImageTools.MountedSnapshot().Any(m => string.Equals(m.Image, FilePath, StringComparison.OrdinalIgnoreCase));
+            if (listed) { _listedByApp = true; return; }
+            if (State != DiscState.Mounted || !_listedByApp) return;     // only an image this app mounted can be ejected from the tray
+            _listedByApp = false;
+            _drive = null;
+            ShowReady();
+            SetStatus("Ejected. The drive is gone and the image file can be moved or deleted.");
+        }));
 
         private void Eject()
         {

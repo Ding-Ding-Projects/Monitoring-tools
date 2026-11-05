@@ -16,6 +16,20 @@ namespace MonitoringTools.Core.DocTools
         public bool IsCff;
         public string Error;                 // set when the file is not a usable font
         public bool Ok => Error == null;
+        /// <summary>Every face in the file: one for a TTF or OTF, all of them for a font collection (.ttc). The fields above describe face 0.</summary>
+        public List<FontFace> Faces = new List<FontFace>();
+        public bool IsCollection => Faces.Count > 1;
+    }
+
+    /// <summary>One face of a font file, as its own name table describes it.</summary>
+    public sealed class FontFace
+    {
+        public int Index;
+        public string Family, Face;
+        public int Weight, Glyphs;
+        public System.Windows.FontStyle Style;
+        public System.Windows.FontWeight WpfWeight;
+        public string Display => string.Equals(Face, "Regular", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(Face) ? Family : Family + " " + Face;
     }
 
     /// <summary>Where and how a font would be installed for the current user only.</summary>
@@ -49,11 +63,30 @@ namespace MonitoringTools.Core.DocTools
             var f = new FontFacts();
             var ext = Path.GetExtension(file).ToLowerInvariant();
             if (ext == ".woff") { f.Error = "WOFF is a web font format. Windows cannot install it, so convert it to TTF or OTF first."; return f; }
+            // WPF reads a font through a collection of the folder it sits in, and other font files in that folder can upset it,
+            // so the file is read from its own copy in an empty folder (removed afterwards)
+            string isolated = null;
             try
             {
                 if (new FileInfo(file).Length < 12) { f.Error = "The file is too small to be a font."; return f; }
-                var g = new GlyphTypeface(new Uri(Path.GetFullPath(file)));
+                var faces = FaceCount(file);
+                var dir = Path.Combine(Path.GetTempPath(), "MonitoringTools-fontread", Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(dir);
+                isolated = Path.Combine(dir, Path.GetFileName(file));
+                File.Copy(file, isolated);
+                var src = new Uri(Path.GetFullPath(isolated));
+                var g = new GlyphTypeface(src);
                 string First(IDictionary<System.Globalization.CultureInfo, string> d) => d == null || d.Count == 0 ? null : (d.TryGetValue(System.Globalization.CultureInfo.GetCultureInfo("en-US"), out var v) ? v : d.Values.First());
+                for (int i = 0; i < faces; i++)
+                {
+                    var gi = i == 0 ? g : new GlyphTypeface(new Uri(src.AbsoluteUri + "#" + i));
+                    f.Faces.Add(new FontFace
+                    {
+                        Index = i, Family = First(gi.Win32FamilyNames) ?? First(gi.FamilyNames) ?? Path.GetFileNameWithoutExtension(file),
+                        Face = First(gi.Win32FaceNames) ?? First(gi.FaceNames) ?? "Regular", Weight = gi.Weight.ToOpenTypeWeight(), Glyphs = gi.GlyphCount,
+                        Style = gi.Style, WpfWeight = gi.Weight
+                    });
+                }
                 f.Family = First(g.Win32FamilyNames) ?? First(g.FamilyNames) ?? Path.GetFileNameWithoutExtension(file);
                 f.Face = First(g.Win32FaceNames) ?? First(g.FaceNames) ?? "Regular";
                 f.Version = First(g.VersionStrings);
@@ -74,13 +107,41 @@ namespace MonitoringTools.Core.DocTools
                 if (Has(0xAC00, 0xD7AF)) f.Scripts.Add("Hangul");
                 f.IsCff = ext == ".otf";
             }
-            catch (Exception ex) when (ex is System.IO.FileFormatException || ex is IOException || ex is ArgumentException || ex is NotSupportedException || ex is UriFormatException || ex is InvalidOperationException)
+            catch (Exception ex) when (ex is System.IO.FileFormatException || ex is IOException || ex is ArgumentException || ex is NotSupportedException || ex is UriFormatException || ex is InvalidOperationException || ex is NullReferenceException)   // WPF's font cache can throw a null reference on damaged tables
             {
                 f.Error = "The font tables are damaged, so Windows would refuse it.";
                 f.Family = null;
                 Log.Warn("Font read failed: " + ex.Message);
             }
+            finally
+            {
+                // WPF may still hold the copy open; a folder it keeps is removed on a later read
+                try { if (isolated != null) Directory.Delete(Path.GetDirectoryName(isolated), true); } catch { }
+                try
+                {
+                    foreach (var old in Directory.EnumerateDirectories(Path.Combine(Path.GetTempPath(), "MonitoringTools-fontread")))
+                        if (Directory.GetCreationTimeUtc(old) < DateTime.UtcNow.AddHours(-1)) try { Directory.Delete(old, true); } catch { }
+                }
+                catch { }
+            }
             return f;
+        }
+
+        /// <summary>
+        /// The number of faces in the file: the count from the "ttcf" header of a font collection, otherwise 1. A collection is
+        /// installed as one file under one registry value that names every face ("A & B (TrueType)"), as Windows itself does.
+        /// </summary>
+        public static int FaceCount(string file)
+        {
+            try
+            {
+                using var fs = File.OpenRead(file);
+                var h = new byte[12];
+                if (fs.Read(h, 0, 12) < 12 || h[0] != (byte)'t' || h[1] != (byte)'t' || h[2] != (byte)'c' || h[3] != (byte)'f') return 1;
+                int n = (h[8] << 24) | (h[9] << 16) | (h[10] << 8) | h[11];
+                return n < 1 ? 1 : Math.Min(n, 256);
+            }
+            catch { return 1; }
         }
 
         public static FontPlan Plan(string file, FontFacts facts)
@@ -88,12 +149,15 @@ namespace MonitoringTools.Core.DocTools
             var name = Path.GetFileName(file);
             var face = string.Equals(facts?.Face, "Regular", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(facts?.Face) ? "" : " " + facts.Face;
             var kind = Path.GetExtension(file).Equals(".otf", StringComparison.OrdinalIgnoreCase) ? "OpenType" : "TrueType";
+            var label = facts != null && facts.IsCollection
+                ? string.Join(" & ", facts.Faces.Select(x => x.Display).Distinct(StringComparer.OrdinalIgnoreCase))
+                : $"{facts?.Family ?? Path.GetFileNameWithoutExtension(file)}{face}";
             return new FontPlan
             {
                 Source = file,
                 TargetFile = Path.Combine(FontsFolder, name),
                 RegistryPath = UserFontsKey,
-                ValueName = $"{facts?.Family ?? Path.GetFileNameWithoutExtension(file)}{face} ({kind})"
+                ValueName = $"{label} ({kind})"
             };
         }
 
