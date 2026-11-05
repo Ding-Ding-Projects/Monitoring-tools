@@ -4,6 +4,13 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.33 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.33)
+
+- Minecraft lane: pre-generation stall recovery, generation and Fabric live checks, NBT reasons ([`bbd7d26`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/bbd7d26d41eb7b5c923736daddb9666c21433cca))
+- Record v1.0.32 figures and changelog ([`0182eda`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0182edad46ed92343b0747590f13382158394714))
+
 ## 1.0.32 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.32)
