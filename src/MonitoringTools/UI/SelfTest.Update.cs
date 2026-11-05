@@ -91,6 +91,19 @@ namespace MonitoringTools.UI
                 }
             });
 
+            await CheckAsync("updates: a failed or rate-limited check tries again soon, at the time GitHub says its limit resets, never later than the normal interval", () =>
+            {
+                var now = DateTimeOffset.UtcNow;
+                var plain = AutoUpdater.NextTryAfterFailure(now);
+                if (plain != TimeSpan.FromMinutes(15)) return Task.FromResult("a plain failure waits " + plain);
+                var reset = new AutoUpdater.RateLimited(now.AddMinutes(23));
+                var unix = new System.Net.Http.HttpResponseMessage((System.Net.HttpStatusCode)403);
+                unix.Headers.Add("X-RateLimit-Reset", now.AddMinutes(23).ToUnixTimeSeconds().ToString());
+                var read = AutoUpdater.RateLimited.From(unix).ResetsAt;
+                if (read == null || Math.Abs((read.Value - reset.ResetsAt.Value).TotalSeconds) > 1) return Task.FromResult("the reset header was not read: " + read);
+                return Task.FromResult<string>(null);
+            });
+
             await CheckAsync("game mode: a game starting shows \"detected\" without taking focus, closing shows \"closed\", and the switch turns both off", async () =>
             {
                 var app = (App)System.Windows.Application.Current;

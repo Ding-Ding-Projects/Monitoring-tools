@@ -96,6 +96,7 @@ namespace MonitoringTools.Core
             Add(@"^The download of ([\d.]+) did not match its published checksum, so it was thrown away\.$", "版本 $1 下載落嚟對唔上公布嘅校驗碼，已經掉咗。");
             Add(@"^The download says it is version (.+), not ([\d.]+), so it was thrown away\.$", "下載落嚟話自己係版本 $1，唔係 $2，已經掉咗。");
             Add(@"^Update check failed: (.+)$", "檢查更新失敗：$1");
+            Add(@"^GitHub's limit for update checks is used up\. It tries again at ([\d:]+)\.$", "GitHub 檢查更新嘅次數用晒，$1 再試。");
             Add(@"^Updated from ([\d.]+) to ([\d.]+) in the background\.$", "已經喺背景由 $1 更新到 $2。");
             Add(@"^Updated to ([\d.]+) in the background\.$", "已經喺背景更新到 $1。");
             Add(@"^You have ([\d.]+)\. It installs by itself in the background\.$", "你而家用緊 $1。佢會自己喺背景安裝。");

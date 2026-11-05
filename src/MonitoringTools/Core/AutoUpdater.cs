@@ -27,6 +27,11 @@ namespace MonitoringTools.Core
         private static readonly TimeSpan FirstCheck = TimeSpan.FromSeconds(90);
         private static readonly TimeSpan Every = TimeSpan.FromHours(1);
         private static readonly TimeSpan RetryWhenBusy = TimeSpan.FromMinutes(10);
+        /// <summary>How soon a failed check tries again, so one bad moment does not cost a whole interval.</summary>
+        private static readonly TimeSpan RetryAfterFailure = TimeSpan.FromMinutes(15);
+
+        /// <summary>When GitHub refused a check because its limit for unsigned-in requests was used up: the time it resets.</summary>
+        internal static DateTimeOffset? LimitResetsAt { get; private set; }
 
         public sealed record Release(Version Version, string Url, string Sha256);
 
@@ -81,12 +86,23 @@ namespace MonitoringTools.Core
                         {
                             await CheckAsync(installWhenQuiet: true);
                             if (_ready != null && State == Phase.Waiting) wait = RetryWhenBusy;
+                            else if (State == Phase.Failed) wait = NextTryAfterFailure(DateTimeOffset.UtcNow);
                         }
                     }
                     catch (Exception ex) { Log.Warn("Update loop: " + ex.Message); }
                     try { await Task.Delay(wait, token); } catch { return; }
                 }
             });
+        }
+
+        /// <summary>How long to wait after a failed check: until just after GitHub's limit resets when that is known, otherwise
+        /// 15 minutes, and never longer than the normal interval.</summary>
+        internal static TimeSpan NextTryAfterFailure(DateTimeOffset now)
+        {
+            var wait = RetryAfterFailure;
+            if (LimitResetsAt is DateTimeOffset reset) wait = reset - now + TimeSpan.FromMinutes(1);
+            if (wait < TimeSpan.FromMinutes(1)) wait = TimeSpan.FromMinutes(1);
+            return wait > Every ? Every : wait;
         }
 
         /// <summary>Why installing right now would interrupt something, or null when it is a quiet moment.</summary>
@@ -117,6 +133,7 @@ namespace MonitoringTools.Core
                 {
                     _ready = null;
                     Set(Phase.Checking, "Looking for a newer version…");
+                    LimitResetsAt = null;
                     var rel = await LatestAsync();
                     LastChecked = DateTime.Now;
                     if (rel == null) { Set(Phase.Failed, "Could not read the latest release."); return; }
@@ -130,6 +147,7 @@ namespace MonitoringTools.Core
                 if (why != null) { Set(Phase.Waiting, $"Version {_readyVersion.ToString(3)} is downloaded and checked. It installs by itself when {Quiet(why)}."); return; }
                 Install(_ready, _readyVersion);
             }
+            catch (RateLimited rl) { LimitResetsAt = rl.ResetsAt; Set(Phase.Failed, $"GitHub's limit for update checks is used up. It tries again at {(rl.ResetsAt?.ToLocalTime() ?? DateTimeOffset.Now + RetryAfterFailure):HH:mm}."); }
             catch (Exception ex) { Set(Phase.Failed, "Update check failed: " + ex.Message); }
             finally { Gate.Release(); }
         }
@@ -147,7 +165,10 @@ namespace MonitoringTools.Core
             if (SourceForTest != null) return await SourceForTest();
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
             http.DefaultRequestHeaders.UserAgent.ParseAdd("MonitoringTools/" + Current.ToString(3));
-            using var doc = JsonDocument.Parse(await http.GetStringAsync(LatestUrl));
+            using var resp = await http.GetAsync(LatestUrl);
+            if ((int)resp.StatusCode is 403 or 429) throw RateLimited.From(resp);
+            resp.EnsureSuccessStatusCode();
+            using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
             var root = doc.RootElement;
             if (root.TryGetProperty("draft", out var d) && d.GetBoolean()) return null;
             if (root.TryGetProperty("prerelease", out var pr) && pr.GetBoolean()) return null;
@@ -160,6 +181,21 @@ namespace MonitoringTools.Core
                 return new Release(v, a.GetProperty("browser_download_url").GetString(), sha);
             }
             return null;
+        }
+
+        /// <summary>GitHub refused the check because too many unsigned-in requests came from this connection.</summary>
+        internal sealed class RateLimited : Exception
+        {
+            public DateTimeOffset? ResetsAt { get; }
+            public RateLimited(DateTimeOffset? resetsAt) : base("rate limited") { ResetsAt = resetsAt; }
+
+            public static RateLimited From(System.Net.Http.HttpResponseMessage resp)
+            {
+                if (resp.Headers.TryGetValues("X-RateLimit-Reset", out var v) && long.TryParse(v.FirstOrDefault(), out var unix))
+                    return new RateLimited(DateTimeOffset.FromUnixTimeSeconds(unix));
+                if (resp.Headers.RetryAfter?.Delta is TimeSpan d) return new RateLimited(DateTimeOffset.UtcNow + d);
+                return new RateLimited(null);
+            }
         }
 
         /// <summary>Downloads to a .part file, then keeps it only when its SHA-256 and its own version match the release.</summary>
