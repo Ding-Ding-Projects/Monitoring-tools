@@ -635,6 +635,9 @@ namespace MonitoringTools.UI
                     for (var i = 0; i < 30 && b.IsOpen; i++) await Task.Delay(100);
                     if (b.IsOpen) return "the builder did not close";
                     await Task.Delay(400);
+                    // a click on the Builder button activates its window first; a popup that does not stay open closes
+                    // again at once if its window is not the active one, which a hidden desktop does not guarantee
+                    Window.GetWindow(f)?.Activate(); await Task.Delay(150);
                     f.OpenBuilder();
                     for (var i = 0; i < 30 && !(b.IsOpen && b.Tab == "Test"); i++) await Task.Delay(100);
                     if (!b.IsOpen) return "the builder did not reopen";
