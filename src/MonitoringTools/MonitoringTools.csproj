@@ -37,6 +37,7 @@
   <ItemGroup>
     <EmbeddedResource Include="$(DepsDir)ffmpeg\*.exe;$(DepsDir)ffmpeg\*.dll" LogicalName="bundled/ffmpeg/%(Filename)%(Extension)" />
     <EmbeddedResource Include="$(DepsDir)cache\MinGit-*-64-bit.zip" LogicalName="bundled/mingit.zip" />
+    <EmbeddedResource Include="$(DepsDir)7zip\7za.exe;$(DepsDir)7zip\License.txt" LogicalName="bundled/7zip/%(Filename)%(Extension)" />
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)..\..\deps\manifest.json" LogicalName="bundled/manifest.json" />
     <Resource Include="$(DepsDir)roboto\Roboto-Light.ttf;$(DepsDir)roboto\Roboto-Regular.ttf;$(DepsDir)roboto\Roboto-Medium.ttf;$(DepsDir)roboto\Roboto-Bold.ttf" Link="Fonts\%(Filename)%(Extension)" />
   </ItemGroup>

@@ -51,6 +51,7 @@ namespace MonitoringTools.Core
         public static string ToolsDir => System.IO.Path.Combine(Settings.DataDir, "tools", PinsKey);
 
         public static bool HasFfmpegBundle => Asm.GetManifestResourceNames().Any(n => n == "bundled/ffmpeg/ffmpeg.exe");
+        public static bool HasSevenZipBundle => Asm.GetManifestResourceNames().Any(n => n == "bundled/7zip/7za.exe");
         public static bool HasGitBundle => Asm.GetManifestResourceNames().Contains("bundled/mingit.zip");
 
         /// <summary>Pinned versions as recorded at build time, for the About page.</summary>
@@ -81,6 +82,22 @@ namespace MonitoringTools.Core
                     ExtractVerified(name, System.IO.Path.Combine(dir, name.Substring("bundled/ffmpeg/".Length)));
             }
             return dir;
+        }
+
+        // -------------------------------------------------------------- 7-Zip
+
+        /// <summary>The bundled 7za.exe (7-Zip extra package, LGPL), extracted and verified once per pinned set. Null when this build carries none.</summary>
+        public static string SevenZipExe()
+        {
+            if (!HasSevenZipBundle) return null;
+            var dir = System.IO.Path.Combine(ToolsDir, "7zip");
+            lock (Gate)
+            {
+                foreach (var name in Asm.GetManifestResourceNames().Where(n => n.StartsWith("bundled/7zip/")))
+                    ExtractVerified(name, System.IO.Path.Combine(dir, name.Substring("bundled/7zip/".Length)));
+            }
+            var exe = System.IO.Path.Combine(dir, "7za.exe");
+            return File.Exists(exe) ? exe : null;
         }
 
         // -------------------------------------------------------------- MinGit

@@ -42,6 +42,34 @@
         "*": ""
       },
       "target": "roboto"
+    },
+    {
+      "name": "7zr",
+      "purpose": "Opens the 7-Zip extra package at download time so 7za.exe can be taken from it (build tool only, not bundled into the app)",
+      "license": "LGPL-2.1-or-later (7-Zip 26.05, 7zr.exe; contains no unRAR code); source: https://github.com/ip7z/7zip",
+      "repository": "ip7z/7zip",
+      "tag": "26.05",
+      "assetPattern": "^7zr\\.exe$",
+      "asset": "7zr.exe",
+      "sha256": "9bf582b894dfa665f852d7e9112b02290a1c303c2d95a21fcdc41ffcb03143b7",
+      "copyAs": "7zr.exe",
+      "target": "7zr"
+    },
+    {
+      "name": "7zip",
+      "purpose": "7za.exe, the standalone 7-Zip command line: 7z archives, encrypted zip, AES-256, split volumes and the archive test step",
+      "license": "LGPL-2.1-or-later (7-Zip 26.05 extra package, 7za.exe; contains no unRAR code); source: https://github.com/ip7z/7zip",
+      "repository": "ip7z/7zip",
+      "tag": "26.05",
+      "assetPattern": "^7z[0-9]+-extra\\.7z$",
+      "asset": "7z2605-extra.7z",
+      "sha256": "f27a8f103c84785026edcba1f67faf1357225df9d19ddb0b7760d55947141bc7",
+      "extractWith": "7zr",
+      "extract": {
+        "x64/7za.exe": "7za.exe",
+        "License.txt": "License.txt"
+      },
+      "target": "7zip"
     }
   ]
 }

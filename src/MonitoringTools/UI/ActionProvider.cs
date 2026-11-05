@@ -43,6 +43,7 @@ namespace MonitoringTools.UI
                 case ClipKind.Audio: AudioClip(item, list); break;
                 default: TextActions(item.Text, list); break;
             }
+            ArchiveDiskActions.Add(item, list);
             return list;
         }
 

@@ -274,6 +274,7 @@ namespace MonitoringTools.UI
                 ft.Show(); await Settle(500);
                 for (int tab = 0; tab < 3; tab++) { ft.Select(tab, false); await Settle(250); Scan("file tools tab " + (tab + 1), ft); }
                 ft.Close();
+                await Dialogs.ArchiveDiskAudit.ScenesAsync();
 
                 // commit template, confirmations
                 var commit = new CommitTemplateWindow(continueAfter: false);
