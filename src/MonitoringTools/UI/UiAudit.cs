@@ -255,7 +255,7 @@ namespace MonitoringTools.UI
                     // a control reached through its own inner element (a text box inside a combo box, a button inside a template) counts
                     bool viaInner = reached.OfType<DependencyObject>().Any(r => Drive.Ancestors(r).Contains(e));
                     if (viaInner) continue;
-                    Add("keyboard reach", where, e, "Tab never lands on it (traversal of " + steps + " stops, ended at " + Trunc(Describe(cur), 70) + ")");
+                    Add("keyboard reach", where, e, "Tab never lands on it (traversal of " + steps + " stops, trail ends " + string.Join(" -> ", trail.Skip(Math.Max(0, trail.Count - 5))) + ")");
                 }
             }
             catch (Exception ex) { Count("traversal-error"); Add("keyboard reach", where, null, "traversal failed: " + ex.GetType().Name + ": " + ex.Message); }
@@ -426,7 +426,8 @@ namespace MonitoringTools.UI
                     {
                         Count("brush-literal-checked");
                         int rgb = (sb.Color.R << 16) | (sb.Color.G << 8) | sb.Color.B;
-                        if (!theme.Contains(rgb)) Add("colour roles", where, fe, "literal colour " + Hex(sb.Color) + " on " + dp.Name + " is not one of the theme's roles");
+                        if (!theme.Contains(rgb) && !Drive.Ancestors(d).OfType<ColorPicker>().Any())   // the colour picker paints the colour a person is choosing, which is data and not a theme role
+                             Add("colour roles", where, fe, "literal colour " + Hex(sb.Color) + " on " + dp.Name + " is not one of the theme's roles");
                     }
                 }
                 if (d is Border b && b.CornerRadius.TopLeft == b.CornerRadius.TopRight && b.CornerRadius.TopLeft == b.CornerRadius.BottomLeft && b.CornerRadius.TopLeft == b.CornerRadius.BottomRight && b.ActualWidth > 1)

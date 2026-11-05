@@ -67,6 +67,12 @@ namespace MonitoringTools.UI
             cal.Setters.Add(new Setter(Control.ForegroundProperty, Ui.Res("B.Text")));
             cal.Setters.Add(new Setter(Control.BorderBrushProperty, Ui.Res("B.LineStrong")));
             CalendarStyle = cal;
+            // the text part of a date picker has its own white template; it takes the field's theme colours, so the date and its watermark stay readable in the dark theme
+            var box = new Style(typeof(System.Windows.Controls.Primitives.DatePickerTextBox));
+            box.Setters.Add(new Setter(Control.BackgroundProperty, Ui.Res("B.Sunken")));
+            box.Setters.Add(new Setter(Control.ForegroundProperty, Ui.Res("B.Text")));
+            box.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
+            Resources.Add(typeof(System.Windows.Controls.Primitives.DatePickerTextBox), box);
             AutomationProperties.SetName(this, name);
             Value = value;
         }
