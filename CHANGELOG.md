@@ -4,6 +4,25 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.43 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.43)
+
+- NeoForge runs live too ([`3c2e7f5`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/3c2e7f524a7bae0bc5d2fda06a1514858fe7165d))
+
+## 1.0.42 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.42)
+
+- Background updates seen working end to end on a real install ([`1b7ce0d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/1b7ce0dc04655d04b684b4106f7e75e66aedd238))
+
+## 1.0.41 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.41)
+
+- Strip terminal colour codes from command replies; Forge runs live ([`c5443b8`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c5443b880820aaac706f1d4a1a2ddac70235a6e0))
+- Record v1.0.40 figures and changelog ([`72941d7`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/72941d7202466e64ea608843a6eaf2a959437a03))
+
 ## 1.0.40 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.40)
