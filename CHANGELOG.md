@@ -4,6 +4,13 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## 1.0.34 (2026-11-04)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.34)
+
+- Quit once instead of hundreds of times ([`6a0fe7e`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/6a0fe7e5a731b479ce10b8fea6ff2d3adf493abd))
+- Record v1.0.33 figures and changelog ([`0dbef1a`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0dbef1ab7d9f28d3db99611bfdadbf8fcddcac83))
+
 ## 1.0.33 (2026-11-04)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.33)
