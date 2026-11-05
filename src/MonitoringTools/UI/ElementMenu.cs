@@ -151,7 +151,13 @@ namespace MonitoringTools.UI
             w.PreviewMouseLeftButtonDown += (s, e) =>
             {
                 if (!locks || !Locks.Any || e.OriginalSource is not DependencyObject d) return;
-                var locked = LockedAncestor(w, d);
+                if (BlockPress(w, d)) e.Handled = true;
+            };
+            // typing into a locked text field is stopped the same way a click on it is
+            w.PreviewTextInput += (s, e) =>
+            {
+                if (!locks || !Locks.Any || Keyboard.FocusedElement is not DependencyObject tf) return;
+                var locked = LockedAncestor(w, tf);
                 if (locked != null) { e.Handled = true; Prompt(w, locked); }
             };
             w.PreviewMouseRightButtonUp += (s, e) =>
@@ -168,7 +174,7 @@ namespace MonitoringTools.UI
             };
             w.PreviewKeyDown += (s, e) =>
             {
-                if (locks && Locks.Any && (e.Key == Key.Enter || e.Key == Key.Space) && Keyboard.FocusedElement is DependencyObject lf && !InsideText(lf))
+                if (locks && Locks.Any && Keyboard.FocusedElement is DependencyObject lf && EditsOrActivates(lf, e))
                 {
                     var locked = LockedAncestor(w, lf);
                     if (locked != null) { e.Handled = true; Prompt(w, locked); return; }
@@ -192,6 +198,28 @@ namespace MonitoringTools.UI
                 Open(w, target, extra, p);
             };
         }
+
+        /// <summary>What a left press on <paramref name="d"/> does under a lock: if it, or something around it, is locked, the unlock prompt opens and the press is stopped. The window's press handler and the self-test both call this.</summary>
+        internal static bool BlockPress(Window w, DependencyObject d)
+        {
+            var locked = LockedAncestor(w, d);
+            if (locked == null) return false;
+            Prompt(w, locked);
+            return true;
+        }
+
+        /// <summary>True for a key that would change or activate the focused element: Enter and Space anywhere, the keys that move a choice, slider or list, and the editing keys of a text box. Tab, Escape and copying are left alone so a locked page can still be left.</summary>
+        private static bool EditsOrActivates(DependencyObject focused, KeyEventArgs e)
+        {
+            var k = e.Key == Key.System ? e.SystemKey : e.Key;
+            if (k == Key.Enter || k == Key.Space) return true;
+            bool ctrl = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+            if (InsideText(focused)) return k == Key.Back || k == Key.Delete || (ctrl && (k == Key.V || k == Key.X || k == Key.Z || k == Key.Y)) || (Keyboard.Modifiers == ModifierKeys.Shift && k == Key.Insert);
+            return k is Key.Up or Key.Down or Key.Left or Key.Right or Key.Home or Key.End or Key.PageUp or Key.PageDown;
+        }
+
+        /// <summary>For the self-test: whether the element is something a toy lock can be put on.</summary>
+        internal static bool IsLockCandidateForTest(FrameworkElement fe) => IsCandidate(fe);
 
         private static bool InsideText(DependencyObject d)
         {
@@ -405,9 +433,12 @@ namespace MonitoringTools.UI
             {
                 _layer = layer; IsHitTestVisible = false;
                 layer?.Add(this);
-                el.ToolTip = "Locked. Click to unlock. Just for fun, not security.";
+                // the element's own tooltip stays: it is part of the words the lock is keyed by, and replacing it made the key change the moment the lock closed
+                _originalTip = el.ToolTip;
+                el.ToolTip = _originalTip is string o && o.Length > 0 ? o + " " + LockTip : LockTip;
             }
-            public void Remove() { _layer?.Remove(this); if (AdornedElement is FrameworkElement f && f.ToolTip is string t && t.StartsWith("Locked")) f.ToolTip = null; }
+            private readonly object _originalTip;
+            public void Remove() { _layer?.Remove(this); if (AdornedElement is FrameworkElement f && f.ToolTip is string t && t.Contains(LockTip)) f.ToolTip = _originalTip; }
             protected override void OnRender(DrawingContext dc)
             {
                 var size = AdornedElement.RenderSize;

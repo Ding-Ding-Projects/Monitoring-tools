@@ -22,6 +22,7 @@ namespace MonitoringTools.UI
             await PickerLane4ChecksAsync(dir);
             await DrawLane4ChecksAsync();
             await LocksLane4ChecksAsync();
+            await LockWalkChecksAsync();
             await Task.CompletedTask;
         }
     }

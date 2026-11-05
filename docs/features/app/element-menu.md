@@ -22,6 +22,8 @@ A click posted to a window by another program (an assistive or remote input rout
 
 `MT_ONLY=lane4clicks` holds the app on a hidden desktop and waits, for each step, for a click posted with the lowlevel `mouse_click` tool to a window handle (it writes `click-<step>.json` with the handle and client point); it then judges the outcome. Verified that way: a left click on the colour eyedropper overlay, a right click on the command palette and a left click on a locked button.
 
+`MT_ONLY=dialogs` does the same for the real native file dialogs and the date picker's calendar popup (steps `appearance`, `bedrock` and `date`, selected with `MT_DIALOGS_ONLY`): it writes `dialog-<step>.json` (the file to use, or the popup window and the client point of a day button), the lowlevel tools set the file name box of the dialog and press Enter, or click the day, and the check judges the result. `MT_ONLY=lockwalk` runs the walk over every lockable element type on the real pages (see the Toy locks row of the required features inventory).
+
 ## Not done
 - The command palette overlay now has the menu (Clear the search, Use the full window or card size, Close the palette). No real pointer click was made on it; the check opens the menu through the routine the right-click handler calls.
 - Window-specific extra items exist only for toasts; other windows offer the common items.

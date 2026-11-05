@@ -29,6 +29,13 @@ namespace MonitoringTools.Core
         private static readonly Dictionary<Cue, DateTime> Last = new Dictionary<Cue, DateTime>();
         private static MediaPlayer _player;
         private const int QUNS_QUIET_TIME = 5;
+        /// <summary>For the self-test: how many times playback was actually started, and the file or system sound it started.</summary>
+        internal static int StartedForTest;
+        internal static string LastStartedForTest;
+        /// <summary>For the self-test: the reason Windows gave when it could not play the last sound (for example no audio device), or null.</summary>
+        internal static string FailureForTest;
+        /// <summary>For the self-test: answers the quiet-time question so a check does not depend on what the host is doing.</summary>
+        internal static bool? QuietOverrideForTest;
 
         public static void Play(Cue cue)
         {
@@ -42,16 +49,18 @@ namespace MonitoringTools.Core
 
                 var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Media", Files[cue]);
                 if (!File.Exists(path)) { Fallback(cue); return; }
-                _player ??= new MediaPlayer();
+                if (_player == null) { _player = new MediaPlayer(); _player.MediaFailed += (o, e) => FailureForTest = e.ErrorException?.Message ?? "media failed"; }
                 _player.Volume = Math.Clamp(s.SoundVolume, 0, 1);
                 _player.Open(new Uri(path));
                 _player.Play();
+                StartedForTest++; LastStartedForTest = path;
             }
             catch (Exception ex) { Log.Warn("Sound unavailable: " + ex.Message); }  // a playback failure never changes an action result
         }
 
         private static bool QuietNow()
         {
+            if (QuietOverrideForTest.HasValue) return QuietOverrideForTest.Value;
             try
             {
                 if (Native.SHQueryUserNotificationState(out var q) == 0 &&
@@ -67,6 +76,7 @@ namespace MonitoringTools.Core
             {
                 if (cue == Cue.Invalid || cue == Cue.Warning) SystemSounds.Beep.Play();
                 else SystemSounds.Asterisk.Play();
+                StartedForTest++; LastStartedForTest = "system:" + cue;
             }
             catch { }
         }
