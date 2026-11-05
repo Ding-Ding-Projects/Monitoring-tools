@@ -21,7 +21,7 @@ The builder opens directly under the search bar it belongs to (Builder button or
 | Compare | Runs the pattern over the sample in the .NET modes that exist here (default backtracking, non-backtracking, ECMAScript, compiled): whether each is supported, match count, first difference from the default engine, and time. Other languages' engines are not available in this app. |
 | Benchmark | Times a subject that should match and one that should not, then repeats each 1x, 2x, 4x, 8x and 16x with a verdict on growth. Runs in the background, stops at the 200 ms limit, and can be cancelled. |
 | Replace | Replacement text with `$0`, `$1`, `${name}`, `$$`, `` $` ``, `$'` and `$_` chips, a **Replacement explained** list (every `$` token and literal run described; a reference to a group the pattern does not have is flagged, because .NET silently copies it as plain text), a live preview of the sample, and Split mode. Nothing changes until you copy the result. |
-| Code | Ready-to-use C#, PowerShell and Python with the current options and a timeout. Python output converts named groups and lists options it cannot express. |
+| Code | Match, replace and split snippets in C#, PowerShell, Python, JavaScript and Java with the current options and, where the language has one, a timeout. Output for other languages converts group syntax and lists what it cannot express. Every snippet comes from an editable template (`{{literal}}`, `{{flags}}`, `{{replacement}}`, `{{timeout}}`, `{{notes}}`), saved per language and kind. |
 | Files | Search and replace across files in a folder. See [Files view](#files-view). |
 | Library | Save the current pattern with a name, use or remove saved ones (the expected outcomes from the Test view are saved with the entry), recent patterns for this bar, an opt-in switch to remember them across restarts, and JSON export and import (imports are size-capped and validated; older exports without test lines still import). |
 
@@ -36,7 +36,8 @@ The builder opens directly under the search bar it belongs to (Builder button or
 - **Guided editing:** selecting a quantifier shows minimum, maximum (empty for no limit), a Lazy switch and presets for `*`, `+` and `?`; a character set shows its members and a negate switch (a subtracted set is kept); a group offers numbered, named, non-capturing, atomic and the four lookaround kinds. **Apply to the pattern** rewrites only that span. A change that would turn a valid pattern into an invalid one is refused with the engine's message. Other parts (anchors, escapes, balancing groups, conditionals, comments) have no guided editor and show their span instead.
 - **Export Markdown / Export HTML** write the current analysis (pattern, engine, options, validity, and the tree at the chosen detail level with character spans) to a file you choose. Nothing is sent anywhere.
 - The Debug trace comes from a separate small interpreter, not from the .NET engine, and covers a stated subset. It never shows a trace that disagrees with the engine. Benchmark and Compare timings are short real measurements and vary from run to run.
-- Only the .NET flavour is available. Code for other languages is generated, not executed.
+- The Compare view also runs the pattern in the Windows JScript engine, Windows PowerShell 5.1, and Python and Node.js when installed. Other engines are not available offline. Code for other languages is generated; the checks run the Python, JavaScript and PowerShell snippets but not Java.
+- The Help view has short syntax pages and the builder preferences (opening view, width, height, visible views). The full parity status is in `regexbuddy-parity.md`.
 
 See the [parity ledger](regexbuddy-parity.md) for every missing family.
 
