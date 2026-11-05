@@ -499,7 +499,7 @@ namespace MonitoringTools.UI.Search
         {
             var sp = new StackPanel();
             sp.Children.Add(Eyebrow("Step-by-step trace"));
-            sp.Children.Add(Note("A small built-in interpreter replays one match attempt of the default backtracking engine. It covers literals, classes (including Unicode categories), anchors, word boundaries, groups, look-ahead and look-behind, atomic groups, alternation, greedy and lazy repeats and backreferences. Before a trace is shown the match and every capture group are checked against the real .NET engine on the same subject; if they disagree, or the pattern uses something the interpreter does not cover, you are told and nothing is faked."));
+            sp.Children.Add(Note("A small built-in interpreter replays one match attempt of the default backtracking engine. It covers literals, classes (including Unicode categories and class subtraction), anchors (including \\G), word boundaries, groups, look-ahead and look-behind, atomic groups, conditionals, inline options, alternation, greedy and lazy repeats and backreferences. Before a trace is shown the match and every capture group are checked against the real .NET engine on the same subject; if they disagree, or the pattern uses something the interpreter does not cover, you are told and nothing is faked."));
             sp.Children.Add(Eyebrow("Subject to trace (first " + RegexTrace.MaxSubject + " characters)"));
             _dbgSubjectText ??= DefaultSubject(300);
             _dbgSubject = SubjectBox("Subject text for the step-by-step trace", _dbgSubjectText, 54);

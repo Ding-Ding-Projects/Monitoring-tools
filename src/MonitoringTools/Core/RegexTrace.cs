@@ -13,13 +13,16 @@ namespace MonitoringTools.Core
     /// clearly limited subset. Before a trace is shown it is checked against System.Text.RegularExpressions
     /// on the same subject; if the two disagree the trace is withheld.
     ///
-    /// Supported: literals, ".", character classes (including \d \w \s and their negations, ranges and
-    /// negated sets), anchors ^ $ \A \z \Z, word boundaries \b \B, capturing, non-capturing and named
-    /// groups, alternation, greedy and lazy * + ? {n} {n,} {n,m}, numbered and named backreferences.
-    /// Supported options: ignore case, multiline, singleline, culture invariant.
-    /// Not supported (reported by name, never faked): lookaround, atomic groups, conditionals, inline
-    /// options, comments, Unicode properties, class subtraction, \G, octal and control escapes,
-    /// right-to-left, non-backtracking, ECMAScript, explicit capture and ignore-pattern-whitespace.
+    /// Supported: literals, ".", character classes (including \d \w \s and their negations, ranges,
+    /// negated sets, Unicode general categories and class subtraction such as [a-z-[aeiou]]), anchors
+    /// ^ $ \A \z \Z \G, word boundaries \b \B, capturing, non-capturing and named groups, look-ahead and
+    /// look-behind, atomic groups, conditionals on a group or on a look-around test, inline options
+    /// (?imsn-imsn) and (?imsn-imsn:...), alternation, greedy and lazy * + ? {n} {n,} {n,m}, numbered and
+    /// named backreferences. Supported options: ignore case, multiline, singleline, explicit capture,
+    /// culture invariant.
+    /// Not supported (reported by name, never faked): the ignore-whitespace option x, comments, Unicode
+    /// scripts and blocks, a conditional whose condition names no group, octal and control escapes,
+    /// right-to-left, non-backtracking and ECMAScript.
     /// </summary>
     public static class RegexTrace
     {
@@ -55,24 +58,29 @@ namespace MonitoringTools.Core
         // ------------------------------------------------------------------ syntax tree
 
         private abstract class Node { public int PS, PE; }
-        private sealed class LitNode : Node { public char C; }
-        private sealed class AnyNode : Node { }
+        private sealed class LitNode : Node { public char C; public bool IC; }
+        private sealed class AnyNode : Node { public bool SL; }
         private sealed class ClassNode : Node
         {
-            public bool Negated;
+            public bool Negated, IC;
+            /// <summary>The set subtracted from this one, as in [a-z-[aeiou]], or null.</summary>
+            public ClassNode Subtract;
             public List<(char Lo, char Hi)> Ranges = new List<(char, char)>();
             public List<char> Escapes = new List<char>(); // d D w W s S
             public List<(string Name, bool Not)> Props = new List<(string, bool)>(); // \p{..} and \P{..}
             public string Text;
         }
-        private sealed class AnchorNode : Node { public char Kind; } // ^ $ b B A z Z
+        private sealed class AnchorNode : Node { public char Kind; public bool ML; } // ^ $ b B A z Z G
         private sealed class GroupNode : Node { public Node Body; public bool Capturing; public string Name; public int Number; }
         private sealed class AltNode : Node { public List<Node> Alts = new List<Node>(); }
         private sealed class SeqNode : Node { public List<Node> Items = new List<Node>(); }
         private sealed class RepeatNode : Node { public Node Child; public int Min, Max; public bool Lazy; }
-        private sealed class BackrefNode : Node { public int Number = -1; public string Name; public GroupNode Target; }
+        private sealed class BackrefNode : Node { public int Number = -1; public string Name; public GroupNode Target; public bool IC; }
         private sealed class LookNode : Node { public Node Body; public bool Ahead, Negative; }
         private sealed class AtomicNode : Node { public Node Body; }
+        /// <summary>(?(test)yes|no): the test is a group (RefName, resolved to Target) or a look-around (Test).</summary>
+        private sealed class OptNode : Node { public string Opts; }
+        private sealed class CondNode : Node { public string RefName; public GroupNode Target; public LookNode Test; public Node Yes, No; }
 
         // Unicode general categories, by their two-letter names, for \p{..} and \P{..}.
         private static readonly Dictionary<System.Globalization.UnicodeCategory, string> CategoryCodes = new Dictionary<System.Globalization.UnicodeCategory, string>
@@ -109,10 +117,35 @@ namespace MonitoringTools.Core
         {
             private readonly string p;
             private int i, depth;
+            // The options in effect at the current point; inline options change them until the end of the enclosing group.
+            private bool ic, ml, sl, nx;
             public readonly List<GroupNode> Groups = new List<GroupNode>();
             public readonly List<BackrefNode> Backrefs = new List<BackrefNode>();
+            public readonly List<CondNode> Conditions = new List<CondNode>();
 
-            public Parser(string pattern) { p = pattern; }
+            public Parser(string pattern, RegexOptions o)
+            {
+                p = pattern;
+                ic = (o & RegexOptions.IgnoreCase) != 0; ml = (o & RegexOptions.Multiline) != 0; sl = (o & RegexOptions.Singleline) != 0; nx = (o & RegexOptions.ExplicitCapture) != 0;
+            }
+
+            /// <summary>Applies an option string such as "i-ms". The ignore-whitespace option changes how the pattern is read, so it is not traced.</summary>
+            private void ApplyOptions(string opts)
+            {
+                bool on = true;
+                foreach (var c in opts)
+                {
+                    switch (c)
+                    {
+                        case '-': on = false; break;
+                        case 'i': ic = on; break;
+                        case 'm': ml = on; break;
+                        case 's': sl = on; break;
+                        case 'n': nx = on; break;
+                        case 'x': if (on) throw new UnsupportedException("the ignore-whitespace option x"); break;
+                    }
+                }
+            }
 
             public Node ParseAll()
             {
@@ -126,6 +159,21 @@ namespace MonitoringTools.Core
                 {
                     b.Target = b.Name != null ? Groups.FirstOrDefault(g => g.Name == b.Name) : Groups.FirstOrDefault(g => g.Number == b.Number);
                     if (b.Target == null) throw new ParseErrorException("Reference to undefined group " + (b.Name ?? b.Number.ToString()));
+                }
+                foreach (var c in Conditions)
+                {
+                    if (c.Test != null) continue;
+                    if (c.RefName.Length > 0 && c.RefName.All(char.IsDigit))
+                    {
+                        var want = int.Parse(c.RefName);
+                        c.Target = Groups.FirstOrDefault(g => g.Number == want);
+                        if (c.Target == null) throw new ParseErrorException("Reference to undefined group " + c.RefName);
+                    }
+                    else
+                    {
+                        c.Target = Groups.FirstOrDefault(g => g.Name == c.RefName);
+                        if (c.Target == null) throw new UnsupportedException("conditional (?(" + c.RefName + ")...) whose condition names no group, which .NET tests as an expression");
+                    }
                 }
                 return n;
             }
@@ -148,7 +196,19 @@ namespace MonitoringTools.Core
                 int start = i;
                 var seq = new SeqNode { PS = start };
                 while (i < p.Length && p[i] != '|' && p[i] != ')')
+                {
+                    // (?imsn-imsn) on its own changes the options for the rest of the enclosing group and matches nothing
+                    var opts = InlineOptionsAt(i);
+                    if (opts != null)
+                    {
+                        if (i + opts.Length + 3 < p.Length && "*+?".IndexOf(p[i + opts.Length + 3]) >= 0) throw new UnsupportedException("a quantifier after inline options");
+                        ApplyOptions(opts);
+                        seq.Items.Add(new OptNode { PS = i, PE = i + opts.Length + 3, Opts = opts });
+                        i += opts.Length + 3;
+                        continue;
+                    }
                     seq.Items.Add(ParseQuant(ParseAtom()));
+                }
                 seq.PE = i;
                 return seq.Items.Count == 1 ? seq.Items[0] : seq;
             }
@@ -161,30 +221,38 @@ namespace MonitoringTools.Core
                 {
                     case '(': return ParseGroup();
                     case '[': return ParseClass();
-                    case '.': i++; return new AnyNode { PS = s, PE = i };
-                    case '^': case '$': i++; return new AnchorNode { Kind = c, PS = s, PE = i };
+                    case '.': i++; return new AnyNode { PS = s, PE = i, SL = sl };
+                    case '^': case '$': i++; return new AnchorNode { Kind = c, PS = s, PE = i, ML = ml };
                     case '\\': return ParseEscape();
                     case '*': case '+': case '?':
                         throw new ParseErrorException("Quantifier '" + c + "' has nothing to repeat at position " + s);
                     case '{':
                         if (QuantAt(i, out _, out _, out _)) throw new ParseErrorException("Quantifier '{' has nothing to repeat at position " + s);
-                        i++; return new LitNode { C = c, PS = s, PE = i };
-                    default: i++; return new LitNode { C = c, PS = s, PE = i };
+                        i++; return new LitNode { C = c, PS = s, PE = i, IC = ic };
+                    default: i++; return new LitNode { C = c, PS = s, PE = i, IC = ic };
                 }
             }
 
             private Node ParseGroup()
             {
+                // Options changed inside a group last until its closing parenthesis.
+                bool sic = ic, sml = ml, ssl = sl, snx = nx;
+                try { return ParseGroupBody(); }
+                finally { ic = sic; ml = sml; sl = ssl; nx = snx; }
+            }
+
+            private Node ParseGroupBody()
+            {
                 int s = i;
                 i++; // (
-                var g = new GroupNode { PS = s, Capturing = true };
+                var g = new GroupNode { PS = s, Capturing = !nx };
                 if (i < p.Length && p[i] == '?')
                 {
                     string rest = p.Substring(i, Math.Min(3, p.Length - i));
                     if (rest.StartsWith("?:", StringComparison.Ordinal)) { g.Capturing = false; i += 2; }
                     else if (rest.StartsWith("?<=", StringComparison.Ordinal) || rest.StartsWith("?<!", StringComparison.Ordinal)) return ParseLook(s, false, rest[2] == '!', 3);
-                    else if (rest.Length >= 3 && rest[1] == '<' && (char.IsLetter(rest[2]) || rest[2] == '_')) { i += 2; g.Name = ReadName('>'); }
-                    else if (rest.StartsWith("?'", StringComparison.Ordinal)) { i += 2; g.Name = ReadName('\''); }
+                    else if (rest.Length >= 3 && rest[1] == '<' && (char.IsLetter(rest[2]) || rest[2] == '_')) { i += 2; g.Name = ReadName('>'); g.Capturing = true; }
+                    else if (rest.StartsWith("?'", StringComparison.Ordinal)) { i += 2; g.Name = ReadName('\''); g.Capturing = true; }
                     else if (rest.StartsWith("?=", StringComparison.Ordinal) || rest.StartsWith("?!", StringComparison.Ordinal)) return ParseLook(s, true, rest[1] == '!', 2);
                     else if (rest.StartsWith("?>", StringComparison.Ordinal))
                     {
@@ -194,9 +262,21 @@ namespace MonitoringTools.Core
                         i++;
                         return new AtomicNode { Body = body, PS = s, PE = i };
                     }
-                    else if (rest.StartsWith("?(", StringComparison.Ordinal)) throw new UnsupportedException("conditional (?(...)yes|no)");
+                    else if (rest.StartsWith("?(", StringComparison.Ordinal)) return ParseConditional(s);
                     else if (rest.StartsWith("?#", StringComparison.Ordinal)) throw new UnsupportedException("inline comment (?#...)");
-                    else throw new UnsupportedException("inline options or group construct (" + p.Substring(s, Math.Min(4, p.Length - s)) + "...)");
+                    else
+                    {
+                        // (?imsn-imsn:...) sets options for this group only; (?imsn-imsn) on its own is handled in ParseSeq
+                        int j = i + 1;
+                        while (j < p.Length && "imnsx-".IndexOf(p[j]) >= 0) j++;
+                        if (j < p.Length && j > i + 1 && p[j] == ':')
+                        {
+                            ApplyOptions(p.Substring(i + 1, j - i - 1));
+                            i = j + 1;
+                            g.Capturing = false;
+                        }
+                        else throw new UnsupportedException("group construct (" + p.Substring(s, Math.Min(4, p.Length - s)) + "...)");
+                    }
                 }
                 if (g.Capturing) Groups.Add(g);
                 g.Body = ParseAlt();
@@ -204,6 +284,46 @@ namespace MonitoringTools.Core
                 i++;
                 g.PE = i;
                 return g;
+            }
+
+            private Node ParseConditional(int s)
+            {
+                i++; // past "?", now at the "(" that opens the condition
+                var c = new CondNode { PS = s };
+                if (i + 1 < p.Length && p[i + 1] == '?')
+                {
+                    var test = ParseGroup();
+                    c.Test = test as LookNode ?? throw new UnsupportedException("conditional whose condition is not a group name, a group number or a look-around test");
+                }
+                else
+                {
+                    int close = p.IndexOf(')', i);
+                    if (close < 0) throw new ParseErrorException("Illegal conditional (?(...)) expression");
+                    c.RefName = p.Substring(i + 1, close - i - 1);
+                    if (!Regex.IsMatch(c.RefName, @"^\w+$")) throw new UnsupportedException("conditional (?(" + c.RefName + ")...) whose condition is an expression rather than a group or a look-around test");
+                    i = close + 1;
+                }
+                var body = ParseAlt();
+                if (i >= p.Length || p[i] != ')') throw new ParseErrorException("Missing ')' for the conditional opened at position " + s);
+                i++;
+                c.PE = i;
+                if (body is AltNode alt)
+                {
+                    if (alt.Alts.Count > 2) throw new ParseErrorException("Too many | in (?()|)");
+                    c.Yes = alt.Alts[0]; c.No = alt.Alts[1];
+                }
+                else c.Yes = body;
+                Conditions.Add(c);
+                return c;
+            }
+
+            /// <summary>The option letters of a (?imsn-imsn) that stands on its own at this position, or null.</summary>
+            private string InlineOptionsAt(int at)
+            {
+                if (at + 2 >= p.Length || p[at] != '(' || p[at + 1] != '?') return null;
+                int j = at + 2;
+                while (j < p.Length && "imnsx-".IndexOf(p[j]) >= 0) j++;
+                return j > at + 2 && j < p.Length && p[j] == ')' ? p.Substring(at + 2, j - at - 2) : null;
             }
 
             private Node ParseLook(int s, bool ahead, bool negative, int skip)
@@ -235,11 +355,11 @@ namespace MonitoringTools.Core
                 {
                     case 'd': case 'D': case 'w': case 'W': case 's': case 'S':
                     {
-                        var cn = new ClassNode { PS = s, PE = i, Text = "\\" + e };
+                        var cn = new ClassNode { PS = s, PE = i, Text = "\\" + e, IC = ic };
                         cn.Escapes.Add(e);
                         return cn;
                     }
-                    case 'b': case 'B': case 'A': case 'z': case 'Z': return new AnchorNode { Kind = e, PS = s, PE = i };
+                    case 'b': case 'B': case 'A': case 'z': case 'Z': case 'G': return new AnchorNode { Kind = e, PS = s, PE = i, ML = ml };
                     case 'n': return Lit('\n', s);
                     case 'r': return Lit('\r', s);
                     case 't': return Lit('\t', s);
@@ -251,12 +371,11 @@ namespace MonitoringTools.Core
                     case 'u': return Lit(ReadHex(4), s);
                     case 'p': case 'P':
                     {
-                        var cn = new ClassNode { PS = s };
+                        var cn = new ClassNode { PS = s, IC = ic };
                         cn.Props.Add(ReadProperty(e == 'P'));
                         cn.PE = i; cn.Text = p.Substring(s, i - s);
                         return cn;
                     }
-                    case 'G': throw new UnsupportedException("\\G (continue from the previous match)");
                     case 'c': throw new UnsupportedException("control character escape \\c");
                     case '0': throw new UnsupportedException("octal escape \\0");
                     case 'k':
@@ -266,7 +385,7 @@ namespace MonitoringTools.Core
                             char close = p[i] == '<' ? '>' : '\'';
                             i++;
                             var name = ReadName(close);
-                            var b = new BackrefNode { Name = name, PS = s, PE = i };
+                            var b = new BackrefNode { Name = name, PS = s, PE = i, IC = ic };
                             if (int.TryParse(name, out var n)) { b.Name = null; b.Number = n; }
                             Backrefs.Add(b);
                             return b;
@@ -278,7 +397,7 @@ namespace MonitoringTools.Core
                         {
                             int start = i - 1;
                             while (i < p.Length && char.IsDigit(p[i])) i++;
-                            var b = new BackrefNode { Number = int.Parse(p.Substring(start, i - start)), PS = s, PE = i };
+                            var b = new BackrefNode { Number = int.Parse(p.Substring(start, i - start)), PS = s, PE = i, IC = ic };
                             Backrefs.Add(b);
                             return b;
                         }
@@ -299,7 +418,7 @@ namespace MonitoringTools.Core
                 return (name, not);
             }
 
-            private LitNode Lit(char c, int s) => new LitNode { C = c, PS = s, PE = i };
+            private LitNode Lit(char c, int s) => new LitNode { C = c, PS = s, PE = i, IC = ic };
 
             private char ReadHex(int n)
             {
@@ -313,7 +432,7 @@ namespace MonitoringTools.Core
             {
                 int s = i;
                 i++; // [
-                var cn = new ClassNode { PS = s };
+                var cn = new ClassNode { PS = s, IC = ic };
                 if (i < p.Length && p[i] == '^') { cn.Negated = true; i++; }
                 bool first = true;
                 while (true)
@@ -322,7 +441,7 @@ namespace MonitoringTools.Core
                     char c = p[i];
                     if (c == ']' && !first) { i++; break; }
                     first = false;
-                    if (c == '-' && i + 1 < p.Length && p[i + 1] == '[') throw new UnsupportedException("character class subtraction ([a-z-[aeiou]])");
+                    if (c == '-' && i + 1 < p.Length && p[i + 1] == '[') { i++; Subtraction(cn, s); break; }
                     if (c == '\\')
                     {
                         if (i + 1 >= p.Length) throw new ParseErrorException("Missing ']' for the set opened at position " + s);
@@ -333,7 +452,7 @@ namespace MonitoringTools.Core
                     char lo = ReadClassChar();
                     if (i + 1 < p.Length && p[i] == '-' && p[i + 1] != ']')
                     {
-                        if (p[i + 1] == '[') throw new UnsupportedException("character class subtraction ([a-z-[aeiou]])");
+                        if (p[i + 1] == '[') { cn.Ranges.Add((lo, lo)); i++; Subtraction(cn, s); break; }
                         i++;
                         if (p[i] == '\\' && i + 1 < p.Length && "dDwWsSpP".IndexOf(p[i + 1]) >= 0) throw new ParseErrorException("A range cannot end with a class escape");
                         char hi = ReadClassChar();
@@ -345,6 +464,14 @@ namespace MonitoringTools.Core
                 cn.PE = i;
                 cn.Text = p.Substring(s, i - s);
                 return cn;
+            }
+
+            /// <summary>Reads the subtracted set of [base-[sub]]; it must be the last thing in the outer set.</summary>
+            private void Subtraction(ClassNode cn, int s)
+            {
+                cn.Subtract = (ClassNode)ParseClass();
+                if (i >= p.Length || p[i] != ']') throw new ParseErrorException("A subtraction must be the last element in a character class at position " + s);
+                i++;
             }
 
             private char ReadClassChar()
@@ -419,15 +546,15 @@ namespace MonitoringTools.Core
         private sealed class Machine
         {
             private readonly string t;
-            private readonly bool ic, ml, sl;
             private readonly List<Step> steps;
+            /// <summary>Where this search began: \G holds only there (0 for the first match).</summary>
+            private readonly int scanStart = 0;
             private readonly (int S, int L)[] caps;
             private int depth;
 
             public Machine(string text, RegexOptions o, List<Step> steps, int groups)
             {
                 t = text; this.steps = steps;
-                ic = (o & RegexOptions.IgnoreCase) != 0; ml = (o & RegexOptions.Multiline) != 0; sl = (o & RegexOptions.Singleline) != 0;
                 caps = new (int, int)[groups + 1];
                 Array.Fill(caps, (-1, 0));
             }
@@ -462,7 +589,7 @@ namespace MonitoringTools.Core
 
             private string Found(int pos) => pos < t.Length ? "found " + Q(t[pos]) : "reached the end of the text";
 
-            private bool Eq(char a, char b) => a == b || (ic && (char.ToLowerInvariant(a) == char.ToLowerInvariant(b) || char.ToUpperInvariant(a) == char.ToUpperInvariant(b)));
+            private static bool Eq(char a, char b, bool ic) => a == b || (ic && (char.ToLowerInvariant(a) == char.ToLowerInvariant(b) || char.ToUpperInvariant(a) == char.ToUpperInvariant(b)));
 
             private static bool IsWord(char c) => char.IsLetterOrDigit(c) || c == '_';
 
@@ -488,16 +615,20 @@ namespace MonitoringTools.Core
                     foreach (var (nm, not) in cn.Props) if (PropertyHas(nm, x) != not) return true;
                     return false;
                 }
-                bool hit = Raw(c) || (ic && (Raw(char.ToLowerInvariant(c)) || Raw(char.ToUpperInvariant(c))));
-                return hit != cn.Negated;
+                bool hit = Raw(c) || (cn.IC && (Raw(char.ToLowerInvariant(c)) || Raw(char.ToUpperInvariant(c))));
+                bool r = hit != cn.Negated;
+                // [base-[sub]]: a character in the subtracted set is taken out after the base set (and its negation) is applied
+                if (r && cn.Subtract != null && ClassHas(cn.Subtract, c)) r = false;
+                return r;
             }
 
             private bool AnchorOk(AnchorNode a, int pos)
             {
                 switch (a.Kind)
                 {
-                    case '^': return pos == 0 || (ml && t[pos - 1] == '\n');
-                    case '$': return pos == t.Length || (t[pos] == '\n' && (ml || pos == t.Length - 1));
+                    case '^': return pos == 0 || (a.ML && t[pos - 1] == '\n');
+                    case '$': return pos == t.Length || (t[pos] == '\n' && (a.ML || pos == t.Length - 1));
+                    case 'G': return pos == scanStart;
                     case 'A': return pos == 0;
                     case 'z': return pos == t.Length;
                     case 'Z': return pos == t.Length || (t[pos] == '\n' && pos == t.Length - 1);
@@ -512,7 +643,7 @@ namespace MonitoringTools.Core
             private static string AnchorName(char k) => k switch
             {
                 '^' => "start of text or line", '$' => "end of text or line", 'A' => "start of text", 'z' => "end of text",
-                'Z' => "end of text", 'b' => "word boundary", _ => "not a word boundary",
+                'Z' => "end of text", 'b' => "word boundary", 'G' => "start of this search (\\G)", _ => "not a word boundary",
             };
 
             private bool M(Node n, int pos, Func<int, bool> k)
@@ -527,10 +658,10 @@ namespace MonitoringTools.Core
                 switch (n)
                 {
                     case LitNode l:
-                        if (pos < t.Length && Eq(t[pos], l.C)) { Log(n, pos, 1, StepKind.Match, "Literal " + Q(l.C) + " matches " + Q(t[pos])); return k(pos + 1); }
+                        if (pos < t.Length && Eq(t[pos], l.C, l.IC)) { Log(n, pos, 1, StepKind.Match, "Literal " + Q(l.C) + " matches " + Q(t[pos])); return k(pos + 1); }
                         Log(n, pos, 0, StepKind.Fail, "Literal " + Q(l.C) + " expected but " + Found(pos)); return false;
-                    case AnyNode:
-                        if (pos < t.Length && (sl || t[pos] != '\n')) { Log(n, pos, 1, StepKind.Match, "'.' matches " + Q(t[pos])); return k(pos + 1); }
+                    case AnyNode an:
+                        if (pos < t.Length && (an.SL || t[pos] != '\n')) { Log(n, pos, 1, StepKind.Match, "'.' matches " + Q(t[pos])); return k(pos + 1); }
                         Log(n, pos, 0, StepKind.Fail, "'.' needs a character that is not a line break but " + Found(pos)); return false;
                     case ClassNode c:
                         if (pos < t.Length && ClassHas(c, t[pos])) { Log(n, pos, 1, StepKind.Match, c.Text + " matches " + Q(t[pos])); return k(pos + 1); }
@@ -582,18 +713,51 @@ namespace MonitoringTools.Core
                         return false;
                     }
                     case RepeatNode r: return Rep(r, 0, pos, k);
+                    case CondNode cd: return Conditional(cd, pos, k);
+                    case OptNode op:
+                        Log(n, pos, 0, StepKind.Info, "Inline options (?" + op.Opts + ") apply from here to the end of the enclosing group");
+                        return k(pos);
                     case BackrefNode b:
                     {
                         var c = caps[b.Target.Number];
                         string label = "Backreference " + (b.Name != null ? "\\k<" + b.Name + ">" : "\\" + b.Number);
                         if (c.S < 0) { Log(n, pos, 0, StepKind.Fail, label + ": the group has not matched anything"); return false; }
                         var sub = t.Substring(c.S, c.L);
-                        if (pos + c.L <= t.Length && string.Compare(t, pos, sub, 0, c.L, ic ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) == 0)
+                        if (pos + c.L <= t.Length && string.Compare(t, pos, sub, 0, c.L, b.IC ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) == 0)
                         { Log(n, pos, c.L, StepKind.Match, label + " matches the repeated text \"" + Clip(sub) + "\""); return k(pos + c.L); }
                         Log(n, pos, 0, StepKind.Fail, label + " expected \"" + Clip(sub) + "\" here"); return false;
                     }
                 }
                 throw new InvalidOperationException();
+            }
+
+            private bool Conditional(CondNode cd, int pos, Func<int, bool> k)
+            {
+                var saved = ((int, int)[])caps.Clone();
+                bool truth;
+                if (cd.Target != null)
+                {
+                    truth = caps[cd.Target.Number].S >= 0;
+                    string label = cd.Target.Name != null ? "group \"" + cd.Target.Name + "\"" : "group " + cd.Target.Number;
+                    Log(cd, pos, 0, StepKind.Info, "Conditional: " + label + (truth ? " has captured text, so try the yes branch" : " has not captured anything, so try the " + (cd.No != null ? "no branch" : "empty no branch")));
+                }
+                else
+                {
+                    var lk = cd.Test;
+                    string kind = (lk.Negative ? "negative " : "") + (lk.Ahead ? "look-ahead" : "look-behind");
+                    Log(cd, pos, 0, StepKind.Enter, "Conditional: test the " + kind + " condition without consuming text");
+                    bool found = false;
+                    if (lk.Ahead) found = M(lk.Body, pos, e => true);
+                    else for (int st = pos; st >= 0 && !found; st--) found = M(lk.Body, st, e => e == pos);
+                    if (lk.Negative) Array.Copy(saved, caps, caps.Length);
+                    truth = found != lk.Negative;
+                    Log(cd, pos, 0, StepKind.Leave, "The condition " + (truth ? "holds, so try the yes branch" : "does not hold, so try the " + (cd.No != null ? "no branch" : "empty no branch")));
+                }
+                var branch = truth ? cd.Yes : cd.No;
+                if (branch == null) { if (k(pos)) return true; }
+                else if (M(branch, pos, k)) return true;
+                Array.Copy(saved, caps, caps.Length);
+                return false;
             }
 
             private static string Clip(string s) => (s.Length > 24 ? s[..24] + "..." : s).Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
@@ -666,7 +830,7 @@ namespace MonitoringTools.Core
 
         // ------------------------------------------------------------------ entry point
 
-        private const RegexOptions Traceable = RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.CultureInvariant | RegexOptions.Compiled;
+        private const RegexOptions Traceable = RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant | RegexOptions.Compiled;
 
         public static Result Run(string pattern, RegexOptions options, string subject)
         {
@@ -676,7 +840,7 @@ namespace MonitoringTools.Core
             var bad = options & ~Traceable & ~RegexOptions.None;
             if (bad != 0)
             {
-                res.Unsupported = "The trace follows the default backtracking engine with ignore case, multiline and singleline only. These options are not supported: " + bad + ".";
+                res.Unsupported = "The trace follows the default backtracking engine with ignore case, multiline, singleline and explicit capture only. These options are not supported: " + bad + ".";
                 return res;
             }
             if (pattern.Length > RegexKit.MaxPatternLength) { res.Unsupported = "The pattern is longer than " + RegexKit.MaxPatternLength + " characters."; return res; }
@@ -687,7 +851,7 @@ namespace MonitoringTools.Core
             }
             res.Subject = subject;
 
-            Parser parser = new Parser(pattern);
+            Parser parser = new Parser(pattern, options);
             Node root;
             try { root = parser.ParseAll(); }
             catch (UnsupportedException ex) { res.Unsupported = "Not supported by the trace: " + ex.Message + ". The trace never guesses, so no trace is shown for this pattern."; return res; }
@@ -733,7 +897,7 @@ namespace MonitoringTools.Core
             // Agreement check against the real engine, before any trace is shown.
             try
             {
-                var rx = new Regex(pattern, options & (RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.CultureInvariant), RegexKit.Timeout);
+                var rx = new Regex(pattern, options & (RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant), RegexKit.Timeout);
                 var real = rx.Match(subject);
                 if (real.Success != res.Matched || (real.Success && (real.Index != res.MatchIndex || real.Length != res.MatchLength)))
                 {

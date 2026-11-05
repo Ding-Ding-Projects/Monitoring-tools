@@ -57,9 +57,10 @@ namespace MonitoringTools.Core
             OpenConsole();
             var dataDir = Environment.GetEnvironmentVariable("MT_DATA_DIR");   // lets a test point the library and backups at a throwaway folder
             if (!string.IsNullOrWhiteSpace(dataDir)) Settings.DataDirOverride = dataDir;
-            string pattern = null, replace = null, libName = null;
-            bool json = false, help = false, inPlace = false, listLib = false, optionsGiven = false;
+            string pattern = null, replace = null, libName = null, requestFile = null;
+            bool json = false, help = false, inPlace = false, listLib = false, optionsGiven = false, automation = false;
             var paramValues = new Dictionary<string, string>();
+            var extraPatterns = new List<string>();   // --pattern and --patterns-file; when given, every plain argument is a file
             var options = RegexOptions.None;
             var files = new List<string>();
             for (int i = 0; i < args.Length; i++)
@@ -71,6 +72,25 @@ namespace MonitoringTools.Core
                     case "--help": case "-h": case "/?": help = true; break;
                     case "--in-place": inPlace = true; break;
                     case "--list-library": listLib = true; break;
+                    case "--automation": automation = true; break;
+                    case "--request":
+                        if (i + 1 >= args.Length) return Usage("--request needs the path of a JSON request file.");
+                        requestFile = args[++i]; automation = true; break;
+                    case "--pattern":
+                        if (i + 1 >= args.Length) return Usage("--pattern needs a pattern.");
+                        extraPatterns.Add(args[++i]); break;
+                    case "--patterns-file":
+                    {
+                        if (i + 1 >= args.Length) return Usage("--patterns-file needs a file with one pattern per line.");
+                        var pf = args[++i];
+                        string[] lines;
+                        try { lines = RegexGrep.Decode(File.ReadAllBytes(pf)).Text.Replace("\r\n", "\n").Split('\n'); }
+                        catch (Exception ex) { _err.WriteLine(pf + ": " + ex.Message); return 2; }
+                        // one pattern per line; empty lines and lines starting with "#" are skipped (write \# for a pattern that starts with #)
+                        foreach (var line in lines) if (line.Length > 0 && !line.StartsWith("#", StringComparison.Ordinal)) extraPatterns.Add(line);
+                        if (!extraPatterns.Any()) { _err.WriteLine(pf + ": the file has no patterns."); return 2; }
+                        break;
+                    }
                     case "--lib":
                         if (i + 1 >= args.Length) return Usage("--lib needs the name of a saved pattern.");
                         libName = args[++i]; break;
@@ -104,6 +124,27 @@ namespace MonitoringTools.Core
                         break;
                 }
             }
+            if (automation)
+            {
+                string request;
+                try
+                {
+                    if (requestFile != null) request = File.ReadAllText(requestFile);
+                    else if (Console.IsInputRedirected) { using var r = new StreamReader(Console.OpenStandardInput(), new UTF8Encoding(false)); request = r.ReadToEnd(); }
+                    else { _err.WriteLine("--automation reads a JSON request from standard input, or from the file given with --request."); return 2; }
+                }
+                catch (Exception ex) { _err.WriteLine("The request could not be read: " + ex.Message); return 2; }
+                _out.WriteLine(RegexAutomation.Handle(request, out var code));
+                return code;
+            }
+            if (extraPatterns.Count > 0)
+            {
+                if (libName != null) return Usage("--lib cannot be combined with --pattern or --patterns-file.");
+                if (inPlace && extraPatterns.Count > 1) return Usage("--in-place takes one pattern at a time, so each run has its own backup.");
+                if (pattern != null) { files.Insert(0, pattern); pattern = null; }
+                if (extraPatterns.Count == 1) pattern = extraPatterns[0];
+                else return RunMany(extraPatterns, options, replace, files, json);
+            }
             if (listLib)
             {
                 Settings.Load();
@@ -135,24 +176,8 @@ namespace MonitoringTools.Core
                 return ReplaceInPlace(rx, replace, files, json);
             }
 
-            var inputs = new List<(string Name, string Text)>();
-            if (files.Count == 0)
-            {
-                if (!Console.IsInputRedirected) { _err.WriteLine("Give at least one file, or pipe text in."); return 2; }
-                using var r = new StreamReader(Console.OpenStandardInput(), new UTF8Encoding(false));
-                inputs.Add(("(stdin)", r.ReadToEnd()));
-            }
-            else
-            {
-                foreach (var f in files)
-                {
-                    foreach (var path in Expand(f))
-                    {
-                        try { inputs.Add((path, RegexGrep.Decode(File.ReadAllBytes(path)).Text)); }
-                        catch (Exception ex) { _err.WriteLine(path + ": " + ex.Message); }
-                    }
-                }
-            }
+            var inputs = ReadInputs(files);
+            if (inputs == null) return 2;
 
             bool any = false;
             var jsonRows = new List<object>();
@@ -191,6 +216,90 @@ namespace MonitoringTools.Core
             catch (RegexParseException ex) { _err.WriteLine("Invalid replacement: " + ex.Message); return 2; }
             catch (ArgumentException ex) { _err.WriteLine("Invalid replacement: " + ex.Message); return 2; }
 
+            if (json) _out.WriteLine(JsonSerializer.Serialize(jsonRows, new JsonSerializerOptions { WriteIndented = true }));
+            return any ? 0 : 1;
+        }
+
+        /// <summary>The named files (wildcards expanded), or standard input when no file is named. Null after printing why when there is nothing to read.</summary>
+        private static List<(string Name, string Text)> ReadInputs(List<string> files)
+        {
+            var inputs = new List<(string Name, string Text)>();
+            if (files.Count == 0)
+            {
+                if (!Console.IsInputRedirected) { _err.WriteLine("Give at least one file, or pipe text in."); return null; }
+                using var r = new StreamReader(Console.OpenStandardInput(), new UTF8Encoding(false));
+                inputs.Add(("(stdin)", r.ReadToEnd()));
+                return inputs;
+            }
+            foreach (var f in files)
+                foreach (var path in Expand(f))
+                {
+                    try { inputs.Add((path, RegexGrep.Decode(File.ReadAllBytes(path)).Text)); }
+                    catch (Exception ex) { _err.WriteLine(path + ": " + ex.Message); }
+                }
+            return inputs;
+        }
+
+        /// <summary>
+        /// Several patterns in one command. Matches are listed as file:line:col: [n] text, where n is the pattern's number in the order given;
+        /// with --replace each pattern is applied in turn to the result of the one before. Every pattern is checked before anything runs.
+        /// </summary>
+        private static int RunMany(List<string> patterns, RegexOptions options, string replace, List<string> files, bool json)
+        {
+            var rxs = new List<Regex>();
+            for (int k = 0; k < patterns.Count; k++)
+            {
+                var rx = RegexKit.TryCreate(patterns[k], options, out var error);
+                if (rx == null) { _err.WriteLine("Invalid pattern " + (k + 1) + " (" + patterns[k] + "): " + error); return 2; }
+                rxs.Add(rx);
+            }
+            var inputs = ReadInputs(files);
+            if (inputs == null) return 2;
+            bool any = false;
+            var jsonRows = new List<object>();
+            try
+            {
+                foreach (var (name, text) in inputs)
+                {
+                    if (replace != null)
+                    {
+                        var result = text;
+                        var counts = new List<int>();
+                        foreach (var rx in rxs)
+                        {
+                            int count = 0;
+                            result = rx.Replace(result, m => { count++; return m.Result(replace); });
+                            counts.Add(count);
+                        }
+                        if (counts.Any(c => c > 0)) any = true;
+                        if (json) jsonRows.Add(new { file = name, replacements = counts.Sum(), perPattern = counts, text = result });
+                        else
+                        {
+                            if (inputs.Count > 1) _out.WriteLine("==> " + name + " <==");
+                            _out.Write(result);
+                            if (inputs.Count > 1 && !result.EndsWith("\n")) _out.WriteLine();
+                        }
+                        continue;
+                    }
+                    var starts = new List<int> { 0 };
+                    for (int k = 0; k < text.Length; k++) if (text[k] == '\n') starts.Add(k + 1);
+                    var found = new List<(int Index, int Length, int Pattern, string Value)>();
+                    for (int k = 0; k < rxs.Count; k++)
+                        foreach (Match m in rxs[k].Matches(text)) found.Add((m.Index, m.Length, k + 1, m.Value));
+                    foreach (var h in found.OrderBy(x => x.Index).ThenBy(x => x.Pattern))
+                    {
+                        any = true;
+                        int line = starts.BinarySearch(h.Index);
+                        if (line < 0) line = ~line - 1;
+                        int col = h.Index - starts[line] + 1;
+                        if (json) jsonRows.Add(new { file = name, pattern = h.Pattern, line = line + 1, column = col, length = h.Length, value = h.Value });
+                        else _out.WriteLine($"{name}:{line + 1}:{col}: [{h.Pattern}] {h.Value.Replace("\r", "").Replace("\n", "\\n")}");
+                    }
+                }
+            }
+            catch (RegexMatchTimeoutException) { _err.WriteLine("Stopped at the 200 ms limit: a pattern backtracks too much on this input."); return 2; }
+            catch (RegexParseException ex) { _err.WriteLine("Invalid replacement: " + ex.Message); return 2; }
+            catch (ArgumentException ex) { _err.WriteLine("Invalid replacement: " + ex.Message); return 2; }
             if (json) _out.WriteLine(JsonSerializer.Serialize(jsonRows, new JsonSerializerOptions { WriteIndented = true }));
             return any ? 0 : 1;
         }
@@ -249,6 +358,11 @@ namespace MonitoringTools.Core
             "  --in-place   with --replace, write the replacement into the files after copying each to a timestamped backup\r\n" +
             "  --lib NAME   use a saved pattern from the builder library (its options and, with --in-place, its replacement); --param name=value fills its {{name}} parameters\r\n" +
             "  --list-library  list the saved pattern names\r\n" +
+            "  --pattern P  add a pattern; repeat it to run several patterns in one command (every other argument is then a file).\r\n" +
+            "               Matches print as file:line:col: [n] text, n being the pattern's number; --replace applies them in order\r\n" +
+            "  --patterns-file F  read patterns from F, one per line; empty lines and lines starting with # are skipped\r\n" +
+            "  --automation  read one JSON request from standard input (or --request FILE) and print one JSON result:\r\n" +
+            "               {\"operation\":\"match|replace|split|validate\",\"patterns\":[{\"pattern\":\"\\\\d+\",\"options\":\"i\"}],\"text\":\"...\",\"files\":[\"...\"]}\r\n" +
             "  --options  i ignore case, m multiline, s singleline, x ignore pattern whitespace, n explicit capture\r\n" +
             "  --json     machine-readable output\r\n" +
             "  Wildcards in a file name are expanded. With no file, text is read from standard input.\r\n" +

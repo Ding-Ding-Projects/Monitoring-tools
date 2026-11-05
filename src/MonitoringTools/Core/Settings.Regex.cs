@@ -31,6 +31,21 @@ namespace MonitoringTools.Core
         public string NameRegex { get; set; } = "";
         public bool Subfolders { get; set; } = true;
         public bool SkipBinary { get; set; } = true;
+        /// <summary>How a binary file is searched when it is not skipped: Bytes or Text.</summary>
+        public string BinaryMode { get; set; } = "Bytes";
+        public bool SearchArchives { get; set; } = false;
+    }
+
+    /// <summary>File search settings for one file extension: the encoding to read it with, whether to skip it, and how to treat it when it looks binary.</summary>
+    public sealed class RegexFileType
+    {
+        /// <summary>The extension with its dot, such as ".log".</summary>
+        public string Extension { get; set; } = "";
+        /// <summary>Auto, UTF-8, UTF-16 LE, UTF-16 BE or Latin-1. A forced encoding also means the file is read as text even when it has null bytes.</summary>
+        public string Encoding { get; set; } = "Auto";
+        public bool Skip { get; set; } = false;
+        /// <summary>Default (the Files view setting), Skip, Bytes or Text.</summary>
+        public string Binary { get; set; } = "Default";
     }
 
     /// <summary>One finished file search, kept in the results history.</summary>
@@ -67,6 +82,9 @@ namespace MonitoringTools.Core
 
         /// <summary>Saved file search settings.</summary>
         public List<RegexGrepPreset> RegexGrepPresets { get; set; } = new List<RegexGrepPreset>();
+
+        /// <summary>Per-extension file search settings used by every Files view search.</summary>
+        public List<RegexFileType> RegexFileTypes { get; set; } = new List<RegexFileType>();
 
         /// <summary>Finished file searches, newest first, at most 20.</summary>
         public List<RegexGrepRecord> RegexGrepHistory { get; set; } = new List<RegexGrepRecord>();

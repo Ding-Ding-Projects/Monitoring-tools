@@ -67,6 +67,8 @@ namespace MonitoringTools.UI
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "update") { await UpdateChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexexplain") { await RegexExplainChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexparity") { await RegexParityChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexdrag") { await RegexDragProbeAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "regexgap") { await RegexGapOnlyAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "language")
             {
                 await CheckAsync("language audit (language loop)", async () => { await LanguageAudit.RunAsync(dir); var left = LanguageAudit.Findings; return left.Count == 0 ? null : left.Count + " untranslated"; });
@@ -252,8 +254,9 @@ namespace MonitoringTools.UI
             });
             Check("regex debug: unsupported constructs are named, not faked", () =>
             {
-                var r = RegexTrace.Run(@"(?i)a", RegexOptions.None, "A");
-                return r.Unsupported != null && r.Steps.Count == 0 ? null : "an inline option was traced";
+                // the ignore-whitespace option changes how the pattern is read, so it stays untraced
+                var r = RegexTrace.Run(@"(?x)a", RegexOptions.None, "a");
+                return r.Unsupported != null && r.Steps.Count == 0 ? null : "the ignore-whitespace option was traced";
             });
             Check("regex compare: non-backtracking refuses lookbehind with the engine's message", () =>
             {

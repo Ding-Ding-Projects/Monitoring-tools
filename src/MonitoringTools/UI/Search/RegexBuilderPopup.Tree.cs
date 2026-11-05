@@ -54,7 +54,8 @@ namespace MonitoringTools.UI.Search
             _treeStatus = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(2, 0, 0, 6), Foreground = Ui.Res("B.TextMute") };
             right.Children.Add(_treeStatus);
 
-            _explain = new StackPanel();
+            _explain = new StackPanel { Background = Brushes.Transparent };
+            WireRowDrag(_explain);
             right.Children.Add(new Border
             {
                 Background = Ui.Res("B.Sunken"), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12),
@@ -192,29 +193,7 @@ namespace MonitoringTools.UI.Search
                     case Key.Up: row.MoveFocus(new TraversalRequest(FocusNavigationDirection.Previous)); e.Handled = true; break;
                 }
             };
-            _rows[n.Key] = row;
-            // Drag a row onto a neighbour at the same level to swap their order.
-            row.AllowDrop = true;
-            Point? dragFrom = null;
-            row.PreviewMouseLeftButtonDown += (o, e) => dragFrom = e.GetPosition(row);
-            row.PreviewMouseLeftButtonUp += (o, e) => dragFrom = null;
-            row.MouseMove += (o, e) =>
-            {
-                if (e.LeftButton != MouseButtonState.Pressed || dragFrom == null) return;
-                var d = e.GetPosition(row) - dragFrom.Value;
-                if (Math.Abs(d.X) < SystemParameters.MinimumHorizontalDragDistance && Math.Abs(d.Y) < SystemParameters.MinimumVerticalDragDistance) return;
-                dragFrom = null;
-                DragDrop.DoDragDrop(row, new DataObject("regex-node", n.Key), DragDropEffects.Move);
-            };
-            row.DragOver += (o, e) =>
-            {
-                e.Effects = e.Data.GetData("regex-node") is string k && _nodes.TryGetValue(k, out var mv) && RegexTree.CanReorder(mv, n) ? DragDropEffects.Move : DragDropEffects.None;
-                e.Handled = true;
-            };
-            row.Drop += (o, e) =>
-            {
-                if (e.Data.GetData("regex-node") is string k && _nodes.TryGetValue(k, out var mv)) { e.Handled = true; DropNode(mv, n); }
-            };
+            _rows[n.Key] = row;   // dragging a row onto a neighbour swaps them; see WireRowDrag
             _explain.Children.Add(row);
         }
 
@@ -299,6 +278,8 @@ namespace MonitoringTools.UI.Search
                 case RegexTree.NodeKind.Shorthand: ChoiceEditor(n, "Shorthand class", RegexTree.ShorthandChoices, (p, c) => RegexTree.ApplyShorthand(p, n, c, _s.EngineOptions)); break;
                 case RegexTree.NodeKind.Escape: EscapeEditor(n); break;
                 case RegexTree.NodeKind.Comment when RegexTree.CommentText(_tree.Pattern, n) != null: CommentEditor(n); break;
+                case RegexTree.NodeKind.Conditional when RegexTree.ReadConditional(_tree.Pattern, n) != null: ConditionalEditor(n); break;
+                case RegexTree.NodeKind.Condition when RegexTree.ReadConditional(_tree.Pattern, n) != null: ConditionalEditor(n.Parent); break;
                 default:
                     var note = Ui.Mono("No guided editor for this part. Edit it as text: its characters are selected in the pattern box.", Ui.Res("B.TextMute"), 11);
                     note.TextWrapping = TextWrapping.Wrap;
@@ -368,6 +349,55 @@ namespace MonitoringTools.UI.Search
                 if (next == null) { SetTreeStatus("Names use letters, digits and underscores; the group to remove from is required.", true); return; }
                 ApplyEdit(next, n);
             }, "Btn.Accent"));
+        }
+
+        /// <summary>The guided editor for a conditional (?(test)yes|no): the kind of condition, its test and both branches.</summary>
+        private void ConditionalEditor(TreeNode n)
+        {
+            var parts = RegexTree.ReadConditional(_tree.Pattern, n);
+            var kind = parts.Kind;
+            var chips = new Dictionary<string, Button>();
+            var wrap = new WrapPanel();
+            foreach (var k in RegexTree.ConditionKinds)
+            {
+                var kk = k;
+                var chip = Chip(k, k == RegexTree.ConditionKinds[0] ? "The condition holds when the named or numbered group has captured something" : "The condition holds when this " + k.ToLowerInvariant() + " test succeeds at the current position", () => { kind = kk; foreach (var c in chips) Paint(c.Value, c.Key == kind); });
+                chips[k] = chip; wrap.Children.Add(chip);
+            }
+            foreach (var c in chips) Paint(c.Value, c.Key == kind);
+            _editor.Children.Add(Label("Condition"));
+            _editor.Children.Add(wrap);
+            var test = SmallInput("Condition test: a group name or number, or the look-around pattern", parts.Test, 260);
+            var yes = SmallInput("Branch used when the condition holds", parts.Yes, 260);
+            var no = SmallInput("Branch used when it does not, empty for none", parts.No, 260);
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); grid.ColumnDefinitions.Add(new ColumnDefinition());
+            void line(int r, string label, TextBox box)
+            {
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                var l = Label(label); Grid.SetRow(l, r); grid.Children.Add(l);
+                Grid.SetRow(box, r); Grid.SetColumn(box, 1); box.HorizontalAlignment = HorizontalAlignment.Left; grid.Children.Add(box);
+            }
+            line(0, "Test", test); line(1, "Yes", yes); line(2, "No", no);
+            _editor.Children.Add(grid);
+            var row = new WrapPanel();
+            var swap = Ui.Button("Swap branches", () => { (yes.Text, no.Text) = (no.Text, yes.Text); }, "Btn.Ghost");
+            swap.ToolTip = "Exchange the yes and no branches; apply to write the change";
+            swap.Margin = new Thickness(0, 0, 6, 0);
+            row.Children.Add(swap);
+            row.Children.Add(Ui.Button("Apply to the pattern", () =>
+            {
+                var next = RegexTree.ApplyConditional(_tree.Pattern, n, kind, test.Text.Trim(), yes.Text, no.Text, _s.EngineOptions);
+                if (next == null)
+                {
+                    SetTreeStatus(kind == RegexTree.ConditionKinds[0]
+                        ? "Not applied: the test must name a group in the pattern by name or number, each branch must have no | of its own, and the result must be valid."
+                        : "Not applied: the test cannot be empty, each branch must have no | of its own, and the result must be valid.", true);
+                    return;
+                }
+                ApplyEdit(next, n);
+            }, "Btn.Accent"));
+            _editor.Children.Add(row);
         }
 
         /// <summary>Earlier and Later buttons for any part that has a sibling to swap with. The text of each part is unchanged; only the order moves.</summary>

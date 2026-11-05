@@ -69,7 +69,7 @@ namespace MonitoringTools.UI
             });
             Check("regex parity debug: what is still not traced is named, never faked", () =>
             {
-                foreach (var p in new[] { "(?i)a", "(?(1)a|b)", @"[a-z-[aeiou]]", @"\p{IsGreek}", @"\G" })
+                foreach (var p in new[] { "(?x)a b", "(?(foo)a|b)", @"\p{IsGreek}", "a(?#note)" })
                 {
                     var r = RegexTrace.Run(p, RegexOptions.None, "a");
                     if (r.Unsupported == null || r.Steps.Count != 0) return p + " was traced or accepted";
@@ -432,6 +432,7 @@ namespace MonitoringTools.UI
                 return e6 == 2 ? null : "--in-place without --replace returned " + e6;
             });
 
+            RegexParityGapChecks(work);
             await RegexParityUiChecksAsync(work);
             Settings.Current.RegexCodeTemplates = saved.RegexCodeTemplates ?? new Dictionary<string, string>();
         }
@@ -704,9 +705,12 @@ namespace MonitoringTools.UI
                     Press(card, "Choose a backup..."); await Task.Delay(250);
                     return RxAllText(card).Contains("No backups yet") || RxAllText(card).Contains("Restore ") ? null : "no backup list";
                 });
+
+                await RegexParityGapUiChecksAsync(f, b, card, work);
             }
             finally
             {
+                settings.RegexFileTypes = new List<RegexFileType>();
                 settings.RegexKeepHistory = keepHist;
                 settings.RegexHiddenTabs = new List<string>(); settings.RegexDefaultTab = "Build"; settings.RegexCardWidth = 0; settings.RegexCardMaxHeight = 620;
                 try { f?.State.SetQuery(""); f?.State.SetRegex(false); } catch { }

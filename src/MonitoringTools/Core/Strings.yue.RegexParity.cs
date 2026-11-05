@@ -124,8 +124,8 @@ namespace MonitoringTools.Core
             Add("the whole match, another spelling of $0", "整個配對，同 $0 一樣"); Add("the last group that matched", "最後一個配對到嘅群組");
 
             // ---- Debug note
-            Add("A small built-in interpreter replays one match attempt of the default backtracking engine. It covers literals, classes (including Unicode categories), anchors, word boundaries, groups, look-ahead and look-behind, atomic groups, alternation, greedy and lazy repeats and backreferences. Before a trace is shown the match and every capture group are checked against the real .NET engine on the same subject; if they disagree, or the pattern uses something the interpreter does not cover, you are told and nothing is faked.",
-                "一個內建嘅小型直譯器會重播預設回溯引擎嘅一次配對嘗試。支援字面字元、字元類（包括 Unicode 類別）、錨點、字詞邊界、群組、前瞻同後顧、原子群組、或選擇、貪婪同惰性重複，同反向參照。顯示追蹤前，會用同一段文字對照真嘅 .NET 引擎核對配對同每個擷取群組；如果不一致，或者表達式用咗直譯器未支援嘅語法，會直接話你知，絕不作假。");
+            Add("A small built-in interpreter replays one match attempt of the default backtracking engine. It covers literals, classes (including Unicode categories and class subtraction), anchors (including \\G), word boundaries, groups, look-ahead and look-behind, atomic groups, conditionals, inline options, alternation, greedy and lazy repeats and backreferences. Before a trace is shown the match and every capture group are checked against the real .NET engine on the same subject; if they disagree, or the pattern uses something the interpreter does not cover, you are told and nothing is faked.",
+                "一個內建嘅小型直譯器會重播預設回溯引擎嘅一次配對嘗試。支援字面字元、字元類（包括 Unicode 類別同字元集相減）、錨點（包括 \\G）、字詞邊界、群組、前瞻同後顧、原子群組、條件式、內嵌選項、或選擇、貪婪同惰性重複，同反向參照。顯示追蹤前，會用同一段文字對照真嘅 .NET 引擎核對配對同每個擷取群組；如果不一致，或者表達式用咗直譯器未支援嘅語法，會直接話你知，絕不作假。");
 
             // ---- Help pages (titles are in RegexParityNames)
             foreach (var kv in RegexParityNames) Add(kv.Key, kv.Value);
@@ -148,6 +148,49 @@ namespace MonitoringTools.Core
             Add("In a replacement, $1 or ${name} insert a group, $0 or $& the whole match, $` the text before and $' the text after, $+ the last group that matched, $_ the whole input and $$ a dollar sign.", "取代時，$1 或 ${name} 插入群組，$0 或 $& 插入整個配對，$` 係配對前面嘅文字，$' 係後面嘅文字，$+ 係最後配對到嘅群組，$_ 係整段輸入，$$ 係一個錢號。");
             Add("A pattern with nested quantifiers such as (a+)+ can take exponential time on text that almost matches. This builder stops every match at 200 ms and warns about risky shapes. Use atomic groups, tighter classes or the non-backtracking option.", "有巢狀數量詞（例如 (a+)+）嘅表達式，遇到差少少就配對到嘅文字時，可能要指數級時間。呢個砌法器會喺 200 毫秒停止每次配對，並警告高風險寫法。可以用原子群組、更嚴格嘅字元類或非回溯選項。");
             Add("Recursion (?R), subroutine calls (?1), POSIX classes such as [[:alpha:]] and case-converting replacements such as \\U are not part of .NET. Balancing groups cover many nested cases; Unicode properties replace POSIX classes.", "遞迴 (?R)、子程序呼叫 (?1)、POSIX 字元類（例如 [[:alpha:]]）同轉換大細楷嘅取代（例如 \\U）都唔屬於 .NET。平衡群組可以應付好多巢狀情況；Unicode 屬性可以代替 POSIX 字元類。");
+
+            // ---- Files: archives, binary files and file type settings
+            Add("Search inside archives", "搜尋壓縮檔入面");
+            Add("Open .zip, .jar and .nupkg files, and .7z, .rar, .tar, .gz, .tgz, .bz2, .xz and .cab files through the bundled 7-Zip, and search their entries. The masks and the name pattern then apply to the entries. Off by default.",
+                "開啟 .zip、.jar 同 .nupkg 檔，並用內置嘅 7-Zip 開啟 .7z、.rar、.tar、.gz、.tgz、.bz2、.xz 同 .cab 檔，搜尋入面嘅檔案。遮罩同檔名表達式會改為套用喺入面嘅檔案。預設關閉。");
+            Add("Binary files as bytes", "二進制檔逐個位元組搜尋");
+            Add("Search a binary file one byte per character: \\x00 to \\xFF in the pattern are byte values, and each match shows its offset and hexadecimal",
+                "逐個位元組當一個字元搜尋二進制檔：表達式入面 \\x00 至 \\xFF 代表位元組數值，每個配對都會顯示位移同十六進制");
+            Add("Binary files as text", "二進制檔當文字搜尋");
+            Add("Read a binary file like any text file (UTF-8 when it is valid, otherwise Latin-1)", "好似普通文字檔咁讀取二進制檔（有效嘅話用 UTF-8，否則用 Latin-1）");
+            Add("FILE TYPE SETTINGS", "檔案類型設定"); Add("File type settings", "檔案類型設定");
+            Add("Rules by file extension, kept on this computer and used by every file search: the encoding to read the file with, whether to skip it, and how to search it when it looks binary. A forced encoding reads the file as text even when it has null bytes, such as UTF-16 without a byte order mark.",
+                "按副檔名設定嘅規則，只留喺呢部電腦，每次搜尋檔案都會用：用咩編碼讀取、要唔要略過，同埋睇落係二進制檔時點樣搜尋。指定咗編碼嘅話，就算檔案有空位元組（例如冇位元組順序標記嘅 UTF-16）都會當文字讀取。");
+            Add("Add file type", "加入檔案類型"); Add("Add a rule for this extension", "為呢個副檔名加入規則");
+            Add("An extension such as .log or .txt", "副檔名，例如 .log 或 .txt"); Add("Extension for a new file type rule, such as .log", "新檔案類型規則嘅副檔名，例如 .log");
+            Add("No file type rules. Every file uses the options above.", "未有檔案類型規則。所有檔案都用上面嘅選項。");
+            Add("Type an extension such as .log: letters, digits, _ and - only.", "請輸入副檔名，例如 .log：只可以用字母、數字、_ 同 -。");
+            Add("Skip", "略過");
+            Add("That match is inside an archive. Unpack the archive to open the file; a replace never writes into archives.", "呢個配對喺壓縮檔入面。請先解壓再開啟檔案；取代永遠唔會寫入壓縮檔。");
+            Add("This file is inside an archive. Unpack the archive to open it.", "呢個檔案喺壓縮檔入面。請先解壓再開啟。");
+            Add("Looks like a binary file.", "睇落係二進制檔。");
+            Add("This archive type needs 7-Zip, which is not available in this build.", "呢種壓縮檔需要 7-Zip，但呢個版本冇附帶。");
+
+            // ---- Build: conditional editor and dragging
+            Add("Group has matched", "群組已配對"); Add("Look-ahead", "前瞻"); Add("Negative look-ahead", "否定前瞻"); Add("Look-behind", "後顧"); Add("Negative look-behind", "否定後顧");
+            Add("The condition holds when the named or numbered group has captured something", "具名或編號群組擷取到嘢時，條件成立");
+            Add("The condition holds when this look-ahead test succeeds at the current position", "呢個前瞻測試喺目前位置成功時，條件成立");
+            Add("The condition holds when this negative look-ahead test succeeds at the current position", "呢個否定前瞻測試喺目前位置成功時，條件成立");
+            Add("The condition holds when this look-behind test succeeds at the current position", "呢個後顧測試喺目前位置成功時，條件成立");
+            Add("The condition holds when this negative look-behind test succeeds at the current position", "呢個否定後顧測試喺目前位置成功時，條件成立");
+            Add("Condition", "條件"); Add("Test", "測試"); Add("Yes", "成立"); Add("No", "唔成立");
+            Add("Condition test: a group name or number, or the look-around pattern", "條件測試：群組名稱或編號，或者環顧表達式");
+            Add("Branch used when the condition holds", "條件成立時用嘅分支"); Add("Branch used when it does not, empty for none", "條件唔成立時用嘅分支，留空即係冇");
+            Add("Swap branches", "對調分支"); Add("Exchange the yes and no branches; apply to write the change", "對調成立同唔成立兩個分支；撳套用先會寫入");
+            Add("Not applied: the test must name a group in the pattern by name or number, each branch must have no | of its own, and the result must be valid.", "未套用：測試要用名稱或編號指向表達式入面嘅群組，每個分支本身唔可以有 |，結果亦要有效。");
+            Add("Not applied: the test cannot be empty, each branch must have no | of its own, and the result must be valid.", "未套用：測試唔可以留空，每個分支本身唔可以有 |，結果亦要有效。");
+            Add("Not moved: release the part on another row.", "未移動：請喺另一行放開。"); Add("Not moved: the drag left the tree.", "未移動：拖曳離開咗語法樹。"); Add("Not moved: the drag was interrupted.", "未移動：拖曳被中斷。");
+
+            // ---- Debug: newly traced constructs
+            Add("The condition holds, so try the yes branch", "條件成立，所以試成立分支");
+            Add("The condition does not hold, so try the no branch", "條件唔成立，所以試唔成立分支");
+            Add("The condition does not hold, so try the empty no branch", "條件唔成立，所以試空白嘅唔成立分支");
+            Add("Position is at the start of this search (\\G)", "位置喺今次搜尋嘅起點（\\G）"); Add("Position is not at the start of this search (\\G)", "位置唔喺今次搜尋嘅起點（\\G）");
         }
 
         private static void AddRegexParityPatterns(List<(Regex, Func<Match, string>)> p)
@@ -183,6 +226,56 @@ namespace MonitoringTools.Core
             AddFn(@"^#(\d+) line (\d+), at (\d+): (.*)$", m => "第 " + m.Groups[1].Value + " 個，第 " + m.Groups[2].Value + " 行，位置 " + m.Groups[3].Value + "：" + m.Groups[4].Value);
             AddFn(@"^#(\d+) line (\d+), at (\d+): empty match$", m => "第 " + m.Groups[1].Value + " 個，第 " + m.Groups[2].Value + " 行，位置 " + m.Groups[3].Value + "：空配對");
             AddFn(@"^#(\d+) at (\d+): empty match$", m => "第 " + m.Groups[1].Value + " 個，位置 " + m.Groups[2].Value + "：空配對");
+
+            // ---- Files: archives, binary files and file type settings
+            AddFn(@"^There is already a rule for (\S+)\.$", m => m.Groups[1].Value + " 已經有規則。");
+            AddFn(@"^Leave every (\S+) file out of the search$", m => "搜尋時略過所有 " + m.Groups[1].Value + " 檔案");
+            AddFn(@"^Skip (\S+) files$", m => "略過 " + m.Groups[1].Value + " 檔案");
+            AddFn(@"^Remove the rule for (\S+)$", m => "移除 " + m.Groups[1].Value + " 嘅規則");
+            AddFn(@"^Binary: (Default|Skip|Bytes|Text)$", m => "二進制：" + RpChoice(m.Groups[1].Value));
+            AddFn(@"^Encoding: (Auto|UTF-8|UTF-16 LE|UTF-16 BE|Latin-1)$", m => "編碼：" + RpChoice(m.Groups[1].Value));
+            AddFn(@"^Binary handling for (\S+) files: (Default|Skip|Bytes|Text)$", m => m.Groups[1].Value + " 檔案嘅二進制處理：" + RpChoice(m.Groups[2].Value));
+            AddFn(@"^Encoding for (\S+) files: (Auto|UTF-8|UTF-16 LE|UTF-16 BE|Latin-1)$", m => m.Groups[1].Value + " 檔案嘅編碼：" + RpChoice(m.Groups[2].Value));
+            AddFn(@"^When a (\S+) file looks binary: Default uses the options above, Skip leaves it out, Bytes searches it byte by byte, Text reads it as text\. Press to change\.$",
+                m => m.Groups[1].Value + " 檔案睇落係二進制時：預設用上面嘅選項，略過即係唔搜尋，位元組即係逐個位元組搜尋，文字即係當文字讀取。撳一下轉換。");
+            AddFn(@"^The encoding (\S+) files are read with: Auto detects it, the others force it\. Press to change\.$", m => "讀取 " + m.Groups[1].Value + " 檔案用嘅編碼：自動會偵測，其他會強制使用。撳一下轉換。");
+            AddFn(@"^(\d+) file\(s\) with matches inside archives or searched as bytes are not changed: a replace only writes ordinary text files\.$", m => "有 " + m.Groups[1].Value + " 個喺壓縮檔入面或者逐個位元組搜尋嘅檔案有配對，但唔會改：取代只會寫入普通文字檔。");
+            AddFn(@"^Byte offset (\d+) in (.+): (.*)$", m => m.Groups[2].Value + " 位元組位移 " + m.Groups[1].Value + "：" + m.Groups[3].Value);
+            AddFn(@"^Skipped by the file type setting for (\S+)\.$", m => "因為 " + m.Groups[1].Value + " 嘅檔案類型設定而略過。");
+            AddFn(@"^The archive unpacks to more than (\d+) MB, so (it was not searched|the rest of it was not searched)\.$", m => "壓縮檔解壓後超過 " + m.Groups[1].Value + " MB，所以" + (m.Groups[2].Value.StartsWith("the rest") ? "其餘部分" : "") + "冇搜尋。");
+            AddFn(@"^7-Zip could not (list|unpack) the archive \(exit code (-?\d+)\)(: it is encrypted)?\.$", m => "7-Zip 無法" + (m.Groups[1].Value == "list" ? "列出" : "解壓") + "壓縮檔（結束代碼 " + m.Groups[2].Value + "）" + (m.Groups[3].Success ? "：壓縮檔已加密" : "") + "。");
+            AddFn(@"^The archive could not be read: (.+)$", m => "無法讀取壓縮檔：" + m.Groups[1].Value);
+            AddFn(@"^(.+) · (\d+) archive\(s\) opened$", m => Language.Yue(m.Groups[1].Value) is string y ? y + " · 開咗 " + m.Groups[2].Value + " 個壓縮檔" : null);
+
+            // ---- Build: dragging and the conditional editor
+            AddFn(@"^Dragging (.+)\. Release it on a neighbouring part at the same level to swap them\.$", m => "拖緊 " + m.Groups[1].Value + "。喺同一層相鄰嘅部分放開就會對調。");
+
+            // ---- Debug: newly traced constructs
+            AddFn(@"^Conditional: (group ""(.*)""|group (\d+)) has captured text, so try the yes branch$", m => "條件式：" + (m.Groups[2].Success ? "群組「" + m.Groups[2].Value + "」" : "群組 " + m.Groups[3].Value) + " 已擷取到文字，所以試成立分支");
+            AddFn(@"^Conditional: (group ""(.*)""|group (\d+)) has not captured anything, so try the (no branch|empty no branch)$", m => "條件式：" + (m.Groups[2].Success ? "群組「" + m.Groups[2].Value + "」" : "群組 " + m.Groups[3].Value) + " 未擷取到任何嘢，所以試" + (m.Groups[4].Value.StartsWith("empty") ? "空白嘅" : "") + "唔成立分支");
+            AddFn(@"^Conditional: test the (negative )?(look-ahead|look-behind) condition without consuming text$", m => "條件式：測試" + (m.Groups[1].Success ? "否定" : "") + (m.Groups[2].Value == "look-ahead" ? "前瞻" : "後顧") + "條件，唔會消耗文字");
+            AddFn(@"^Inline options \(\?(.+)\) apply from here to the end of the enclosing group$", m => "內嵌選項 (?" + m.Groups[1].Value + ") 由呢度開始套用，直到所屬群組結尾");
+            AddFn(@"^Not supported by the trace: (.+)\. The trace never guesses, so no trace is shown for this pattern\.$", m => "追蹤唔支援：" + RpTrace(m.Groups[1].Value) + "。追蹤絕不估計，所以呢個表達式唔會顯示追蹤。");
+        }
+
+        private static string RpChoice(string c) => c switch
+        {
+            "Default" => "預設", "Skip" => "略過", "Bytes" => "位元組", "Text" => "文字", "Auto" => "自動", _ => c,
+        };
+
+        private static string RpTrace(string reason)
+        {
+            if (reason == "the ignore-whitespace option x") return "忽略空白選項 x";
+            var m = Regex.Match(reason, @"^conditional \(\?\((.*)\)\.\.\.\) whose condition names no group, which \.NET tests as an expression$");
+            if (m.Success) return "條件式 (?(" + m.Groups[1].Value + ")...)，佢嘅條件冇指向任何群組，.NET 會當佢係表達式測試";
+            m = Regex.Match(reason, @"^conditional \(\?\((.*)\)\.\.\.\) whose condition is an expression rather than a group or a look-around test$");
+            if (m.Success) return "條件式 (?(" + m.Groups[1].Value + ")...)，佢嘅條件係表達式，唔係群組或環顧測試";
+            if (reason == "conditional whose condition is not a group name, a group number or a look-around test") return "條件唔係群組名稱、群組編號或環顧測試嘅條件式";
+            if (reason == "a quantifier after inline options") return "內嵌選項後面嘅數量詞";
+            if (reason == "inline comment (?#...)") return "內嵌註解 (?#...)";
+            m = Regex.Match(reason, @"^Unicode property \\p\{(.+)\} \(only the general categories such as L, Lu, Nd are traced\)$");
+            if (m.Success) return "Unicode 屬性 \\p{" + m.Groups[1].Value + "}（只追蹤 L、Lu、Nd 呢類一般類別）";
+            return reason;
         }
 
         private static string RpLineEndings(string s)

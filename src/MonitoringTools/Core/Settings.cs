@@ -120,6 +120,7 @@ namespace MonitoringTools.Core
             Current.RegexBenchHistory ??= new List<RegexBenchRecord>();
             Current.RegexGrepPresets ??= new List<RegexGrepPreset>();
             Current.RegexGrepHistory ??= new List<RegexGrepRecord>();
+            Current.RegexFileTypes ??= new List<RegexFileType>();
             Current.RegexHiddenTabs ??= new List<string>();
             if (string.IsNullOrEmpty(Current.RegexDefaultTab)) Current.RegexDefaultTab = "Build";
         }

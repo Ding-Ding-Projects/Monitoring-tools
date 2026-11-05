@@ -649,7 +649,7 @@ namespace MonitoringTools.UI.Search
             if (n.Length == 0) { if (_gStatus != null) { _gStatus.Text = "Give the saved search a name first."; _gStatus.Foreground = Ui.Res("B.Amber"); } return; }
             var list = Settings.Current.RegexGrepPresets ??= new List<RegexGrepPreset>();
             list.RemoveAll(p => string.Equals(p.Name, n, StringComparison.OrdinalIgnoreCase));
-            list.Insert(0, new RegexGrepPreset { Name = n, Folder = _gFolder, Masks = _gMasks, ExcludeMasks = _gExclude, NameRegex = _gNameRx, Subfolders = _gSub, SkipBinary = _gBinary });
+            list.Insert(0, new RegexGrepPreset { Name = n, Folder = _gFolder, Masks = _gMasks, ExcludeMasks = _gExclude, NameRegex = _gNameRx, Subfolders = _gSub, SkipBinary = _gBinary, BinaryMode = _gBinMode, SearchArchives = _gArchives });
             if (list.Count > 50) list.RemoveRange(50, list.Count - 50);
             Settings.Save();
             RenderPresets();
@@ -680,6 +680,7 @@ namespace MonitoringTools.UI.Search
         internal void LoadGrepPreset(RegexGrepPreset p)
         {
             _gFolder = p.Folder; _gMasks = p.Masks; _gExclude = p.ExcludeMasks; _gNameRx = p.NameRegex ?? ""; _gSub = p.Subfolders; _gBinary = p.SkipBinary; _gPresetName = p.Name;
+            _gBinMode = p.BinaryMode == "Text" ? "Text" : "Bytes"; _gArchives = p.SearchArchives;
             Show("Files");
         }
 
@@ -732,6 +733,123 @@ namespace MonitoringTools.UI.Search
         }
 
         // ---------------------------------------------------------------- Build: moving pieces of the pattern
+
+        // A mouse drag in the tree: press on a row, move past the system drag distance, release on a neighbouring row at the same level.
+        // The builder window's own mouse messages are read through a window hook rather than through WPF's mouse events. The messages
+        // carry their position and button state themselves, so the drag works the same for a pointer, for a release that arrives without
+        // a move in between, and for messages posted to a window that is not under the system cursor (where WPF drops later moves). A move
+        // that arrives with the button up, or a release outside the tree, cancels the drag.
+        private TreeNode _pressNode;
+        private Point _pressPoint;
+        private bool _dragging;
+        private System.Windows.Interop.HwndSource _dragSource;
+        /// <summary>The last mouse messages the tree's drag handling read, with the row each landed on, for the checks to report.</summary>
+        internal readonly List<string> DragLog = new List<string>();
+
+        private void WireRowDrag(StackPanel panel)
+        {
+            panel.Loaded += (o, e) => HookDragSource(panel);
+            panel.Unloaded += (o, e) => { if (!ReferenceEquals(panel, _explain)) return; _dragSource?.RemoveHook(DragHook); _dragSource = null; };
+        }
+
+        private void HookDragSource(StackPanel panel)
+        {
+            var src = PresentationSource.FromVisual(panel) as System.Windows.Interop.HwndSource;
+            if (src == _dragSource) return;
+            _dragSource?.RemoveHook(DragHook);
+            _dragSource = src;
+            _dragSource?.AddHook(DragHook);
+        }
+
+        private IntPtr DragHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            const int WM_MOUSEMOVE = 0x0200, WM_LBUTTONDOWN = 0x0201, WM_LBUTTONUP = 0x0202, MK_LBUTTON = 1;
+            if (msg != WM_MOUSEMOVE && msg != WM_LBUTTONDOWN && msg != WM_LBUTTONUP) return IntPtr.Zero;
+            if (_explain == null || _dragSource?.RootVisual == null || !_explain.IsVisible || _tree == null) return IntPtr.Zero;
+            long lp = lParam.ToInt64();
+            var device = new Point((short)(lp & 0xFFFF), (short)((lp >> 16) & 0xFFFF));
+            // Positions stay in the window's device pixels; each row's box is turned into device pixels the same way, so no scale is assumed.
+            var at = device;
+            if (DragLog.Count < 60) DragLog.Add((msg == WM_LBUTTONDOWN ? "down" : msg == WM_LBUTTONUP ? "up" : "move") + "@" + (int)at.X + "," + (int)at.Y + (NodeAtDevice(at) is TreeNode hit ? "=" + hit.Text(_tree.Pattern) : ""));
+            switch (msg)
+            {
+                case WM_LBUTTONDOWN:
+                    _pressNode = NodeAtDevice(at); _pressPoint = at; _dragging = false;
+                    break;
+                case WM_MOUSEMOVE:
+                    if (_pressNode == null) break;
+                    if ((wParam.ToInt64() & MK_LBUTTON) == 0) { EndDrag(null, at, cancelled: true); break; }
+                    if (!_dragging && Moved(at))
+                    {
+                        _dragging = true;
+                        SetTreeStatus("Dragging " + Snippet(_pressNode.Text(_tree.Pattern), 24) + ". Release it on a neighbouring part at the same level to swap them.", false);
+                    }
+                    if (_dragging) HoverDrop(NodeAtDevice(at));
+                    break;
+                case WM_LBUTTONUP:
+                    if (_pressNode != null) EndDrag(_pressNode, at, cancelled: false);
+                    break;
+            }
+            return IntPtr.Zero;
+        }
+
+        private void EndDrag(TreeNode moving, Point at, bool cancelled)
+        {
+            bool moved = _dragging || Moved(at);
+            bool was = _dragging;
+            _pressNode = null; _dragging = false;
+            PaintRows();
+            if (cancelled) { if (was) SetTreeStatus("Not moved: the drag was interrupted.", true); return; }
+            if (moving == null || !moved) return;
+            var target = NodeAtDevice(at);
+            if (target == null) { SetTreeStatus("Not moved: the drag left the tree.", true); return; }
+            if (target.Key == moving.Key) { SetTreeStatus("Not moved: release the part on another row.", true); return; }
+            // after the message is handled, so the tree is not rebuilt inside the window procedure
+            _card.Dispatcher.BeginInvoke(new Action(() => DropNode(moving, target)));
+        }
+
+        private bool Moved(Point at) =>
+            Math.Abs(at.X - _pressPoint.X) >= SystemParameters.MinimumHorizontalDragDistance || Math.Abs(at.Y - _pressPoint.Y) >= SystemParameters.MinimumVerticalDragDistance;
+
+        /// <summary>The tree node whose row covers this point in the window's device pixels, or null.</summary>
+        private TreeNode NodeAtDevice(Point device)
+        {
+            var src = _dragSource;
+            if (_explain == null || src?.RootVisual == null) return null;
+            foreach (var kv in _rows)
+            {
+                var r = kv.Value;
+                if (!r.IsVisible || !src.RootVisual.IsAncestorOf(r)) continue;
+                if (DeviceBox(r, src).Contains(device) && _nodes.TryGetValue(kv.Key, out var n)) return n;
+            }
+            return null;
+        }
+
+        /// <summary>A row's box in the window's device pixels, using the DPI the window is drawn at (the same scale the mouse messages use).</summary>
+        private static Rect DeviceBox(FrameworkElement r, PresentationSource src)
+        {
+            var dpi = VisualTreeHelper.GetDpi(r);
+            var box = r.TransformToAncestor(src.RootVisual).TransformBounds(new Rect(r.RenderSize));
+            return new Rect(box.X * dpi.DpiScaleX, box.Y * dpi.DpiScaleY, box.Width * dpi.DpiScaleX, box.Height * dpi.DpiScaleY);
+        }
+
+
+        private void HoverDrop(TreeNode over)
+        {
+            PaintRows();
+            if (over == null || _pressNode == null || over.Key == _pressNode.Key || !_rows.TryGetValue(over.Key, out var row)) return;
+            row.Background = RegexTree.CanReorder(_pressNode, over) ? Ui.Res("B.MintWash") : Ui.Res("B.Sunken");
+        }
+
+        /// <summary>The window-client centre of a tree row in device pixels, so a check can post a real mouse drag to the builder's window.</summary>
+        internal Point? RowCentreInWindow(TreeNode n)
+        {
+            if (n == null || !_rows.TryGetValue(n.Key, out var row) || !row.IsVisible) return null;
+            var src = PresentationSource.FromVisual(row);
+            if (src?.RootVisual == null) return null;
+            var box = DeviceBox(row, src);
+            return new Point(box.X + Math.Min(box.Width / 2, 90), box.Y + box.Height / 2);
+        }
 
         /// <summary>What dropping one tree row onto another does: the dragged part takes the place of the one it landed on, in the direction it travelled.</summary>
         internal bool DropNode(TreeNode moving, TreeNode target)

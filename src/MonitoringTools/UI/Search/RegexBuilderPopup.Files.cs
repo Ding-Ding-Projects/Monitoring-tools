@@ -20,7 +20,8 @@ namespace MonitoringTools.UI.Search
         // ---- Files view state; kept while the builder is open so switching views does not lose the folder or the results
         private string _gFolder = "", _gMasks = "*", _gExclude = ".git;node_modules", _gMaxMb = "5", _gNameRx = "", _gPresetName = "";
         private StackPanel _gPresets, _gBackups, _gHistory;
-        private bool _gSub = true, _gBinary = true;
+        private bool _gSub = true, _gBinary = true, _gArchives = false;
+        private string _gBinMode = "Bytes";   // how a binary file is searched when _gBinary (skip) is off: Bytes or Text
         private RegexGrep.Report _gReport;
         private Regex _gRx;
         private string _gQuery, _gRepl;
@@ -82,11 +83,15 @@ namespace MonitoringTools.UI.Search
             sp.Children.Add(nameRx);
 
             var opts = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
-            Button sub = null, bin = null;
+            Button sub = null, bin = null, bytes = null, astext = null, arch = null;
+            void paintBinary() { Paint(bin, _gBinary); Paint(bytes, !_gBinary && _gBinMode == "Bytes"); Paint(astext, !_gBinary && _gBinMode == "Text"); }
             sub = Chip("Include subfolders", "Search inside folders below the chosen one. On by default.", () => { _gSub = !_gSub; Paint(sub, _gSub); });
-            bin = Chip("Skip binary files", "Skip a file with a null byte in its first 8,000 bytes. On by default.", () => { _gBinary = !_gBinary; Paint(bin, _gBinary); });
-            Paint(sub, _gSub); Paint(bin, _gBinary);
-            opts.Children.Add(sub); opts.Children.Add(bin);
+            bin = Chip("Skip binary files", "Skip a file with a null byte in its first 8,000 bytes. On by default.", () => { _gBinary = true; paintBinary(); });
+            bytes = Chip("Binary files as bytes", "Search a binary file one byte per character: \\x00 to \\xFF in the pattern are byte values, and each match shows its offset and hexadecimal", () => { _gBinary = false; _gBinMode = "Bytes"; paintBinary(); });
+            astext = Chip("Binary files as text", "Read a binary file like any text file (UTF-8 when it is valid, otherwise Latin-1)", () => { _gBinary = false; _gBinMode = "Text"; paintBinary(); });
+            arch = Chip("Search inside archives", "Open .zip, .jar and .nupkg files, and .7z, .rar, .tar, .gz, .tgz, .bz2, .xz and .cab files through the bundled 7-Zip, and search their entries. The masks and the name pattern then apply to the entries. Off by default.", () => { _gArchives = !_gArchives; Paint(arch, _gArchives); });
+            Paint(sub, _gSub); paintBinary(); Paint(arch, _gArchives);
+            opts.Children.Add(sub); opts.Children.Add(arch); opts.Children.Add(bin); opts.Children.Add(bytes); opts.Children.Add(astext);
             var capLabel = Ui.Mono("Skip files over (MB)", Ui.Res("B.TextMute"), 11);
             capLabel.VerticalAlignment = VerticalAlignment.Center; capLabel.Margin = new Thickness(8, 0, 6, 6);
             var cap = new TextBox { Style = Ui.Style("Input"), Width = 56, Text = _gMaxMb, Margin = new Thickness(0, 0, 0, 6), ToolTip = "Files larger than this are skipped and listed. Default 5." };
@@ -94,6 +99,7 @@ namespace MonitoringTools.UI.Search
             cap.TextChanged += (o, e) => _gMaxMb = cap.Text;
             opts.Children.Add(capLabel); opts.Children.Add(cap);
             sp.Children.Add(opts);
+            sp.Children.Add(FileTypesPanel());
 
             sp.Children.Add(Eyebrow("Replacement (used by Replace in files)"));
             var repl = new TextBox { Style = Ui.Style("Input"), FontFamily = Ui.Font("F.Mono"), Text = _s.Replacement, Margin = new Thickness(0, 2, 0, 6), ToolTip = "Same syntax as the Replace view: $1, ${name}, $0 and $$." };
@@ -158,7 +164,11 @@ namespace MonitoringTools.UI.Search
             if (rx == null) { _gStatus.Text = _s.Error != null ? "Fix the pattern first: " + _s.Error : "Type a pattern first."; _gStatus.Foreground = Ui.Res("B.Amber"); return; }
             if (!Directory.Exists(_gFolder)) { _gStatus.Text = "Choose a folder that exists."; _gStatus.Foreground = Ui.Res("B.Amber"); return; }
             if (!double.TryParse(_gMaxMb, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var mb) || mb <= 0) mb = 5;
-            var o = new RegexGrep.Options { Folder = _gFolder, Masks = _gMasks, ExcludeMasks = _gExclude, NameRegex = _gNameRx, Subfolders = _gSub, SkipBinary = _gBinary, MaxBytes = (long)(mb * 1024 * 1024) };
+            var o = new RegexGrep.Options
+            {
+                Folder = _gFolder, Masks = _gMasks, ExcludeMasks = _gExclude, NameRegex = _gNameRx, Subfolders = _gSub, SkipBinary = _gBinary, BinaryMode = _gBinMode,
+                SearchArchives = _gArchives, FileTypes = (Settings.Current.RegexFileTypes ?? new List<RegexFileType>()).ToList(), MaxBytes = (long)(mb * 1024 * 1024)
+            };
             StopFiles();
             var cts = _gCts = new CancellationTokenSource();
             var ct = cts.Token;
@@ -181,6 +191,7 @@ namespace MonitoringTools.UI.Search
                         _gStatus.Foreground = Ui.Res("B.TextSoft");
                         _gStatus.Text = (rep.Cancelled ? "Cancelled. Partial results: " : "") +
                             $"{rep.TotalMatches:N0} match(es) in {rep.FilesWithHits} of {rep.FilesScanned} file(s) scanned" +
+                            (rep.ArchivesOpened > 0 ? $" · {rep.ArchivesOpened} archive(s) opened" : "") +
                             (rep.Skipped.Count > 0 ? $" · {rep.Skipped.Count} skipped" : "") +
                             (rep.Capped ? " · capped, narrow the pattern or masks to see everything" : "") + ".";
                     }
@@ -206,14 +217,16 @@ namespace MonitoringTools.UI.Search
             foreach (var f in _gReport.Files)
             {
                 var path = f.Path;
-                var head = Ui.Button($"{Rel(path)}  ·  {f.Count} match(es)  ·  {f.Encoding}", () => ExternalEditor.OpenAndTell(path), "Btn.Row");
+                var file = f;
+                var head = Ui.Button($"{Rel(path)}  ·  {f.Count} match(es)  ·  {f.Encoding}", () => { if (file.Archive != null) TellInsideArchive(); else ExternalEditor.OpenAndTell(path); }, "Btn.Row");
                 head.HorizontalContentAlignment = HorizontalAlignment.Left; head.FontFamily = Ui.Font("F.Mono"); head.FontSize = 12; head.Margin = new Thickness(0, 4, 0, 0);
-                head.ToolTip = "Open this file in your editor";
+                head.ToolTip = f.Archive != null ? "This file is inside an archive. Unpack the archive to open it." : "Open this file in your editor";
+                Core.Language.SetLiteral(head, true);
                 _gResults.Children.Add(head);
                 foreach (var h in f.Hits)
                 {
                     if (shown++ >= MaxRowsShown) break;
-                    _gResults.Children.Add(HitRow(path, h));
+                    _gResults.Children.Add(h.Offset >= 0 ? BinaryHitRow(f, h) : HitRow(f, h));
                 }
                 if (shown >= MaxRowsShown) break;
             }
@@ -233,8 +246,40 @@ namespace MonitoringTools.UI.Search
             catch { return path; }
         }
 
-        private FrameworkElement HitRow(string path, RegexGrep.Hit h)
+        private void TellInsideArchive()
         {
+            if (_gStatus == null) return;
+            _gStatus.Text = "That match is inside an archive. Unpack the archive to open the file; a replace never writes into archives.";
+            _gStatus.Foreground = Ui.Res("B.TextSoft");
+        }
+
+        /// <summary>A match in a file searched as bytes: its offset, the printable bytes around it and their hexadecimal, with the match highlighted in both.</summary>
+        private FrameworkElement BinaryHitRow(RegexGrep.FileResult f, RegexGrep.Hit h)
+        {
+            var sp = new StackPanel { Margin = new Thickness(14, 2, 0, 2) };
+            var ascii = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextSoft") };
+            ascii.Inlines.Add(new System.Windows.Documents.Run($"0x{h.Offset:X8}  ") { Foreground = Ui.Res("B.TextMute") });
+            var t = h.LineText ?? "";
+            int start = Math.Clamp(h.Column - 1, 0, t.Length), len = Math.Clamp(h.Length, 0, t.Length - start);
+            ascii.Inlines.Add(new System.Windows.Documents.Run(t[..start]));
+            ascii.Inlines.Add(new System.Windows.Documents.Run(t.Substring(start, len)) { Background = Ui.Res("B.MintWash"), Foreground = Ui.Res("B.OnPrimaryContainer") });
+            ascii.Inlines.Add(new System.Windows.Documents.Run(t[(start + len)..]));
+            Core.Language.SetLiteral(ascii, true);
+            var hex = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 11, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap };
+            var hx = h.Hex ?? "";
+            int hs = Math.Clamp(h.HexStart, 0, hx.Length), hl = Math.Clamp(h.HexLength, 0, hx.Length - hs);
+            hex.Inlines.Add(new System.Windows.Documents.Run("            " + hx[..hs]));
+            hex.Inlines.Add(new System.Windows.Documents.Run(hx.Substring(hs, hl)) { Background = Ui.Res("B.MintWash"), Foreground = Ui.Res("B.OnPrimaryContainer") });
+            hex.Inlines.Add(new System.Windows.Documents.Run(hx[(hs + hl)..]));
+            Core.Language.SetLiteral(hex, true);
+            sp.Children.Add(ascii); sp.Children.Add(hex);
+            AutomationProperties.SetName(sp, $"Byte offset {h.Offset} in {Path.GetFileName(f.Path)}: {h.Value}");
+            return sp;
+        }
+
+        private FrameworkElement HitRow(RegexGrep.FileResult f, RegexGrep.Hit h)
+        {
+            var path = f.Path;
             var tb = new TextBlock { FontFamily = Ui.Font("F.Mono"), FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis, Foreground = Ui.Res("B.TextSoft") };
             tb.Inlines.Add(new System.Windows.Documents.Run($"{h.Line,5}:{h.Column,-4} ") { Foreground = Ui.Res("B.TextMute") });
             var t = h.LineText ?? "";
@@ -245,8 +290,8 @@ namespace MonitoringTools.UI.Search
             tb.Inlines.Add(new System.Windows.Documents.Run(t[(start + len)..]));
             var b = new Button { Content = tb, Style = Ui.Style("Btn.Row"), HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(14, 0, 0, 0), ToolTip = "Open the file in your editor" };
             AutomationProperties.SetName(b, $"Line {h.Line}, column {h.Column} in {Path.GetFileName(path)}: {h.Value}");
-            b.Click += (o, e) => OpenHit(path, h);
-            b.ToolTip = "Open the file in your editor at this line when the editor can jump to a line";
+            b.Click += (o, e) => { if (f.Archive != null) TellInsideArchive(); else OpenHit(path, h); };
+            b.ToolTip = f.Archive != null ? "This file is inside an archive. Unpack the archive to open it." : "Open the file in your editor at this line when the editor can jump to a line";
             return b;
         }
 
@@ -285,6 +330,8 @@ namespace MonitoringTools.UI.Search
             int total = plan.Sum(p => p.Count);
             _gResults.Children.Add(Eyebrow("Preview. Nothing has been written."));
             _gResults.Children.Add(Note($"{total:N0} replacement(s) in {plan.Count} file(s) with the text \"{(_gRepl.Length > 60 ? _gRepl[..60] + "..." : _gRepl)}\". Each file is copied to a backup folder before it is changed. A file that changes after this preview is skipped."));
+            var left = RegexGrep.NotReplaceable(_gReport);
+            if (left > 0) _gResults.Children.Add(Ui.Mono($"{left} file(s) with matches inside archives or searched as bytes are not changed: a replace only writes ordinary text files.", Ui.Res("B.Amber"), 11));
             foreach (var p in plan) _gResults.Children.Add(Ui.Mono($"{p.Count,6}  {Rel(p.Path)}", Ui.Res("B.TextSoft"), 12));
             if (_gReport.Capped) _gResults.Children.Add(Ui.Mono("The search was capped, so more files or matches may exist than are listed. Only the files listed here are changed.", Ui.Res("B.Amber"), 11));
             var row = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };

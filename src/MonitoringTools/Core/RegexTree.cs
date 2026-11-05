@@ -995,6 +995,88 @@ namespace MonitoringTools.Core
             return result;
         }
 
+        /// <summary>The kinds of condition a conditional can test, as the guided editor offers them.</summary>
+        public static readonly string[] ConditionKinds = { "Group has matched", "Look-ahead", "Negative look-ahead", "Look-behind", "Negative look-behind" };
+
+        private static readonly string[] ConditionOpeners = { "(", "(?=", "(?!", "(?<=", "(?<!" };
+
+        public sealed record ConditionalParts(string Kind, string Test, string Yes, string No, bool HasNo);
+
+        /// <summary>
+        /// The parts of a conditional (?(test)yes|no): which kind of condition it is, its test (a group name or number, or the
+        /// look-around pattern), and the two branches. Accepts the conditional itself or its condition. Null for anything else.
+        /// </summary>
+        public static ConditionalParts ReadConditional(string pattern, Node n)
+        {
+            if (n != null && n.Kind == NodeKind.Condition) n = n.Parent;
+            if (n == null || n.Kind != NodeKind.Conditional || n.Children.Count == 0 || n.Children[0].Kind != NodeKind.Condition) return null;
+            var cond = n.Children[0];
+            if (cond.End <= cond.Start || n.End > pattern.Length) return null;
+            var ct = pattern.Substring(cond.Start, cond.End - cond.Start);
+            string kind = null, test = null;
+            for (int k = ConditionOpeners.Length - 1; k >= 0; k--)
+            {
+                if (ct.StartsWith(ConditionOpeners[k], StringComparison.Ordinal) && ct.EndsWith(")", StringComparison.Ordinal) && ct.Length >= ConditionOpeners[k].Length + 1)
+                {
+                    kind = ConditionKinds[k];
+                    test = ct.Substring(ConditionOpeners[k].Length, ct.Length - ConditionOpeners[k].Length - 1);
+                    break;
+                }
+            }
+            if (kind == null) return null;
+            var body = pattern.Substring(cond.End, Math.Max(0, n.End - 1 - cond.End));
+            var bar = TopLevelBar(body);
+            return bar < 0 ? new ConditionalParts(kind, test, body, "", false) : new ConditionalParts(kind, test, body[..bar], body[(bar + 1)..], true);
+        }
+
+        /// <summary>The position of the first "|" that is not inside a group, a character set or an escape, or -1.</summary>
+        public static int TopLevelBar(string s)
+        {
+            int depth = 0, cls = 0;
+            for (int i = 0; i < s.Length; i++)
+            {
+                char c = s[i];
+                if (c == '\\') { i++; continue; }
+                if (cls > 0)
+                {
+                    if (c == '[' && i > 0 && s[i - 1] == '-') cls++;
+                    else if (c == ']') cls--;
+                    continue;
+                }
+                if (c == '[') { cls = 1; if (i + 1 < s.Length && s[i + 1] == '^') i++; if (i + 1 < s.Length && s[i + 1] == ']') i++; }
+                else if (c == '(') depth++;
+                else if (c == ')') depth--;
+                else if (c == '|' && depth == 0) return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Rewrites a conditional from its parts. A group condition must name a group (by name or number) that exists in the result, because .NET
+        /// would otherwise quietly test the name as a pattern. Returns null when a part is missing, a branch has its own top-level "|", or .NET
+        /// rejects the result.
+        /// </summary>
+        public static string ApplyConditional(string pattern, Node n, string kind, string test, string yes, string no, RegexOptions options = RegexOptions.None)
+        {
+            if (n != null && n.Kind == NodeKind.Condition) n = n.Parent;
+            if (n == null || n.Kind != NodeKind.Conditional) return null;
+            int k = Array.IndexOf(ConditionKinds, kind);
+            if (k < 0 || string.IsNullOrEmpty(test)) return null;
+            yes ??= ""; no ??= "";
+            if (TopLevelBar(yes) >= 0 || TopLevelBar(no) >= 0) return null;
+            if (k == 0 && !Regex.IsMatch(test, @"^\w+$")) return null;
+            var text = "(?" + ConditionOpeners[k] + test + ")" + yes + (no.Length > 0 ? "|" + no : "") + ")";
+            var result = ApplyText(pattern, n, text, options);
+            if (result == null || k != 0) return result;
+            try
+            {
+                var rx = new Regex(result, options & ~(RegexOptions.NonBacktracking | RegexOptions.ECMAScript), RegexKit.Timeout);
+                bool exists = test.All(char.IsDigit) ? rx.GetGroupNumbers().Contains(int.Parse(test)) : rx.GetGroupNames().Contains(test);
+                return exists ? result : null;
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is OverflowException) { return null; }
+        }
+
         /// <summary>Sibling nodes that can be reordered: same parent, neither one a conditional's condition.</summary>
         public static bool CanReorder(Node moving, Node target) =>
             moving != null && target != null && moving != target && moving.Parent != null && moving.Parent == target.Parent
