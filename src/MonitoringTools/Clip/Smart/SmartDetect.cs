@@ -21,7 +21,7 @@ namespace MonitoringTools.Clip.Smart
         {
             ("secrets", Developer.Secret),
             ("secrets", t => Developer.Jwt(t)),
-            ("everyday", Everyday.Iban),
+            ("secrets", Everyday.Iban),
             ("developer", Developer.StackTrace),
             ("numbers", Developer2.Table),
             ("developer", Developer2.Sql),

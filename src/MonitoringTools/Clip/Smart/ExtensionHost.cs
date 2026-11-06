@@ -146,12 +146,14 @@ namespace MonitoringTools.Clip.Smart
         {
             var res = new ExtensionResult();
             var sw = Stopwatch.StartNew();
-            var psi = new ProcessStartInfo(m.RunPath)
+            var (exe, pre) = Launcher(m.RunPath);
+            var psi = new ProcessStartInfo(exe)
             {
                 UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = m.Folder,
                 RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
                 StandardInputEncoding = new UTF8Encoding(false), StandardOutputEncoding = Encoding.UTF8,
             };
+            foreach (var a in pre) psi.ArgumentList.Add(a);
             foreach (var a in m.Args) psi.ArgumentList.Add(a);
             psi.Environment["MONITORING_TOOLS_EXTENSION_API"] = ExtensionManifest.ApiVersion.ToString();
             Process p;
@@ -177,6 +179,20 @@ namespace MonitoringTools.Clip.Smart
                 res.Ms = sw.ElapsedMilliseconds;
             }
             return res;
+        }
+
+        /// <summary>Scripts run through their usual program: .ps1 with Windows PowerShell, .py with Python, .js with Node,
+        /// .cmd and .bat with cmd. Anything else starts directly.</summary>
+        public static (string Exe, string[] Pre) Launcher(string path)
+        {
+            switch (Path.GetExtension(path).ToLowerInvariant())
+            {
+                case ".ps1": return ("powershell.exe", new[] { "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", path });
+                case ".py": return (OperatingSystem.IsWindows() ? "py" : "python3", new[] { path });
+                case ".js": case ".mjs": return ("node", new[] { path });
+                case ".cmd": case ".bat": return ("cmd.exe", new[] { "/d", "/c", path });
+                default: return (path, Array.Empty<string>());
+            }
         }
 
         private static async Task<string> ReadLineLimited(StreamReader r, CancellationToken token)

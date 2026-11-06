@@ -1,0 +1,15 @@
+{
+  "id": "morse-code",
+  "name": "Morse code",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Decodes copied Morse code, and turns any text into Morse.",
+  "detect": [
+    { "kind": "morse", "label": "You copied Morse code", "pattern": "^[.\\-/ ]{5,}$" }
+  ],
+  "actions": [
+    { "id": "decode", "label": "Decode Morse", "for": ["morse"], "primary": true }
+  ],
+  "run": "morse.py",
+  "permissions": ["read-text", "change-clipboard"]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "ticket-keys",
+  "name": "Ticket keys",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Notices ticket numbers like ABC-1234 and opens them in your tracker, or copies a link.",
+  "author": "Monitoring Tools sample",
+  "detect": [
+    { "kind": "ticket", "label": "You copied a ticket number", "pattern": "^[A-Z][A-Z0-9]{1,9}-\\d{1,7}$" }
+  ],
+  "actions": [
+    { "id": "open", "label": "Open ticket", "for": ["ticket"], "primary": true },
+    { "id": "link", "label": "Copy link", "for": ["ticket"] }
+  ],
+  "run": "ticket-keys.ps1",
+  "permissions": ["read-text", "open-links", "change-clipboard"]
+}

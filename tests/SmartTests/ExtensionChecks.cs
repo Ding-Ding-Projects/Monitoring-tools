@@ -42,7 +42,18 @@ namespace SmartTests
             var r3 = new ExtensionResult(); ExtensionHost.Accept(m, "{\"copy\":\"x\",\"values\":[{\"label\":\"a\",\"text\":\"b\"}]}", r3);
             Check("copy and values kept", r3.Copy == "x" && r3.Values.Count == 1 && r3.Ok);
 
+            var samples = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "samples", "extensions"));
+            foreach (var dir in Directory.GetDirectories(samples))
+            {
+                var sm = ExtensionManifest.Parse(File.ReadAllText(Path.Combine(dir, "extension.json")), dir, out var se);
+                Check("sample " + Path.GetFileName(dir) + " parses", sm != null && File.Exists(sm.RunPath), se ?? "");
+            }
+            var morse = ExtensionManifest.Parse(File.ReadAllText(Path.Combine(samples, "morse-code", "extension.json")), Path.Combine(samples, "morse-code"), out _);
+            Check("morse sample notices morse", morse.Match("... --- ...").Any() && !morse.Match("hello there").Any());
+            Check("ps1 runs through PowerShell", ExtensionHost.Launcher("C:\\x\\a.ps1").Exe == "powershell.exe");
             if (OperatingSystem.IsWindows()) return;
+            var mr = ExtensionHost.RunProgramAsync(morse, "decode", "morse", "... --- ... / .... ..").GetAwaiter().GetResult();
+            Check("morse sample runs", mr.Ok && mr.Copy == "SOS HI", mr.Error ?? mr.Copy ?? "");
             var root = Path.Combine(Path.GetTempPath(), "mt-ext-" + Guid.NewGuid().ToString("N"));
             var src = Path.Combine(root, "src");
             Directory.CreateDirectory(src);
