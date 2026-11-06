@@ -43,7 +43,7 @@ namespace MonitoringTools.UI.Dialogs
             _sample.TextChanged += (s, e) => Run();
             _name.TextChanged += (s, e) => { if (!_loading && _cur != null) { _cur.Name = _name.Text; Settings.Save(); PaintList(); } };
 
-            var grid = new Grid { Height = 540 };
+            var grid = new Grid { Height = 450 };
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(250) });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(18) });
             grid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -124,7 +124,7 @@ namespace MonitoringTools.UI.Dialogs
                 var sp = new StackPanel();
                 sp.Children.Add(new TextBlock { Text = r.Name, FontSize = 14.5, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text") });
                 sp.Children.Add(Ui.Mono(r.Steps.Count + (r.Steps.Count == 1 ? " step" : " steps") + (r.OnToasts ? " · on toasts" : "") + (string.IsNullOrEmpty(r.Hotkey) ? "" : " · " + r.Hotkey), Ui.Res("B.TextSoft"), 11));
-                var b = new Button { Content = sp, Style = Ui.Style("Btn.Row"), HorizontalContentAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 9, 12, 9), Margin = new Thickness(0, 0, 0, 2) };
+                var b = new Button { Content = sp, Style = Ui.Style("Btn.Row"), Height = double.NaN, HorizontalContentAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 9, 12, 9), Margin = new Thickness(0, 0, 0, 2) };
                 if (r == _cur) b.Background = Ui.Res("B.MintWash");
                 b.Click += (o, e) => Pick(r);
                 _list.Children.Add(b);

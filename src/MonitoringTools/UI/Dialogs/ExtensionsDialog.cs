@@ -43,7 +43,7 @@ namespace MonitoringTools.UI.Dialogs
         internal ExtensionsDialog(ExtensionHost host) : base("Extensions")
         {
             _host = host;
-            var grid = new Grid { Height = 520 };
+            var grid = new Grid { Height = 440 };
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(280) });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
             grid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -100,7 +100,7 @@ namespace MonitoringTools.UI.Dialogs
                 var state = it.Error != null ? "needs fixing" : it.Enabled ? "on" : it.NeedsApproval ? "waiting for you to allow it" : "off";
                 var sub = Ui.Mono((it.Manifest?.Version ?? "") + " · " + state, it.Error != null ? Ui.Res("B.Amber") : Ui.Res("B.TextSoft"), 11);
                 var sp = new StackPanel(); sp.Children.Add(name); sp.Children.Add(sub);
-                var row = new Button { Content = sp, Style = Ui.Style("Btn.Row"), HorizontalContentAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 0, 0, 2) };
+                var row = new Button { Content = sp, Style = Ui.Style("Btn.Row"), Height = double.NaN, HorizontalContentAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 0, 0, 2) };
                 if (KeyOf(it) == _selected) row.Background = Ui.Res("B.MintWash");
                 AutomationProperties.SetName(row, it.Name + ", " + state);
                 row.Click += (s, e) => { _selected = KeyOf(item); Paint(); };

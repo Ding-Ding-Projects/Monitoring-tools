@@ -126,7 +126,7 @@ namespace MonitoringTools.UI
                     {
                         var fact = item.BestFact;
                         var smart = new SmartToast(w, fact);
-                        w.SetHeader(SmartToast.Icon(fact), fact.Title, fact.FromExtension != null ? "from an extension" : item.Sensitive ? "kept out of history" : "");
+                        w.SetHeader(SmartToast.Icon(fact), fact.Title, fact.FromExtension != null ? "from an extension" : "");
                         w.SetBody(smart.Build());
                         if (item.Sensitive) w.SetAccent(Amber, Ui.C("C.AmberWash"));
                         else SmartLookups.Enrich(item, fact, smart);

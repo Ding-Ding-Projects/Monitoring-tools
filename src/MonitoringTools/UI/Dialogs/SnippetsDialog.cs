@@ -41,7 +41,7 @@ namespace MonitoringTools.UI.Dialogs
             _hotkey.ToolTip = "For example Ctrl+Alt+S. Leave empty for none.";
             foreach (var t in new[] { _name, _trigger, _hotkey, _body }) t.TextChanged += (s, e) => Changed();
 
-            var grid = new Grid { Height = 520 };
+            var grid = new Grid { Height = 440 };
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(260) });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(18) });
             grid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -104,7 +104,7 @@ namespace MonitoringTools.UI.Dialogs
                 var sp = new StackPanel();
                 sp.Children.Add(new TextBlock { Text = string.IsNullOrWhiteSpace(sn.Name) ? "(no name)" : sn.Name, FontSize = 14.5, Foreground = Ui.Res("B.Text"), FontWeight = FontWeights.Medium });
                 sp.Children.Add(Ui.Mono(sn.Trigger + (string.IsNullOrEmpty(sn.Hotkey) ? "" : " · " + sn.Hotkey), Ui.Res("B.TextSoft"), 11.5));
-                var b = new Button { Content = sp, Style = Ui.Style("Btn.Row"), HorizontalContentAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 9, 12, 9), Margin = new Thickness(0, 0, 0, 2) };
+                var b = new Button { Content = sp, Style = Ui.Style("Btn.Row"), Height = double.NaN, HorizontalContentAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 9, 12, 9), Margin = new Thickness(0, 0, 0, 2) };
                 if (sn == _cur) b.Background = Ui.Res("B.MintWash");
                 AutomationProperties.SetName(b, sn.Name + ", trigger " + sn.Trigger);
                 b.Click += (o, e) => Pick(s);

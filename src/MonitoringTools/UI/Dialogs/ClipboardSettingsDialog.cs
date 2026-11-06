@@ -83,7 +83,7 @@ namespace MonitoringTools.UI.Dialogs
             if (ClipPower.Taken.Count > 0) Note("Already used by another app, so not active: " + string.Join(", ", ClipPower.Taken) + ".", "shortcuts taken");
 
             _body.Children.Add(_empty);
-            var scroll = new ScrollViewer { Content = _body, Height = 520, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = false, Margin = new Thickness(0, 12, 0, 0) };
+            var scroll = new ScrollViewer { Content = _body, Height = 440, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = false, Margin = new Thickness(0, 12, 0, 0) };
             var done = Ui.Button("Done", Close, "Btn.Accent", Icons.Check);
             var more = new List<(string, string, Action)>
             {

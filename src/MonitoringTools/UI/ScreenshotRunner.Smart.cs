@@ -27,6 +27,7 @@ namespace MonitoringTools.UI
                 })
                 {
                     var w = App.Toasts.ShowClip(ClipItem.FromText(text));
+                    w.ExpandNow();   // buttons show on hover; captures show them
                     await Shot(w, name, caption, 900);
                     w.CloseAnimated(); await Task.Delay(350);
                 }
@@ -86,7 +87,7 @@ namespace MonitoringTools.UI
                     System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "run.ps1"), "# sample");
                     System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "extension.json"),
                         "{ \"id\": \"" + id + "\", \"name\": \"" + name + "\", \"version\": \"1.0.0\", \"api\": 1, \"description\": \"A sample extension.\", " +
-                        "\"detect\": [{ \"kind\": \"k\", \"pattern\": \"" + pattern + "\" }], \"actions\": [{ \"id\": \"a\", \"label\": \"" + label + "\", \"primary\": true }], " +
+                        "\"detect\": [{ \"kind\": \"k\", \"label\": \"" + (id == "morse-code" ? "Morse code" : "Ticket numbers like ABC-1234") + "\", \"pattern\": \"" + pattern + "\" }], \"actions\": [{ \"id\": \"a\", \"label\": \"" + label + "\", \"primary\": true }], " +
                         "\"run\": \"run.ps1\", \"permissions\": [" + perms + "] }");
                 }
                 var host = new global::MonitoringTools.Clip.Smart.ExtensionHost(root);
