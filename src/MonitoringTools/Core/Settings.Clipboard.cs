@@ -11,9 +11,7 @@ namespace MonitoringTools.Core
 
         // Automatic lookups send the smallest possible piece (a domain, a currency code) to the named service.
         public bool AutoLookups { get; set; } = true;
-        public bool LookupLinks { get; set; } = true;
         public bool LookupIps { get; set; } = true;
-        public bool LookupRepos { get; set; } = true;
         public bool LookupMoney { get; set; } = true;
         public bool LookupBooksAndPackages { get; set; } = true;
         public string HomeCurrency { get; set; } = "CAD";
