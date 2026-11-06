@@ -60,6 +60,10 @@ jobs:
           path: .deps/cache
           key: deps-${{ hashFiles('deps/manifest.json') }}
 
+      - name: Check the clipboard detectors and extensions
+        shell: pwsh
+        run: dotnet run --project tests/SmartTests -c Release
+
       - name: Build installer (build-installer.bat)
         shell: cmd
         env:

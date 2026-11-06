@@ -122,7 +122,16 @@ namespace MonitoringTools.UI
                 case ClipKind.Audio: AudioBody(w, item); break;
                 default:
                     // Plain text is edited in place: the toast shows the text in a field that stays quiet until it is clicked.
-                    if (item.Kind == ClipKind.Text)
+                    if (item.Kind == ClipKind.Text && item.BestFact != null)
+                    {
+                        var fact = item.BestFact;
+                        var smart = new SmartToast(w, fact);
+                        w.SetHeader(SmartToast.Icon(fact), fact.Title, fact.FromExtension != null ? "from an extension" : item.Sensitive ? "kept out of history" : "");
+                        w.SetBody(smart.Build());
+                        if (item.Sensitive) w.SetAccent(Amber, Ui.C("C.AmberWash"));
+                        else SmartLookups.Enrich(item, fact, smart);
+                    }
+                    else if (item.Kind == ClipKind.Text)
                     {
                         editor = new TextToastEditor(w, item);
                         w.SetHeader(Icons.Text, "Copied text", TextToastEditor.Counts(item.Text));

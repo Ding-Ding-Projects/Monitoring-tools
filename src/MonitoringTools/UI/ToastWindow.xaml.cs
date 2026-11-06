@@ -276,6 +276,14 @@ namespace MonitoringTools.UI
             _tick.Start();
         }
 
+        /// <summary>After a tap inside the body (copying a value), give at least three more seconds to read the result.</summary>
+        public void KeepOpenBriefly()
+        {
+            if (_persistent || IsClosing) return;
+            var min = DateTime.UtcNow + TimeSpan.FromSeconds(3);
+            if (_deadline < min) _deadline = min;
+        }
+
         public void SetProgress(double p)
         {
             _persistent = true;

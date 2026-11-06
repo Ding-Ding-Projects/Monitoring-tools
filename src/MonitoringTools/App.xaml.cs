@@ -20,6 +20,8 @@ namespace MonitoringTools
         public static PublicIpMonitor PublicIp { get; private set; }
         public static GameDetector Games { get; private set; }
         public static ToastManager Toasts { get; private set; }
+        /// <summary>Extensions found in their folder. Null during self-tests and captures, which never load your extensions.</summary>
+        public static global::MonitoringTools.Clip.Smart.ExtensionHost Extensions { get; private set; }
         public static TrayIcon Tray { get; private set; }
         public static ClipHistory History { get; } = new ClipHistory();
         public static DateTime SnoozeUntil { get; set; } = DateTime.MinValue;
@@ -52,6 +54,8 @@ namespace MonitoringTools
             Core.Language.Initialize();
             Games = new GameDetector();
             Toasts = new ToastManager();
+            global::MonitoringTools.Clip.Smart.SmartDetect.GroupOn = g => !Settings.Current.SmartGroupsOff.Contains(g);
+            global::MonitoringTools.Clip.Smart.SmartDetect.HomeCurrency = Settings.Current.HomeCurrency;
             Modes.Initialize();
             Tray = new TrayIcon();
             Appearance.Changed += () => Tray?.Refresh();
@@ -71,6 +75,7 @@ namespace MonitoringTools
             }
 
             Log.Info($"Agent starting (elevated: {ServiceHost.IsElevated})");
+            LoadExtensions();
             Clip = new ClipboardWatcher();
 
             Clip.Changed += OnClipboard;
@@ -140,9 +145,36 @@ namespace MonitoringTools
             t.Start();
         }
 
+        internal static void LoadExtensions()
+        {
+            try
+            {
+                Extensions ??= new global::MonitoringTools.Clip.Smart.ExtensionHost(global::MonitoringTools.Clip.Smart.ExtensionHost.DefaultRoot);
+                Extensions.Load();
+                global::MonitoringTools.Clip.Smart.SmartDetect.Extensions = t => Settings.Current.ExtensionsEnabled ? Extensions.Detect(t) : Enumerable.Empty<global::MonitoringTools.Clip.Smart.SmartFact>();
+                Log.Info($"Extensions: {Extensions.Items.Count(i => i.Enabled)} on of {Extensions.Items.Count}");
+            }
+            catch (Exception ex) { Log.Warn("Extensions not loaded: " + ex.Message); }
+        }
+
+        // The secret guard: a copied key, token or bank number is never kept in history, and it leaves the clipboard
+        // after a short while unless something else was copied since.
+        private static void GuardSecret(ClipItem item)
+        {
+            var text = item.Text;
+            var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Math.Clamp(Settings.Current.SecretClearSeconds, 5, 600)) };
+            t.Tick += (s, e) =>
+            {
+                t.Stop();
+                try { if (Clipboard.ContainsText() && Clipboard.GetText() == text) UI.SmartActions.ClearClipboard(); } catch { }
+            };
+            t.Start();
+        }
+
         private void OnClipboard(ClipItem item)
         {
-            History.Add(item);
+            if (item.Sensitive && Settings.Current.SecretGuard) GuardSecret(item);
+            else History.Add(item);
             if (TryApplyCopiedWording(item)) return;
             if (!Modes.ClipboardToastsOn) return;
 

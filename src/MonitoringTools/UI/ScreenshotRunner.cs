@@ -41,6 +41,13 @@ namespace MonitoringTools.UI
                     App.Current.Shutdown(0);
                     return;
                 }
+                if (Environment.GetEnvironmentVariable("MT_ONLY") == "smart")   // quick loop for the smart clipboard toasts and dialogs
+                {
+                    await SmartScenesAsync();
+                    File.WriteAllText(Path.Combine(_dir, "index.json"), JsonSerializer.Serialize(Index, new JsonSerializerOptions { WriteIndented = true }));
+                    App.Current.Shutdown(0);
+                    return;
+                }
                 if (Environment.GetEnvironmentVariable("MT_TOASTS_ONLY") == "1")   // quick loop for the text and install toasts
                 {
                     await ToastScenesAsync();
@@ -103,6 +110,7 @@ namespace MonitoringTools.UI
                 await Toast("toast-base64", "Base64 text", App.Toasts.ShowClip(ClipItem.FromText(FileOps.EncodeText("Monitoring Tools decodes this for you."))));
 
                 await ToastScenesAsync();
+                await SmartScenesAsync();
 
                 // a conversion in progress
                 var job = new ConversionJob

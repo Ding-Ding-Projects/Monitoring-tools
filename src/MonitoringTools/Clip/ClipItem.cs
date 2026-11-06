@@ -40,6 +40,12 @@ namespace MonitoringTools.Clip
         /// <summary>True when the paths came from text rather than a file drop.</summary>
         public bool IsPathText { get; set; }
 
+        /// <summary>What the smart detectors and turned-on extensions recognised in copied text, best first.</summary>
+        public List<global::MonitoringTools.Clip.Smart.SmartFact> Smart { get; set; } = new List<global::MonitoringTools.Clip.Smart.SmartFact>();
+        /// <summary>A key, token or bank number: kept out of history, never looked up, never sent to extensions.</summary>
+        public bool Sensitive { get; set; }
+        public global::MonitoringTools.Clip.Smart.SmartFact BestFact => Smart.Count > 0 ? Smart[0] : null;
+
         public string FirstFile => Files.Length > 0 ? Files[0] : null;
         public FileKind FirstFileKind => FirstFile == null ? FileKind.Other : Classify(FirstFile);
 
@@ -122,7 +128,19 @@ namespace MonitoringTools.Clip
 
             if (MdRx.Matches(t).Count >= 1 && (t.Contains('\n') || t.Contains("**") || t.Contains("](")))
                 item.Kind = ClipKind.Markdown;
+            if (item.Kind == ClipKind.Text) Recognise(item, t);
             return item;
+        }
+
+        /// <summary>Runs the smart detectors and extensions over plain text. Secrets are marked even when the kind is off.</summary>
+        public static void Recognise(ClipItem item, string t)
+        {
+            try
+            {
+                item.Smart = global::MonitoringTools.Clip.Smart.SmartDetect.All(t);
+                item.Sensitive = item.Smart.Any(f => f.Sensitive);
+            }
+            catch (Exception ex) { MonitoringTools.Core.Log.Warn("Smart detectors: " + ex.Message); }
         }
 
         public static QuickCommand TryCommand(string t)

@@ -45,7 +45,11 @@ namespace MonitoringTools.UI
                 case ClipKind.Files: Files(item, list); DataSecActions.Add(item, list); MediaActions.Add(item, list); break;
                 case ClipKind.Image: Bitmap(item, list); break;
                 case ClipKind.Audio: AudioClip(item, list); break;
-                default: TextActions(item.Text, list); break;
+                default:
+                    SmartActions.Add(item, list);
+                    TextActions(item.Text, list);
+                    if (item.Text != null && item.Text.Contains('\n')) list.Add(A("SQL IN (…) list", null, () => Set(Clip.Smart.Developer2.InList(item.Text)), done: "Copied"));
+                    break;
             }
             ArchiveDiskActions.Add(item, list);
             return list;
@@ -237,6 +241,7 @@ namespace MonitoringTools.UI
                 using var doc = JsonDocument.Parse(s);
                 Set(JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
             }, done: "Minified"));
+            l.Add(A("Copy as YAML", null, () => Set(Clip.Smart.Developer2.JsonToYaml(s)), done: "Copied"));
             l.Add(A("Save as .json", Icons.File, () => Reveal(SaveText(s, ".json")), done: "Saved"));
         }
 
