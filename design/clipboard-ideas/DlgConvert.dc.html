@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quick conversions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.d{--sf:#2A2F2C;--c1:#343A36;--c2:#3E4541;--line:#47504A;--on:#E4EBE6;--onv:#BFC9C2;--p:#6FDBB4;--onp:#00281C;--tn:#2F4A3E;--ontn:#CFE9DB;font-family:Roboto,system-ui,sans-serif;color:var(--on)}
+.mono{font-family:"Roboto Mono",monospace}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes cell{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes ok{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes bar{from{width:100%}to{width:0}}
+.kk{font:500 10.5px "Roboto Mono";padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.25)}
+.bt{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:0;border-radius:999px;font:500 14px Roboto;cursor:pointer;white-space:nowrap;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1)}
+.bt:hover{border-radius:14px}
+.tn{background:var(--tn);color:var(--ontn)}.pr{background:var(--p);color:var(--onp)}
+.chip{min-height:32px;padding:0 11px;border:0;border-radius:10px;background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--onv);font:500 12.5px Roboto;cursor:pointer;transition:all .3s cubic-bezier(.3,1.4,.5,1)}
+.chip[aria-pressed=true]{background:var(--tn);color:var(--ontn);box-shadow:none}
+.v{display:flex;align-items:center;gap:8px;width:100%;min-height:52px;padding:6px 8px 6px 14px;border:0;border-radius:14px;background:var(--c1);color:var(--on);text-align:left;cursor:pointer;opacity:0;animation:cell .35s cubic-bezier(.2,.8,.2,1) forwards;transition:background .2s,box-shadow .2s;box-sizing:border-box}
+.v:hover{background:var(--c2);box-shadow:inset 0 0 0 1px var(--p)}
+.v:hover .cp{background:var(--p);color:var(--onp)}
+.cp{font:500 11px Roboto;padding:6px 10px;border-radius:999px;background:var(--tn);color:var(--ontn);transition:all .2s;flex:none}
+.tc{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:0;border-radius:10px;background:transparent;box-shadow:inset 0 0 0 1px #9AA59F;color:#171D1A;font:500 13px "Roboto Mono";cursor:pointer;transition:all .25s}
+.tc:hover{background:#CFE9DB;box-shadow:none}
+@media (prefers-reduced-motion:reduce){.d *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="d" style="position:relative;width:1440px;height:1000px;overflow:hidden;background:#0E1311">
+<span class="mono" style="position:absolute;left:40px;top:30px;font-size:11px;letter-spacing:.08em;color:#89938C">1 · THE TOAST WHEN YOU COPY AN AMOUNT</span>
+<div role="status" aria-label="Copied an amount" style="position:absolute;left:40px;top:60px;width:440px;border-radius:24px;background:#E3EAE5;color:#171D1A;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5);animation:pop .5s cubic-bezier(.3,1.3,.5,1)">
+<div style="padding:18px 18px 14px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:12px;align-items:center"><span style="width:44px;height:44px;border-radius:14px;background:#CFE9DB;color:#006C4F;display:grid;place-items:center;font:700 18px Roboto">⇄</span><span style="flex:1"><span style="display:block;font:500 16px Roboto">You copied an amount</span><span class="mono" style="font-size:13px;color:#3F4943">{{shown}} · {{famName}}</span></span></div>
+<span style="font:500 11px Roboto;color:#3F4943;letter-spacing:.06em">TAP ONE TO COPY IT</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{top}}" as="t" hint-placeholder-count="4"><button class="tc" onClick="{{t.copy}}">{{t.txt}}</button></sc-for></div>
+<sc-if value="{{tDone}}" hint-placeholder-val="{{ false }}"><div style="padding:8px 12px;border-radius:12px;background:#B7F2D8;color:#00513A;font:500 13px Roboto;animation:ok .3s">✓ Copied {{copied}}</div></sc-if>
+<div style="display:flex;gap:8px;align-items:center"><button class="bt" style="background:#CFE9DB;color:#092017;min-height:40px">Undo <span class="kk" style="background:rgba(0,0,0,.08)">2</span></button><span style="flex:1"></span><button class="bt" style="background:#006C4F;color:#fff;min-height:40px">All conversions <span class="kk" style="background:rgba(255,255,255,.18)">1</span></button></div>
+</div>
+<div style="height:4px;background:#006C4F;animation:bar 6s linear infinite"></div>
+</div>
+<p style="position:absolute;left:40px;top:400px;width:440px;margin:0;font:400 14px/1.6 Roboto;color:#BFC9C2">Works for anything with a number and a unit, in any common spelling: <span class="mono" style="color:#E4EBE6">5 kg, 5kg, 5 kilos, 72°F, 3 cups, 6'2", 100 km/h, 1.5 GB, 30 mpg, 0xFF, 2 h 15 min</span>. Your Windows region picks which units come first.</p>
+<p style="position:absolute;left:40px;top:540px;width:440px;margin:0;font:400 14px/1.6 Roboto;color:#BFC9C2">Try another: <sc-for list="{{samples}}" as="s" hint-placeholder-count="8"><button class="chip" style="margin:0 4px 6px 0" onClick="{{s.use}}">{{s.t}}</button></sc-for></p>
+<p class="mono" style="position:absolute;left:40px;top:720px;width:440px;margin:0;font-size:11.5px;line-height:1.6;color:#89938C">Everything is worked out on this PC. Only money uses the internet, for today's rates, when automatic lookups are on.</p>
+
+<span class="mono" style="position:absolute;left:540px;top:30px;font-size:11px;letter-spacing:.08em;color:#89938C">2 · QUICK CONVERSIONS · Ctrl+Shift+U or "All conversions"</span>
+<div role="dialog" aria-labelledby="cv-t" style="position:absolute;left:540px;top:60px;width:860px;height:740px;box-sizing:border-box;border-radius:32px;background:var(--sf);padding:24px;display:flex;flex-direction:column;gap:14px;animation:pop .45s .1s both cubic-bezier(.3,1.3,.5,1)">
+<div style="display:flex;align-items:center;gap:16px">
+<span style="width:56px;height:56px;border-radius:16px;background:#4A3A12;color:#FFDDB5;display:grid;place-items:center;font:700 22px Roboto;flex:none">⇄</span>
+<span style="flex:1"><span id="cv-t" style="display:block;font:500 24px Roboto">Quick conversions</span><span style="font:400 14px Roboto;color:var(--onv)">Type or paste anything. Click any result to copy it.</span></span>
+<button class="bt" style="background:transparent;color:var(--on);padding:0 10px" aria-label="Close (Esc)">✕ <span class="kk">Esc</span></button>
+</div>
+<div style="display:flex;align-items:center;gap:10px;min-height:56px;padding:0 8px 0 18px;border-radius:999px;background:var(--c1);box-shadow:inset 0 0 0 2px var(--p)">
+<label for="cv-in" style="position:absolute;left:-9999px">Amount and unit</label>
+<input id="cv-in" value="{{q}}" onInput="{{onQ}}" class="mono" style="flex:1;min-width:0;border:0;background:transparent;color:var(--on);font-size:22px;outline:none">
+<span class="mono" style="font-size:12px;color:var(--onv);padding-right:8px">{{parsed}}</span>
+</div>
+<div role="group" aria-label="Kind of unit" style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{fams}}" as="f" hint-placeholder-count="16"><button class="chip" aria-pressed="{{f.on}}" onClick="{{f.pick}}">{{f.name}}</button></sc-for></div>
+<div style="flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-content:start;padding-right:4px">
+<sc-for list="{{vals}}" as="v" hint-placeholder-count="12"><button class="v" onClick="{{v.copy}}" aria-label="Copy {{v.txt}}" style="animation-delay:{{v.d}}ms;box-shadow:{{v.ring}}"><span style="flex:1;min-width:0;display:flex;flex-direction:column"><span class="mono" style="font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{v.num}}</span><span style="font:400 11.5px Roboto;color:var(--onv)">{{v.name}}</span></span><span class="cp">{{v.cp}}</span></button></sc-for>
+<sc-if value="{{none}}" hint-placeholder-val="{{ false }}"><p style="grid-column:1/-1;margin:0;color:var(--onv);font:400 14px Roboto">Add a unit, like 5 kg or 20 cm.</p></sc-if>
+</div>
+<sc-if value="{{done}}" hint-placeholder-val="{{ false }}"><div style="padding:10px 14px;border-radius:14px;background:#00513A;color:#8CF8CF;font:500 14px Roboto;animation:ok .3s">✓ Copied {{copied}}. Paste it anywhere.</div></sc-if>
+<div style="display:flex;align-items:center;gap:10px;margin:0 -24px -24px;padding:14px 24px;border-top:1px solid var(--line);border-radius:0 0 32px 32px;background:#252A27">
+<button class="bt tn" aria-haspopup="menu" title="Copy as table, choose decimals, pin on screen, reset">More ▾</button>
+<span style="flex:1;font:400 13px Roboto;color:var(--onv)">Decimals: {{dp}}</span>
+<button class="bt tn" onClick="{{copyAll}}">Copy all as a list <span class="kk">Ctrl+Shift+C</span></button>
+<button class="bt pr" onClick="{{copyFirst}}">Copy {{first}} <span class="kk" style="color:var(--onp)">Enter</span></button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { q: '5 kg', fam: null, copied: '', done: false, tDone: false }; }
+  renderVals() {
+    const st = this.state;
+    // [family, name, symbol, factor to base, aliases]
+    const U = {
+      mass: ['Weight', [['kilograms','kg',1,'kg kilo kilos kilogram kilograms'],['grams','g',.001,'g gram grams'],['milligrams','mg',1e-6,'mg'],['pounds','lb',.45359237,'lb lbs pound pounds'],['ounces','oz',.028349523125,'oz ounce ounces'],['stone','st',6.35029318,'st stone'],['metric tonnes','t',1000,'t tonne tonnes'],['carats','ct',.0002,'ct carat carats']]],
+      length: ['Length', [['metres','m',1,'m metre metres meter meters'],['centimetres','cm',.01,'cm'],['millimetres','mm',.001,'mm'],['kilometres','km',1000,'km'],['inches','in',.0254,'in inch inches "'],['feet','ft',.3048,"ft foot feet '"],['yards','yd',.9144,'yd yard yards'],['miles','mi',1609.344,'mi mile miles'],['nautical miles','nmi',1852,'nmi']]],
+      volume: ['Volume', [['millilitres','ml',.001,'ml millilitre millilitres'],['litres','L',1,'l litre litres liter liters'],['US cups','cup',.2365882365,'cup cups'],['tablespoons','tbsp',.01478676478125,'tbsp'],['teaspoons','tsp',.00492892159375,'tsp'],['US fluid ounces','fl oz',.0295735295625,'floz'],['US gallons','gal',3.785411784,'gal gallon gallons'],['UK pints','pt',.56826125,'pt pint pints'],['cubic metres','m³',1000,'m3']]],
+      temp: ['Temperature', [['Celsius','°C',0,'c °c celsius'],['Fahrenheit','°F',0,'f °f fahrenheit'],['Kelvin','K',0,'k kelvin']]],
+      area: ['Area', [['square metres','m²',1,'m2 sqm'],['square feet','ft²',.09290304,'ft2 sqft'],['acres','ac',4046.8564224,'ac acre acres'],['hectares','ha',10000,'ha hectare hectares'],['square km','km²',1e6,'km2'],['square miles','mi²',2589988.110336,'mi2']]],
+      speed: ['Speed', [['km per hour','km/h',1/3.6,'km/h kmh kph'],['miles per hour','mph',.44704,'mph'],['metres per second','m/s',1,'m/s'],['knots','kn',.514444,'kn knot knots'],['feet per second','ft/s',.3048,'ft/s']]],
+      data: ['Data size', [['bytes','B',1,'b byte bytes'],['kilobytes','KB',1e3,'kb'],['megabytes','MB',1e6,'mb'],['gigabytes','GB',1e9,'gb'],['terabytes','TB',1e12,'tb'],['kibibytes','KiB',1024,'kib'],['mebibytes','MiB',1048576,'mib'],['gibibytes','GiB',1073741824,'gib'],['bits','bit',.125,'bit bits']]],
+      time: ['Time', [['seconds','s',1,'s sec secs second seconds'],['minutes','min',60,'min mins minute minutes'],['hours','h',3600,'h hr hrs hour hours'],['days','d',86400,'d day days'],['weeks','wk',604800,'wk week weeks'],['milliseconds','ms',.001,'ms']]],
+      energy: ['Energy', [['kilocalories','kcal',4184,'kcal cal calories'],['kilojoules','kJ',1000,'kj'],['joules','J',1,'j joule joules'],['kilowatt hours','kWh',3.6e6,'kwh'],['BTU','BTU',1055.06,'btu']]],
+      pressure: ['Pressure', [['kilopascals','kPa',1000,'kpa'],['PSI','psi',6894.757,'psi'],['bar','bar',1e5,'bar'],['atmospheres','atm',101325,'atm'],['mmHg','mmHg',133.322,'mmhg']]],
+      fuel: ['Fuel use', [['litres per 100 km','L/100km',0,'l/100km'],['US mpg','mpg',0,'mpg'],['UK mpg','mpg UK',0,'mpguk']]],
+      angle: ['Angle', [['degrees','°',Math.PI/180,'deg degrees °'],['radians','rad',1,'rad radians'],['turns','turn',2*Math.PI,'turn turns']]],
+      base: ['Number bases', [['decimal','',0,''],['hexadecimal','0x',0,''],['binary','0b',0,''],['octal','0o',0,'']]],
+      money: ['Money', [['US dollars','USD',1,'usd $'],['Canadian dollars','CAD',.72,'cad'],['euros','EUR',1.08,'eur €'],['pounds sterling','GBP',1.27,'gbp £'],['yen','JPY',.0066,'jpy ¥'],['HK dollars','HKD',.128,'hkd']]]
+    };
+    const raw = st.q.trim();
+    let fam = null, unit = null, n = NaN;
+    const hex = raw.match(/^(0x[0-9a-f]+|0b[01]+|0o[0-7]+)$/i);
+    const hm = raw.match(/^(\d+)\s*h\s*(\d+)\s*min$/i);
+    const ft = raw.match(/^(\d+)'\s*(\d+(?:\.\d+)?)"$/);
+    const cur = raw.match(/^([$€£¥])\s*([\d.,]+)$/);
+    if (hex) { fam = 'base'; n = Number(hex[1]); }
+    else if (hm) { fam = 'time'; unit = 'minutes'; n = +hm[1] * 60 + +hm[2]; }
+    else if (ft) { fam = 'length'; unit = 'inches'; n = +ft[1] * 12 + +ft[2]; }
+    else if (cur) { fam = 'money'; n = parseFloat(cur[2].replace(/,/g, '')); unit = U.money[1].find(u => u[3].split(' ').indexOf(cur[1]) >= 0)[0]; }
+    else {
+      const m = raw.match(/^(-?[\d.,]+)\s*(.*)$/);
+      if (m) {
+        n = parseFloat(m[1].replace(/,/g, ''));
+        const a = m[2].toLowerCase().replace(/\s+/g, ' ').trim().replace('fl oz', 'floz').replace('mpg uk', 'mpguk');
+        if (!a) { fam = 'base'; }
+        else for (const k in U) for (const u of U[k][1]) if (u[3].split(' ').indexOf(a) >= 0 && !fam) { fam = k; unit = u[0]; }
+      }
+    }
+    const shownFam = st.fam || fam;
+    const fmt = (x) => { if (!isFinite(x)) return '—'; const ab = Math.abs(x); const s = ab !== 0 && (ab >= 1e9 || ab < 1e-4) ? x.toExponential(3) : (+x.toFixed(ab < 1 ? 4 : 2)).toLocaleString('en-CA', { maximumFractionDigits: 4 }); return s; };
+    let vals = [];
+    if (shownFam && isFinite(n)) {
+      const list = U[shownFam][1];
+      const from = unit ? list.find(u => u[0] === unit) : list[0];
+      const ok = shownFam === fam;
+      if (shownFam === 'temp') {
+        const c = !ok ? n : from[0] === 'Celsius' ? n : from[0] === 'Fahrenheit' ? (n - 32) * 5 / 9 : n - 273.15;
+        vals = [[c, list[0]], [c * 9 / 5 + 32, list[1]], [c + 273.15, list[2]]];
+      } else if (shownFam === 'fuel') {
+        const l = !ok ? n : from[0].startsWith('litres') ? n : from[0] === 'US mpg' ? 235.215 / n : 282.481 / n;
+        vals = [[l, list[0]], [235.215 / l, list[1]], [282.481 / l, list[2]]];
+      } else if (shownFam === 'base') {
+        const i = Math.trunc(n);
+        vals = [[i.toString(10), list[0]], ['0x' + i.toString(16).toUpperCase(), list[1]], ['0b' + i.toString(2), list[2]], ['0o' + i.toString(8), list[3]]];
+      } else {
+        const b = n * (ok && from ? from[2] : list[0][2]);
+        vals = list.map(u => [b / u[2], u]);
+      }
+    }
+    const items = vals.map((v, i) => {
+      const num = typeof v[0] === 'string' ? v[0] : fmt(v[0]);
+      const sym = v[1][1];
+      const txt = typeof v[0] === 'string' ? num : num + (sym ? (sym.startsWith('°') ? sym : ' ' + sym) : '');
+      return { num: txt, name: v[1][0] + (shownFam === 'money' ? ' · sample rate' : ''), txt, d: i * 30, same: unit === v[1][0] };
+    });
+    const copy = (txt, where) => () => this.setState(where === 't' ? { copied: txt, tDone: true } : { copied: txt, done: true });
+    const others = items.filter(i => !i.same);
+    return {
+      q: st.q, onQ: (e) => this.setState({ q: e.target.value, fam: null, done: false }),
+      parsed: fam ? (unit || U[fam][1][0][0]) + ' · ' + U[fam][0].toLowerCase() : 'type a number and unit',
+      shown: raw || '…', famName: fam ? U[fam][0].toLowerCase() : 'no unit yet',
+      fams: Object.keys(U).map(k => ({ name: U[k][0], on: String(k === shownFam), pick: () => this.setState({ fam: k, done: false }) })),
+      vals: items.map(i => ({ num: i.num, name: i.name, txt: i.txt, d: i.d, cp: i.same ? 'yours' : 'Copy', ring: i.same ? 'inset 0 0 0 1px var(--line)' : 'none', copy: copy(i.txt, 'd') })),
+      none: items.length === 0,
+      top: others.slice(0, 5).map(i => ({ txt: i.txt, copy: copy(i.txt, 't') })),
+      samples: ['5 kg', '72°F', '3 cups', "6'2\"", '100 km/h', '1.5 GB', '30 mpg', '0xFF', '2 h 15 min', '$40', '250 ml', '2 acres'].map(t => ({ t, use: () => this.setState({ q: t, fam: null, done: false, tDone: false }) })),
+      done: st.done, tDone: st.tDone, copied: st.copied, dp: 'automatic',
+      first: others[0] ? others[0].txt : 'result', copyFirst: others[0] ? copy(others[0].txt, 'd') : () => {},
+      copyAll: () => this.setState({ copied: items.length + ' conversions as a list', done: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

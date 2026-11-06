@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Picture text and QR dialog</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.d{--sf:#2A2F2C;--c1:#343A36;--c2:#3E4541;--line:#47504A;--on:#E4EBE6;--onv:#BFC9C2;--p:#6FDBB4;--onp:#00281C;--tn:#2F4A3E;--ontn:#CFE9DB;font-family:Roboto,system-ui,sans-serif;color:var(--on)}
+.mono{font-family:"Roboto Mono",monospace}
+@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@keyframes scan{0%{top:0}100%{top:100%}}
+@keyframes ok{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tile{width:56px;height:56px;border-radius:16px;background:#1F4A5C;color:#C2E8FD;display:grid;place-items:center;flex:none}
+.x{display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--on);cursor:pointer}
+.kk{font:500 10.5px "Roboto Mono";padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.25)}
+.ln{position:absolute;left:24px;height:22px;border:0;border-radius:6px;cursor:pointer;transition:background .25s,box-shadow .25s;padding:0}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--c1)}
+.seg button{min-height:38px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:var(--onv);font:500 14px Roboto;cursor:pointer;transition:background .3s,color .3s}
+.seg button[aria-pressed=true]{background:var(--c2);color:var(--on)}
+select{min-height:36px;border:0;border-radius:10px;background:var(--c2);color:var(--on);padding:0 10px;font:400 13px Roboto}
+.bt{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 22px;border:0;border-radius:999px;font:500 15px Roboto;cursor:pointer;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1)}
+.bt:hover{border-radius:16px}
+.tn{background:var(--tn);color:var(--ontn)}.pr{background:var(--p);color:var(--onp)}
+.abar{display:flex;align-items:center;gap:10px;margin:0 -28px -28px;padding:16px 28px;border-top:1px solid var(--line);border-radius:0 0 32px 32px;background:#252A27}
+@media (prefers-reduced-motion:reduce){.d *{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="d" style="width:980px;height:820px;background:#0E1311;padding:30px;box-sizing:border-box">
+<div role="dialog" aria-labelledby="pi-t" style="height:100%;box-sizing:border-box;border-radius:32px;background:var(--sf);padding:28px;display:flex;flex-direction:column;gap:16px;animation:pop .4s cubic-bezier(.3,1.3,.5,1)">
+<div style="display:flex;align-items:center;gap:18px">
+<span class="tile"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M8 9h8M8 12h8M8 15h5"></path></svg></span>
+<span style="flex:1"><span id="pi-t" style="display:block;font:500 24px Roboto">Text and codes in this picture</span><span style="font:400 15px Roboto;color:var(--onv)">Screenshot 1280 × 720 · read on this PC, nothing uploaded</span></span>
+<button class="x" aria-label="Close (Esc)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg><span class="kk">Esc</span></button>
+</div>
+<div style="display:flex;gap:12px;align-items:center;padding:10px 14px;border-radius:18px;box-shadow:inset 0 0 0 1px var(--line)">
+<span class="mono" style="font-size:11px;color:var(--onv);letter-spacing:.08em">OPTIONS</span>
+<div class="seg" role="tablist" aria-label="What to read"><button role="tab" aria-pressed="{{tText}}" aria-selected="{{tText}}" onClick="{{showText}}">Text · 4 lines</button><button role="tab" aria-pressed="{{tQr}}" aria-selected="{{tQr}}" onClick="{{showQr}}">QR code · 1</button></div>
+<span style="flex:1"></span>
+<label style="font:400 13px Roboto;color:var(--onv);display:flex;gap:8px;align-items:center">Language <select aria-label="Recognition language"><option>English (your Windows)</option><option>Chinese (Traditional)</option></select></label>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0">
+<div style="position:relative;border-radius:20px;background:#121614;overflow:hidden" aria-label="The picture, with the text it found outlined">
+<div style="position:absolute;inset:16px;border-radius:12px;background:#E9EEEA">
+<sc-for list="{{lines}}" as="l" hint-placeholder-count="4"><button class="ln" aria-pressed="{{l.onS}}" aria-label="Line: {{l.t}}" onClick="{{l.toggle}}" style="top:{{l.y}}px;width:{{l.w}}px;background:{{l.bg}};box-shadow:{{l.ring}}"><span style="display:block;padding:0 6px;font:500 14px Roboto;color:#171D1A;text-align:left;white-space:nowrap">{{l.t}}</span></button></sc-for>
+<span style="position:absolute;right:22px;bottom:22px;width:96px;height:96px;border-radius:6px;background:conic-gradient(#171D1A 25%,#E9EEEA 0 50%,#171D1A 0 75%,#E9EEEA 0) 0 0/16px 16px;box-shadow:{{qrRing}}"></span>
+<span style="position:absolute;left:0;right:0;height:2px;background:#6FDBB4;box-shadow:0 0 12px #6FDBB4;animation:scan 2.4s ease-in-out infinite alternate"></span>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+<sc-if value="{{isText}}" hint-placeholder-val="{{ true }}">
+<label for="pi-x" style="font:500 13px Roboto;color:var(--onv)">Found text · tap lines in the picture to choose</label>
+<textarea id="pi-x" value="{{picked}}" style="flex:1;min-height:220px;border:0;border-radius:16px;background:var(--c1);color:var(--on);padding:14px;font:400 15px/1.6 'Roboto Mono';resize:none"></textarea>
+</sc-if>
+<sc-if value="{{isQr}}" hint-placeholder-val="{{ false }}">
+<div style="border-radius:18px;background:var(--c1);padding:18px;display:flex;flex-direction:column;gap:8px">
+<span class="mono" style="font-size:11px;color:var(--onv)">QR CODE · WI-FI NETWORK</span>
+<span style="font:500 20px Roboto">Studio-Guest</span>
+<span class="mono" style="font-size:13px;color:var(--onv)">WPA2 · password hidden until you ask</span>
+</div>
+</sc-if>
+<sc-if value="{{done}}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:#00513A;color:#8CF8CF;font:500 14px Roboto;animation:ok .35s">✓ {{doneText}}</div></sc-if>
+</div>
+</div>
+<div class="abar"><button class="bt tn" aria-haspopup="menu" title="Save picture, search the text, open in drawing, read again">More <span class="kk">4</span> ▾</button><span style="flex:1"></span><button class="bt tn">Pin on screen <span class="kk">Ctrl+P</span></button><button class="bt pr" onClick="{{main}}">{{mainLabel}} <span class="kk">Ctrl+Enter</span></button></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":980,"height":820}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { tab: 'text', on: [true, true, true, false], done: false }; }
+  renderVals() {
+    const st = this.state;
+    const L = [['Wi-Fi: Studio-Guest', 30, 180], ['Password on the QR code', 64, 230], ['Room 4B, second floor', 98, 200], ['Printed 6 Nov 2026', 132, 170]];
+    const picked = L.filter((_, i) => st.on[i]).map(l => l[0]).join('\n');
+    const n = st.on.filter(Boolean).length;
+    const isText = st.tab === 'text';
+    return {
+      tText: String(isText), tQr: String(!isText), isText, isQr: !isText,
+      showText: () => this.setState({ tab: 'text', done: false }), showQr: () => this.setState({ tab: 'qr', done: false }),
+      lines: L.map((l, i) => ({ t: l[0], y: l[1], w: l[2], onS: String(st.on[i]), bg: isText && st.on[i] ? 'rgba(111,219,180,.35)' : 'transparent', ring: isText && st.on[i] ? 'inset 0 0 0 2px #006C4F' : 'inset 0 0 0 1px rgba(0,108,79,.35)',
+        toggle: () => { const a = st.on.slice(); a[i] = !a[i]; this.setState({ on: a, tab: 'text', done: false }); } })),
+      qrRing: isText ? 'none' : '0 0 0 4px #6FDBB4', picked,
+      mainLabel: isText ? 'Copy ' + n + (n === 1 ? ' line' : ' lines') : 'Join this Wi-Fi',
+      main: () => this.setState({ done: true }), done: st.done,
+      doneText: isText ? 'Copied ' + n + (n === 1 ? ' line.' : ' lines.') : 'Joined Studio-Guest.'
+    };
+  }
+}
+</script>
+</body>
+</html>

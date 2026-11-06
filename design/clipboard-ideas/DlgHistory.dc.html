@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clipboard history popup</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.d{--sf:#2A2F2C;--c1:#343A36;--c2:#3E4541;--line:#47504A;--on:#E4EBE6;--onv:#BFC9C2;--p:#6FDBB4;--onp:#00281C;--tn:#2F4A3E;--ontn:#CFE9DB;font-family:Roboto,system-ui,sans-serif;color:var(--on)}
+.mono{font-family:"Roboto Mono",monospace}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes row{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+@keyframes swap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes ok{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.chip{min-height:32px;padding:0 11px;border:0;border-radius:10px;background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--onv);font:500 12.5px Roboto;cursor:pointer;transition:all .3s cubic-bezier(.3,1.4,.5,1)}
+.chip[aria-pressed=true]{background:var(--tn);color:var(--ontn);box-shadow:none}
+.it{display:flex;flex-direction:column;gap:8px;width:100%;padding:10px 12px;border:0;border-radius:16px;color:var(--on);text-align:left;font:inherit;cursor:pointer;opacity:0;animation:row .35s cubic-bezier(.2,.8,.2,1) forwards;transition:background .2s,box-shadow .2s}
+.it:hover{background:var(--c1)}
+.meta{display:flex;align-items:center;gap:8px;font:400 11px "Roboto Mono";color:var(--onv)}
+.ic{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;background:var(--tn);color:var(--p);flex:none}
+.kbd{font:500 10.5px "Roboto Mono";padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.25);color:var(--onv)}
+.bt{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 16px;border:0;border-radius:999px;font:500 14px Roboto;cursor:pointer;white-space:nowrap;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1)}
+.bt:hover{border-radius:14px}
+.tn{background:var(--tn);color:var(--ontn)}.pr{background:var(--p);color:var(--onp)}
+.thumb{border-radius:8px;background:#121614;position:relative;overflow:hidden;flex:none}
+@media (prefers-reduced-motion:reduce){.d *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="d" style="position:relative;width:980px;height:820px;overflow:hidden;background:#0E1311">
+<div aria-hidden="true" style="position:absolute;left:24px;top:24px;width:420px;height:300px;border-radius:12px;background:#1F2421;box-shadow:0 0 0 1px #2A302C">
+<div style="height:34px;border-bottom:1px solid #2A302C;display:flex;align-items:center;padding:0 14px;font:400 12px Roboto;color:#89938C">Notepad · reply.txt</div>
+<div style="padding:14px 18px;font:400 14px/1.7 'Roboto Mono';color:#BFC9C2">Hi Sam,<br>The build is ready:<br><span style="color:#8CF8CF">{{pasted}}</span>|</div>
+</div>
+
+<div role="dialog" aria-label="Clipboard history" style="position:absolute;left:130px;top:96px;width:820px;height:670px;box-sizing:border-box;border-radius:28px;background:var(--sf);box-shadow:0 0 0 1px var(--line),0 40px 90px rgba(0,0,0,.65);padding:16px;animation:pop .45s cubic-bezier(.3,1.3,.5,1);display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:10px">
+<div style="flex:1;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 6px 0 14px;border-radius:999px;background:var(--c1)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--onv)"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"></path></svg>
+<label for="hq" style="position:absolute;left:-9999px">Search clipboard history</label>
+<input id="hq" value="{{q}}" onInput="{{onQ}}" placeholder="Search your copies, including text inside pictures" style="flex:1;min-width:0;border:0;background:transparent;color:var(--on);font:400 14px Roboto;outline:none">
+<span class="mono" style="font-size:12px;color:var(--onv)">{{n}}</span><span class="mono" style="font-size:12px;color:var(--onv);padding:0 6px">Aa</span><span class="mono" style="font-size:12px;color:var(--onv);padding:0 6px">.*</span>
+</div>
+<span class="kbd" style="font-size:11px">Win+Shift+V</span>
+<button class="bt" aria-label="Close (Esc)" style="background:transparent;color:var(--on);padding:0 10px">✕ <span class="kbd">Esc</span></button>
+</div>
+<div role="group" aria-label="Kinds" style="display:flex;gap:6px;flex-wrap:wrap">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="6"><button class="chip" aria-pressed="{{t.on}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for>
+</div>
+<div style="display:grid;grid-template-columns:300px 1fr;gap:14px;flex:1;min-height:0">
+<div role="listbox" aria-label="Copies" style="display:flex;flex-direction:column;gap:4px;overflow:auto;padding-right:4px">
+<sc-for list="{{items}}" as="i" hint-placeholder-count="7">
+<button class="it" role="option" aria-selected="{{i.sel}}" onClick="{{i.pick}}" onDoubleClick="{{i.paste}}" style="animation-delay:{{i.d}}ms;background:{{i.bg}};box-shadow:{{i.ring}}">
+<span class="meta"><span class="ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="{{i.icon}}"></path></svg></span><span style="flex:1">{{i.kind}} · {{i.when}}</span><sc-if value="{{i.pinned}}" hint-placeholder-val="{{ false }}"><span style="color:var(--p)">● pinned</span></sc-if></span>
+
+<sc-if value="{{i.isLink}}" hint-placeholder-val="{{ false }}"><span style="display:flex;gap:10px;align-items:center"><span class="thumb" style="width:40px;height:40px;background:#24292F;display:grid;place-items:center;color:#fff;font:700 15px Roboto">GH</span><span style="display:flex;flex-direction:column;min-width:0"><span style="font:500 14px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Releases · Monitoring-tools</span><span class="mono" style="font-size:11px;color:var(--onv)">github.com</span></span></span></sc-if>
+
+<sc-if value="{{i.isText}}" hint-placeholder-val="{{ false }}"><span style="font:400 14px/1.45 Roboto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{i.text}}</span></sc-if>
+
+<sc-if value="{{i.isPhone}}" hint-placeholder-val="{{ false }}"><span class="mono" style="font-size:18px;letter-spacing:.03em">+1 416 555 0134</span></sc-if>
+
+<sc-if value="{{i.isPic}}" hint-placeholder-val="{{ false }}"><span style="display:flex;gap:10px;align-items:center"><span class="thumb" style="width:96px;height:54px;background:#E9EEEA"><span style="position:absolute;left:8px;top:9px;width:50px;height:4px;border-radius:2px;background:#6F7973"></span><span style="position:absolute;left:8px;top:18px;width:64px;height:4px;border-radius:2px;background:#6F7973"></span><span style="position:absolute;right:6px;bottom:6px;width:20px;height:20px;background:conic-gradient(#171D1A 25%,#E9EEEA 0 50%,#171D1A 0 75%,#E9EEEA 0) 0 0/5px 5px"></span></span><span style="display:flex;flex-direction:column;min-width:0;font:400 12px/1.4 Roboto;color:var(--onv)"><span style="color:var(--on);font-weight:500">1280 × 720</span><span>"Wi-Fi: Studio-Guest…"</span><span>has a QR code</span></span></span></sc-if>
+
+<sc-if value="{{i.isFile}}" hint-placeholder-val="{{ false }}"><span style="display:flex;gap:10px;align-items:center"><span class="thumb" style="width:96px;height:54px;background:linear-gradient(135deg,#1F3A4A,#3B5B3A)"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:0;height:0;border-left:12px solid rgba(255,255,255,.85);border-top:8px solid transparent;border-bottom:8px solid transparent"></span><span class="mono" style="position:absolute;right:4px;bottom:3px;font-size:9px;color:#fff;background:rgba(0,0,0,.5);padding:0 3px;border-radius:3px">1:24</span></span><span style="display:flex;flex-direction:column;min-width:0;font:400 12px/1.4 Roboto;color:var(--onv)"><span style="color:var(--on);font-weight:500">clip.mov</span><span>1920 × 1080 · H.264</span><span>84 MB · D:\Footage</span></span></span></sc-if>
+
+<sc-if value="{{i.isTable}}" hint-placeholder-val="{{ false }}"><span style="display:grid;grid-template-columns:2fr 1fr 1fr;border-radius:8px;overflow:hidden;font:400 11.5px 'Roboto Mono';background:var(--c1)"><span style="padding:3px 8px;background:var(--c2)">Item</span><span style="padding:3px 8px;background:var(--c2)">Qty</span><span style="padding:3px 8px;background:var(--c2);text-align:right">Price</span><span style="padding:3px 8px">Cable</span><span style="padding:3px 8px">2</span><span style="padding:3px 8px;text-align:right">12.50</span><span style="padding:3px 8px">Adapter</span><span style="padding:3px 8px">1</span><span style="padding:3px 8px;text-align:right">18.00</span></span></sc-if>
+
+<sc-if value="{{i.isColor}}" hint-placeholder-val="{{ false }}"><span style="display:flex;gap:10px;align-items:center"><span style="width:40px;height:40px;border-radius:12px;background:#7CF2C2;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)"></span><span style="display:flex;flex-direction:column"><span class="mono" style="font-size:14px">#7CF2C2</span><span style="font:400 12px Roboto;color:var(--onv)">mint · rgb(124, 242, 194)</span></span></span></sc-if>
+
+<sc-if value="{{i.isTrace}}" hint-placeholder-val="{{ false }}"><span class="mono" style="font-size:11.5px;line-height:1.5;padding:6px 8px;border-radius:8px;background:var(--c1)"><span style="color:#FFB4AB">NullReferenceException</span><br>at Toast.Show() <span style="color:var(--p)">Toast.cs:42</span></span></sc-if>
+</button>
+</sc-for>
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}"><p style="margin:0;padding:16px;color:var(--onv);font:400 14px Roboto">Nothing matches.</p></sc-if>
+</div>
+
+<div style="display:flex;flex-direction:column;border-radius:22px;background:var(--c1);overflow:hidden;min-height:0">
+<div style="flex:1;padding:18px;display:flex;flex-direction:column;gap:12px;animation:swap .35s cubic-bezier(.2,.8,.2,1);min-height:0">
+<span class="meta" style="font-size:12px">{{big.kind}} · copied {{big.when}} · from {{big.from}}</span>
+<sc-if value="{{bLink}}" hint-placeholder-val="{{ false }}"><div style="border-radius:16px;overflow:hidden;background:var(--c2)"><div style="height:120px;background:linear-gradient(135deg,#24292F,#2F4A3E);display:grid;place-items:center;font:700 28px Roboto;color:#fff">Monitoring-tools</div><div style="padding:14px;display:flex;flex-direction:column;gap:4px"><span style="font:500 16px Roboto">Releases · Ding-Ding-Projects/Monitoring-tools</span><span style="font:400 13px Roboto;color:var(--onv)">Latest v1.0.62 · 14 assets</span><span class="mono" style="font-size:11px;color:var(--onv);word-break:break-all">https://github.com/Ding-Ding-Projects/Monitoring-tools/releases</span><span class="mono" style="font-size:10.5px;color:var(--onv)">title and details looked up automatically</span></div></div></sc-if>
+<sc-if value="{{bText}}" hint-placeholder-val="{{ false }}"><p style="margin:0;font:400 17px/1.6 Roboto">{{big.text}}</p><span class="mono" style="font-size:11px;color:var(--onv)">6 words · 34 characters</span></sc-if>
+<sc-if value="{{bPhone}}" hint-placeholder-val="{{ false }}"><span class="mono" style="font-size:30px">+1 416 555 0134</span><span style="font:400 14px Roboto;color:var(--onv)">North America · tidied from 416.555.0134</span></sc-if>
+<sc-if value="{{bPic}}" hint-placeholder-val="{{ false }}"><div style="position:relative;height:200px;border-radius:14px;background:#E9EEEA"><span style="position:absolute;left:18px;top:22px;font:500 15px Roboto;color:#171D1A;line-height:1.9">Wi-Fi: Studio-Guest<br>Password on the QR code<br>Room 4B, second floor</span><span style="position:absolute;right:18px;bottom:18px;width:72px;height:72px;background:conic-gradient(#171D1A 25%,#E9EEEA 0 50%,#171D1A 0 75%,#E9EEEA 0) 0 0/12px 12px"></span></div><span class="mono" style="font-size:11px;color:var(--onv)">3 lines of text and 1 QR code found on this PC</span></sc-if>
+<sc-if value="{{bFile}}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-radius:14px;overflow:hidden"><span style="height:72px;background:linear-gradient(135deg,#1F3A4A,#3B5B3A)"></span><span style="height:72px;background:linear-gradient(135deg,#2B4A3A,#4A5B2F)"></span><span style="height:72px;background:linear-gradient(135deg,#3A3A4A,#2F4A5B)"></span><span style="height:72px;background:linear-gradient(135deg,#4A3A2F,#2F3A4A)"></span></div><div class="mono" style="display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:12.5px"><span style="color:var(--onv)">File</span><span>D:\Footage\clip.mov</span><span style="color:var(--onv)">Length</span><span>1:24</span><span style="color:var(--onv)">Picture</span><span>1920 × 1080 · H.264 · 30 fps</span><span style="color:var(--onv)">Size</span><span>84 MB</span></div></sc-if>
+<sc-if value="{{bTable}}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:2fr 1fr 1fr;border-radius:12px;overflow:hidden;font:400 13px 'Roboto Mono';background:var(--c2)"><span style="padding:6px 10px;background:#4A524D">Item</span><span style="padding:6px 10px;background:#4A524D">Qty</span><span style="padding:6px 10px;background:#4A524D;text-align:right">Price</span><span style="padding:5px 10px">Cable</span><span style="padding:5px 10px">2</span><span style="padding:5px 10px;text-align:right">12.50</span><span style="padding:5px 10px">Adapter</span><span style="padding:5px 10px">1</span><span style="padding:5px 10px;text-align:right">18.00</span><span style="padding:5px 10px">Hub</span><span style="padding:5px 10px">1</span><span style="padding:5px 10px;text-align:right">24.00</span><span style="padding:5px 10px">Ties</span><span style="padding:5px 10px">4</span><span style="padding:5px 10px;text-align:right">7.00</span></div><span class="mono" style="font-size:11px;color:var(--onv)">Price: sum 61.50 · average 15.38</span></sc-if>
+<sc-if value="{{bColor}}" hint-placeholder-val="{{ false }}"><div style="height:140px;border-radius:16px;background:#7CF2C2"></div><span class="mono" style="font-size:13px">#7CF2C2 · rgb(124, 242, 194) · hsl(156° 82% 72%)</span></sc-if>
+<sc-if value="{{bTrace}}" hint-placeholder-val="{{ false }}"><pre class="mono" style="margin:0;font-size:12px;line-height:1.6;padding:12px;border-radius:12px;background:var(--c2);white-space:pre-wrap"><span style="color:#FFB4AB">NullReferenceException</span>
+  at Clip.Read() in Clip.cs:line 118
+  at Toast.Show() in <span style="color:var(--p)">Toast.cs:line 42</span>
+  at App.OnCopy() in App.cs:line 77</pre></sc-if>
+<sc-if value="{{done}}" hint-placeholder-val="{{ false }}"><div style="margin-top:auto;padding:10px 14px;border-radius:14px;background:#00513A;color:#8CF8CF;font:500 14px Roboto;animation:ok .35s">✓ Pasted into Notepad.</div></sc-if>
+</div>
+<div style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-top:1px solid var(--line);background:#2F3532">
+<button class="bt tn" aria-haspopup="menu" title="Pin, add to queue, pin on screen, delete, all toast actions">More ▾</button>
+<span style="flex:1"></span>
+<button class="bt tn" onClick="{{paste}}">Plain <span class="kbd">Shift+Enter</span></button>
+<button class="bt pr" onClick="{{paste}}">Paste <span class="kbd" style="color:var(--onp)">Enter</span></button>
+</div>
+</div>
+</div>
+</div>
+<p class="mono" style="position:absolute;left:130px;right:30px;bottom:14px;margin:0;font-size:11.5px;color:#89938C">Every row previews what it is. Click a row to see it large, double-click to paste. Windows keeps Win+V, so this opens with Win+Shift+V.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":980,"height":820}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { q: '', tab: 'all', sel: 'r', done: false, pasted: '' }; }
+  renderVals() {
+    const st = this.state;
+    const ICON = { link: 'M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1', text: 'M4 6h16M4 12h16M4 18h10', phone: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2', pic: 'M4 5h16v14H4zM4 15l5-5 4 4 3-3 4 4', file: 'M6 3h9l4 4v14H6zM14 3v5h5', table: 'M4 5h16v14H4zM4 10h16M10 5v14', color: 'M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.2-1.6-.4-1 .3-2 1.4-2H17a4 4 0 0 0 4-4c0-5-4-10.4-9-10.4z', trace: 'M12 8v5M12 16h.01M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0' };
+    const all = [
+      { id: 'r', t: 'link', kind: 'Link', when: '2 min ago', from: 'Edge', text: 'https://github.com/Ding-Ding-Projects/Monitoring-tools/releases', pin: true, tab: 'link' },
+      { id: 'a', t: 'text', kind: 'Text', when: 'just now', from: 'Teams', text: 'Thanks for the review, merging now.', tab: 'text' },
+      { id: 'c', t: 'pic', kind: 'Picture', when: '12 min ago', from: 'Snipping Tool', text: 'Wi-Fi: Studio-Guest Password on the QR code Room 4B', tab: 'pic' },
+      { id: 'd', t: 'file', kind: 'Video file', when: '20 min ago', from: 'File Explorer', text: 'D:\\Footage\\clip.mov', tab: 'file' },
+      { id: 'e', t: 'table', kind: 'Table', when: '31 min ago', from: 'Excel', text: 'Item Qty Price Cable Adapter Hub Ties', tab: 'text' },
+      { id: 'b', t: 'phone', kind: 'Phone number', when: '40 min ago', from: 'Edge', text: '+1 416 555 0134', tab: 'text' },
+      { id: 'f', t: 'color', kind: 'Colour', when: '1 h ago', from: 'Figma', text: '#7CF2C2 mint', tab: 'text' },
+      { id: 'g', t: 'trace', kind: 'Stack trace', when: '1 h ago', from: 'Visual Studio', text: 'NullReferenceException Toast.cs line 42', tab: 'text' }
+    ];
+    const q = st.q.toLowerCase();
+    let list = all.filter(i => (st.tab === 'all' || i.tab === st.tab) && (!q || (i.text + ' ' + i.kind).toLowerCase().indexOf(q) >= 0));
+    list = list.filter(i => i.pin).concat(list.filter(i => !i.pin));
+    const big = list.find(i => i.id === st.sel) || list[0] || all[0];
+    const is = (t) => big.t === t;
+    return {
+      q: st.q, onQ: (e) => this.setState({ q: e.target.value }), n: list.length, empty: list.length === 0,
+      tabs: [['all','All'],['text','Text'],['link','Links'],['pic','Pictures'],['file','Files']].map(([k, label]) => ({ label, on: String(k === st.tab), pick: () => this.setState({ tab: k }) })),
+      items: list.map((i, n) => ({ kind: i.kind, when: i.when, text: i.text, icon: ICON[i.t], d: n * 40, pinned: !!i.pin,
+        isLink: i.t === 'link', isText: i.t === 'text', isPhone: i.t === 'phone', isPic: i.t === 'pic', isFile: i.t === 'file', isTable: i.t === 'table', isColor: i.t === 'color', isTrace: i.t === 'trace',
+        sel: String(i.id === big.id), bg: i.id === big.id ? 'var(--c1)' : 'transparent', ring: i.id === big.id ? 'inset 0 0 0 2px var(--p)' : 'none',
+        pick: () => this.setState({ sel: i.id, done: false }), paste: () => this.setState({ sel: i.id, done: true, pasted: i.text }) })),
+      big: { kind: big.kind, when: big.when, from: big.from, text: big.text },
+      bLink: is('link'), bText: is('text'), bPhone: is('phone'), bPic: is('pic'), bFile: is('file'), bTable: is('table'), bColor: is('color'), bTrace: is('trace'),
+      done: st.done, pasted: st.pasted, paste: () => this.setState({ done: true, pasted: big.text })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Easier to find actions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+.mt{--ink:#070B09;--sf:#2A2F2C;--c1:#343A36;--c2:#3E4541;--line:#47504A;--on:#E4EBE6;--onv:#BFC9C2;--p:#6FDBB4;--onp:#00281C;--tn:#2F4A3E;--ontn:#CFE9DB;--amb:#FFB95F;--err:#FFB4AB;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);background-image:linear-gradient(rgba(111,219,180,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(111,219,180,.06) 1px,transparent 1px);background-size:48px 48px}
+.mono{font-family:"Roboto Mono",monospace}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes menu{from{opacity:0;transform:translateY(8px) scale(.96);transform-origin:bottom left}to{opacity:1;transform:none}}
+@keyframes ping{0%{transform:scale(1);opacity:.8}100%{transform:scale(2.2);opacity:0}}
+.dlg{position:relative;border-radius:30px;background:var(--sf);padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 80px rgba(0,0,0,.55);opacity:0;animation:rise .7s cubic-bezier(.2,.8,.2,1) forwards}
+.tile{width:48px;height:48px;border-radius:14px;background:#1F4A5C;color:#C2E8FD;display:grid;place-items:center;flex:none}
+.tbl{border-radius:18px;background:var(--c1);padding:10px 14px;font:400 13px/1.9 Roboto}
+.tbl .mono{font-size:12.5px}
+.b{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:0;border-radius:999px;font:500 14px Roboto;cursor:pointer;white-space:nowrap;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),transform .3s cubic-bezier(.3,1.4,.5,1)}
+.b:hover{border-radius:14px}.b:active{transform:scale(.96)}
+.pr{background:var(--p);color:var(--onp)}.tn{background:var(--tn);color:var(--ontn)}.tx{background:transparent;color:var(--on)}
+.ol{background:transparent;color:var(--on);box-shadow:inset 0 0 0 1px var(--line);border-radius:10px;min-height:36px;padding:0 12px;font-size:13px}
+.k{font:500 10.5px "Roboto Mono";padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.25);opacity:.85}
+.mark{position:absolute;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 12px "Roboto Mono";z-index:3}
+.mark::after{content:"";position:absolute;inset:0;border-radius:50%;background:inherit;animation:ping 1.8s cubic-bezier(0,0,.2,1) infinite;z-index:-1}
+.bad{background:var(--err);color:#690005}.good{background:var(--p);color:var(--onp)}
+.bar{display:flex;align-items:center;gap:8px;margin:6px -24px -24px;padding:14px 24px;border-top:1px solid var(--line);border-radius:0 0 30px 30px;background:#252A27}
+.mi{display:flex;width:100%;align-items:center;gap:12px;min-height:40px;padding:0 12px;border:0;border-radius:12px;background:transparent;color:var(--on);font:400 14px Roboto;text-align:left;cursor:pointer}
+.mi:hover,.mi.on{background:var(--c2)}
+.sec{font:500 11px "Roboto Mono";color:var(--onv);letter-spacing:.08em;margin:0}
+.t{position:relative;width:400px;box-sizing:border-box;border-radius:22px;background:#E3EAE5;color:#171D1A;padding:18px 18px 24px;box-shadow:0 28px 70px rgba(0,0,0,.55)}
+.tb{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 14px;border:0;border-radius:999px;font:500 13.5px Roboto;cursor:pointer}
+.tf{background:#006C4F;color:#fff}.tt{background:#CFE9DB;color:#092017}
+.tc{min-height:32px;padding:0 10px;border:0;border-radius:9px;background:transparent;box-shadow:inset 0 0 0 1px #BFC9C2;color:#171D1A;font:500 12px "Roboto Mono";cursor:pointer}
+.tk{font:500 10px "Roboto Mono";padding:1px 5px;border-radius:5px;background:rgba(0,0,0,.12)}
+.rule{display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:20px;background:#121916;box-shadow:inset 0 0 0 1px #2A3530}
+.rn{width:30px;height:30px;border-radius:50%;background:var(--p);color:var(--onp);display:grid;place-items:center;font:700 13px "Roboto Mono";flex:none}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="mt" style="width:1440px;height:1440px;box-sizing:border-box;padding:56px 64px;display:flex;flex-direction:column;gap:30px;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+<div style="display:flex;flex-direction:column;gap:10px"><span class="tag" style="color:var(--p)">Design rule for every dialog and toast</span><h1 style="margin:0;font:800 60px/.95 Roboto;letter-spacing:-.04em">Actions live in <span style="color:var(--p)">one place you can predict.</span></h1></div>
+<p class="mono" style="margin:0;font-size:12px;line-height:1.6;color:#9DAAA3;max-width:46ch;text-align:right">Left: the real Data viewer as it ships today. Right: the same dialog with the new action bar. Open "More" on the right to see the searchable list.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:12px">
+<span class="tag" style="color:var(--err)">Today · hard to find</span>
+<div class="dlg" style="animation-delay:100ms">
+<span class="mark bad" style="left:-12px;top:92px">1</span>
+<span class="mark bad" style="left:-12px;top:304px">2</span>
+<span class="mark bad" style="right:-12px;bottom:28px">3</span>
+<span class="mark bad" style="left:-12px;bottom:28px">4</span>
+<div style="display:flex;align-items:center;gap:14px"><span class="tile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M10 5v14"></path></svg></span><span style="flex:1"><span style="display:block;font:500 21px Roboto">Data viewer and converter</span><span style="font:400 13px Roboto;color:var(--onv)">orders-march.csv · 5 rows · 5 columns</span></span><span style="font-size:22px;color:var(--on)" aria-hidden="true">✕</span></div>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="b tn" style="min-height:36px;font-size:13px">✓ Table</span><span class="b tx" style="min-height:36px;font-size:13px">Text</span><span style="font-size:13px;color:var(--onv)">Separator</span><span class="b ol">Comma</span><span class="b ol">Semicolon</span><span class="b ol">Tab</span><span class="b ol" style="background:var(--tn)">✓ Auto</span></div>
+<div class="tbl"><div style="display:grid;grid-template-columns:50px 1fr 80px 70px;color:var(--onv)"><span>id</span><span>name</span><span>city</span><span style="text-align:right">total</span></div><div style="display:grid;grid-template-columns:50px 1fr 80px 70px"><span class="mono">1001</span><span>Ava Chen</span><span>Toronto</span><span class="mono" style="text-align:right">128.50</span><span class="mono">1002</span><span>Ortega, Luis</span><span>Madrid</span><span class="mono" style="text-align:right">64.00</span><span class="mono">1003</span><span>Mei Tanaka</span><span>Osaka</span><span class="mono" style="text-align:right">212.75</span></div></div>
+<p style="margin:0;font:400 13px Roboto;color:var(--onv)">Select a row and press Ctrl+C to copy it; click a cell first to copy just that cell.</p>
+<div style="display:flex;gap:10px"><span class="b tn">Show in folder</span><span class="b tn">Copy to clipboard</span></div>
+<div style="display:flex;align-items:center;margin-top:10px"><span style="flex:1;font:400 14px Roboto;color:var(--onv)">Saved.</span><span class="b pr">Close</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;font:400 14px/1.45 Roboto;color:#BFC9C2">
+<span><b style="color:var(--err)">1</b> Settings that change the data look like actions.</span>
+<span><b style="color:var(--err)">2</b> The real actions sit mid-page, after the table, and change place with its length.</span>
+<span><b style="color:var(--err)">3</b> The only filled button is Close, so it reads as the main thing to do.</span>
+<span><b style="color:var(--err)">4</b> The result line is far from what made it, and other actions (save as JSON) are hidden.</span>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<span class="tag" style="color:var(--p)">New · one action bar</span>
+<div class="dlg" style="animation-delay:250ms">
+<span class="mark good" style="left:-12px;top:92px">1</span>
+<span class="mark good" style="left:-12px;top:332px">2</span>
+<span class="mark good" style="right:-12px;bottom:28px">3</span>
+<span class="mark good" style="left:-12px;bottom:28px">4</span>
+<div style="display:flex;align-items:center;gap:14px"><span class="tile"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M10 5v14"></path></svg></span><span style="flex:1"><span style="display:block;font:500 21px Roboto">Data viewer and converter</span><span style="font:400 13px Roboto;color:var(--onv)">orders-march.csv · 5 rows · 5 columns</span></span><button class="b tx" aria-label="Close" style="min-height:40px;padding:0 10px">✕ <span class="k">Esc</span></button></div>
+<div style="display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:18px;box-shadow:inset 0 0 0 1px var(--line)"><p class="sec">OPTIONS · HOW THE FILE IS READ</p><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div style="display:inline-flex;padding:3px;border-radius:999px;background:var(--c1)"><span class="b" style="min-height:32px;font-size:13px;background:var(--c2);color:var(--on)">Table</span><span class="b tx" style="min-height:32px;font-size:13px;color:var(--onv)">Text</span></div><span style="font-size:13px;color:var(--onv);margin-left:6px">Separator</span><select aria-label="Separator" style="min-height:34px;border:0;border-radius:10px;background:var(--c2);color:var(--on);padding:0 10px;font:400 13px Roboto"><option>Auto (comma)</option></select></div></div>
+<div class="tbl"><div style="display:grid;grid-template-columns:50px 1fr 80px 70px;color:var(--onv)"><span>id</span><span>name</span><span>city</span><span style="text-align:right">total</span></div><div style="display:grid;grid-template-columns:50px 1fr 80px 70px"><span class="mono">1001</span><span>Ava Chen</span><span>Toronto</span><span class="mono" style="text-align:right">128.50</span><span class="mono">1002</span><span>Ortega, Luis</span><span>Madrid</span><span class="mono" style="text-align:right">64.00</span><span class="mono">1003</span><span>Mei Tanaka</span><span>Osaka</span><span class="mono" style="text-align:right">212.75</span></div></div>
+<sc-if value="{{saved}}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:#00513A;color:#8CF8CF;font:500 14px Roboto">✓ {{savedText}} <span style="flex:1"></span><button class="b" style="min-height:32px;padding:0 12px;background:transparent;color:#8CF8CF;font-size:13px">Show in folder</button></div></sc-if>
+<div class="bar" style="position:relative">
+<button class="b tn" aria-haspopup="menu" aria-expanded="{{moreS}}" onClick="{{toggleMore}}">More <span class="k">{{moreN}}</span> ▾</button>
+<span style="flex:1"></span>
+<button class="b tn" onClick="{{copy}}">⧉ Copy <span class="k">Ctrl+Shift+C</span></button>
+<button class="b pr" onClick="{{save}}">↓ Save as JSON <span class="k">Ctrl+S</span></button>
+<sc-if value="{{moreOn}}" hint-placeholder-val="{{ false }}">
+<div role="menu" aria-label="All actions" style="position:absolute;left:16px;bottom:72px;width:340px;padding:6px;border-radius:20px;background:#323834;box-shadow:0 0 0 1px var(--line),0 24px 60px rgba(0,0,0,.6);animation:menu .3s cubic-bezier(.3,1.3,.5,1);z-index:5">
+<div style="padding:4px 4px 6px"><input aria-label="Find an action" placeholder="Find an action" style="width:100%;box-sizing:border-box;min-height:36px;padding:0 12px;border:0;border-radius:10px;background:var(--c2);color:var(--on);font:400 13px Roboto;outline:none"></div>
+<p class="sec" style="padding:6px 12px 2px">SAVE</p>
+<button class="mi on" role="menuitem">Save as JSON<span class="k" style="margin-left:auto">Ctrl+S</span></button>
+<button class="mi" role="menuitem">Save as Excel (.xlsx)<span class="k" style="margin-left:auto">Ctrl+Shift+S</span></button>
+<button class="mi" role="menuitem">Save as Markdown table</button>
+<p class="sec" style="padding:6px 12px 2px">COPY</p>
+<button class="mi" role="menuitem">Copy as CSV<span class="k" style="margin-left:auto">Ctrl+Shift+C</span></button>
+<button class="mi" role="menuitem">Copy selected rows<span class="k" style="margin-left:auto">Ctrl+C</span></button>
+<p class="sec" style="padding:6px 12px 2px">FILE</p>
+<button class="mi" role="menuitem">Show in folder<span class="k" style="margin-left:auto">Ctrl+E</span></button>
+</div>
+</sc-if>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;font:400 14px/1.45 Roboto;color:#BFC9C2">
+<span><b style="color:var(--p)">1</b> Settings sit in a labelled Options box, so they never look like actions.</span>
+<span><b style="color:var(--p)">2</b> The result appears right above the bar, with its follow-up action inside it.</span>
+<span><b style="color:var(--p)">3</b> One filled button: the main thing this dialog is for, always bottom right, with its key.</span>
+<span><b style="color:var(--p)">4</b> Everything else is in More, grouped and searchable. Close moves to the corner with Esc.</span>
+</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:400px 400px 1fr;gap:40px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:12px"><span class="tag" style="color:var(--err)">Toast today</span>
+<div class="t">
+<div style="display:flex;align-items:center;gap:10px"><span style="width:34px;height:34px;border-radius:10px;background:#CFE9DB;display:grid;place-items:center;color:#006C4F">▣</span><span style="font:500 17px Roboto">Folder</span><span class="mono" style="font-size:12px;color:#3F4943">5 items</span></div>
+<p class="mono" style="margin:10px 0 0;font-size:12px;color:#3F4943">C:\…\Samples\Footage</p>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"><span class="tb tf">Open</span><span class="tb tt">Terminal here</span><span class="tb tt">File tools</span><span class="tb tt">Copy as path</span><span class="tb tt">More · 4</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"><span class="tc">:jpg</span><span class="tc">:webp</span><span class="tc">:avif</span><span class="tc">:ico</span><span class="tc">:bmp</span><span class="tc">:backup</span><span class="tc">:zip</span></div>
+</div>
+<p style="margin:0;font:400 13px/1.45 Roboto;color:#BFC9C2">Nine equal-looking buttons and seven unlabeled chips. Nothing says what the chips do.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px"><span class="tag" style="color:var(--p)">Toast new</span>
+<div class="t">
+<div style="display:flex;align-items:center;gap:10px"><span style="width:34px;height:34px;border-radius:10px;background:#CFE9DB;display:grid;place-items:center;color:#006C4F">▣</span><span style="font:500 17px Roboto">Folder</span><span class="mono" style="font-size:12px;color:#3F4943">5 items</span></div>
+<p class="mono" style="margin:10px 0 0;font-size:12px;color:#3F4943">C:\…\Samples\Footage</p>
+<button class="tb tf" style="width:100%;justify-content:center;margin-top:12px;min-height:44px;font-size:15px">Open folder <span class="tk" style="background:rgba(255,255,255,.2)">Enter</span></button>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px"><span class="tb tt" style="justify-content:center">Terminal <span class="tk">1</span></span><span class="tb tt" style="justify-content:center">Copy path <span class="tk">2</span></span><span class="tb tt" style="justify-content:center">All actions <span class="tk">A</span></span></div>
+<p class="mono" style="margin:10px 0 4px;font-size:10.5px;color:#3F4943;letter-spacing:.08em">CONVERT EVERY PICTURE INSIDE TO</p>
+<div style="display:flex;flex-wrap:wrap;gap:6px"><span class="tc">jpg</span><span class="tc">webp</span><span class="tc">avif</span><span class="tc">ico</span><span class="tc">bmp</span></div>
+<p class="mono" style="margin:8px 0 4px;font-size:10.5px;color:#3F4943;letter-spacing:.08em">PACK IT</p>
+<div style="display:flex;gap:6px"><span class="tc">zip</span><span class="tc">backup</span></div>
+</div>
+<p style="margin:0;font:400 13px/1.45 Roboto;color:#BFC9C2">One big main action, three labelled helpers with number keys, chips grouped under a plain heading.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<span class="tag" style="color:var(--p)">The rules, everywhere</span>
+<div class="rule"><span class="rn">1</span><span style="font:400 14px/1.5 Roboto"><b>One main action, filled, bottom right.</b> Named with a verb ("Save as JSON"), never "OK" or "Close".</span></div>
+<div class="rule"><span class="rn">2</span><span style="font:400 14px/1.5 Roboto"><b>At most two helpers beside it,</b> tonal, each with its key shown.</span></div>
+<div class="rule"><span class="rn">3</span><span style="font:400 14px/1.5 Roboto"><b>Everything else in More,</b> grouped and searchable, the same list as right-click.</span></div>
+<div class="rule"><span class="rn">4</span><span style="font:400 14px/1.5 Roboto"><b>Settings are not actions.</b> They live in a labelled Options box next to what they change.</span></div>
+<div class="rule"><span class="rn">5</span><span style="font:400 14px/1.5 Roboto"><b>Results appear above the bar,</b> carrying their own follow-up (Show in folder, Undo).</span></div>
+<div class="rule"><span class="rn">6</span><span style="font:400 14px/1.5 Roboto"><b>The bar never moves.</b> It stays pinned to the bottom however long the content is; Close is the corner ✕ with Esc.</span></div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1440}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { more: false, saved: 'json' }; }
+  renderVals() {
+    const st = this.state;
+    return {
+      moreOn: st.more, moreS: String(st.more), moreN: 6, toggleMore: () => this.setState({ more: !st.more }),
+      saved: !!st.saved, savedText: st.saved === 'copy' ? 'Copied 5 rows as CSV' : 'Saved orders-march-converted.json',
+      save: () => this.setState({ saved: 'json', more: false }), copy: () => this.setState({ saved: 'copy', more: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

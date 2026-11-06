@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Extensions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.d{--sf:#2A2F2C;--c1:#343A36;--c2:#3E4541;--line:#47504A;--on:#E4EBE6;--onv:#BFC9C2;--p:#6FDBB4;--onp:#00281C;--tn:#2F4A3E;--ontn:#CFE9DB;font-family:Roboto,system-ui,sans-serif;color:var(--on)}
+.mono{font-family:"Roboto Mono",monospace}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes row{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes flow{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+@keyframes ok{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.kk{font:500 10.5px "Roboto Mono";padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.25)}
+.bt{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:0;border-radius:999px;font:500 14px Roboto;cursor:pointer;white-space:nowrap;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1)}
+.bt:hover{border-radius:14px}
+.tn{background:var(--tn);color:var(--ontn)}.pr{background:var(--p);color:var(--onp)}
+.ex{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border:0;border-radius:18px;background:transparent;color:var(--on);text-align:left;cursor:pointer;opacity:0;animation:row .4s cubic-bezier(.2,.8,.2,1) forwards;transition:background .2s}
+.ex:hover{background:var(--c2)}
+.ei{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font:700 16px Roboto;flex:none}
+.pm{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line);font:500 12px Roboto;color:var(--onv)}
+.sw{position:relative;width:52px;height:32px;border:0;border-radius:999px;cursor:pointer;transition:background .3s;flex:none}
+.sw i{position:absolute;top:4px;width:24px;height:24px;border-radius:50%;transition:left .4s cubic-bezier(.3,1.4,.5,1)}
+.code{margin:0;padding:16px;border-radius:18px;background:#121614;font:400 12.5px/1.6 "Roboto Mono";color:#BFC9C2;white-space:pre;overflow:hidden}
+.k{color:#8CF8CF}.s{color:#FFDDB5}
+.node{fill:#343A36;stroke:#47504A}
+@media (prefers-reduced-motion:reduce){.d *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="d" style="position:relative;width:1440px;height:1060px;overflow:hidden;background:#0E1311">
+<span class="mono" style="position:absolute;left:40px;top:30px;font-size:11px;letter-spacing:.08em;color:#89938C">HOW AN EXTENSION PLUGS IN</span>
+<svg aria-label="Copy, match, button on the toast, the extension runs, result" role="img" style="position:absolute;left:40px;top:60px" width="480" height="300" viewBox="0 0 480 300">
+<g font-family="Roboto" font-size="13" fill="#E4EBE6">
+<rect class="node" x="0" y="0" width="200" height="56" rx="16"></rect><text x="16" y="24" font-weight="500">1 · You copy</text><text x="16" y="42" fill="#BFC9C2" font-family="Roboto Mono" font-size="11.5">ABC-1234</text>
+<rect class="node" x="0" y="122" width="200" height="56" rx="16"></rect><text x="16" y="146" font-weight="500">2 · Pattern matches</text><text x="16" y="164" fill="#BFC9C2" font-size="11.5">from extension.json, on this PC</text>
+<rect class="node" x="0" y="244" width="200" height="56" rx="16"></rect><text x="16" y="268" font-weight="500">3 · Button on the toast</text><text x="16" y="286" fill="#BFC9C2" font-size="11.5">"Open ticket" · Ticket keys</text>
+<rect x="280" y="122" width="200" height="56" rx="16" fill="#2F4A3E" stroke="#6FDBB4"></rect><text x="296" y="146" font-weight="500">4 · Extension runs</text><text x="296" y="164" fill="#CFE9DB" font-size="11.5">its own process, 5 s limit</text>
+<rect class="node" x="280" y="244" width="200" height="56" rx="16"></rect><text x="296" y="268" font-weight="500">5 · Result</text><text x="296" y="286" fill="#BFC9C2" font-size="11.5">open, copy, toast or nothing</text>
+</g>
+<g fill="none" stroke="#6FDBB4" stroke-width="2" stroke-dasharray="6 6" style="animation:flow 1s linear infinite"><path d="M100 56v66M100 178v66M200 272h40v-122h40M380 178v66"></path></g>
+</svg>
+<pre class="code" style="position:absolute;left:40px;top:390px;width:480px;box-sizing:border-box">extension.json
+{
+  <span class="k">"id"</span>: <span class="s">"ticket-keys"</span>,
+  <span class="k">"name"</span>: <span class="s">"Ticket keys"</span>,
+  <span class="k">"version"</span>: <span class="s">"1.0.0"</span>,  <span class="k">"api"</span>: 1,
+  <span class="k">"detect"</span>: [{ <span class="k">"kind"</span>: <span class="s">"ticket"</span>,
+     <span class="k">"pattern"</span>: <span class="s">"^[A-Z][A-Z0-9]+-\\d+$"</span> }],
+  <span class="k">"actions"</span>: [{ <span class="k">"id"</span>: <span class="s">"open"</span>,
+     <span class="k">"label"</span>: <span class="s">"Open ticket"</span>,
+     <span class="k">"for"</span>: [<span class="s">"ticket"</span>], <span class="k">"primary"</span>: true }],
+  <span class="k">"run"</span>: <span class="s">"ticket-keys.exe"</span>,
+  <span class="k">"permissions"</span>: [<span class="s">"read-text"</span>, <span class="s">"open-links"</span>]
+}</pre>
+<pre class="code" style="position:absolute;left:40px;top:704px;width:480px;box-sizing:border-box">in  → {"action":"open","kind":"ticket","text":"ABC-1234"}
+out ← {"open":"https://tracker.example/ABC-1234"}</pre>
+<p style="position:absolute;left:40px;top:800px;width:480px;margin:0;font:400 13.5px/1.6 Roboto;color:#BFC9C2">Any language works: the app sends one line of JSON and reads one line back. Extensions live in <span class="mono" style="color:#E4EBE6">%LOCALAPPDATA%\MonitoringTools\Extensions</span>. They never see clips from password managers or anything that looks like a secret, and they only get the permissions you allow.</p>
+
+<div role="dialog" aria-labelledby="ex-t" style="position:absolute;left:580px;top:30px;width:820px;height:1000px;box-sizing:border-box;border-radius:32px;background:var(--sf);padding:24px;display:flex;flex-direction:column;gap:14px;animation:pop .45s cubic-bezier(.3,1.3,.5,1)">
+<div style="display:flex;align-items:center;gap:16px">
+<span style="width:56px;height:56px;border-radius:16px;background:#3D3366;color:#E9DDFF;display:grid;place-items:center;flex:none"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 4h4v3a2 2 0 1 0 4 0V4h3v6h-3a2 2 0 1 0 0 4h3v6h-6v-3a2 2 0 1 0-4 0v3H4v-6h3a2 2 0 1 0 0-4H4V4z"></path></svg></span>
+<span style="flex:1"><span id="ex-t" style="display:block;font:500 24px Roboto">Extensions</span><span style="font:400 14px Roboto;color:var(--onv)">{{on}} of {{total}} turned on · add new kinds of copies and new buttons</span></span>
+<button class="bt" style="background:transparent;color:var(--on);padding:0 10px" aria-label="Close (Esc)">✕ <span class="kk">Esc</span></button>
+</div>
+<div style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--c1);color:var(--onv);font:400 14px Roboto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"></path></svg><span style="flex:1">Search extensions</span><span class="mono" style="font-size:12px">Aa .*</span></div>
+<div style="display:grid;grid-template-columns:300px 1fr;gap:14px;flex:1;min-height:0">
+<div style="border-radius:22px;background:var(--c1);padding:8px;display:flex;flex-direction:column;gap:2px;overflow:auto">
+<sc-for list="{{exts}}" as="e" hint-placeholder-count="4"><button class="ex" aria-pressed="{{e.selS}}" onClick="{{e.pick}}" style="animation-delay:{{e.d}}ms;background:{{e.bg}}"><span class="ei" style="background:{{e.ib}};color:{{e.if}}">{{e.ini}}</span><span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font:500 15px Roboto">{{e.name}}</span><span class="mono" style="font-size:11px;color:var(--onv)">{{e.ver}} · {{e.state}}</span></span></button></sc-for>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;min-width:0;overflow:auto">
+<div style="display:flex;align-items:center;gap:14px"><span class="ei" style="width:56px;height:56px;border-radius:16px;font-size:20px;background:{{cur.ib}};color:{{cur.if}}">{{cur.ini}}</span><span style="flex:1"><span style="display:block;font:500 20px Roboto">{{cur.name}}</span><span style="font:400 13px Roboto;color:var(--onv)">{{cur.by}} · version {{cur.ver}}</span></span><button class="sw" role="switch" aria-checked="{{cur.onS}}" aria-label="Turn {{cur.name}} on" onClick="{{toggle}}" style="background:{{swBg}}"><i style="left:{{swX}}px;background:{{swDot}}"></i></button></div>
+<p style="margin:0;font:400 15px/1.6 Roboto">{{cur.what}}</p>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="mono" style="font-size:11px;letter-spacing:.08em;color:var(--onv)">NOTICES THESE COPIES</span><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{cur.detects}}" as="x" hint-placeholder-count="2"><span class="pm mono">{{x}}</span></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="mono" style="font-size:11px;letter-spacing:.08em;color:var(--onv)">ADDS THESE BUTTONS</span><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{cur.acts}}" as="x" hint-placeholder-count="2"><span class="pm" style="color:var(--on)">{{x}}</span></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="mono" style="font-size:11px;letter-spacing:.08em;color:var(--onv)">ALLOWED TO</span><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{cur.perms}}" as="x" hint-placeholder-count="2"><span class="pm">{{x}}</span></sc-for></div></div>
+<div style="border-radius:18px;background:var(--c1);padding:14px;display:flex;flex-direction:column;gap:6px"><span class="mono" style="font-size:11px;letter-spacing:.08em;color:var(--onv)">LAST RUNS</span><span class="mono" style="font-size:12px;line-height:1.7;color:var(--onv);white-space:pre-line">{{cur.log}}</span></div>
+<sc-if value="{{msg}}" hint-placeholder-val="{{ false }}"><div style="padding:10px 14px;border-radius:14px;background:#00513A;color:#8CF8CF;font:500 14px Roboto;animation:ok .3s">✓ {{msgText}}</div></sc-if>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;margin:0 -24px -24px;padding:14px 24px;border-top:1px solid var(--line);border-radius:0 0 32px 32px;background:#252A27">
+<button class="bt tn" aria-haspopup="menu" title="Reload all, developer log, check for updates, remove">More ▾</button>
+<span style="flex:1"></span>
+<button class="bt tn">Open the folder <span class="kk">Ctrl+O</span></button>
+<button class="bt pr" onClick="{{ask}}">+ Add an extension <span class="kk" style="color:var(--onp)">Ctrl+N</span></button>
+</div>
+
+<sc-if value="{{asking}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;border-radius:32px;background:rgba(14,19,17,.72);display:grid;place-items:center">
+<div role="alertdialog" aria-labelledby="ex-a" style="width:470px;border-radius:28px;background:#343A36;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 70px rgba(0,0,0,.6);animation:pop .4s cubic-bezier(.3,1.3,.5,1)">
+<span id="ex-a" style="font:500 20px Roboto">Turn on "Morse code"?</span>
+<span style="font:400 14px/1.6 Roboto;color:var(--onv)">From D:\Tools\morse-code · version 0.3.0. It is not signed, so only add it if you trust where it came from. It asks to:</span>
+<div style="display:flex;flex-direction:column;gap:6px;font:400 14px Roboto"><span>✓ Read text you copy that matches its pattern</span><span>✓ Put new text on the clipboard</span><span style="color:var(--onv)">✗ No internet, no files</span></div>
+<div style="display:flex;gap:8px;justify-content:flex-end;padding-top:6px"><button class="bt" style="background:transparent;color:var(--on)" onClick="{{cancel}}">Cancel <span class="kk">Esc</span></button><button class="bt pr" onClick="{{allow}}">Allow and turn on <span class="kk" style="color:var(--onp)">Enter</span></button></div>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1060}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { sel: 0, on: [true, true, false], asking: false, added: false, msg: '' }; }
+  renderVals() {
+    const st = this.state;
+    const E = [
+      { name: 'Ticket keys', ini: 'T', ib: '#1F4A5C', if: '#C2E8FD', ver: '1.0.0', by: 'Local folder', what: 'Notices ticket numbers like ABC-1234 and opens them in your tracker, or copies a ready-made link.', detects: ['ABC-1234'], acts: ['Open ticket', 'Copy link'], perms: ['Read matching text', 'Open links'], log: '17:02  ABC-1234 → open · 84 ms\n16:40  OPS-77 → copy link · 61 ms' },
+      { name: 'Hex palettes', ini: '#', ib: '#4A3A12', if: '#FFDDB5', ver: '2.1.0', by: 'Local folder', what: 'When you copy several colours at once, shows them as swatches and copies them as CSS variables.', detects: ['#7CF2C2 #FFB4AB …'], acts: ['Copy as CSS', 'Copy as JSON'], perms: ['Read matching text', 'Change the clipboard'], log: '15:11  5 colours → CSS · 12 ms' },
+      { name: 'Lorem tools', ini: 'L', ib: '#3D3366', if: '#E9DDFF', ver: '0.9.1', by: 'Local folder', what: 'Adds a button to every text toast that swaps the text for placeholder text of the same length.', detects: ['any text'], acts: ['Same length lorem'], perms: ['Read all copied text', 'Change the clipboard'], log: 'Turned off. Not run yet.' },
+      { name: 'Morse code', ini: '·−', ib: '#1E4A2E', if: '#B7F2C4', ver: '0.3.0', by: 'D:\\Tools\\morse-code', what: 'Turns text into Morse code and back.', detects: ['... --- ...'], acts: ['Decode Morse', 'To Morse'], perms: ['Read matching text', 'Change the clipboard'], log: 'Just added.' }
+    ];
+    const list = st.added ? E : E.slice(0, 3);
+    const on = st.added ? st.on.concat([st.on[3] !== false]) : st.on;
+    const cur = list[st.sel];
+    const c = Object.assign({}, cur, { onS: String(!!on[st.sel]) });
+    return {
+      on: on.filter(Boolean).length, total: list.length,
+      exts: list.map((e, i) => ({ name: e.name, ini: e.ini, ib: e.ib, if: e.if, ver: e.ver, state: on[i] ? 'on' : 'off', d: i * 60, selS: String(i === st.sel), bg: i === st.sel ? 'var(--tn)' : 'transparent', pick: () => this.setState({ sel: i, msg: '' }) })),
+      cur: c,
+      swBg: on[st.sel] ? 'var(--p)' : 'var(--c2)', swX: on[st.sel] ? 24 : 4, swDot: on[st.sel] ? 'var(--onp)' : 'var(--onv)',
+      toggle: () => { const a = on.slice(); a[st.sel] = !a[st.sel]; this.setState({ on: a, msg: cur.name + (a[st.sel] ? ' turned on.' : ' turned off.') }); },
+      msg: !!st.msg, msgText: st.msg,
+      asking: st.asking, ask: () => this.setState({ asking: true }), cancel: () => this.setState({ asking: false }),
+      allow: () => this.setState({ asking: false, added: true, on: on.slice(0, 3).concat([true]), sel: 3, msg: 'Morse code is on. Copy some Morse to try it.' })
+    };
+  }
+}
+</script>
+</body>
+</html>

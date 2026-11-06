@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Per-app rules dialog</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.d{--sf:#2A2F2C;--c1:#343A36;--c2:#3E4541;--line:#47504A;--on:#E4EBE6;--onv:#BFC9C2;--p:#6FDBB4;--onp:#00281C;--tn:#2F4A3E;--ontn:#CFE9DB;font-family:Roboto,system-ui,sans-serif;color:var(--on)}
+.mono{font-family:"Roboto Mono",monospace}
+@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@keyframes row{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tile{width:56px;height:56px;border-radius:16px;background:#2F4A3E;color:#8CF8CF;display:grid;place-items:center;flex:none}
+.x{display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--on);cursor:pointer}
+.kk{font:500 10.5px "Roboto Mono";padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.25)}
+.app{display:grid;grid-template-columns:44px 1fr 180px 200px;gap:14px;align-items:center;padding:12px 14px;border-radius:18px;background:var(--c1);opacity:0;animation:row .4s cubic-bezier(.2,.8,.2,1) forwards}
+.ai{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font:700 15px Roboto}
+select{min-height:40px;border:0;border-radius:12px;background:var(--c2);color:var(--on);padding:0 10px;font:400 14px Roboto;width:100%}
+.bt{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 22px;border:0;border-radius:999px;font:500 15px Roboto;cursor:pointer;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1)}
+.bt:hover{border-radius:16px}
+.tn{background:var(--tn);color:var(--ontn)}.pr{background:var(--p);color:var(--onp)}
+.abar{display:flex;align-items:center;gap:10px;margin:0 -28px -28px;padding:16px 28px;border-top:1px solid var(--line);border-radius:0 0 32px 32px;background:#252A27}
+@media (prefers-reduced-motion:reduce){.d *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="d" style="width:980px;height:820px;background:#0E1311;padding:30px;box-sizing:border-box">
+<div role="dialog" aria-labelledby="ru-t" style="height:100%;box-sizing:border-box;border-radius:32px;background:var(--sf);padding:28px;display:flex;flex-direction:column;gap:16px;animation:pop .4s cubic-bezier(.3,1.3,.5,1)">
+<div style="display:flex;align-items:center;gap:18px">
+<span class="tile"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4"></path></svg></span>
+<span style="flex:1"><span id="ru-t" style="display:block;font:500 24px Roboto">Per-app rules</span><span style="font:400 15px Roboto;color:var(--onv)">What happens when you copy from a particular app. {{n}} rules</span></span>
+<button class="x" aria-label="Close (Esc)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg><span class="kk">Esc</span></button>
+</div>
+<div style="display:grid;grid-template-columns:44px 1fr 180px 200px;gap:14px;padding:0 14px;font:500 12px 'Roboto Mono';color:var(--onv);letter-spacing:.06em"><span></span><span>APP</span><span>TOAST AND HISTORY</span><span>DO AUTOMATICALLY</span></div>
+<div style="display:flex;flex-direction:column;gap:8px;flex:1;overflow:auto">
+<sc-for list="{{apps}}" as="a" hint-placeholder-count="5">
+<div class="app" style="animation-delay:{{a.d}}ms">
+<span class="ai" style="background:{{a.bg}};color:{{a.fg}}">{{a.ini}}</span>
+<span style="display:flex;flex-direction:column;min-width:0"><span style="font:500 15px Roboto">{{a.name}}</span><span class="mono" style="font-size:11px;color:var(--onv)">{{a.exe}}</span></span>
+<label style="display:block"><span style="position:absolute;left:-9999px">Toast and history for {{a.name}}</span><select value="{{a.toast}}" onChange="{{a.setToast}}"><option value="show">Toast and history</option><option value="quiet">History only, no toast</option><option value="never">Never keep</option></select></label>
+<label style="display:block"><span style="position:absolute;left:-9999px">Automatic action for {{a.name}}</span><select value="{{a.auto}}" onChange="{{a.setAuto}}"><option value="none">Nothing</option><option value="strip">Strip tracking from links</option><option value="plain">Keep as plain text</option><option value="clear">Clear after 30 s</option><option value="table">Open tables as a table</option></select></label>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:18px;box-shadow:inset 0 0 0 1px var(--line)">
+<span class="mono" style="font-size:11px;color:var(--onv);letter-spacing:.08em">ALREADY BUILT IN</span>
+<span style="font:400 14px/1.5 Roboto;color:var(--onv)">Password managers that mark copies as private (KeePass, 1Password, Bitwarden and others) are never kept, whatever these rules say.</span>
+</div>
+<div class="abar"><button class="bt tn" aria-haspopup="menu" title="Export, import, reset all rules">More <span class="kk">3</span> ▾</button><span style="flex:1;font:400 13px Roboto;color:var(--onv)">{{status}}</span><button class="bt tn">Pick a running app <span class="kk">Ctrl+P</span></button><button class="bt pr" onClick="{{add}}">+ Add a rule <span class="kk">Ctrl+N</span></button></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":980,"height":820}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { rows: [
+    ['Microsoft Edge','msedge.exe','E','#1F4A5C','#C2E8FD','show','strip'],
+    ['Windows Terminal','WindowsTerminal.exe','>_','#3B3B3B','#E4EBE6','quiet','none'],
+    ['KeePassXC','KeePassXC.exe','K','#4A3A12','#FFDDB5','never','none'],
+    ['Excel','EXCEL.EXE','X','#1E4A2E','#B7F2C4','show','table'],
+    ['Word','WINWORD.EXE','W','#1F3A66','#D6E3FF','show','plain']
+  ], status: 'Saved as you change it.' }; }
+  renderVals() {
+    const st = this.state;
+    const label = { show: 'toast and history', quiet: 'history only', never: 'never kept' };
+    return {
+      n: st.rows.length, status: st.status,
+      apps: st.rows.map((r, i) => ({ name: r[0], exe: r[1], ini: r[2], bg: r[3], fg: r[4], toast: r[5], auto: r[6], d: i * 60,
+        setToast: (e) => { const rows = st.rows.map(x => x.slice()); rows[i][5] = e.target.value; this.setState({ rows, status: r[0] + ': ' + label[e.target.value] + '. Saved.' }); },
+        setAuto: (e) => { const rows = st.rows.map(x => x.slice()); rows[i][6] = e.target.value; this.setState({ rows, status: r[0] + ' rule saved.' }); } })),
+      add: () => this.setState({ rows: st.rows.concat([['Visual Studio Code','Code.exe','C','#1F3A66','#C2E8FD','show','none']]), status: 'Added Visual Studio Code. Choose what it should do.' })
+    };
+  }
+}
+</script>
+</body>
+</html>

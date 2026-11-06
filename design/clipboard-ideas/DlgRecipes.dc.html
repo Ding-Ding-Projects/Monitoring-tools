@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Transform recipes dialog</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.d{--sf:#2A2F2C;--c1:#343A36;--c2:#3E4541;--line:#47504A;--on:#E4EBE6;--onv:#BFC9C2;--p:#6FDBB4;--onp:#00281C;--tn:#2F4A3E;--ontn:#CFE9DB;font-family:Roboto,system-ui,sans-serif;color:var(--on)}
+.mono{font-family:"Roboto Mono",monospace}
+@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@keyframes stepIn{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes flash{0%{box-shadow:inset 0 0 0 2px var(--p)}100%{box-shadow:inset 0 0 0 0 transparent}}
+.tile{width:56px;height:56px;border-radius:16px;background:#3D3366;color:#E9DDFF;display:grid;place-items:center;flex:none}
+.x{width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:var(--on);display:grid;place-items:center;cursor:pointer}
+.row{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:0 14px;border:0;border-radius:16px;background:transparent;color:var(--on);text-align:left;font:inherit;cursor:pointer}
+.step{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 6px 0 14px;border-radius:14px;background:var(--c2);animation:stepIn .4s cubic-bezier(.3,1.4,.5,1)}
+.n{width:24px;height:24px;border-radius:50%;background:var(--p);color:var(--onp);display:grid;place-items:center;font:600 12px "Roboto Mono";flex:none}
+.ib{width:36px;height:36px;border:0;border-radius:10px;background:transparent;color:var(--onv);display:grid;place-items:center;cursor:pointer;font:600 15px Roboto}
+.ib:hover{background:var(--c1);color:var(--on)}
+.add{min-height:34px;padding:0 12px;border:0;border-radius:10px;background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--on);font:500 13px Roboto;cursor:pointer;transition:all .3s cubic-bezier(.3,1.4,.5,1)}
+.add:hover{background:var(--tn);box-shadow:none;transform:translateY(-2px)}
+.bt{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 22px;border:0;border-radius:999px;font:500 15px Roboto;cursor:pointer;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1)}
+.bt:hover{border-radius:16px}
+.tn{background:var(--tn);color:var(--ontn)}.pr{background:var(--p);color:var(--onp)}
+.sw{position:relative;width:52px;height:32px;border:0;border-radius:999px;cursor:pointer;transition:background .3s;flex:none}
+.sw i{position:absolute;top:4px;width:24px;height:24px;border-radius:50%;transition:left .4s cubic-bezier(.3,1.4,.5,1)}
+.abar{display:flex;align-items:center;gap:10px;margin:0 -28px -28px;padding:16px 28px;border-top:1px solid var(--line);border-radius:0 0 32px 32px;background:#252A27}
+.kk{font:500 10.5px "Roboto Mono";padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.25)}
+@media (prefers-reduced-motion:reduce){.d *{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="d" style="width:980px;height:820px;background:#0E1311;padding:30px;box-sizing:border-box">
+<div role="dialog" aria-labelledby="rc-t" style="height:100%;box-sizing:border-box;border-radius:32px;background:var(--sf);padding:28px;display:flex;flex-direction:column;gap:18px;animation:pop .4s cubic-bezier(.3,1.3,.5,1)">
+<div style="display:flex;align-items:center;gap:18px">
+<span class="tile"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h4v4H4zM10 14h4v4h-4zM16 6h4v4h-4zM8 8h8M14 16h2a2 2 0 0 0 2-2v-4"></path></svg></span>
+<span style="flex:1"><span id="rc-t" style="display:block;font:500 24px Roboto">Transform recipes</span><span style="font:400 15px Roboto;color:var(--onv)">Chains of text changes you can run in one press</span></span>
+<button class="x" aria-label="Close (Esc)" style="width:auto;padding:0 12px;border-radius:999px;gap:8px;display:flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg><span class="mono" style="font-size:11px;padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.25)">Esc</span></button>
+</div>
+<div style="display:grid;grid-template-columns:250px 1fr;gap:20px;flex:1;min-height:0">
+<div style="border-radius:24px;background:var(--c1);padding:10px;display:flex;flex-direction:column;gap:4px">
+<button class="row" style="background:var(--tn)"><span style="display:flex;flex-direction:column"><span style="font:500 15px Roboto">Make a slug</span><span class="mono" style="font-size:11px;color:var(--onv)">{{count}} steps · on toasts</span></span></button>
+<button class="row"><span style="display:flex;flex-direction:column"><span style="font:500 15px Roboto">Clean a pasted list</span><span class="mono" style="font-size:11px;color:var(--onv)">4 steps</span></span></button>
+<button class="row"><span style="display:flex;flex-direction:column"><span style="font:500 15px Roboto">SQL IN (…) list</span><span class="mono" style="font-size:11px;color:var(--onv)">3 steps · Ctrl+Alt+I</span></span></button>
+<button class="bt tn" style="margin-top:auto;justify-content:center">+ New recipe <span class="kk">Ctrl+N</span></button>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+<div style="display:flex;flex-direction:column;gap:6px">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+<div class="step"><span class="n">{{s.n}}</span><span style="flex:1;font:500 15px Roboto">{{s.label}}</span><button class="ib" aria-label="Move {{s.label}} up" onClick="{{s.up}}">↑</button><button class="ib" aria-label="Remove {{s.label}}" onClick="{{s.del}}">✕</button></div>
+</sc-for>
+</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="font:500 13px Roboto;color:var(--onv);margin-right:4px">Add a step</span><sc-for list="{{palette}}" as="p" hint-placeholder-count="10"><button class="add" onClick="{{p.add}}">{{p.label}}</button></sc-for></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="border-radius:18px;background:var(--c1);padding:14px 16px"><span class="mono" style="font-size:11px;color:var(--onv)">TRY IT ON</span><p class="mono" style="margin:6px 0 0;font-size:14px;white-space:pre">"{{input}}"</p></div>
+<div style="border-radius:18px;background:var(--c1);padding:14px 16px;animation:flash .6s" ><span class="mono" style="font-size:11px;color:var(--p)">RESULT</span><p class="mono" style="margin:6px 0 0;font-size:16px;font-weight:500;color:var(--p);word-break:break-all">{{output}}</p></div>
+</div>
+<div style="display:flex;align-items:center;gap:14px;padding:6px 4px"><span style="flex:1"><span style="display:block;font:500 15px Roboto">Show on text toasts</span><span style="font:400 13px Roboto;color:var(--onv)">Adds "Make a slug" as a button whenever you copy text</span></span><button class="sw" role="switch" aria-checked="{{onToastS}}" aria-label="Show on text toasts" onClick="{{toggleToast}}" style="background:{{swBg}}"><i style="left:{{swX}}px;background:{{swDot}}"></i></button></div>
+</div>
+</div>
+<div class="abar"><button class="bt tn" aria-haspopup="menu" title="Rename, duplicate, delete, export">More <span class="kk">4</span> ▾</button><span style="flex:1;font:400 13px Roboto;color:var(--onv)">Saved as you change it.</span><button class="bt pr">Run on the clipboard <span class="kk">Ctrl+Enter</span></button></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":980,"height":820}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { steps: ['trim', 'lower', 'symbols', 'dash'], toast: true }; }
+  renderVals() {
+    const st = this.state;
+    const T = {
+      trim: ['Trim spaces', s => s.trim()], lower: ['lower case', s => s.toLowerCase()], upper: ['UPPER CASE', s => s.toUpperCase()],
+      symbols: ['Drop symbols', s => s.replace(/[^\p{L}\p{N}\s-]/gu, '')], dash: ['Spaces to -', s => s.replace(/\s+/g, '-')],
+      accents: ['Remove accents', s => s.normalize('NFD').replace(/[̀-ͯ]/g, '')], quotes: ['Wrap in quotes', s => '"' + s + '"'],
+      dedupe: ['Remove duplicate lines', s => Array.from(new Set(s.split('\n'))).join('\n')], sort: ['Sort lines', s => s.split('\n').sort().join('\n')],
+      url: ['URL-encode', s => encodeURIComponent(s)]
+    };
+    const input = '  Night Shift Monitor — Café Édition!  ';
+    let out = input; st.steps.forEach(k => { out = T[k][1](out); });
+    return {
+      count: st.steps.length, input, output: out || '(empty)',
+      steps: st.steps.map((k, i) => ({ n: i + 1, label: T[k][0],
+        up: () => { if (!i) return; const a = st.steps.slice(); [a[i - 1], a[i]] = [a[i], a[i - 1]]; this.setState({ steps: a }); },
+        del: () => this.setState({ steps: st.steps.filter((_, j) => j !== i) }) })),
+      palette: Object.keys(T).map(k => ({ label: T[k][0], add: () => this.setState({ steps: st.steps.concat([k]) }) })),
+      onToastS: String(st.toast), toggleToast: () => this.setState({ toast: !st.toast }),
+      swBg: st.toast ? 'var(--p)' : 'var(--c2)', swX: st.toast ? 24 : 4, swDot: st.toast ? 'var(--onp)' : 'var(--onv)'
+    };
+  }
+}
+</script>
+</body>
+</html>

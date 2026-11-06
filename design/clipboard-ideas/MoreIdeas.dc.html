@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>More ideas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.d{font-family:Roboto,system-ui,sans-serif;color:#E4EBE6}
+.mono{font-family:"Roboto Mono",monospace}
+@keyframes card{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+.c{position:relative;display:flex;flex-direction:column;gap:6px;padding:16px;border:0;border-radius:20px;text-align:left;color:inherit;font:inherit;cursor:pointer;opacity:0;animation:card .45s cubic-bezier(.2,.8,.2,1) forwards;transition:background .3s,box-shadow .3s,transform .3s cubic-bezier(.3,1.4,.5,1)}
+.c:hover{transform:translateY(-3px)}
+.tick{position:absolute;right:12px;top:12px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 13px Roboto;transition:all .3s}
+.tag{align-self:flex-start;font:500 10.5px "Roboto Mono";padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.25);color:#BFC9C2}
+@media (prefers-reduced-motion:reduce){.d *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="d" style="width:1440px;min-height:1100px;background:#0E1311;padding:40px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;align-items:flex-end;gap:20px">
+<span style="flex:1"><span style="display:block;font:500 34px Roboto">More ideas, all picked</span><span style="font:400 16px Roboto;color:#BFC9C2">You said add all features, so every card starts picked. Tap one to leave it out.</span></span>
+<span class="mono" style="font-size:15px;color:#6FDBB4">{{n}} of {{total}} going in</span>
+</div>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;gap:10px">
+<span class="mono" style="font-size:12px;letter-spacing:.08em;color:#89938C">{{g.title}}</span>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+<sc-for list="{{g.items}}" as="i" hint-placeholder-count="8"><button class="c" aria-pressed="{{i.onS}}" onClick="{{i.tog}}" style="animation-delay:{{i.d}}ms;background:{{i.bg}};box-shadow:{{i.ring}}"><span class="tick" style="background:{{i.tb}};color:{{i.tf}}">{{i.mark}}</span><span style="font:500 16px Roboto;padding-right:28px">{{i.t}}</span><span style="font:400 13px/1.5 Roboto;color:#BFC9C2">{{i.s}}</span><span class="mono" style="font-size:11.5px;color:#8CF8CF">{{i.ex}}</span><sc-if value="{{i.net}}" hint-placeholder-val="{{ false }}"><span class="tag">uses the internet if lookups are on</span></sc-if></button></sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { off: {} }; }
+  renderVals() {
+    const G = [
+      ['MORE THINGS IT RECOGNISES', [
+        ['Quick conversions', 'Every unit, all at once, each one copyable.', '5 kg → 11.02 lb · 5,000 g', 0],
+        ['Money', 'Converts amounts into your currency.', '$40 → 55.56 CAD', 1],
+        ['Time zones', 'Shows a copied time in your zone and others.', '3 pm PST → 6 pm here', 0],
+        ['Maths', 'Works out a sum or formula you copied.', '(12.5*4)+18 → 68', 0],
+        ['Addresses', 'Opens in Maps, copies as one line or a label.', '42 Example St → Maps', 0],
+        ['Email addresses', 'Write an email, copy just the domain.', 'alex@example.com', 0],
+        ['Flight numbers', 'Opens the flight status page.', 'AC 856', 0],
+        ['Book ISBNs', 'Looks up the title and author.', '978-0-13-468599-1', 1],
+        ['Bank IBANs', 'Checks the check digits, never stored.', 'GB82 WEST … → valid', 0],
+        ['Cron schedules', 'Says it in words and lists the next runs.', '0 9 * * 1-5 → 9 am weekdays', 0],
+        ['Emoji and symbols', 'Names the character and its code.', '→ U+2192 RIGHTWARDS ARROW', 0],
+        ['Languages', 'Spots the language, translates with your local AI.', 'Bonjour → Hello', 0]
+      ]],
+      ['FOR DEVELOPERS', [
+        ['Base64', 'Decodes and previews text or pictures inside.', 'SGVsbG8= → Hello', 0],
+        ['JSON, XML, YAML', 'Checks it, tidies it, converts between them.', '{"a":1} → pretty', 0],
+        ['Regular expressions', 'Explains a pattern and tests it on samples.', '^\\d{3}-\\d{4}$', 0],
+        ['SQL', 'Formats a query and makes an IN (…) list.', 'select * from …', 0],
+        ['GUIDs', 'Copies in every format, or makes a new one.', '{…} · N · B · uppercase', 0],
+        ['Markdown', 'Previews it, copies it as rich text.', '# Title → Title', 0],
+        ['Package names', 'Shows the latest version on npm or NuGet.', 'react@18 → 18.3.1', 1],
+        ['Windows paths', 'Copy as WSL path, file link, or escaped.', 'C:\\x → /mnt/c/x', 0]
+      ]],
+      ['MORE POWER', [
+        ['Collect mode', 'Every copy is added to one growing note.', 'Ctrl+Shift+A', 0],
+        ['Type it instead', 'Types the clipboard for apps that block paste.', 'Ctrl+Shift+Alt+T', 0],
+        ['Secret guard', 'Keys and passwords vanish from history after 30 s.', 'sk-… → hidden', 0],
+        ['Blur before sharing', 'Hides emails and faces in a screenshot.', 'picture → blurred copy', 0],
+        ['Ask your local AI', 'Summarise, rewrite or explain a long copy.', 'Ollama, on this PC', 0],
+        ['Clipboard timeline', 'What you copied today, by app and kind.', '142 copies today', 0],
+        ['Sync between my PCs', 'Encrypted, on your own network only.', 'home network', 0],
+        ['Extensions', 'New kinds and buttons from add-ons.', 'extension.json', 0]
+      ]]
+    ];
+    const off = this.state.off;
+    let n = 0, total = 0, d = 0;
+    const groups = G.map(([title, items]) => ({ title, items: items.map(([t, s, ex, net]) => {
+      total++; const on = !off[t]; if (on) n++; d += 25;
+      return { t, s, ex, net: !!net, d, onS: String(on), bg: on ? '#1E2B25' : '#181D1A', ring: on ? 'inset 0 0 0 2px #6FDBB4' : 'inset 0 0 0 1px #2A302C',
+        tb: on ? '#6FDBB4' : 'transparent', tf: on ? '#00281C' : '#89938C', mark: on ? '✓' : '+',
+        tog: () => this.setState({ off: Object.assign({}, off, { [t]: on }) }) };
+    }) }));
+    return { groups, n, total };
+  }
+}
+</script>
+</body>
+</html>

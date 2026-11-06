@@ -1,1 +1,180 @@
-{"v":3,"createdOnFiles":{"v":1,"at":"2026-11-06T20:55:00Z"},"title":"Monitoring Tools clipboard ideas","launch":{"view":"canvas"},"pages":[],"boards":{"Main.dc.html":{"x":0,"y":0,"w":1440,"h":1730,"title":"Idea map: tap the ones you want","is_interactive":true},"Toasts1.dc.html":{"x":1520,"y":0,"w":1440,"h":1080,"title":"New things you copy, part 1","is_interactive":true},"Toasts2.dc.html":{"x":1520,"y":1200,"w":1440,"h":1080,"title":"New things you copy, part 2","is_interactive":true},"Power.dc.html":{"x":0,"y":1850,"w":1440,"h":1090,"title":"Clipboard power features","is_interactive":true}},"order":["Main.dc.html","Toasts1.dc.html","Toasts2.dc.html","Power.dc.html"],"notes":{"t1":{"x":0,"y":-300,"text":"What else should the clipboard do?","kind":"title1","maxW":2960},"n1":{"x":3060,"y":0,"w":420,"text":"Concepts, not built. Drawn in the app's real toast style: Mint seed roles, Roboto, the 3 second bar along the foot. Sample values are made up and safe (555 numbers, example addresses). Every idea works offline unless its card says it uses the internet."}},"designSystems":[]}
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-06T20:55:00Z"
+  },
+  "title": "Monitoring Tools clipboard ideas",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1730,
+      "title": "Idea map: tap the ones you want",
+      "is_interactive": true
+    },
+    "Toasts1.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1080,
+      "title": "New things you copy, part 1",
+      "is_interactive": true
+    },
+    "Toasts2.dc.html": {
+      "x": 1520,
+      "y": 1200,
+      "w": 1440,
+      "h": 1080,
+      "title": "New things you copy, part 2",
+      "is_interactive": true
+    },
+    "Power.dc.html": {
+      "x": 0,
+      "y": 1850,
+      "w": 1440,
+      "h": 1090,
+      "title": "Clipboard power features",
+      "is_interactive": true
+    },
+    "DlgHistory.dc.html": {
+      "x": 0,
+      "y": 3360,
+      "w": 980,
+      "h": 820,
+      "title": "Clipboard history popup (Win+V style)",
+      "is_interactive": true
+    },
+    "DlgSnippets.dc.html": {
+      "x": 1060,
+      "y": 3360,
+      "w": 980,
+      "h": 820,
+      "title": "Snippets dialog",
+      "is_interactive": true
+    },
+    "DlgRecipes.dc.html": {
+      "x": 2120,
+      "y": 3360,
+      "w": 980,
+      "h": 820,
+      "title": "Transform recipes dialog",
+      "is_interactive": true
+    },
+    "DlgRules.dc.html": {
+      "x": 0,
+      "y": 4300,
+      "w": 980,
+      "h": 820,
+      "title": "Per-app rules dialog",
+      "is_interactive": true
+    },
+    "DlgPicture.dc.html": {
+      "x": 1060,
+      "y": 4300,
+      "w": 980,
+      "h": 820,
+      "title": "Picture text and QR dialog",
+      "is_interactive": true
+    },
+    "DlgFloat.dc.html": {
+      "x": 2120,
+      "y": 4300,
+      "w": 980,
+      "h": 820,
+      "title": "Paste queue and pinned clip windows",
+      "is_interactive": true
+    },
+    "DlgSettings.dc.html": {
+      "x": 0,
+      "y": 5240,
+      "w": 1440,
+      "h": 1000,
+      "title": "Clipboard settings page and automatic lookups",
+      "is_interactive": true
+    },
+    "Actions.dc.html": {
+      "x": 1520,
+      "y": 5240,
+      "w": 1440,
+      "h": 1440,
+      "title": "Easier to find actions: one action bar",
+      "is_interactive": true
+    },
+    "MoreIdeas.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 1100,
+      "title": "More ideas, all picked",
+      "is_interactive": true
+    },
+    "DlgConvert.dc.html": {
+      "x": 3040,
+      "y": 1200,
+      "w": 1440,
+      "h": 1000,
+      "title": "Quick conversions: every unit, copy any",
+      "is_interactive": true
+    },
+    "Extensions.dc.html": {
+      "x": 3040,
+      "y": 5240,
+      "w": 1440,
+      "h": 1060,
+      "title": "Extensions: manager and how they plug in",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Toasts1.dc.html",
+    "Toasts2.dc.html",
+    "Power.dc.html",
+    "DlgHistory.dc.html",
+    "DlgSnippets.dc.html",
+    "DlgRecipes.dc.html",
+    "DlgRules.dc.html",
+    "DlgPicture.dc.html",
+    "DlgFloat.dc.html",
+    "DlgSettings.dc.html",
+    "Actions.dc.html",
+    "MoreIdeas.dc.html",
+    "DlgConvert.dc.html",
+    "Extensions.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "x": 0,
+      "y": -300,
+      "text": "What else should the clipboard do?",
+      "kind": "title1",
+      "maxW": 4480
+    },
+    "n1": {
+      "x": 4560,
+      "y": 0,
+      "w": 420,
+      "text": "Concepts, not built. Drawn in the app's real toast style: Mint seed roles, Roboto, the 3 second bar along the foot. Sample values are made up and safe (555 numbers, example addresses). Every idea works offline unless its card says it uses the internet."
+    },
+    "t2": {
+      "x": 0,
+      "y": 3060,
+      "text": "Dialogs for the picked features",
+      "kind": "title1",
+      "maxW": 3100
+    },
+    "n2": {
+      "x": 3180,
+      "y": 3360,
+      "w": 420,
+      "text": "Drawn to match the app's real dark dialogs: 32 px corners, icon tile in the header, the Aa / .* / builder search row, tonal pills and one mint primary. Every board works: type, tap, drag the queue, flip switches."
+    }
+  },
+  "designSystems": []
+}
