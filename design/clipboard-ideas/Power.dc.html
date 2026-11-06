@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clipboard power features</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);background-image:linear-gradient(rgba(111,219,180,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(111,219,180,.06) 1px,transparent 1px);background-size:48px 48px}
+.mono{font-family:"Roboto Mono",monospace}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes out{from{opacity:1;transform:none}to{opacity:0;transform:translateX(40px)}}
+@keyframes type{from{width:0}to{width:4ch}}
+@keyframes expand{0%,45%{opacity:0;transform:translateY(6px)}55%,100%{opacity:1;transform:none}}
+@keyframes hide{0%,45%{opacity:1}55%,100%{opacity:0}}
+@keyframes back{0%{transform:translateY(-36px) scale(.94);opacity:.4}100%{transform:none;opacity:1}}
+@keyframes caret{50%{border-color:transparent}}
+.panel{position:relative;padding:28px;border-radius:30px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:14px;overflow:hidden;opacity:0;animation:rise .7s cubic-bezier(.2,.8,.2,1) forwards}
+.panel h2{margin:0;font:700 26px/1.1 Roboto;letter-spacing:-.02em}
+.panel p{margin:0;font:400 14px/1.5 Roboto;color:var(--onv)}
+.app{border-radius:18px;background:#E3EAE5;color:#171D1A;padding:14px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.bf,.bt{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border:0;border-radius:999px;font:500 14px Roboto;cursor:pointer;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),transform .3s cubic-bezier(.3,1.4,.5,1)}
+.bf{background:#006C4F;color:#FFFFFF}.bt{background:#CFE9DB;color:#092017}
+.bf:hover,.bt:hover{border-radius:14px}.bf:active,.bt:active{transform:scale(.96)}
+.kbd{font:500 11px "Roboto Mono";padding:3px 7px;border-radius:6px;background:#DDE4E0;color:#3F4943;box-shadow:inset 0 -1px 0 #BFC9C2}
+.kbdd{font:500 11px "Roboto Mono";padding:3px 7px;border-radius:6px;background:var(--s3);color:var(--onv)}
+.step{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:0;border-radius:12px;font:500 13px Roboto;cursor:pointer;transition:all .35s cubic-bezier(.3,1.4,.5,1)}
+.sw{position:relative;width:44px;height:26px;border-radius:999px;border:0;cursor:pointer;flex:none;transition:background .3s}
+.sw i{position:absolute;top:3px;width:20px;height:20px;border-radius:50%;transition:left .4s cubic-bezier(.3,1.4,.5,1),background .3s}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="mt" style="width:1440px;height:1090px;box-sizing:border-box;padding:56px 64px;display:flex;flex-direction:column;gap:28px;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+<div style="display:flex;flex-direction:column;gap:10px"><span class="tag">Concept · the clipboard itself</span><h1 style="margin:0;font:800 56px/.95 Roboto;letter-spacing:-.04em">More than one copy <span style="color:var(--p)">at a time.</span></h1></div>
+<p class="mono" style="margin:0;font-size:12px;line-height:1.6;color:var(--onv);max-width:44ch;text-align:right">Every panel works: paste from the queue, switch recipe steps, step back with undo, flip the rules. Not on this board: paste as plain text, send to your phone (both on the idea map).</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px">
+
+<div class="panel" style="animation-delay:80ms">
+<span class="tag">Paste queue</span><h2>Copy three, paste three.</h2><p>Turn the queue on, copy in any order you like, then each Ctrl+Shift+V pastes the next one.</p>
+<div class="app">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font:500 15px Roboto">Paste queue</span><span class="mono" style="font-size:12px;color:#3F4943">{{qLeft}} left</span></div>
+<div style="display:flex;flex-direction:column;gap:6px;min-height:132px">
+<sc-for list="{{queue}}" as="q" hint-placeholder-count="3"><div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:{{q.bg}};font:400 13px 'Roboto Mono'"><span style="width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:{{q.nBg}};color:{{q.nInk}};font-size:11px">{{q.n}}</span>{{q.text}}</div></sc-for>
+<sc-if value="{{qDone}}" hint-placeholder-val="{{ false }}"><p class="mono" style="margin:0;padding:12px;font-size:12px;color:#006C4F">All pasted. The queue turns itself off.</p></sc-if>
+</div>
+<div style="display:flex;gap:8px;margin-top:10px;align-items:center"><button class="bf" onClick="{{pasteNext}}">{{pasteLabel}}</button><span class="kbd">Ctrl+Shift+V</span></div>
+</div>
+</div>
+
+<div class="panel" style="animation-delay:160ms">
+<span class="tag">Snippets with fill-ins</span><h2>Type ;sig, get the whole thing.</h2><p>Snippets can hold today's date, what you copied, and where the cursor lands. Works in any app.</p>
+<div class="app" style="font:400 14px/1.6 Roboto;min-height:150px;position:relative">
+<span class="mono" style="position:absolute;left:14px;top:14px;display:inline-block;overflow:hidden;white-space:nowrap;border-right:2px solid #006C4F;animation:type .8s steps(4) .3s both,caret 1s steps(1) infinite,hide 6s infinite;color:#006C4F">;sig</span>
+<div style="animation:expand 6s infinite">Thanks,<br>Sam<br><span class="mono" style="font-size:12px;color:#3F4943">Fri 6 Nov 2026 · sent from my desk</span></div>
+</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><span class="kbdd">{date}</span><span class="kbdd">{time}</span><span class="kbdd">{clipboard}</span><span class="kbdd">{cursor}</span><span class="kbdd">{ask:Name}</span></div>
+</div>
+
+<div class="panel" style="animation-delay:240ms">
+<span class="tag">Transform recipes</span><h2>Build the chain once.</h2><p>Tap steps to switch them. The recipe then shows up on every text toast as one button.</p>
+<div class="app">
+<p class="mono" style="margin:0 0 8px;font-size:12px;color:#3F4943">Copied: "{{rIn}}"</p>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="4"><button class="step" aria-pressed="{{s.onS}}" onClick="{{s.toggle}}" style="background:{{s.bg}};color:{{s.ink}};text-decoration:{{s.strike}}">{{s.label}}</button></sc-for>
+</div>
+<div style="margin-top:10px;padding:10px 12px;border-radius:12px;background:#EFF5F1;box-shadow:inset 0 0 0 1px #BFC9C2;font:600 15px 'Roboto Mono';color:#006C4F;min-height:22px;transition:all .3s">{{rOut}}</div>
+<div style="display:flex;gap:8px;margin-top:10px"><button class="bf">Save as "Make a slug"</button></div>
+</div>
+</div>
+
+<div class="panel" style="animation-delay:320ms">
+<span class="tag">Clipboard undo</span><h2>Copied over something? Get it back.</h2><p>Ctrl+Alt+Z puts the previous copy back on the clipboard. Press again to step further back.</p>
+<div class="app" style="display:flex;flex-direction:column;gap:6px;min-height:150px">
+<sc-for list="{{undo}}" as="u" hint-placeholder-count="3"><div style="padding:10px 12px;border-radius:12px;background:{{u.bg}};color:{{u.ink}};font:400 13px 'Roboto Mono';animation:{{u.anim}};display:flex;justify-content:space-between"><span>{{u.text}}</span><span style="font-size:11px;opacity:.75">{{u.lbl}}</span></div></sc-for>
+<div style="display:flex;gap:8px;margin-top:6px;align-items:center"><button class="bf" onClick="{{stepBack}}">Undo copy</button><button class="bt" onClick="{{resetUndo}}">Reset</button><span class="kbd">Ctrl+Alt+Z</span></div>
+</div>
+</div>
+
+<div class="panel" style="animation-delay:400ms">
+<span class="tag">Pin on screen</span><h2>Keep it in sight while you type.</h2><p>Any text, picture or table floats on top. Fade it, make it click-through, close it from the tray.</p>
+<div style="position:relative;height:170px;border-radius:18px;background:linear-gradient(135deg,#1B2A33,#14211B);overflow:hidden" aria-label="A pinned note floating over other windows">
+<div style="position:absolute;left:14px;top:14px;right:90px;bottom:14px;border-radius:10px;background:#2B3530"></div>
+<div style="position:absolute;right:14px;top:22px;width:190px;border-radius:14px;background:#E3EAE5;color:#171D1A;padding:10px 12px;box-shadow:0 18px 40px rgba(0,0,0,.6);opacity:{{pinOp}};transition:opacity .4s;font:400 12px/1.5 'Roboto Mono'">
+<div style="display:flex;justify-content:space-between;font:500 12px Roboto;margin-bottom:4px"><span>Pinned · table</span><span aria-hidden="true">✕</span></div>
+<div style="display:grid;grid-template-columns:1fr auto auto;gap:0 12px"><span>Cable</span><span>2</span><span>12.50</span><span>Adapter</span><span>1</span><span>18.00</span><span>Hub</span><span>1</span><span>24.00</span></div></div>
+</div>
+<label style="display:flex;align-items:center;gap:12px;font:500 13px Roboto;color:var(--onv)">Opacity <input type="range" min="40" max="100" value="{{pinPct}}" onInput="{{setPin}}" style="flex:1;accent-color:#6FDBB4" aria-label="Pinned note opacity"><span class="mono" style="width:4ch">{{pinPct}}%</span></label>
+</div>
+
+<div class="panel" style="animation-delay:480ms">
+<span class="tag" style="color:var(--sky)">Per-app rules · needs care</span><h2>Different apps, different manners.</h2><p>Rules run before the toast. Password managers are already skipped; these go further.</p>
+<div class="app" style="display:flex;flex-direction:column;gap:4px">
+<sc-for list="{{rules}}" as="r" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:12px;padding:8px 6px"><span style="display:flex;flex-direction:column;flex:1;min-width:0"><span style="font:500 14px Roboto">{{r.app}}</span><span style="font:400 12px Roboto;color:#3F4943">{{r.rule}}</span></span><button class="sw" role="switch" aria-checked="{{r.onS}}" aria-label="{{r.app}}: {{r.rule}}" onClick="{{r.toggle}}" style="background:{{r.bg}}"><i style="left:{{r.x}}px;background:{{r.dot}}"></i></button></div></sc-for>
+</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1090}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { q: 0, steps: [true, true, true, true], u: 0, pin: 92, rules: [true, true, false, true] }; }
+  renderVals() {
+    const st = this.state;
+    const Q = ['Ding Ding Projects', '416 555 0134', '123 Example St, Toronto'];
+    const queue = Q.map((text, i) => ({ text, n: i + 1, bg: i === st.q ? '#CFE9DB' : '#EFF5F1', nBg: i === st.q ? '#006C4F' : '#DDE4E0', nInk: i === st.q ? '#FFFFFF' : '#3F4943' })).slice(st.q);
+    const input = '  Night Shift Monitor!  ';
+    const S = [['Trim', s => s.trim()], ['Lower case', s => s.toLowerCase()], ['Drop symbols', s => s.replace(/[^\p{L}\p{N}\s-]/gu, '')], ['Spaces to -', s => s.replace(/\s+/g, '-')]];
+    let out = input; S.forEach((s, i) => { if (st.steps[i]) out = s[1](out); });
+    const U = ['git push origin main', 'D:\\Footage\\clip.mov', 'Thanks for the review!', 'https://example.com/report'];
+    const undo = U.slice(st.u, st.u + 3).map((text, i) => ({ text, lbl: i === 0 ? 'on clipboard' : i === 1 ? 'previous' : 'before that', bg: i === 0 ? '#006C4F' : '#EFF5F1', ink: i === 0 ? '#FFFFFF' : '#171D1A', anim: i === 0 && st.u > 0 ? 'back .45s cubic-bezier(.3,1.4,.5,1)' : 'none' }));
+    const R = [['Microsoft Edge', 'Always strip tracking from links'], ['KeePassXC', 'Never keep in history'], ['Windows Terminal', 'No toast, history only'], ['Excel', 'Open tables as a table toast']];
+    return {
+      queue, qLeft: Q.length - st.q, qDone: st.q >= Q.length, pasteLabel: st.q >= Q.length ? 'Start again' : 'Paste next',
+      pasteNext: () => this.setState({ q: st.q >= Q.length ? 0 : st.q + 1 }),
+      rIn: input, rOut: out.length ? out : '(empty)',
+      steps: S.map((s, i) => ({ label: (i ? '→ ' : '') + s[0], onS: String(st.steps[i]), bg: st.steps[i] ? '#006C4F' : '#DDE4E0', ink: st.steps[i] ? '#FFFFFF' : '#3F4943', strike: st.steps[i] ? 'none' : 'line-through', toggle: () => { const a = st.steps.slice(); a[i] = !a[i]; this.setState({ steps: a }); } })),
+      undo, stepBack: () => this.setState({ u: Math.min(st.u + 1, U.length - 1) }), resetUndo: () => this.setState({ u: 0 }),
+      pinPct: st.pin, pinOp: st.pin / 100, setPin: (e) => this.setState({ pin: Number(e.target.value) }),
+      rules: R.map((r, i) => ({ app: r[0], rule: r[1], onS: String(st.rules[i]), bg: st.rules[i] ? '#006C4F' : '#BFC9C2', x: st.rules[i] ? 21 : 3, dot: st.rules[i] ? '#FFFFFF' : '#6F7973', toggle: () => { const a = st.rules.slice(); a[i] = !a[i]; this.setState({ rules: a }); } }))
+    };
+  }
+}
+</script>
+</body>
+</html>

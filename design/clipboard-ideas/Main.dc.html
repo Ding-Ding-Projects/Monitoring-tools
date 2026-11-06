@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clipboard idea map</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--s1:#121916;--s2:#18201C;--s3:#222B27;--line:#2A3530;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--onp:#00281C;--amb:#FFB95F;--sky:#9CCBFF;--vio:#CFBCFF;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);background-image:linear-gradient(rgba(111,219,180,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(111,219,180,.06) 1px,transparent 1px);background-size:48px 48px}
+.mono{font-family:"Roboto Mono",monospace}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(111,219,180,.5)}50%{box-shadow:0 0 0 7px rgba(111,219,180,0)}}
+.chip{min-height:40px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:var(--onv);box-shadow:inset 0 0 0 1px var(--line);font:500 14px Roboto;cursor:pointer;transition:all .35s cubic-bezier(.3,1.4,.5,1)}
+.chip[aria-pressed=true]{background:var(--on);color:var(--ink);box-shadow:none}
+.card{position:relative;display:flex;flex-direction:column;gap:10px;padding:20px;border:0;border-radius:24px;text-align:left;cursor:pointer;font:inherit;color:var(--on);min-height:196px;box-sizing:border-box;opacity:0;animation:rise .6s cubic-bezier(.2,.8,.2,1) forwards;transition:transform .45s cubic-bezier(.3,1.4,.5,1),background .3s,box-shadow .3s}
+.card:hover{transform:translateY(-4px)}
+.ic{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;flex:none;transition:border-radius .45s cubic-bezier(.3,1.4,.5,1),background .3s,color .3s}
+.card:hover .ic{border-radius:50%}
+.ex{font:500 12px "Roboto Mono",monospace;padding:7px 10px;border-radius:10px;background:var(--ink);color:var(--on);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act{font:500 11px Roboto;padding:4px 9px;border-radius:999px;background:var(--s3);color:var(--on)}
+.pick{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:700 14px Roboto}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--p);animation:breathe 2.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="mt" style="width:1440px;height:1730px;box-sizing:border-box;padding:64px 64px 0;display:flex;flex-direction:column;gap:28px;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:32px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<p class="mono" style="margin:0;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--onv)"><span class="dot"></span><span style="color:var(--p)">CONCEPTS</span> on top of the toasts already in v1.0.61</p>
+<h1 style="margin:0;font:800 84px/.92 Roboto;letter-spacing:-.045em">What else should<br><span style="color:var(--p)">the clipboard do?</span></h1>
+<p style="margin:0;font:400 18px/1.55 Roboto;color:var(--onv);max-width:60ch">22 ideas. 14 are new kinds of copied content, each with its own toast actions. 8 make the clipboard itself more useful. Tap any card to pick it; the boards to the right show how the toasts would look.</p>
+</div>
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:12px">
+<div style="padding:18px 22px;border-radius:24px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);text-align:right">
+<p class="tag" style="margin:0;color:var(--onv)">Picked</p>
+<p class="mono" style="margin:6px 0 0;font:600 44px 'Roboto Mono';color:var(--p)">{{count}}<span style="font-size:20px;color:var(--onv)"> / 22</span></p>
+</div>
+<button class="chip" onClick="{{clear}}">Clear picks</button>
+</div>
+</div>
+
+<div role="group" aria-label="Filter ideas" style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="5"><button class="chip" aria-pressed="{{f.on}}" onClick="{{f.pick}}">{{f.label}} <span class="mono" style="opacity:.6;font-size:12px">{{f.n}}</span></button></sc-for>
+<span style="flex:1"></span>
+<span class="mono" style="align-self:center;font-size:12px;color:var(--onv);display:flex;gap:16px"><span><span style="color:var(--p)">●</span> offline</span><span><span style="color:var(--amb)">●</span> uses the internet</span><span><span style="color:var(--sky)">●</span> needs care</span></span>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px">
+<sc-for list="{{ideas}}" as="d" hint-placeholder-count="22">
+<button class="card" aria-pressed="{{d.onS}}" onClick="{{d.toggle}}" style="background:{{d.bg}};box-shadow:{{d.ring}};animation-delay:{{d.delay}}ms">
+<span class="pick" style="background:{{d.pickBg}};color:{{d.pickInk}}" aria-hidden="true">{{d.mark}}</span>
+<span style="display:flex;align-items:center;gap:12px;padding-right:32px">
+<span class="ic" style="background:{{d.icBg}};color:{{d.icInk}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{d.icon}}"></path></svg></span>
+<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font:600 16px/1.25 Roboto">{{d.name}}</span><span class="tag" style="color:{{d.netC}};font-size:10px">{{d.group}}</span></span>
+</span>
+<span class="ex">{{d.ex}}</span>
+<span style="display:flex;gap:5px;flex-wrap:wrap">
+<sc-for list="{{d.acts}}" as="a" hint-placeholder-count="3"><span class="act">{{a}}</span></sc-for>
+</span>
+</button>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1730}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { f: 'all', picked: {} }; }
+  renderVals() {
+    const I = [
+      ['phone','kind','Phone number','+1 416 555 0134',['Call with Phone Link','WhatsApp','Copy as +14165550134','Save contact'],'off','M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2'],
+      ['date','kind','Date or timestamp','1793998800',['Your time: Fri 6 Nov, 16:00','Copy as ISO','Add to calendar','Countdown'],'off','M4 6h16v14H4zM4 10h16M8 3v4M16 3v4'],
+      ['math','kind','Sum or unit','3 * (12.5 + 4) · 72 °F',['= 49.5','22.2 °C','Copy result','Show working'],'off','M5 7h6M8 4v6M14 7h5M5 17l4-4M5 13l4 4M14 15h5M14 18h5'],
+      ['trace','kind','Error or stack trace','at Toast.Show() Toast.cs:line 42',['Open line 42 in VS Code','Copy as code block','Search the error'],'off','M12 8v5M12 16h.01M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0'],
+      ['table','kind','Table from Excel or CSV','Item⇥Qty⇥Price …',['Preview table','Sum a column','Copy as Markdown','Copy as JSON'],'off','M4 5h16v14H4zM4 10h16M4 15h16M10 5v14'],
+      ['secret','kind','Secret or token','eyJhbGciOiJIUzI1NiIs…',['Decode JWT','Clear in 30 s','Keep out of history'],'care','M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z'],
+      ['hash','kind','File hash','85df08f087b7a0a6…11cef8f',['Check against a file','Match in Downloads','Upper or lower case'],'off','M5 9h14M5 15h14M10 4L8 20M16 4l-2 16'],
+      ['ip','kind','IP address or domain','192.168.1.1 · example.com',['Ping','Trace route','DNS lookup','Open router page'],'net','M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20'],
+      ['git','kind','Git link, commit or clone URL','git@github.com:owner/repo.git',['Clone to a folder…','Open in VS Code','Copy short SHA','Open on GitHub'],'net','M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9'],
+      ['ocr','kind','Picture with text or a QR code','Screenshot 1280 × 720',['Copy the text','Open the QR link','Join the Wi-Fi','Pin on screen'],'off','M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M8 9h8M8 12h8M8 15h5'],
+      ['addr','kind','Street address','123 Example St, Toronto ON',['Open in Maps','Directions','Copy as one line'],'net','M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5'],
+      ['winerr','kind','Windows error code','0x80070005',['Access is denied.','Copy the message','Search the code'],'off','M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z'],
+      ['track','kind','Parcel tracking number','1Z999AA10123456784',['UPS · open tracking','Copy without spaces'],'net','M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10'],
+      ['cron','kind','Regex or cron rule','0 9 * * 1-5',['Weekdays at 09:00','Next 5 runs','Open regex builder'],'off','M12 6v6l4 2M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18'],
+      ['queue','power','Paste queue','copy 1, 2, 3 → paste 1, 2, 3',['Ctrl+Shift+V pastes next','Shows what is next','Skip or reorder'],'off','M4 6h16M4 12h16M4 18h10M18 16l3 2-3 2'],
+      ['snip','power','Snippets with fill-ins','{date} {clipboard} {cursor}',['Type ;sig to expand','Ask for a value','Hotkey per snippet'],'off','M8 4H6a2 2 0 0 0-2 2v4l-2 2 2 2v4a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v4l2 2-2 2v4a2 2 0 0 1-2 2h-2'],
+      ['recipe','power','Transform recipes','Trim → lower case → slug',['Build a chain once','One press to apply','Run on the history'],'off','M4 6h4v4H4zM10 14h4v4h-4zM16 6h4v4h-4zM8 8h8M14 16h2a2 2 0 0 0 2-2v-4'],
+      ['plain','power','Paste as plain text','Ctrl+Alt+V anywhere',['No fonts or colours','Optional tidy spaces','Per app default'],'off','M6 4h12v4M12 4v16M9 20h6'],
+      ['undo','power','Clipboard undo','Ctrl+Alt+Z',['Brings back the copy you just replaced','Steps back 10'],'off','M4 12a8 8 0 1 0 3-6.2M4 4v4h4'],
+      ['pin','power','Pin on screen','any text, image or table',['Floats on top','Resize and fade','Click-through'],'off','M14 3l7 7-3 1-4 4 1 5-2 1-4-4-5 5-1-1 5-5-4-4 1-2 5 1 4-4z'],
+      ['rules','power','Per-app rules','from Edge → always strip tracking',['Never keep from KeePass','No toast from terminals','Auto actions'],'care','M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4'],
+      ['phone2','power','Send to your phone','scan a QR once',['Push a copy to your phone','Pull the phone’s copy','Same Wi-Fi only'],'care','M7 3h10v18H7zM11 18h2']
+    ];
+    const st = this.state, f = st.f;
+    const netC = { off: 'var(--p)', net: 'var(--amb)', care: 'var(--sky)' };
+    const shown = I.filter(d => f === 'all' || (f === 'picked' ? st.picked[d[0]] : d[1] === f));
+    const groups = { kind: 'New thing you copy', power: 'Clipboard power' };
+    return {
+      count: Object.keys(st.picked).filter(k => st.picked[k]).length,
+      clear: () => this.setState({ picked: {} }),
+      filters: [['all','All'],['kind','New things you copy'],['power','Clipboard power'],['picked','Picked']].map(([k,label]) => ({ label, n: k === 'all' ? I.length : k === 'picked' ? Object.keys(st.picked).filter(x => st.picked[x]).length : I.filter(d => d[1] === k).length, on: String(k === f), pick: () => this.setState({ f: k }) })),
+      ideas: shown.map((d, i) => { const on = !!st.picked[d[0]]; return {
+        name: d[2], ex: d[3], acts: d[4], icon: d[6], group: groups[d[1]] + (d[5] === 'net' ? ' · internet' : d[5] === 'care' ? ' · needs care' : ''), netC: netC[d[5]],
+        onS: String(on), mark: on ? '✓' : '+', delay: i * 35,
+        bg: on ? 'var(--s3)' : 'var(--s1)', ring: on ? 'inset 0 0 0 2px var(--p),0 20px 40px -24px rgba(111,219,180,.6)' : 'inset 0 0 0 1px var(--line)',
+        pickBg: on ? 'var(--p)' : 'var(--s3)', pickInk: on ? 'var(--onp)' : 'var(--onv)',
+        icBg: on ? 'var(--p)' : 'var(--s3)', icInk: on ? 'var(--onp)' : 'var(--p)',
+        toggle: () => { const p = Object.assign({}, st.picked); p[d[0]] = !p[d[0]]; this.setState({ picked: p }); } }; })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New copied content toasts, part 2</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--amb:#FFB95F;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);background-image:linear-gradient(rgba(111,219,180,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(111,219,180,.06) 1px,transparent 1px);background-size:48px 48px}
+.mono{font-family:"Roboto Mono",monospace}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+@keyframes slide{from{opacity:0;transform:translate(48px,20px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes drain{0%{transform:scaleX(1)}100%{transform:scaleX(0)}}
+@keyframes scan{0%{top:0}100%{top:100%}}
+@keyframes ping{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
+@keyframes ok{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes fill{from{width:0}to{width:100%}}
+.slot{display:flex;flex-direction:column;gap:12px}
+.t{position:relative;width:400px;box-sizing:border-box;border-radius:22px;background:#E3EAE5;color:#171D1A;padding:18px 18px 24px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 28px 70px rgba(0,0,0,.55);opacity:0;animation:slide .7s cubic-bezier(.2,.8,.2,1) forwards}
+.th{display:flex;align-items:center;gap:10px}
+.ti{width:34px;height:34px;border-radius:10px;background:#CFE9DB;color:#006C4F;display:grid;place-items:center;flex:none}
+.tt{font:500 17px Roboto}
+.ts{font:400 12px "Roboto Mono",monospace;color:#3F4943}
+.tn{margin-left:auto;font:400 12px Roboto;color:#3F4943}
+.pv{margin-top:12px;padding:10px 12px;border-radius:12px;background:#EFF5F1;box-shadow:inset 0 0 0 1px #BFC9C2;font:400 13px/1.55 "Roboto Mono",monospace;color:#171D1A;word-break:break-all}
+.meta{margin:8px 0 0;font:400 11.5px/1.5 "Roboto Mono",monospace;color:#3F4943}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.bf,.bt,.bc{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border:0;border-radius:999px;font:500 14px Roboto;cursor:pointer;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),transform .3s cubic-bezier(.3,1.4,.5,1)}
+.bf{background:#006C4F;color:#FFFFFF}.bt{background:#CFE9DB;color:#092017}
+.bc{min-height:34px;padding:0 12px;border-radius:10px;background:transparent;box-shadow:inset 0 0 0 1px #BFC9C2;color:#171D1A;font:500 12.5px "Roboto Mono",monospace}
+.bc[aria-pressed=true]{background:#CFE9DB;box-shadow:none}
+.bf:hover,.bt:hover{border-radius:14px}.bf:active,.bt:active{transform:scale(.96)}
+.bar{position:absolute;left:0;right:0;bottom:0;height:4px;background:#006C4F;transform-origin:left;animation:drain 3s linear infinite}
+.t:hover .bar{animation-play-state:paused}
+.net{display:inline-flex;align-items:center;gap:6px;font:500 11px "Roboto Mono";color:#7A4B00;background:#FFDDB5;padding:3px 8px;border-radius:999px}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="mt" style="width:1440px;height:1080px;box-sizing:border-box;padding:56px 64px;display:flex;flex-direction:column;gap:30px;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+<div style="display:flex;flex-direction:column;gap:10px"><span class="tag">Concept · toasts for new copied content · 2 of 2</span><h1 style="margin:0;font:800 56px/.95 Roboto;letter-spacing:-.04em">Hashes, hosts, repos <span style="color:var(--p)">and pictures.</span></h1></div>
+<p class="mono" style="margin:0;font-size:12px;line-height:1.6;color:var(--onv);max-width:42ch;text-align:right">Press Check on the hash and switch the picture toast between Text and QR. Amber tags mark actions that use the internet.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,400px);justify-content:space-between;row-gap:28px">
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied a hash</span>
+<div class="t" style="animation-delay:100ms">
+<div class="th"><span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"></path></svg></span><span class="tt">Hash</span><span class="ts">SHA-256 · 64 hex</span><span class="tn">now</span></div>
+<div class="pv" style="font-size:11.5px">85df08f087b7a0a60ce2c751c5704728dc12e8dd55b49cd1824b0304011cef8f</div>
+<sc-if value="{{checking}}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;height:6px;border-radius:6px;background:#CFE9DB;overflow:hidden"><span style="display:block;height:100%;background:#006C4F;animation:fill 1.2s ease-out forwards"></span></div></sc-if>
+<sc-if value="{{matched}}" hint-placeholder-val="{{ false }}"><p class="meta" style="color:#006C4F;font-weight:600;animation:ok .45s cubic-bezier(.3,1.4,.5,1)">✓ Matches MonitoringTools-Setup.exe in Downloads</p></sc-if>
+<sc-if value="{{idle}}" hint-placeholder-val="{{ true }}"><p class="meta">Checks the newest files in Downloads, or one you pick</p></sc-if>
+<div class="row"><button class="bf" onClick="{{check}}">{{checkLabel}}</button><button class="bt">Pick a file…</button><button class="bt">UPPER</button></div>
+<span class="bar"></span>
+</div></div>
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied an IP address</span>
+<div class="t" style="animation-delay:220ms">
+<div class="th"><span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20"></path></svg></span><span class="tt">IP address</span><span class="ts">private · your router</span><span class="tn">now</span></div>
+<div class="pv" style="display:flex;align-items:center;justify-content:space-between;font-size:20px">192.168.1.1
+<span style="display:flex;align-items:flex-end;gap:3px;height:24px" aria-label="Ping replies"><span style="width:4px;height:24px;background:#006C4F;border-radius:2px;transform-origin:bottom;animation:ping 1s infinite"></span><span style="width:4px;height:24px;background:#006C4F;border-radius:2px;transform-origin:bottom;animation:ping 1s .2s infinite"></span><span style="width:4px;height:24px;background:#006C4F;border-radius:2px;transform-origin:bottom;animation:ping 1s .4s infinite"></span><span style="font:600 13px 'Roboto Mono';margin-left:6px">4 ms</span></span></div>
+<p class="meta">Same gateway the internet watch probes. Domains get DNS lookup too.</p>
+<div class="row"><button class="bf">Open router page</button><button class="bt">Ping</button><button class="bt">Trace route</button></div>
+<div class="row" style="margin-top:8px"><button class="bc">DNS lookup</button><span class="net">whois · internet</span></div>
+<span class="bar"></span>
+</div></div>
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied a clone URL</span>
+<div class="t" style="animation-delay:340ms">
+<div class="th"><span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9"></path></svg></span><span class="tt">Git repository</span><span class="ts">github.com</span><span class="tn">now</span></div>
+<div class="pv" style="font-size:12px">git@github.com:Ding-Ding-Projects/Monitoring-tools.git</div>
+<p class="meta">Already cloned at C:\src\Monitoring-tools · main</p>
+<div class="row"><button class="bf">Open in VS Code</button><button class="bt">Clone again to…</button><button class="bt">Pull</button></div>
+<div class="row" style="margin-top:8px"><span class="net">Open on GitHub · internet</span><button class="bc">HTTPS URL</button></div>
+<span class="bar"></span>
+</div></div>
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied a picture</span>
+<div class="t" style="animation-delay:460ms">
+<div class="th"><span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M8 9h8M8 12h8M8 15h5"></path></svg></span><span class="tt">Picture</span><span class="ts">1280 × 720 · has text</span><span class="tn">now</span></div>
+<div style="display:grid;grid-template-columns:120px 1fr;gap:10px;margin-top:12px">
+<div style="position:relative;height:96px;border-radius:10px;background:#171D1A;overflow:hidden" aria-label="Picture preview">
+<span style="position:absolute;left:10px;top:12px;width:70px;height:6px;border-radius:3px;background:#89938C"></span><span style="position:absolute;left:10px;top:26px;width:90px;height:6px;border-radius:3px;background:#89938C"></span><span style="position:absolute;left:10px;top:40px;width:56px;height:6px;border-radius:3px;background:#89938C"></span>
+<span style="position:absolute;right:10px;bottom:10px;width:32px;height:32px;background:repeating-linear-gradient(90deg,#E3EAE5 0 4px,#171D1A 4px 8px),repeating-linear-gradient(0deg,#E3EAE5 0 4px,transparent 4px 8px);background-blend-mode:difference"></span>
+<span style="position:absolute;left:0;right:0;height:2px;background:#6FDBB4;box-shadow:0 0 12px #6FDBB4;animation:scan 2s ease-in-out infinite alternate"></span>
+</div>
+<div class="pv" style="margin:0;font-size:12px;white-space:pre-line;word-break:normal">{{ocrText}}</div>
+</div>
+<div class="row" style="margin-top:10px"><button class="bc" aria-pressed="{{tabText}}" onClick="{{showText}}">Text</button><button class="bc" aria-pressed="{{tabQr}}" onClick="{{showQr}}">QR code</button><span class="meta" style="margin:0;align-self:center">read on this PC</span></div>
+<div class="row"><button class="bf">{{ocrMain}}</button><button class="bt">Pin on screen</button><button class="bt">Save</button></div>
+<span class="bar"></span>
+</div></div>
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied a Windows error code</span>
+<div class="t" style="animation-delay:580ms">
+<div class="th"><span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"></path></svg></span><span class="tt">Error code</span><span class="ts">HRESULT · Win32 5</span><span class="tn">now</span></div>
+<div class="pv"><span style="font-size:18px">0x80070005</span><br><span style="font-family:Roboto;font-size:15px;font-weight:600">Access is denied.</span><br><span style="color:#3F4943">E_ACCESSDENIED</span></div>
+<p class="meta">Message from Windows itself, no lookup online</p>
+<div class="row"><button class="bf">Copy the message</button><button class="bt">Copy code + message</button></div>
+<div class="row" style="margin-top:8px"><span class="net">Search the code · internet</span></div>
+<span class="bar"></span>
+</div></div>
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied a tracking number</span>
+<div class="t" style="animation-delay:700ms">
+<div class="th"><span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"></path></svg></span><span class="tt">Parcel</span><span class="ts">UPS · checksum ok</span><span class="tn">now</span></div>
+<div class="pv" style="font-size:18px;letter-spacing:.04em">1Z 999 AA1 01 2345 6784</div>
+<p class="meta">Carrier told from the number's own pattern</p>
+<div class="row"><button class="bf">Open UPS tracking</button><button class="bt">Copy without spaces</button></div>
+<div class="row" style="margin-top:8px"><span class="net">opens the carrier's site · internet</span></div>
+<span class="bar"></span>
+</div></div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { hash: 'idle', tab: 'text' }; }
+  renderVals() {
+    const h = this.state.hash, t = this.state.tab;
+    return {
+      checking: h === 'checking', matched: h === 'match', idle: h === 'idle',
+      checkLabel: h === 'match' ? 'Matched ✓' : h === 'checking' ? 'Checking…' : 'Check Downloads',
+      check: () => { if (h !== 'idle') { this.setState({ hash: 'idle' }); return; } this.setState({ hash: 'checking' }); setTimeout(() => this.setState({ hash: 'match' }), 1300); },
+      tabText: String(t === 'text'), tabQr: String(t === 'qr'),
+      showText: () => this.setState({ tab: 'text' }), showQr: () => this.setState({ tab: 'qr' }),
+      ocrText: t === 'text' ? 'Wi-Fi: Studio-Guest\nPassword on the QR\nRoom 4B' : 'Wi-Fi network\nStudio-Guest · WPA2',
+      ocrMain: t === 'text' ? 'Copy the text' : 'Join this Wi-Fi'
+    };
+  }
+}
+</script>
+</body>
+</html>

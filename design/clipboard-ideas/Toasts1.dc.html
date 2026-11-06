@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New copied content toasts, part 1</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#6FDBB4}
+.mt{--ink:#070B09;--on:#E4EBE6;--onv:#9DAAA3;--p:#6FDBB4;--line:#2A3530;font-family:Roboto,system-ui,sans-serif;color:var(--on);background:var(--ink);background-image:linear-gradient(rgba(111,219,180,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(111,219,180,.06) 1px,transparent 1px);background-size:48px 48px}
+.mono{font-family:"Roboto Mono",monospace}
+.tag{font:600 11px "Roboto Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--p)}
+@keyframes slide{from{opacity:0;transform:translate(48px,20px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes drain{0%{transform:scaleX(1)}100%{transform:scaleX(0)}}
+@keyframes tick{0%{width:100%}100%{width:0}}
+@keyframes hl{0%,30%{background:transparent}45%,100%{background:#FFDDB5}}
+@keyframes ok{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.slot{display:flex;flex-direction:column;gap:12px}
+.t{position:relative;width:400px;box-sizing:border-box;border-radius:22px;background:#E3EAE5;color:#171D1A;padding:18px 18px 24px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 28px 70px rgba(0,0,0,.55);opacity:0;animation:slide .7s cubic-bezier(.2,.8,.2,1) forwards}
+.th{display:flex;align-items:center;gap:10px}
+.ti{width:34px;height:34px;border-radius:10px;background:#CFE9DB;color:#006C4F;display:grid;place-items:center;flex:none}
+.tt{font:500 17px Roboto}
+.ts{font:400 12px "Roboto Mono",monospace;color:#3F4943}
+.tn{margin-left:auto;font:400 12px Roboto;color:#3F4943}
+.pv{margin-top:12px;padding:10px 12px;border-radius:12px;background:#EFF5F1;box-shadow:inset 0 0 0 1px #BFC9C2;font:400 13px/1.55 "Roboto Mono",monospace;color:#171D1A}
+.meta{margin:8px 0 0;font:400 11.5px/1.5 "Roboto Mono",monospace;color:#3F4943}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.bf,.bt,.bc{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border:0;border-radius:999px;font:500 14px Roboto;cursor:pointer;transition:border-radius .35s cubic-bezier(.3,1.4,.5,1),transform .3s cubic-bezier(.3,1.4,.5,1)}
+.bf{background:#006C4F;color:#FFFFFF}.bt{background:#CFE9DB;color:#092017}
+.bc{min-height:34px;padding:0 12px;border-radius:10px;background:transparent;box-shadow:inset 0 0 0 1px #BFC9C2;color:#171D1A;font:500 12.5px "Roboto Mono",monospace}
+.bf:hover,.bt:hover{border-radius:14px}.bf:active,.bt:active{transform:scale(.96)}
+.bar{position:absolute;left:0;right:0;bottom:0;height:4px;background:#006C4F;transform-origin:left;animation:drain 3s linear infinite}
+.t:hover .bar{animation-play-state:paused}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px}
+.kv span:nth-child(odd){color:#3F4943}
+@media (prefers-reduced-motion:reduce){.mt *{animation:none!important;transition:none!important;opacity:1!important}}
+</style>
+</helmet>
+<div class="mt" style="width:1440px;height:1080px;box-sizing:border-box;padding:56px 64px;display:flex;flex-direction:column;gap:30px;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+<div style="display:flex;flex-direction:column;gap:10px"><span class="tag">Concept · toasts for new copied content · 1 of 2</span><h1 style="margin:0;font:800 56px/.95 Roboto;letter-spacing:-.04em">Copy it. <span style="color:var(--p)">The toast knows what it is.</span></h1></div>
+<p class="mono" style="margin:0;font-size:12px;line-height:1.6;color:var(--onv);max-width:42ch;text-align:right">Hover a toast and its 3 second bar pauses, as in the app. Press the buttons on the stack trace and the token.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,400px);justify-content:space-between;row-gap:28px">
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied a phone number</span>
+<div class="t" style="animation-delay:100ms">
+<div class="th"><span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"></path></svg></span><span class="tt">Phone number</span><span class="ts">North America</span><span class="tn">now</span></div>
+<div class="pv" style="font-size:20px;letter-spacing:.02em">+1 416 555 0134</div>
+<p class="meta">Tidied from 416.555.0134</p>
+<div class="row"><button class="bf">Call with Phone Link</button><button class="bt">WhatsApp</button><button class="bt">Save contact</button></div>
+<div class="row" style="margin-top:8px"><button class="bc">+14165550134</button><button class="bc">(416) 555-0134</button></div>
+<span class="bar"></span>
+</div></div>
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied a timestamp</span>
+<div class="t" style="animation-delay:220ms">
+<div class="th"><span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"></path></svg></span><span class="tt">Timestamp</span><span class="ts">Unix seconds</span><span class="tn">now</span></div>
+<div class="pv kv"><span>Copied</span><span>1793998800</span><span>Your time</span><span style="font-weight:600">Fri 6 Nov 2026, 16:00 EST</span><span>UTC</span><span>21:00</span><span>Tokyo</span><span>Sat 7 Nov, 06:00</span></div>
+<div class="row"><button class="bf">Add to calendar</button><button class="bt">Copy as ISO</button><button class="bt">Countdown</button></div>
+<div class="row" style="margin-top:8px"><button class="bc">2026-11-06T21:00:00Z</button><button class="bc">+ zone</button></div>
+<span class="bar"></span>
+</div></div>
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied a sum, or a unit</span>
+<div class="t" style="animation-delay:340ms">
+<div class="th"><span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 7h6M8 4v6M14 7h5M5 17l4-4M5 13l4 4M14 15h5M14 18h5"></path></svg></span><span class="tt">Sum</span><span class="ts">3 * (12.5 + 4)</span><span class="tn">now</span></div>
+<div class="pv" style="display:flex;align-items:baseline;justify-content:space-between"><span style="font:600 30px 'Roboto Mono'">= 49.5</span><span style="color:#3F4943">worked out here</span></div>
+<p class="meta">Units too: 72 °F = 22.2 °C · 5 km = 3.11 mi</p>
+<div class="row"><button class="bf">Copy 49.5</button><button class="bt">Copy sum = 49.5</button><button class="bt">Show working</button></div>
+<span class="bar"></span>
+</div></div>
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied an error</span>
+<div class="t" style="animation-delay:460ms">
+<div class="th"><span class="ti" style="background:#FFDAD6;color:#93000A"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 8v5M12 16h.01M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0"></path></svg></span><span class="tt">Stack trace</span><span class="ts">.NET · 3 frames</span><span class="tn">now</span></div>
+<div class="pv" style="font-size:12px;white-space:pre-wrap">NullReferenceException
+  at Clip.Read() in Clip.cs:line 118
+<span style="animation:hl 3s infinite;border-radius:4px">  at Toast.Show() in Toast.cs:line 42</span>
+  at App.OnCopy() in App.cs:line 77</div>
+<p class="meta">Toast.cs found in C:\src\Monitoring-tools</p>
+<div class="row"><button class="bf" onClick="{{openLine}}">{{openLabel}}</button><button class="bt">Copy as code block</button><button class="bt">Search</button></div>
+<sc-if value="{{opened}}" hint-placeholder-val="{{ false }}"><p class="meta" style="animation:ok .4s;color:#006C4F">Opened Toast.cs at line 42 in VS Code (concept)</p></sc-if>
+<span class="bar"></span>
+</div></div>
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied cells from Excel</span>
+<div class="t" style="animation-delay:580ms">
+<div class="th"><span class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M4 15h16M10 5v14"></path></svg></span><span class="tt">Table</span><span class="ts">3 columns · 4 rows</span><span class="tn">now</span></div>
+<div class="pv" style="padding:0;overflow:hidden;font-size:12px">
+<div style="display:grid;grid-template-columns:2fr 1fr 1fr;background:#DDE4E0;font-weight:600"><span style="padding:6px 10px">Item</span><span style="padding:6px 10px">Qty</span><span style="padding:6px 10px;text-align:right">Price</span></div>
+<div style="display:grid;grid-template-columns:2fr 1fr 1fr"><span style="padding:4px 10px">Cable</span><span style="padding:4px 10px">2</span><span style="padding:4px 10px;text-align:right">12.50</span><span style="padding:4px 10px">Adapter</span><span style="padding:4px 10px">1</span><span style="padding:4px 10px;text-align:right">18.00</span><span style="padding:4px 10px">Hub</span><span style="padding:4px 10px">1</span><span style="padding:4px 10px;text-align:right">24.00</span><span style="padding:4px 10px">Ties</span><span style="padding:4px 10px">4</span><span style="padding:4px 10px;text-align:right">7.00</span></div>
+</div>
+<p class="meta">Price: sum 61.50 · average 15.38</p>
+<div class="row"><button class="bf">Copy as Markdown</button><button class="bt">Copy as JSON</button><button class="bt">Save as CSV</button></div>
+<span class="bar"></span>
+</div></div>
+
+<div class="slot"><span class="tag" style="color:var(--onv)">You copied a token</span>
+<div class="t" style="animation-delay:700ms">
+<div class="th"><span class="ti" style="background:#FFDDB5;color:#7A4B00"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z"></path></svg></span><span class="tt">Token</span><span class="ts">JWT · looks secret</span><span class="tn">now</span></div>
+<div style="margin-top:12px;padding:10px 12px;border-radius:12px;background:#FFDDB5;color:#2B1700;font:500 13px Roboto;display:flex;flex-direction:column;gap:8px">
+<span>{{secretLine}}</span>
+<span style="height:4px;border-radius:4px;background:rgba(43,23,0,.15);overflow:hidden"><span style="display:block;height:100%;background:#7A4B00;animation:{{tickAnim}}"></span></span>
+</div>
+<div class="pv kv" style="font-size:12px"><span>alg</span><span>HS256</span><span>sub</span><span>1234567890</span><span>name</span><span>Sample User</span><span>expires</span><span>in 52 min</span></div>
+<div class="row"><button class="bf" onClick="{{clearNow}}">{{clearLabel}}</button><button class="bt" onClick="{{keep}}">Keep 5 min</button></div>
+<span class="bar" style="animation:none"></span>
+</div></div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { opened: false, sec: 'wait' }; }
+  renderVals() {
+    const s = this.state.sec;
+    return {
+      opened: this.state.opened, openLabel: this.state.opened ? 'Opened ✓' : 'Open line 42 in VS Code',
+      openLine: () => this.setState({ opened: !this.state.opened }),
+      secretLine: s === 'cleared' ? 'Clipboard cleared. The token was never saved to history.' : s === 'kept' ? 'Kept for 5 minutes, still not in history.' : 'Not saved to history. Clipboard clears in 30 s.',
+      tickAnim: s === 'wait' ? 'tick 30s linear forwards' : 'none',
+      clearLabel: s === 'cleared' ? 'Cleared ✓' : 'Clear now',
+      clearNow: () => this.setState({ sec: s === 'cleared' ? 'wait' : 'cleared' }),
+      keep: () => this.setState({ sec: 'kept' })
+    };
+  }
+}
+</script>
+</body>
+</html>
