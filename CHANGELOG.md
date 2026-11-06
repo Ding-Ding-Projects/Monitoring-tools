@@ -4,10 +4,12 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
-## Unreleased
+## 1.0.62 (2026-11-06)
 
-Commits after v1.0.61, up to `076561d`.
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.62)
 
+- Add the clipboard ideas design canvas ([`7931195`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/7931195ae035453c6c6db92149b91a66344c6fdb))
+- Record v1.0.61 figures and changelog ([`89e558c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/89e558c59a49643de5b136f261d60aba3e2c1d5e))
 - Record v1.0.60 figures and changelog ([`076561d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/076561d6aad6f4332fa4b2e5dcd025807ce43e8b))
 
 ## 1.0.61 (2026-11-05)
