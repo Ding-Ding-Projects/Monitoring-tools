@@ -6,8 +6,26 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.63, up to `c7ef483`.
+Commits after v1.0.64, up to `753d3f0`.
 
+- Refresh screenshots for v1.0.64 ([`753d3f0`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/753d3f0074af525810f363761ed359d6abf48d1f))
+- Show the real lookup default in the settings capture ([`c287614`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c2876149fe10b07533df7df087c2056f2342bf5f))
+
+## 1.0.64 (2026-11-06)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.64)
+
+- Give the screenshot run ten minutes ([`ef591ff`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ef591ffaf0824bffe562abafe062878c8e77cc16))
+- Record the smart clipboard in the handoff ([`6a48aa9`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/6a48aa9cc2eaef45aa390975ea458e4792e52bdd))
+- Fix list rows, dialog heights and captured toasts ([`fa5e871`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/fa5e8712b0dc93e944dac0d32d9ad0e58b8f50ac))
+- Build the site companion with this run's screenshots ([`f8c4476`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/f8c44762e74bbb98da9f3b7c04307857cc43cf21))
+- Drop two lookup settings that nothing used ([`928ca63`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/928ca63d943c8ca7a9192c8f0e5838f450c7c636))
+- Add blur before sharing and today's copy counts ([`a11c856`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a11c856f71e42610c97cf0f6cfb8a6f8bdd5e253))
+- Add clipboard settings, snippets, recipes, rules and picture text ([`d940e50`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/d940e5037421640c3f818b656ff5dcbcc5181796))
+- Add clipboard history popup, paste queue, pins, snippets and rules ([`81b0928`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/81b09282998a282bdd90774e36b0b92bdb3a021f))
+- Add the extensions manager, sample extensions and clipboard docs ([`644c52b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/644c52bb3e3db5f21c67fc219a1ea48bfc2401a3))
+- Show smart toasts, quick conversions and automatic lookups ([`d7f6a63`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/d7f6a636df32b673a69d63b545eab0d02ed63357))
+- Record v1.0.63 figures and changelog ([`7a3b478`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/7a3b47817ef56b4416439c4c399f5d5493c8bc88))
 - Add smart clipboard detectors and the extension host ([`c7ef483`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c7ef4837a1ffd7c73df02102dac20d0146304f1e))
 
 ## 1.0.63 (2026-11-06)
