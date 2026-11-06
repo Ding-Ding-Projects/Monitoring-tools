@@ -4,6 +4,19 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## Unreleased
+
+Commits after v1.0.60, up to `e1e0c73`.
+
+- Record the real virtual disk fix in the handoff and closeout prompt ([`e1e0c73`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e1e0c73833f034df8f91a933577329c1e6f1ebaf))
+
+## 1.0.60 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.60)
+
+- Fix real virtual disks: write diskpart scripts in the console code page ([`40e2087`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/40e2087dea6dacbb6eb9bee9cfaaa72e5b934dee))
+- Record v1.0.59 figures and changelog ([`e784bb0`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e784bb04170ec0369c7aa5ecc01db7c5ab797180))
+
 ## 1.0.59 (2026-11-05)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.59)
