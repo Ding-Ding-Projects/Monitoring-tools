@@ -52,9 +52,11 @@ namespace MonitoringTools.UI
                 await Shot(PasteQueue.Current, "window-paste-queue", "The paste queue: copy several things, then each Ctrl+V pastes the next", 900);
                 PasteQueue.Toggle();
 
+                Settings.Current.AutoLookups = lookups;   // show the real default; nothing is looked up while a dialog is open
                 var cs = Dialogs.ClipboardSettingsDialog.Open();
                 await Shot(cs, "dialog-clipboard-settings", "Clipboard settings: what lookups send where, kinds, the secret guard and shortcuts", 1100);
                 cs.Close();
+                Settings.Current.AutoLookups = false;
                 var sd = Dialogs.SnippetsDialog.Open();
                 await Shot(sd, "dialog-snippets", "Snippets with fill-ins and a live preview", 1000);
                 sd.Close();

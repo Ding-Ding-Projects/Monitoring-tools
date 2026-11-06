@@ -21,7 +21,7 @@ namespace MonitoringTools.UI.Dialogs
         private readonly SearchField _search = new SearchField("clipboard-settings", "Search clipboard settings", compact: true);
         private readonly List<(FrameworkElement Row, string Words)> _rows = new List<(FrameworkElement, string)>();
         private readonly List<(FrameworkElement Head, List<FrameworkElement> Rows)> _sections = new List<(FrameworkElement, List<FrameworkElement>)>();
-        private readonly StackPanel _body = new StackPanel();
+        private readonly StackPanel _body = new StackPanel { Margin = new Thickness(0, 0, 16, 0) };
         private readonly TextBlock _empty = new TextBlock { Text = "No setting matches.", Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(4, 16, 0, 0), Visibility = Visibility.Collapsed };
         private TextBlock _status;
         private List<FrameworkElement> _current;
