@@ -4,6 +4,19 @@ Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand.
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.
 
+## Unreleased
+
+Commits after v1.0.63, up to `c7ef483`.
+
+- Add smart clipboard detectors and the extension host ([`c7ef483`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c7ef4837a1ffd7c73df02102dac20d0146304f1e))
+
+## 1.0.63 (2026-11-06)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.63)
+
+- Add clipboard dialogs, conversions and extensions to the design canvas ([`33ef448`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/33ef448e33c8f3c66c76b9189254bff1ff499437))
+- Record v1.0.62 figures and changelog ([`decf484`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/decf484c4bd1a012f3814a19f3aa1a04845f3846))
+
 ## 1.0.62 (2026-11-06)
 
 [Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.62)
