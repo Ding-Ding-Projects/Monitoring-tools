@@ -12,6 +12,27 @@ checked; anything unchecked is labelled.
   publishes the next normal release and deploys the site (`.github/workflows/build.yml`).
 - Latest release at the time of writing: v1.0.36 (see [CHANGELOG.md](CHANGELOG.md)).
 
+## Smart clipboard (2026-11-06)
+
+- **Design:** [design/clipboard-ideas](design/clipboard-ideas/HANDOFF.md), every idea picked, plus boards for each dialog,
+  quick conversions, extensions and the one action bar rule.
+- **Detectors:** `src/MonitoringTools/Clip/Smart/` holds pure code with no WPF: 30 kinds of copied text (`SmartDetect`
+  orders them), quick conversions (`Units`), snippets, recipes and per-app rules (`Power`), and the extension host
+  (`Extension`, `ExtensionHost`). `tests/SmartTests` checks them on any machine (`dotnet run --project tests/SmartTests`);
+  the build workflow runs it before building.
+- **App side:** `UI/Actions/SmartToast.cs` (tiles), `SmartActions.cs` (buttons), `SmartLookups.cs` (automatic lookups),
+  `UI/ClipPower.cs` (shortcuts, plain paste, undo, collect, type it, snippets, rules), `HistoryPopup.cs`, `PasteQueue.cs`,
+  `PinWindow.cs`, and the dialogs in `UI/Dialogs/` (conversions, extensions, clipboard settings, snippets, recipes, rules,
+  picture text, ask). Settings live in `Core/Settings.Clipboard.cs`; Cantonese in `Core/Strings.yue.Smart.cs`.
+- **Shortcuts:** history is `Win+Shift+V`; the rest are `Ctrl+Shift+Alt+letter` so no editor shortcut is taken. Global
+  shortcuts and the keyboard hook start only in the normal run, never in captures or self-tests.
+- **Extensions:** `extension.json` plus a program that reads one JSON line and writes one; samples in `samples/extensions`,
+  guide in [docs/features/clipboard/extensions.md](docs/features/clipboard/extensions.md).
+- **Checked:** detector and extension checks pass on Linux (152) and in CI; the Windows screenshot run renders the smart
+  toasts, quick conversions and the extensions manager. Unchecked on a real desktop: global shortcuts, the keyboard hook
+  (snippets, paste queue), pasting into another app, OCR, face blurring and automatic lookups against the live services.
+- **Not built:** sync between your own PCs.
+
 ## Site redesign (2026-11-05, evening)
 
 - **Design:** [design/site-redesign](design/site-redesign/HANDOFF.md), eleven boards in the "Night shift monitor"
