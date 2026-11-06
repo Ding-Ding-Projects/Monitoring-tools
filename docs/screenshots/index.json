@@ -3,19 +3,19 @@
     "file": "toast-markdown.png",
     "caption": "Markdown copied, hovered",
     "width": 872,
-    "height": 948
+    "height": 920
   },
   {
     "file": "toast-link.png",
     "caption": "Link with tracking parameters",
     "width": 872,
-    "height": 664
+    "height": 658
   },
   {
     "file": "toast-image-file.png",
     "caption": "Image file with a rich preview",
     "width": 872,
-    "height": 1178
+    "height": 1274
   },
   {
     "file": "toast-csv.png",
@@ -27,7 +27,7 @@
     "file": "toast-quoted-path.png",
     "caption": "Path copied with quotes",
     "width": 872,
-    "height": 1204
+    "height": 1214
   },
   {
     "file": "toast-compose.png",
@@ -39,7 +39,7 @@
     "file": "toast-folder.png",
     "caption": "Folder with batch conversion chips",
     "width": 872,
-    "height": 944
+    "height": 1040
   },
   {
     "file": "toast-multi.png",
@@ -63,7 +63,187 @@
     "file": "toast-base64.png",
     "caption": "Base64 text",
     "width": 872,
-    "height": 554
+    "height": 742
+  },
+  {
+    "file": "toast-text-idle.png",
+    "caption": "Copied text, idle: nothing has focus",
+    "width": 872,
+    "height": 470
+  },
+  {
+    "file": "toast-text-editing.png",
+    "caption": "Copied text, editing in place",
+    "width": 872,
+    "height": 690
+  },
+  {
+    "file": "toast-text-reverted.png",
+    "caption": "Copied text, reverted",
+    "width": 872,
+    "height": 726
+  },
+  {
+    "file": "toast-held.png",
+    "caption": "Held until closed: the countdown stops and the header says so",
+    "width": 872,
+    "height": 470
+  },
+  {
+    "file": "toast-text-long.png",
+    "caption": "Long copied text scrolls inside the toast",
+    "width": 872,
+    "height": 886
+  },
+  {
+    "file": "toast-install-choco.png",
+    "caption": "choco install: names, source, consent note",
+    "width": 872,
+    "height": 656
+  },
+  {
+    "file": "toast-install-winget.png",
+    "caption": "winget install: the installer decides",
+    "width": 872,
+    "height": 560
+  },
+  {
+    "file": "toast-install-refused.png",
+    "caption": "Refused command, with a reason per flag",
+    "width": 872,
+    "height": 594
+  },
+  {
+    "file": "toast-install-running.png",
+    "caption": "Installing: steps and the consent step named",
+    "width": 872,
+    "height": 522
+  },
+  {
+    "file": "toast-install-done.png",
+    "caption": "Installed: versions, Open log, Copy summary",
+    "width": 872,
+    "height": 476
+  },
+  {
+    "file": "toast-install-declined.png",
+    "caption": "Consent prompt declined: exit code 1223",
+    "width": 872,
+    "height": 502
+  },
+  {
+    "file": "toast-install-auto.png",
+    "caption": "Automatic mode: command, countdown, Cancel",
+    "width": 872,
+    "height": 506
+  },
+  {
+    "file": "toast-smart-unit.png",
+    "caption": "An amount: every unit of its kind, tap one to copy it",
+    "width": 872,
+    "height": 932
+  },
+  {
+    "file": "toast-smart-phone.png",
+    "caption": "A phone number, tidied, with Call and Text",
+    "width": 872,
+    "height": 840
+  },
+  {
+    "file": "toast-smart-trace.png",
+    "caption": "A stack trace: open the exact line in VS Code",
+    "width": 872,
+    "height": 840
+  },
+  {
+    "file": "toast-smart-table.png",
+    "caption": "Cells from a spreadsheet: sums, and copy as Markdown, CSV, JSON or HTML",
+    "width": 872,
+    "height": 1116
+  },
+  {
+    "file": "toast-smart-cron.png",
+    "caption": "A cron schedule in words, with the next runs",
+    "width": 872,
+    "height": 928
+  },
+  {
+    "file": "toast-smart-secret.png",
+    "caption": "A secret: kept out of history and cleared after 30 seconds",
+    "width": 872,
+    "height": 646
+  },
+  {
+    "file": "popup-history.png",
+    "caption": "Clipboard history on Win\u002BShift\u002BV: every row previews what it is",
+    "width": 1720,
+    "height": 1280
+  },
+  {
+    "file": "popup-history-table.png",
+    "caption": "The picked copy shows large on the right",
+    "width": 1720,
+    "height": 1280
+  },
+  {
+    "file": "window-pinned-table.png",
+    "caption": "A table pinned on screen, on top of everything",
+    "width": 546,
+    "height": 349
+  },
+  {
+    "file": "window-paste-queue.png",
+    "caption": "The paste queue: copy several things, then each Ctrl\u002BV pastes the next",
+    "width": 760,
+    "height": 1030
+  },
+  {
+    "file": "dialog-clipboard-settings.png",
+    "caption": "Clipboard settings: what lookups send where, kinds, the secret guard and shortcuts",
+    "width": 1704,
+    "height": 1440
+  },
+  {
+    "file": "dialog-snippets.png",
+    "caption": "Snippets with fill-ins and a live preview",
+    "width": 1984,
+    "height": 1328
+  },
+  {
+    "file": "dialog-recipes.png",
+    "caption": "Transform recipes: steps, a live result and Show on text toasts",
+    "width": 1984,
+    "height": 1348
+  },
+  {
+    "file": "dialog-rules.png",
+    "caption": "Per-app rules: toast, history only or never, and one automatic action",
+    "width": 1864,
+    "height": 1257
+  },
+  {
+    "file": "dialog-conversions.png",
+    "caption": "Quick conversions: every unit at once, click any result to copy it",
+    "width": 1784,
+    "height": 1168
+  },
+  {
+    "file": "dialog-conversions-temperature.png",
+    "caption": "Quick conversions for a temperature",
+    "width": 1784,
+    "height": 904
+  },
+  {
+    "file": "dialog-extensions.png",
+    "caption": "Extensions: what each one notices, the buttons it adds and what it may do",
+    "width": 1864,
+    "height": 1328
+  },
+  {
+    "file": "dialog-extensions-allow.png",
+    "caption": "Turning an extension on shows exactly what it asks for first",
+    "width": 1864,
+    "height": 1328
   },
   {
     "file": "toast-converting.png",
@@ -75,7 +255,7 @@
     "file": "offline-dialog.png",
     "caption": "Internet connection lost",
     "width": 1048,
-    "height": 1306
+    "height": 1310
   },
   {
     "file": "tray-menu.png",
@@ -103,7 +283,7 @@
   },
   {
     "file": "command-palette.png",
-    "caption": "Command palette (Ctrl+Shift+F)",
+    "caption": "Command palette (Ctrl\u002BShift\u002BF)",
     "width": 1360,
     "height": 1120
   },
@@ -111,7 +291,7 @@
     "file": "toast-public-ip.png",
     "caption": "Public IP changed",
     "width": 872,
-    "height": 622
+    "height": 618
   },
   {
     "file": "welcome.png",
@@ -267,7 +447,7 @@
     "file": "search-builder-compare.png",
     "caption": "Regex builder: the pattern in each .NET engine mode",
     "width": 2088,
-    "height": 1576
+    "height": 1636
   },
   {
     "file": "search-builder-files.png",
@@ -284,6 +464,18 @@
   {
     "file": "search-builder-library.png",
     "caption": "Regex builder: saved patterns",
+    "width": 2088,
+    "height": 1636
+  },
+  {
+    "file": "search-builder-benchmark.png",
+    "caption": "Regex builder: pattern pair, per-part timing and saved history",
+    "width": 2088,
+    "height": 1636
+  },
+  {
+    "file": "search-builder-help.png",
+    "caption": "Regex builder: syntax help and builder preferences",
     "width": 2088,
     "height": 1636
   },
@@ -504,6 +696,480 @@
     "height": 1344
   },
   {
+    "file": "docsys-extract-ready.png",
+    "caption": "Extract an archive: the contents with check marks, a destination and a rule for names that exist",
+    "width": 1640,
+    "height": 1344
+  },
+  {
+    "file": "docsys-extract-working.png",
+    "caption": "Extract an archive: working, with the file and bytes so far",
+    "width": 1640,
+    "height": 634
+  },
+  {
+    "file": "docsys-extract-password.png",
+    "caption": "Extract an archive: a password is needed, and a wrong one says nothing was extracted",
+    "width": 1640,
+    "height": 814
+  },
+  {
+    "file": "docsys-extract-done.png",
+    "caption": "Extract an archive: done, with what was renamed, not selected and refused",
+    "width": 1640,
+    "height": 823
+  },
+  {
+    "file": "docsys-extract-refused.png",
+    "caption": "Extract an archive: unsafe paths are refused and counted",
+    "width": 1640,
+    "height": 823
+  },
+  {
+    "file": "docsys-extract-7z.png",
+    "caption": "Extract an archive: a 7z archive listed and extracted through the bundled 7-Zip",
+    "width": 1640,
+    "height": 1344
+  },
+  {
+    "file": "docsys-extract-7z-names-locked.png",
+    "caption": "Extract an archive: a 7z whose file names are encrypted asks for the password before listing",
+    "width": 1640,
+    "height": 774
+  },
+  {
+    "file": "docsys-extract-rar.png",
+    "caption": "Extract an archive: a RAR5 archive listed and extracted through the bundled full 7-Zip",
+    "width": 1640,
+    "height": 1344
+  },
+  {
+    "file": "docsys-extract-rar-password.png",
+    "caption": "Extract an archive: a password RAR, where a wrong password extracts nothing and says so",
+    "width": 1640,
+    "height": 814
+  },
+  {
+    "file": "docsys-extract-rar-refused.png",
+    "caption": "Extract an archive: a RAR4 entry that would escape the folder is refused and counted",
+    "width": 1640,
+    "height": 823
+  },
+  {
+    "file": "docsys-extract-ask.png",
+    "caption": "Extract an archive: Ask stops at a name that exists and offers Replace, Keep both or Skip, with one answer for the rest",
+    "width": 1640,
+    "height": 799
+  },
+  {
+    "file": "docsys-subtitle-shift.png",
+    "caption": "Subtitle timing: shift every cue, with the result for the first and last cue",
+    "width": 1600,
+    "height": 1282
+  },
+  {
+    "file": "docsys-subtitle-stretch.png",
+    "caption": "Subtitle timing: stretch between two anchor cues, with frame rate presets",
+    "width": 1600,
+    "height": 1337
+  },
+  {
+    "file": "docsys-subtitle-convert.png",
+    "caption": "Subtitle timing: convert between SubRip and WebVTT",
+    "width": 1600,
+    "height": 1201
+  },
+  {
+    "file": "docsys-subtitle-problems.png",
+    "caption": "Subtitle timing: overlapping and unreadable cues listed, with Fix overlaps and Skip broken cue",
+    "width": 1600,
+    "height": 1344
+  },
+  {
+    "file": "docsys-font-ready.png",
+    "caption": "Font preview and install: the font from the file at four sizes, what it says about itself, nothing installed yet",
+    "width": 1560,
+    "height": 1283
+  },
+  {
+    "file": "docsys-font-installed.png",
+    "caption": "Font preview and install: installed for this user only (stand-in install step)",
+    "width": 1560,
+    "height": 780
+  },
+  {
+    "file": "docsys-font-already.png",
+    "caption": "Font preview and install: an already installed font offers Uninstall",
+    "width": 1560,
+    "height": 632
+  },
+  {
+    "file": "docsys-font-collection.png",
+    "caption": "Font preview and install: a font collection lists every face, previews the one picked and installs them all",
+    "width": 1560,
+    "height": 1344
+  },
+  {
+    "file": "docsys-font-unreadable.png",
+    "caption": "Font preview and install: a damaged font says so and changes nothing",
+    "width": 1560,
+    "height": 668
+  },
+  {
+    "file": "docsys-disc-ready.png",
+    "caption": "Disc image: not mounted, with the contents tree and a file chosen",
+    "width": 1560,
+    "height": 1121
+  },
+  {
+    "file": "docsys-disc-mounting.png",
+    "caption": "Disc image: mounting",
+    "width": 1560,
+    "height": 598
+  },
+  {
+    "file": "docsys-disc-mounted.png",
+    "caption": "Disc image: mounted as a drive (stand-in mount step)",
+    "width": 1560,
+    "height": 1200
+  },
+  {
+    "file": "docsys-disc-failed.png",
+    "caption": "Disc image: Windows refused to mount, with the reason and Browse without mounting",
+    "width": 1560,
+    "height": 795
+  },
+  {
+    "file": "docsys-tray-mounted.png",
+    "caption": "Tray menu: a disc image this app mounted, with its drive letter and Eject",
+    "width": 744,
+    "height": 1576
+  },
+  {
+    "file": "archive-dialog.png",
+    "caption": "Archive: the form with Zip chosen, the live estimate under it",
+    "width": 1744,
+    "height": 1576
+  },
+  {
+    "file": "archive-dialog-targz.png",
+    "caption": "Archive: tar.gz hides the password, volume and 7z rows",
+    "width": 1744,
+    "height": 1545
+  },
+  {
+    "file": "archive-dialog-7z.png",
+    "caption": "Archive: 7z with a password, hidden names, volumes, Maximum level and a regex exclude",
+    "width": 1744,
+    "height": 1576
+  },
+  {
+    "file": "archive-progress.png",
+    "caption": "Archive progress (preview with fixed numbers): bar, speed, steps and Cancel",
+    "width": 976,
+    "height": 611
+  },
+  {
+    "file": "archive-done.png",
+    "caption": "Archive done (preview with fixed numbers): sizes, test result, location",
+    "width": 976,
+    "height": 760
+  },
+  {
+    "file": "archive-error.png",
+    "caption": "Archive error (preview): nothing is left behind, Try again",
+    "width": 976,
+    "height": 563
+  },
+  {
+    "file": "disk-dialog.png",
+    "caption": "Virtual disk: the permission note first, then the disk file, volume and what goes in",
+    "width": 1744,
+    "height": 1576
+  },
+  {
+    "file": "disk-dialog-fat32.png",
+    "caption": "Virtual disk: FAT32 is off at 64 GB and the note says why",
+    "width": 1744,
+    "height": 1576
+  },
+  {
+    "file": "disk-dialog-folder.png",
+    "caption": "Virtual disk: exFAT, a fixed 8 GB VHDX mounted into a folder, move, then detach",
+    "width": 1744,
+    "height": 1576
+  },
+  {
+    "file": "disk-progress.png",
+    "caption": "Virtual disk progress (preview with fixed numbers): named steps, copy bytes, Cancel",
+    "width": 976,
+    "height": 796
+  },
+  {
+    "file": "disk-done.png",
+    "caption": "Virtual disk done (preview with fixed numbers): Open, Show file, Detach",
+    "width": 976,
+    "height": 745
+  },
+  {
+    "file": "disk-error.png",
+    "caption": "Virtual disk error (preview): consent prompt declined, exit code 1223, nothing left behind",
+    "width": 976,
+    "height": 599
+  },
+  {
+    "file": "datasec-hash-computing.png",
+    "caption": "Hash and verify: reading a 3 GB file, with progress and Cancel",
+    "width": 1520,
+    "height": 986
+  },
+  {
+    "file": "datasec-hash-ready.png",
+    "caption": "Hash and verify: the SHA-256 in groups of eight, ready for a pasted checksum",
+    "width": 1520,
+    "height": 941
+  },
+  {
+    "file": "datasec-hash-match.png",
+    "caption": "Hash and verify: it matches the publisher\u0027s checksum",
+    "width": 1520,
+    "height": 1085
+  },
+  {
+    "file": "datasec-hash-mismatch.png",
+    "caption": "Hash and verify: it does not match, with the first differing group marked",
+    "width": 1520,
+    "height": 1321
+  },
+  {
+    "file": "datasec-signed-valid.png",
+    "caption": "Who signed this?: a signed system file, valid, with its certificate chain",
+    "width": 1560,
+    "height": 1288
+  },
+  {
+    "file": "datasec-signed-none.png",
+    "caption": "Who signed this?: a file that is not signed",
+    "width": 1560,
+    "height": 769
+  },
+  {
+    "file": "datasec-signed-untrusted.png",
+    "caption": "Who signed this?: signed, but the issuer is not trusted on this computer",
+    "width": 1560,
+    "height": 769
+  },
+  {
+    "file": "datasec-cert-valid.png",
+    "caption": "Certificate inspector: a valid certificate with its countdown",
+    "width": 1560,
+    "height": 1115
+  },
+  {
+    "file": "datasec-cert-expiring.png",
+    "caption": "Certificate inspector: expiring soon",
+    "width": 1560,
+    "height": 1259
+  },
+  {
+    "file": "datasec-cert-expired.png",
+    "caption": "Certificate inspector: expired",
+    "width": 1560,
+    "height": 1259
+  },
+  {
+    "file": "datasec-cert-password.png",
+    "caption": "Certificate inspector: a PKCS#12 file asks for its password",
+    "width": 1560,
+    "height": 706
+  },
+  {
+    "file": "datasec-cert-convert.png",
+    "caption": "Certificate inspector: convert to PKCS#12 with the private key and a new password",
+    "width": 1560,
+    "height": 1105
+  },
+  {
+    "file": "datasec-data-table.png",
+    "caption": "Data viewer: a valid CSV as a table with the conversion options",
+    "width": 1600,
+    "height": 1344
+  },
+  {
+    "file": "datasec-data-done.png",
+    "caption": "Data viewer: converted, with the size and how numbers were typed",
+    "width": 1600,
+    "height": 1344
+  },
+  {
+    "file": "datasec-data-error.png",
+    "caption": "Data viewer: invalid JSON with line, column and context",
+    "width": 1600,
+    "height": 1026
+  },
+  {
+    "file": "datasec-data-text.png",
+    "caption": "Data viewer: YAML in the text view",
+    "width": 1600,
+    "height": 1313
+  },
+  {
+    "file": "datasec-encoding-batch.png",
+    "caption": "Encoding and line endings: a batch of four, with what each file is and will become",
+    "width": 1680,
+    "height": 1344
+  },
+  {
+    "file": "datasec-encoding-mixed.png",
+    "caption": "Encoding and line endings: a file that mixes line endings",
+    "width": 1680,
+    "height": 1344
+  },
+  {
+    "file": "datasec-encoding-done.png",
+    "caption": "Encoding and line endings: converted, with Undo from backups",
+    "width": 1680,
+    "height": 1249
+  },
+  {
+    "file": "datasec-encoding-error.png",
+    "caption": "Encoding and line endings: a byte that is not valid stops the file, nothing is written",
+    "width": 1680,
+    "height": 838
+  },
+  {
+    "file": "media-trim-ready.png",
+    "caption": "Trim and cut video: both points on key frames, so the cut is lossless",
+    "width": 1584,
+    "height": 1359
+  },
+  {
+    "file": "media-trim-exact.png",
+    "caption": "Trim and cut video: a start between key frames needs an exact cut",
+    "width": 1584,
+    "height": 1359
+  },
+  {
+    "file": "media-trim-working.png",
+    "caption": "Trim and cut video while it works: percentage, what is happening, bytes and the .part file",
+    "width": 1584,
+    "height": 616
+  },
+  {
+    "file": "media-trim-done.png",
+    "caption": "Trim and cut video: saved, with length, size against the original and the method",
+    "width": 1584,
+    "height": 790
+  },
+  {
+    "file": "media-trim-error.png",
+    "caption": "Trim and cut video: a damaged file, what was not changed",
+    "width": 1584,
+    "height": 842
+  },
+  {
+    "file": "media-gif-ready.png",
+    "caption": "Video to GIF or short clip: range, size, target size and the estimate",
+    "width": 1624,
+    "height": 1385
+  },
+  {
+    "file": "media-gif-done.png",
+    "caption": "Video to GIF or short clip: saved under the size limit",
+    "width": 1624,
+    "height": 790
+  },
+  {
+    "file": "media-gif-working.png",
+    "caption": "Video to GIF or short clip while it works: which try and which pass",
+    "width": 1624,
+    "height": 616
+  },
+  {
+    "file": "media-gif-too-small.png",
+    "caption": "Video to GIF or short clip: the target is too small, nothing saved, the tried sizes listed",
+    "width": 1624,
+    "height": 1012
+  },
+  {
+    "file": "media-audio-ready.png",
+    "caption": "Trim, fade and loudness: waveform, fades, measured loudness and a target",
+    "width": 1624,
+    "height": 1319
+  },
+  {
+    "file": "media-audio-done.png",
+    "caption": "Trim, fade and loudness: before and after loudness and true peak",
+    "width": 1624,
+    "height": 790
+  },
+  {
+    "file": "media-audio-error.png",
+    "caption": "Trim, fade and loudness: audio that cannot be decoded",
+    "width": 1624,
+    "height": 842
+  },
+  {
+    "file": "media-images-ready.png",
+    "caption": "Resize, crop and compress: batch list, before and after preview, size, crop and quality",
+    "width": 1744,
+    "height": 1210
+  },
+  {
+    "file": "media-images-done-failure.png",
+    "caption": "Resize, crop and compress: three saved, one failed with its reason",
+    "width": 1744,
+    "height": 897
+  },
+  {
+    "file": "media-images-empty.png",
+    "caption": "Resize, crop and compress: no pictures yet",
+    "width": 1744,
+    "height": 824
+  },
+  {
+    "file": "media-privacy-ready.png",
+    "caption": "Image privacy clean-up: what each picture holds, the location warning and a drawn map",
+    "width": 1784,
+    "height": 1440
+  },
+  {
+    "file": "media-privacy-done.png",
+    "caption": "Image privacy clean-up: clean copies saved, tags removed per picture and what was kept",
+    "width": 1784,
+    "height": 790
+  },
+  {
+    "file": "media-privacy-nothing.png",
+    "caption": "Image privacy clean-up: nothing hidden, nothing to clean",
+    "width": 1784,
+    "height": 684
+  },
+  {
+    "file": "media-icon-ready.png",
+    "caption": "Make an icon: source on a checkerboard, sizes, shape and the preview on light and dark",
+    "width": 1704,
+    "height": 1248
+  },
+  {
+    "file": "media-icon-done.png",
+    "caption": "Make an icon: seven sizes saved in one file",
+    "width": 1704,
+    "height": 746
+  },
+  {
+    "file": "media-icon-small-source.png",
+    "caption": "Make an icon: a small source flags the sizes it cannot fill",
+    "width": 1704,
+    "height": 1425
+  },
+  {
+    "file": "media-trim-ready-cantonese.png",
+    "caption": "Trim and cut video in Cantonese",
+    "width": 1584,
+    "height": 1328
+  },
+  {
     "file": "school-hello.png",
     "caption": "School mode: the optional Windows Hello way to turn it off, with its honest state",
     "width": 2088,
@@ -528,22 +1194,34 @@
     "height": 1576
   },
   {
+    "file": "history-manager.png",
+    "caption": "Local history: how saved versions are protected and how long they are kept, with each saved history",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "settings-install-auto.png",
+    "caption": "Settings, Clipboard: install copied commands automatically",
+    "width": 2088,
+    "height": 1576
+  },
+  {
     "file": "super-confirm-start.png",
     "caption": "Destructive actions need two keys and a full slide",
     "width": 960,
-    "height": 914
+    "height": 919
   },
   {
     "file": "super-confirm-armed.png",
     "caption": "Both keys on, slider part way",
     "width": 960,
-    "height": 914
+    "height": 919
   },
   {
     "file": "search-tray-filter.png",
     "caption": "Tray menu filtered with its own search",
     "width": 744,
-    "height": 512
+    "height": 508
   },
   {
     "file": "search-palette-regex.png",
@@ -573,25 +1251,25 @@
     "file": "commit-template.png",
     "caption": "First :push asks for a commit message",
     "width": 1040,
-    "height": 894
+    "height": 892
   },
   {
     "file": "uninstall-confirm.png",
     "caption": "Uninstall confirmation",
     "width": 960,
-    "height": 1010
+    "height": 1015
   },
   {
     "file": "menu-toast.png",
     "caption": "Element menu on a toast",
-    "width": 1350,
-    "height": 1208
+    "width": 1290,
+    "height": 1484
   },
   {
     "file": "menu-offline.png",
     "caption": "Element menu on the offline dialog",
     "width": 1048,
-    "height": 1306
+    "height": 1310
   },
   {
     "file": "menu-setup.png",
@@ -603,7 +1281,13 @@
     "file": "menu-confirm.png",
     "caption": "Element menu on the confirmation window: Copy text only",
     "width": 1190,
-    "height": 914
+    "height": 919
+  },
+  {
+    "file": "menu-palette.png",
+    "caption": "Element menu on the command palette",
+    "width": 1385,
+    "height": 1120
   },
   {
     "file": "menu-filetools.png",
@@ -711,7 +1395,7 @@
     "file": "appearance-editor-shape.png",
     "caption": "Appearance editor: Shape tab",
     "width": 840,
-    "height": 1192
+    "height": 1190
   },
   {
     "file": "appearance-editor-library.png",
@@ -762,8 +1446,38 @@
     "height": 1576
   },
   {
+    "file": "lock-menu-item.png",
+    "caption": "Toy locks: the Press item of an element menu is locked on its own, dimmed with the lock chip",
+    "width": 1520,
+    "height": 1040
+  },
+  {
+    "file": "states-dark.png",
+    "caption": "Every interactive style at rest, hovered, pressed, focused and disabled in the dark theme (hover, pressed and focus are forced on the real templates)",
+    "width": 2088,
+    "height": 1400
+  },
+  {
+    "file": "calendar-dark.png",
+    "caption": "The calendar of a date field in the dark theme",
+    "width": 720,
+    "height": 800
+  },
+  {
+    "file": "states-light.png",
+    "caption": "Every interactive style at rest, hovered, pressed, focused and disabled in the light theme (hover, pressed and focus are forced on the real templates)",
+    "width": 2088,
+    "height": 1400
+  },
+  {
+    "file": "calendar-light.png",
+    "caption": "The calendar of a date field in the light theme",
+    "width": 720,
+    "height": 800
+  },
+  {
     "file": "mc-commands-give.png",
-    "caption": "Minecraft servers: the command builder giving an item, with the online players, the version's item list searched for diamond and the coloured command line (sample data)",
+    "caption": "Minecraft servers: the command builder giving an item, with the online players, the version\u0027s item list searched for diamond and the coloured command line (sample data)",
     "width": 2088,
     "height": 1576
   },
@@ -775,13 +1489,37 @@
   },
   {
     "file": "mc-commands-tree.png",
-    "caption": "Minecraft servers: Every command, walking effect give through the server's own command tree with a control per argument (sample data)",
+    "caption": "Minecraft servers: Every command, walking effect give through the server\u0027s own command tree with a control per argument (sample data)",
     "width": 2088,
     "height": 1576
   },
   {
     "file": "mc-commands-favourites.png",
     "caption": "Minecraft servers: favourite commands at the top of the task gallery, and the weather task (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-commands-item-components.png",
+    "caption": "Minecraft servers: a give command with the item component editor: custom name, lore, enchantments with levels, damage, unbreakable and a generic component from the version\u0027s component list (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-commands-item-components-more.png",
+    "caption": "Minecraft servers: the lower half of the item component editor: damage, unbreakable, custom model data and the generic component row with max_stack_size added from the version\u0027s component list (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-commands-nbt.png",
+    "caption": "Minecraft servers: Every command, summon with its NBT built in a tree: typed keys, a list and a nested compound, with the SNBT it writes (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-commands-plugins.png",
+    "caption": "Minecraft servers: the Plugins and mods group in the task gallery, with a form made from a command\u0027s usage text and labelled as coming from the live server (sample commands)",
     "width": 2088,
     "height": 1576
   },
@@ -830,6 +1568,18 @@
   {
     "file": "mc-schedules.png",
     "caption": "Minecraft servers: schedules (sample data)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-overview-peaks.png",
+    "caption": "Minecraft servers: the peak players today and over seven days, with a bar for each day; a day with no reading is a dash (sample values)",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "mc-worlds-generator.png",
+    "caption": "Minecraft servers: the world generator\u0027s actions with Pause pre-generation beside Generate world and Cancel (sample data)",
     "width": 2088,
     "height": 1576
   },
@@ -883,7 +1633,7 @@
   },
   {
     "file": "mc-create-bedrock.png",
-    "caption": "New server: Bedrock edition, with Mojang's newest Windows server",
+    "caption": "New server: Bedrock edition, with Mojang\u0027s newest Windows server",
     "width": 2088,
     "height": 1576
   },
@@ -906,129 +1656,45 @@
     "height": 1576
   },
   {
-    "file": "datasec-hash-computing.png",
-    "caption": "Hash and verify: reading a 3 GB file, with progress and Cancel",
-    "width": 1520,
-    "height": 992
+    "file": "mc-players-bulk.png",
+    "caption": "Minecraft servers: the player list as a multi-select list, filtered by a regex, with three players chosen and the bulk actions (sample data)",
+    "width": 2088,
+    "height": 1576
   },
   {
-    "file": "datasec-hash-ready.png",
-    "caption": "Hash and verify: the SHA-256 in groups of eight, ready for a pasted checksum",
-    "width": 1520,
-    "height": 946
+    "file": "mc-ssh-players.png",
+    "caption": "Minecraft servers: a stopped server on an SSH host; its player files are read and changed over SSH (sample host)",
+    "width": 2088,
+    "height": 1576
   },
   {
-    "file": "datasec-hash-match.png",
-    "caption": "Hash and verify: it matches the publisher's checksum",
-    "width": 1520,
-    "height": 1094
+    "file": "mc-ssh-mods.png",
+    "caption": "Minecraft servers: the mods folder of an SSH host, listed with switches and Remove (sample host)",
+    "width": 2088,
+    "height": 1576
   },
   {
-    "file": "datasec-hash-mismatch.png",
-    "caption": "Hash and verify: it does not match, with the first differing group marked",
-    "width": 1520,
-    "height": 1366
+    "file": "mc-ssh-worlds.png",
+    "caption": "Minecraft servers: the world folders of an SSH host with their sizes and Download ZIP (sample host)",
+    "width": 2088,
+    "height": 1576
   },
   {
-    "file": "datasec-signed-valid.png",
-    "caption": "Who signed this?: a signed system file, valid, with its certificate chain",
-    "width": 1560,
-    "height": 1316
+    "file": "mc-bedrock-players.png",
+    "caption": "Minecraft servers: a Bedrock server\u0027s players from allowlist.json and permissions.json (sample data)",
+    "width": 2088,
+    "height": 1576
   },
   {
-    "file": "datasec-signed-none.png",
-    "caption": "Who signed this?: a file that is not signed",
-    "width": 1560,
-    "height": 782
+    "file": "mc-bedrock-addons.png",
+    "caption": "Minecraft servers: Bedrock add-ons with a switch each, install, undo and remove (sample data)",
+    "width": 2088,
+    "height": 1576
   },
   {
-    "file": "datasec-signed-broken.png",
-    "caption": "Who signed this?: the file changed after it was signed",
-    "width": 1560,
-    "height": 697
-  },
-  {
-    "file": "datasec-signed-untrusted.png",
-    "caption": "Who signed this?: signed, but the issuer is not trusted on this computer",
-    "width": 1560,
-    "height": 1137
-  },
-  {
-    "file": "datasec-cert-valid.png",
-    "caption": "Certificate inspector: a valid certificate with its countdown",
-    "width": 1560,
-    "height": 1137
-  },
-  {
-    "file": "datasec-cert-expiring.png",
-    "caption": "Certificate inspector: expiring soon",
-    "width": 1560,
-    "height": 1285
-  },
-  {
-    "file": "datasec-cert-expired.png",
-    "caption": "Certificate inspector: expired",
-    "width": 1560,
-    "height": 1285
-  },
-  {
-    "file": "datasec-cert-password.png",
-    "caption": "Certificate inspector: a PKCS#12 file asks for its password",
-    "width": 1560,
-    "height": 745
-  },
-  {
-    "file": "datasec-cert-convert.png",
-    "caption": "Certificate inspector: convert to PKCS#12 with the private key and a new password",
-    "width": 1560,
-    "height": 1113
-  },
-  {
-    "file": "datasec-data-table.png",
-    "caption": "Data viewer: a valid CSV as a table with the conversion options",
-    "width": 1600,
-    "height": 1600
-  },
-  {
-    "file": "datasec-data-done.png",
-    "caption": "Data viewer: converted, with the size and how numbers were typed",
-    "width": 1600,
-    "height": 1507
-  },
-  {
-    "file": "datasec-data-error.png",
-    "caption": "Data viewer: invalid JSON with line, column and context",
-    "width": 1600,
-    "height": 1034
-  },
-  {
-    "file": "datasec-data-text.png",
-    "caption": "Data viewer: YAML in the text view",
-    "width": 1600,
-    "height": 1328
-  },
-  {
-    "file": "datasec-encoding-batch.png",
-    "caption": "Encoding and line endings: a batch of four, with what each file is and will become",
-    "width": 1680,
-    "height": 1516
-  },
-  {
-    "file": "datasec-encoding-mixed.png",
-    "caption": "Encoding and line endings: a file that mixes line endings",
-    "width": 1680,
-    "height": 1656
-  },
-  {
-    "file": "datasec-encoding-done.png",
-    "caption": "Encoding and line endings: converted, with Undo from backups",
-    "width": 1680,
-    "height": 1270
-  },
-  {
-    "file": "datasec-encoding-error.png",
-    "caption": "Encoding and line endings: a byte that is not valid stops the file, nothing is written",
-    "width": 1680,
-    "height": 847
+    "file": "mc-bedrock-worlds.png",
+    "caption": "Minecraft servers: Bedrock worlds with sizes, Download ZIP and Import a world (sample data)",
+    "width": 2088,
+    "height": 1576
   }
 ]
