@@ -448,6 +448,7 @@ namespace MonitoringTools.Core
             AddArchiveDisk(t);
             AddDataSec(t);
             AddMedia(t);
+            AddSmart(t);
             return t;
         }
 

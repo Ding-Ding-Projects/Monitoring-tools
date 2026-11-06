@@ -46,6 +46,27 @@ namespace MonitoringTools.UI
                 await Shot(pin, "window-pinned-table", "A table pinned on screen, on top of everything", 800);
                 pin.Close();
 
+                PasteQueue.Toggle();
+                foreach (var t in new[] { "Alex Chen", "alex@example.com", "+1 416 555 0134", "42 Example Street" }) PasteQueue.Take(ClipItem.FromText(t));
+                await Shot(PasteQueue.Current, "window-paste-queue", "The paste queue: copy several things, then each Ctrl+V pastes the next", 900);
+                PasteQueue.Toggle();
+
+                var cs = Dialogs.ClipboardSettingsDialog.Open();
+                await Shot(cs, "dialog-clipboard-settings", "Clipboard settings: what lookups send where, kinds, the secret guard and shortcuts", 1100);
+                cs.Close();
+                var sd = Dialogs.SnippetsDialog.Open();
+                await Shot(sd, "dialog-snippets", "Snippets with fill-ins and a live preview", 1000);
+                sd.Close();
+                var rd = Dialogs.RecipesDialog.Open();
+                await Shot(rd, "dialog-recipes", "Transform recipes: steps, a live result and Show on text toasts", 1000);
+                rd.Close();
+                Settings.Current.AppRules.Add(new global::MonitoringTools.Clip.Smart.AppRule { App = "msedge", Toast = "show", Auto = "strip" });
+                Settings.Current.AppRules.Add(new global::MonitoringTools.Clip.Smart.AppRule { App = "KeePassXC", Toast = "never" });
+                var ru = Dialogs.RulesDialog.Open();
+                await Shot(ru, "dialog-rules", "Per-app rules: toast, history only or never, and one automatic action", 1000);
+                ru.Close();
+                Settings.Current.AppRules.Clear();
+
                 var d = Dialogs.ConversionsDialog.Open("5 kg");
                 await Shot(d, "dialog-conversions", "Quick conversions: every unit at once, click any result to copy it", 1100);
                 d.SetText("72°F");

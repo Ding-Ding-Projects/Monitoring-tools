@@ -150,6 +150,14 @@ namespace MonitoringTools.UI
             Toggle("Momentum", "modes", () => s.AdhdMomentum, v => { s.AdhdMomentum = v; Modes.NotifyChanged(); }, "ADHD mode · reopen on the page you left");
 
             Act("Quick conversions", Icons.Lines, () => Dialogs.ConversionsDialog.Open(""), "Every unit at once, each one copyable (Ctrl+Shift+Alt+U)", "Clipboard");
+            Act("Clipboard history", Icons.Clipboard, () => HistoryPopup.Toggle(), "Every copy with a preview (" + Settings.Current.HotkeyHistory + ")", "Clipboard");
+            Act("Clipboard settings", Icons.Clipboard, () => Dialogs.ClipboardSettingsDialog.Open(), "Kinds, lookups, the secret guard and shortcuts", "Clipboard");
+            Act("Snippets", Icons.Code, () => Dialogs.SnippetsDialog.Open(), "Type a trigger anywhere and it becomes text", "Clipboard");
+            Act("Transform recipes", Icons.Wand, () => Dialogs.RecipesDialog.Open(), "Chains of text changes in one press", "Clipboard");
+            Act("Per-app rules", Icons.Shield, () => Dialogs.RulesDialog.Open(), "What happens to copies from a particular app", "Clipboard");
+            Act("Paste queue", Icons.Lines, () => PasteQueue.Toggle(), "Copy several things, paste them in order (" + Settings.Current.HotkeyQueue + ")", "Clipboard");
+            Act("Collect mode", Icons.Plus, ClipPower.ToggleCollect, "Every copy joins one note (" + Settings.Current.HotkeyCollect + ")", "Clipboard");
+            Act("Undo the clipboard", Icons.Restart, ClipPower.Undo, "Put back what was there before (" + Settings.Current.HotkeyUndo + ")", "Clipboard");
             Act("Extensions", Icons.Wand, () => Dialogs.ExtensionsDialog.Open(), "Add kinds of copies and buttons, and choose what they may do", "Clipboard");
             Act("Test connection now", Icons.Wifi, () => App.Net.ProbeNow());
             Act("Check public IP now", Icons.Globe, async () => { await App.PublicIp.CheckAsync(); Go("network", "Public IP"); });

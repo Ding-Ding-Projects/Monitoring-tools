@@ -9,6 +9,7 @@ Everything that happens when you copy something: the toast that slides in, the a
 | [Smart copies](smart-copies.md) | The 30 kinds of copied text the app recognises, and the tiles and buttons each one gets |
 | [Quick conversions](conversions.md) | Every unit of an amount at once, each one copyable |
 | [Lookups and the secret guard](lookups-and-secrets.md) | What automatic lookups send where, and how copied secrets are kept safe |
+| [Clipboard power features](power-features.md) | History with previews on Win+Shift+V, plain text paste, undo, the paste queue, pins, collect mode, snippets, recipes, per-app rules and clipboard settings |
 | [Extensions](extensions.md) | Managing extensions, and writing your own with extension.json and one line of JSON |
 
 Copies that password managers mark as private are skipped. History stays in memory only.

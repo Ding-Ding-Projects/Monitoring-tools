@@ -27,6 +27,7 @@ namespace MonitoringTools.UI
 
         /// <summary>True once pasting has started, so each Ctrl+V moves the queue on.</summary>
         public static bool Pasting => _win != null && _win._pasting;
+        internal static PasteQueue Current => _win;
         private bool _pasting;
 
         public static void Toggle()

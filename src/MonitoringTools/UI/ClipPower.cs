@@ -28,8 +28,11 @@ namespace MonitoringTools.UI
 
         // ------------------------------------------------------------------ start and shortcuts
 
+        private static bool _started;
+
         public static void Start()
         {
+            _started = true;
             _matcher.Snippets = () => Settings.Current.SnippetsOn ? Settings.Current.Snippets : new List<Snippet>();
             RegisterAll();
             UpdateHook();
@@ -37,6 +40,7 @@ namespace MonitoringTools.UI
 
         public static void RegisterAll()
         {
+            if (!_started) return;   // self-tests and captures never take global shortcuts
             if (_hotkeys == null)
             {
                 _hotkeys = new HwndSource(new HwndSourceParameters("MonitoringTools.Hotkeys") { ParentWindow = new IntPtr(-3), Width = 0, Height = 0 });
@@ -79,6 +83,7 @@ namespace MonitoringTools.UI
         /// <summary>The keyboard hook runs only while snippets have triggers or the paste queue is pasting.</summary>
         public static void UpdateHook()
         {
+            if (!_started) return;
             bool need = (Settings.Current.SnippetsOn && Settings.Current.Snippets.Any(s => !string.IsNullOrEmpty(s.Trigger))) || PasteQueue.Pasting;
             if (need && _hook == null)
             {
