@@ -6,7 +6,13 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.60, up to `e1e0c73`.
+Commits after v1.0.61, up to `076561d`.
+
+- Record v1.0.60 figures and changelog ([`076561d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/076561d6aad6f4332fa4b2e5dcd025807ce43e8b))
+
+## 1.0.61 (2026-11-05)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.61)
 
 - Record the real virtual disk fix in the handoff and closeout prompt ([`e1e0c73`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e1e0c73833f034df8f91a933577329c1e6f1ebaf))
 
