@@ -43,7 +43,7 @@ namespace MonitoringTools.UI
                 case ClipKind.Json: Json(item.Text, list); break;
                 case ClipKind.Markdown: MarkdownActions(item.Text, list); TextActions(item.Text, list); break;
                 case ClipKind.Files: Files(item, list); DataSecActions.Add(item, list); MediaActions.Add(item, list); break;
-                case ClipKind.Image: Bitmap(item, list); list.Add(A("Pin on screen", Icons.Image, () => PinWindow.Show(item), done: "Pinned")); if (item.Image != null) list.Add(new ToastAction { Label = "Read the text", Icon = Icons.Text, HandsOff = true, Tip = "Finds text and QR codes in the picture, on this PC", Run = () => Dialogs.PictureTextDialog.Open(item.Image) }); break;
+                case ClipKind.Image: Bitmap(item, list); list.Add(A("Pin on screen", Icons.Image, () => PinWindow.Show(item), done: "Pinned")); if (item.Image != null) list.Add(new ToastAction { Label = "Read the text", Icon = Icons.Text, HandsOff = true, Tip = "Finds text and QR codes in the picture, on this PC", Run = () => Dialogs.PictureTextDialog.Open(item.Image) }); if (item.Image != null) list.Add(new ToastAction { Label = "Blur private details", Icon = Icons.Shield, HandsOff = true, Tip = "Blurs emails, numbers and faces and copies the result, on this PC", Run = () => _ = Dialogs.PictureTextDialog.Open(item.Image).BlurAndCopy() }); break;
                 case ClipKind.Audio: AudioClip(item, list); break;
                 default:
                     SmartActions.Add(item, list);

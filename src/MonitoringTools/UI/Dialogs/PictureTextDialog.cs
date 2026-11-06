@@ -65,12 +65,14 @@ namespace MonitoringTools.UI.Dialogs
             {
                 ("Choose every line", null, () => { for (int i = 0; i < _lines.Count; i++) _chosen.Add(i); Repaint(); }),
                 ("Search the web for the text", null, () => SmartActions.Open("https://www.bing.com/search?q=" + Uri.EscapeDataString(_text.Text.Length > 300 ? _text.Text.Substring(0, 300) : _text.Text))),
+                ("Blur emails, numbers and faces, then copy", "Ctrl+B", () => _ = BlurAndCopy()),
                 ("Save the picture", null, SavePicture),
                 ("Read again", null, () => _ = ReadAsync()),
             };
             var body = new StackPanel();
             body.Children.Add(g);
             body.Children.Add(SmartDialogParts.ActionBar(more, "Reading…", new[] { pin }, _primary, "Ctrl+Enter", out _status));
+            PreviewKeyDown += (o, e) => { if (e.Key == System.Windows.Input.Key.B && System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.Control) { e.Handled = true; _ = BlurAndCopy(); } };
             ShowView("form", body, 900, "Text and codes in this picture", img.PixelWidth + " × " + img.PixelHeight + " · read on this PC, nothing uploaded", Icons.Image, Ui.Res("B.Mint"), Ui.Res("B.MintWash"));
         }
 
@@ -136,6 +138,77 @@ namespace MonitoringTools.UI.Dialogs
             { var open = Ui.Button("Open the link", () => SmartActions.Open(text), "Btn.Ghost", Icons.Link); open.Margin = new Thickness(8, 0, 0, 0); row.Children.Add(open); }
             sp.Children.Add(row);
             _qr.Content = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(18), Padding = new Thickness(16, 12, 16, 14), Margin = new Thickness(0, 12, 0, 0), Child = sp };
+        }
+
+        /// <summary>Copies a version of the picture with email addresses, long numbers, phone numbers and faces blurred,
+        /// ready to share. Worked out on this PC.</summary>
+        internal async Task BlurAndCopy()
+        {
+            _status.Text = "Blurring…";
+            var boxes = new List<Rect>();
+            try
+            {
+                foreach (var (text, box) in await OcrWords(_img))
+                    if (Regex.IsMatch(text, @"@[\w-]+\.|\d{3,}[\d\s\-().]{4,}|\b\d{6,}\b|[A-Z]{2}\d{2}[A-Z0-9]{10,}")) boxes.Add(box);
+            }
+            catch { }
+            try { boxes.AddRange(await Faces(_img)); } catch { }
+            var dv = new DrawingVisual();
+            using (var dc = dv.RenderOpen())
+            {
+                dc.DrawImage(_img, new Rect(0, 0, _img.PixelWidth, _img.PixelHeight));
+                foreach (var b in boxes)
+                {
+                    var r = Rect.Inflate(b, 4, 4);
+                    r.Intersect(new Rect(0, 0, _img.PixelWidth, _img.PixelHeight));
+                    if (r.IsEmpty) continue;
+                    var crop = new CroppedBitmap(_img, new Int32Rect((int)r.X, (int)r.Y, Math.Max(1, (int)r.Width), Math.Max(1, (int)r.Height)));
+                    var tiny = new TransformedBitmap(crop, new ScaleTransform(Math.Min(1, 6 / Math.Max(1, r.Width)), Math.Min(1, 6 / Math.Max(1, r.Height))));
+                    var group = new DrawingGroup(); RenderOptions.SetBitmapScalingMode(group, BitmapScalingMode.NearestNeighbor);
+                    group.Children.Add(new ImageDrawing(tiny, r));
+                    dc.DrawDrawing(group);
+                }
+            }
+            var rtb = new RenderTargetBitmap(_img.PixelWidth, _img.PixelHeight, 96, 96, PixelFormats.Pbgra32);
+            rtb.Render(dv); rtb.Freeze();
+            ClipboardWatcher.SetImage(rtb);
+            _status.Text = boxes.Count == 0 ? "Nothing private found, so the picture was copied as it is." : "Blurred " + boxes.Count + (boxes.Count == 1 ? " area" : " areas") + " and copied the picture. Check it before you share it.";
+        }
+
+        private static async Task<List<(string, Rect)>> OcrWords(BitmapSource img)
+        {
+            var engine = Windows.Media.Ocr.OcrEngine.TryCreateFromUserProfileLanguages() ?? throw new InvalidOperationException("no recognition language");
+            var conv = new FormatConvertedBitmap(img, PixelFormats.Bgra32, null, 0);
+            int w = conv.PixelWidth, h = conv.PixelHeight; var px = new byte[w * 4 * h]; conv.CopyPixels(px, w * 4, 0);
+            var buffer = System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeBufferExtensions.AsBuffer(px);
+            using var bmp = Windows.Graphics.Imaging.SoftwareBitmap.CreateCopyFromBuffer(buffer, Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8, w, h, Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied);
+            var res = await engine.RecognizeAsync(bmp);
+            var list = new List<(string, Rect)>();
+            foreach (var line in res.Lines)
+            {
+                list.Add((line.Text, Union(line.Words.Select(x => x.BoundingRect))));
+                foreach (var word in line.Words) list.Add((word.Text, new Rect(word.BoundingRect.X, word.BoundingRect.Y, word.BoundingRect.Width, word.BoundingRect.Height)));
+            }
+            return list;
+        }
+
+        private static Rect Union(IEnumerable<Windows.Foundation.Rect> rs)
+        {
+            Rect u = Rect.Empty;
+            foreach (var r in rs) u.Union(new Rect(r.X, r.Y, r.Width, r.Height));
+            return u.IsEmpty ? new Rect(0, 0, 1, 1) : u;
+        }
+
+        private static async Task<List<Rect>> Faces(BitmapSource img)
+        {
+            if (!Windows.Media.FaceAnalysis.FaceDetector.IsSupported) return new List<Rect>();
+            var detector = await Windows.Media.FaceAnalysis.FaceDetector.CreateAsync();
+            var conv = new FormatConvertedBitmap(img, PixelFormats.Gray8, null, 0);
+            int w = conv.PixelWidth, h = conv.PixelHeight; var px = new byte[w * h]; conv.CopyPixels(px, w, 0);
+            var buffer = System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeBufferExtensions.AsBuffer(px);
+            using var bmp = Windows.Graphics.Imaging.SoftwareBitmap.CreateCopyFromBuffer(buffer, Windows.Graphics.Imaging.BitmapPixelFormat.Gray8, w, h);
+            var faces = await detector.DetectFacesAsync(bmp);
+            return faces.Select(f => new Rect(f.FaceBox.X, f.FaceBox.Y, f.FaceBox.Width, f.FaceBox.Height)).ToList();
         }
 
         private void SavePicture()

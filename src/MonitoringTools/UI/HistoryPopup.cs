@@ -112,7 +112,8 @@ namespace MonitoringTools.UI
 
             var root = new DockPanel();
             DockPanel.SetDock(head, Dock.Top); DockPanel.SetDock(_kinds, Dock.Top);
-            var foot = Ui.Mono("Enter paste · Shift+Enter plain · Ctrl+P pin · Ctrl+Q queue · Delete remove · Esc close", Ui.Res("B.TextSoft"), 11);
+            var foot = Ui.Mono(Timeline() + "   ·   Enter paste · Shift+Enter plain · Ctrl+P pin · Ctrl+Q queue · Delete remove · Esc close", Ui.Res("B.TextSoft"), 11);
+            foot.TextTrimming = TextTrimming.CharacterEllipsis;
             foot.Margin = new Thickness(4, 10, 0, 0);
             DockPanel.SetDock(foot, Dock.Bottom);
             root.Children.Add(head); root.Children.Add(_kinds); root.Children.Add(foot); root.Children.Add(grid);
@@ -122,6 +123,16 @@ namespace MonitoringTools.UI
                 BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1), Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"], Child = root,
             };
             Fill();
+        }
+
+        /// <summary>Today in one line: how many copies, of what, and from which app most.</summary>
+        internal static string Timeline()
+        {
+            var h = App.History;
+            var today = h.Items.Where(i => i.At.Date == DateTime.Today).ToList();
+            if (today.Count == 0) return "No copies yet today";
+            var top = today.Where(i => i.SourceApp != null).GroupBy(i => i.SourceApp, StringComparer.OrdinalIgnoreCase).OrderByDescending(g => g.Count()).FirstOrDefault();
+            return h.Today + (h.Today == 1 ? " copy" : " copies") + " today: " + h.TextCount + " text, " + h.LinkCount + " links, " + h.FileCount + " files, " + h.MediaCount + " media" + (top != null ? " · most from " + top.Key : "");
         }
 
         private bool _keepOpen;

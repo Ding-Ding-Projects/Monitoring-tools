@@ -86,6 +86,17 @@ Choose what happens to copies from a particular app:
 
 **Pick a running app** (`Ctrl+P`) lists the apps that have a window open. Password managers that mark their copies as private are never kept, whatever the rules say.
 
+## Text in pictures, and blurring before you share
+
+When you copy a picture, the toast offers **Read the text** and **Blur private details**.
+
+- **Read the text** opens the picture with every line of text it found outlined. Tap lines to choose them, then **Copy**. A QR code in the picture is read too, with **Open the link** for web links. Recognition uses Windows' own text recognition in your Windows language, on this PC.
+- **Blur private details** (also `Ctrl+B` in that window) pixelates email addresses, long numbers, phone numbers, bank numbers and faces, and puts the blurred copy on the clipboard. Check the result before you share it: recognition can miss things.
+
+## Today at a glance
+
+The foot of the history window shows how many copies you made today, how many were text, links, files and media, and which app you copied from most.
+
 ## Ask your local AI
 
 Text toasts offer **Explain with your local AI**, and for longer text **Summarise** and **Rewrite more simply**. They use the first model installed in Ollama on this PC; see [Ollama](../ollama/README.md). Nothing is sent anywhere else.
