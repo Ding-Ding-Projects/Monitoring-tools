@@ -10,6 +10,7 @@ namespace MonitoringTools.Core
         private static void AddArchiveDisk(Dictionary<string, string> t)
         {
             void Add(string en, string yue) => t.TryAdd(en, yue);
+            Add("The disk path, folder or label has characters the Windows disk tools cannot read on this computer.", "磁碟路徑、資料夾或者標籤有啲字，呢部電腦嘅 Windows 磁碟工具讀唔到。");
 
             // ---- toast buttons
             Add("Archive…", "壓縮…"); Add("Put in a virtual disk…", "放入虛擬磁碟…");
@@ -148,6 +149,7 @@ namespace MonitoringTools.Core
         private static void AddArchiveDiskPatterns(List<(Regex, Func<Match, string>)> p)
         {
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => m.Result(yue)));
+            Add(@"^Windows disk tools cannot read the character (.+) on this computer\. Use a name, folder and label without it\.$", "呢部電腦嘅 Windows 磁碟工具讀唔到「$1」呢個字。請用冇呢個字嘅名、資料夾同標籤。");
             Add(@"^(\d+) items? · counting…$", "$1 個項目 · 點算緊…");
             Add(@"^(\d+) items? from (.+) · (.+)$", "$1 個項目，來自 $2 · $3");
             Add(@"^(\d+) items? from (.+) · (.+) · only the first 250,000 files counted$", "$1 個項目，來自 $2 · $3 · 只點算咗頭 250,000 個檔案");

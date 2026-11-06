@@ -164,8 +164,11 @@ namespace MonitoringTools.Core.Disks
             var file = Path.Combine(Path.GetTempPath(), "mt-vhd-" + Guid.NewGuid().ToString("N") + ".txt");
             try
             {
-                File.WriteAllText(file, script, Encoding.Unicode);   // diskpart reads Unicode scripts, so a folder or label with accents survives
-                var psi = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "diskpart.exe"), "/s \"" + file + "\"") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+                // diskpart reads a script in the console (OEM) code page; a UTF-16 script makes it print its help and fail.
+                var enc = VhdEngine.ScriptEncoding();
+                try { File.WriteAllBytes(file, enc.GetBytes(script)); }
+                catch (EncoderFallbackException) { return (-2, "The disk path, folder or label has characters the Windows disk tools cannot read on this computer."); }
+                var psi = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "diskpart.exe"), "/s \"" + file + "\"") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, StandardOutputEncoding = enc, StandardErrorEncoding = enc };
                 using var p = Process.Start(psi);
                 var o = p.StandardOutput.ReadToEndAsync(); var e = p.StandardError.ReadToEndAsync();
                 if (!p.WaitForExit(15 * 60 * 1000)) { try { p.Kill(true); } catch { } return (-1, "diskpart did not finish in 15 minutes"); }

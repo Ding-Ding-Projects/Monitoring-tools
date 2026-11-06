@@ -139,6 +139,21 @@ namespace MonitoringTools.UI
             });
 
             // ---------------------------------------------------------------- real archives, read back independently
+            await CheckAsync("disk: diskpart scripts are written in the console code page, and a name it cannot carry is refused before the consent prompt", () =>
+            {
+                // diskpart rejects a UTF-16 script (it prints its help and exits 0x80070057), which is how real disks failed before
+                var enc = VhdEngine.ScriptEncoding();
+                if (enc is UnicodeEncoding || enc.CodePage == 1200 || enc.CodePage == 65001) return Task.FromResult("scripts would be written as " + enc.WebName);
+                var line = "select vdisk file=\"C:\\x.vhdx\"\r\n";
+                var bytes = enc.GetBytes(line);
+                if (bytes.Length != line.Length || bytes[0] != (byte)'s') return Task.FromResult($"the script bytes are not one byte per character: {bytes.Length} for {line.Length}");
+                if (VhdEngine.ScriptUnreadable("Plain Disk 1") != null) return Task.FromResult("plain ASCII was reported unreadable");
+                var r = new VhdRequest { File = @"C:\Temp\ok.vhdx", SizeMb = 64, FileSystem = "NTFS", MountMode = "letter", Letter = "Z", Label = "盤" };
+                var why = VhdEngine.Validate(r, checkFolderState: false);
+                if (VhdEngine.ScriptUnreadable("盤") != null && (why == null || !why.Contains("cannot read the character 盤"))) return Task.FromResult("a label diskpart cannot read was not refused: " + why);
+                return Task.FromResult<string>(null);
+            });
+
             await CheckAsync("archive: a zip written by System.IO.Compression holds exactly the right files, byte for byte, and its test step passes", async () =>
             {
                 var scan = ArchiveScan.Run(new[] { tree });

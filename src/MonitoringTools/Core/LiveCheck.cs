@@ -51,6 +51,7 @@ namespace MonitoringTools.Core
                 }
                 var onlyFiles = Environment.GetEnvironmentVariable("MT_LIVE_ONLY");
                 if (onlyFiles is "minecraft-ssh-files" or "minecraft-bedrock-files" or "minecraft-bedrock-docker") { await McFilesLive(results, onlyFiles); return; }
+                if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "vhd") { await Check(results, "virtual disk: a real VHDX is created, formatted NTFS, written by this account, verified, detached and deleted", () => VirtualDisk(dir)); return; }   // shows the Windows consent prompt
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "forge") { await Check(results, "forge: publishing creates the repository and pushes the commit", () => Forge(dir)); return; }   // only the forge publish, against a server named by MT_LIVE_FORGE_*
                 if (onlyFiles is "minecraft-bedrock-ssh" or "minecraft-ssh-catalogue" or "minecraft-bulk-bot") { await McFilesLive2(results, onlyFiles); return; }
                 if (Environment.GetEnvironmentVariable("MT_LIVE_ONLY") == "minecraft-commands") { await McCommands(results); return; }   // the command builder on a real server
@@ -187,6 +188,69 @@ namespace MonitoringTools.Core
         }
 
         // ------------------------------------------------------------------ forge
+
+        /// <summary>MT_LIVE_ONLY=vhd: the whole virtual disk route for real, through the same session the disk window uses.
+        /// The elevated helper is started with the Windows consent prompt, which the person answers; nothing here answers it.</summary>
+        private static async Task<string> VirtualDisk(string dir)
+        {
+            var work = Path.Combine(dir, "vhd-live");
+            Directory.CreateDirectory(work);
+            var src = Path.Combine(work, "source");
+            Directory.CreateDirectory(Path.Combine(src, "inner"));
+            var rnd = new Random(7);
+            var files = new Dictionary<string, byte[]>
+            {
+                ["a.txt"] = Encoding.UTF8.GetBytes("virtual disk live check\n"),
+                [Path.Combine("inner", "b.bin")] = new byte[3 * 1024 * 1024],
+                ["c.txt"] = Encoding.UTF8.GetBytes(new string('x', 70000)),
+            };
+            rnd.NextBytes(files[Path.Combine("inner", "b.bin")]);
+            foreach (var kv in files) File.WriteAllBytes(Path.Combine(src, kv.Key), kv.Value);
+
+            var letter = Disks.VhdEngine.FreeLetters().LastOrDefault();
+            if (letter == null) throw new Skip("No free drive letter.");
+            var r = new Disks.VhdRequest
+            {
+                File = Disks.VhdEngine.UniqueFile(work, "live-check", true),
+                SizeMb = 64, Fixed = false, FileSystem = "NTFS", Label = "LIVECHECK", MountMode = "letter", Letter = letter,
+            };
+            var bad = Disks.VhdEngine.Validate(r);
+            if (bad != null) return "the request was refused before starting: " + bad;
+            var session = new Disks.VhdSession(r);
+            try
+            {
+                if (!await session.StartAsync())
+                    return session.Declined ? "the Windows consent prompt was declined or timed out (1223); nothing was created" : "the helper could not start: " + session.LaunchError;
+                var ready = await session.WaitForAsync(s => s.Phase == "ready" || s.Phase == "error", TimeSpan.FromMinutes(5), CancellationToken.None);
+                if (ready == null || ready.Phase != "ready") return "the disk did not become ready: " + (ready == null ? "no status" : ready.Phase + ": " + ready.Message + " " + ready.Error + "\n" + ready.Log);
+                var root = ready.Mount;
+                if (!new DriveInfo(root).IsReady || new DriveInfo(root).DriveFormat != "NTFS") return "the volume at " + root + " is not a ready NTFS volume";
+
+                // the copy runs in this process, unelevated, so it also proves the access grant
+                var copy = await Disks.VhdCopy.RunAsync(new[] { src }, root, null, CancellationToken.None);
+                if (!copy.Ok) return "the copy failed: " + copy.Error + (copy.Mismatches.Count > 0 ? " (" + string.Join(", ", copy.Mismatches) + ")" : "");
+                foreach (var kv in files)
+                {
+                    var onDisk = Path.Combine(root, "source", kv.Key);
+                    if (!File.Exists(onDisk)) return "missing on the disk: " + onDisk;
+                    if (!File.ReadAllBytes(onDisk).AsSpan().SequenceEqual(kv.Value)) return "different on the disk: " + onDisk;
+                }
+                var label = new DriveInfo(root).VolumeLabel;
+
+                var gone = await session.DetachAsync(true);
+                if (gone == null || gone.Phase != "deleted") return "detach and delete did not finish: " + (gone == null ? "no status" : gone.Phase + ": " + gone.Message + " " + gone.Error);
+                if (File.Exists(r.File)) return "the disk file is still there after delete";
+                if (Directory.Exists(root)) return "the drive " + root + " is still present after detach";
+                lock (Note) Note.Append($"created {r.SizeMb} MB VHDX, mounted at {root} ({label}), copied {copy.Files} files ({copy.Bytes} bytes) unelevated, all identical, detached and deleted");
+                return null;
+            }
+            finally
+            {
+                if (session.HelperAlive) { try { await session.DetachAsync(true); } catch { } }
+                session.Cleanup();
+                try { Directory.Delete(work, true); } catch { }
+            }
+        }
 
         private static async Task<string> Forge(string dir)
         {

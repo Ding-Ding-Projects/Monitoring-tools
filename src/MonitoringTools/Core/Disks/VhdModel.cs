@@ -84,6 +84,28 @@ namespace MonitoringTools.Core.Disks
         /// Every check that can be made before the consent prompt. Null means the request can run. Strict on purpose: the
         /// elevated helper runs the same function on the bytes it reads, so a changed request file cannot widen what it does.
         /// </summary>
+        /// <summary>The code page diskpart reads its scripts in: the console (OEM) code page of this computer, not Unicode.</summary>
+        public static Encoding ScriptEncoding()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            int cp; try { cp = GetOEMCP(); } catch { cp = 437; }
+            return Encoding.GetEncoding(cp, EncoderFallback.ExceptionFallback, DecoderFallback.ReplacementFallback);
+        }
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")] private static extern int GetOEMCP();
+
+        /// <summary>The first character in the text that the script code page cannot carry, or null when all of it can.</summary>
+        public static string ScriptUnreadable(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+            var enc = ScriptEncoding();
+            foreach (var ch in text.EnumerateRunes())
+            {
+                try { enc.GetBytes(ch.ToString()); } catch (EncoderFallbackException) { return ch.ToString(); }
+            }
+            return null;
+        }
+
         public static string Validate(VhdRequest r, long? freeOnTargetBytes = null, long contentBytes = 0, long largestFile = 0, bool checkFolderState = true)
         {
             if (r == null || r.Version != 1) return "The request is not one this version understands.";
@@ -95,6 +117,8 @@ namespace MonitoringTools.Core.Disks
             var ext = Path.GetExtension(r.File);
             if (!ext.Equals(".vhd", StringComparison.OrdinalIgnoreCase) && !ext.Equals(".vhdx", StringComparison.OrdinalIgnoreCase)) return "The disk file must end in .vhd or .vhdx.";
             if (!FileSystems.Contains(r.FileSystem)) return "The file system must be NTFS, exFAT or FAT32.";
+            var unreadable = ScriptUnreadable(r.File) ?? ScriptUnreadable(r.Label) ?? (r.MountMode == "folder" ? ScriptUnreadable(r.Folder) : null);
+            if (unreadable != null) return $"Windows disk tools cannot read the character {unreadable} on this computer. Use a name, folder and label without it.";
             if (r.SizeMb < MinMb) return $"The disk must be at least {MinMb} MB.";
             if (r.Vhdx && r.SizeMb > MaxVhdxMb) return "VHDX goes up to 64 TB.";
             if (!r.Vhdx && r.SizeMb > MaxVhdMb) return "VHD goes up to 2,040 GB. Use VHDX for a bigger disk.";
