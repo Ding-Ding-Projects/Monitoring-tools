@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Runs the clipboard detectors on any machine: dotnet run -project tests/SmartTests -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\src\MonitoringTools\Clip\Smart\*.cs" Link="Smart\%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>
