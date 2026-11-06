@@ -54,9 +54,13 @@ checked; anything unchecked is labelled.
 - **Installed copy:** still 1.0.40 on the maintainer's computer at the time of writing; it checks
   every 6 hours in that version, and its one check today was refused by GitHub's rate limit.
 - **Open:** the intermittent full-run failures above; only ISO 9660 and Joliet images list
-  without mounting; a real virtual disk test needs the maintainer to approve the Windows consent
-  prompt; colour picker, context menu and drawing rows need a physical mouse or pen; Bedrock has no
-  publisher checksum and its Docker image is a community image.
+  without mounting; colour picker, context menu and drawing rows need a physical mouse or pen;
+  Bedrock has no publisher checksum and its Docker image is a community image.
+- **Virtual disk, later the same day:** the first real run (live check `MT_LIVE_ONLY=vhd`, consent
+  prompt approved by the maintainer) found that diskpart rejected the helper's UTF-16 scripts
+  (help text, exit 0x80070057), so no real disk could ever be made. Fixed by writing scripts in the
+  console code page; the live check then created, formatted NTFS, mounted, filled from the
+  unelevated app, verified, detached and deleted a 64 MB VHDX. Archive and disk checks 31 of 31.
 - **Clean-up:** every merged task branch and worktree was removed after an archive of the
   repository was written and verified; only `main` remains locally and on GitHub.
 
