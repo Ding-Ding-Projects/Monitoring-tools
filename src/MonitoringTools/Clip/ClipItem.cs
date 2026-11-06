@@ -44,6 +44,8 @@ namespace MonitoringTools.Clip
         public List<global::MonitoringTools.Clip.Smart.SmartFact> Smart { get; set; } = new List<global::MonitoringTools.Clip.Smart.SmartFact>();
         /// <summary>A key, token or bank number: kept out of history, never looked up, never sent to extensions.</summary>
         public bool Sensitive { get; set; }
+        /// <summary>The app the copy came from (its process name, like "msedge"), when Windows says.</summary>
+        public string SourceApp { get; set; }
         public global::MonitoringTools.Clip.Smart.SmartFact BestFact => Smart.Count > 0 ? Smart[0] : null;
 
         public string FirstFile => Files.Length > 0 ? Files[0] : null;

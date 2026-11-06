@@ -41,6 +41,25 @@ namespace MonitoringTools.UI
                 list.Add(new ToastAction { Label = "Copy all as a list", Icon = Icons.Clipboard, Done = "Copied", Run = () => ClipboardWatcher.SetText(best.AllValuesText()) });
         }
 
+        /// <summary>Recipes shown on text toasts, pin on screen, and asking the local AI about longer text.</summary>
+        public static void AddPowerActions(ClipItem item, List<ToastAction> list)
+        {
+            var text = item.Text ?? "";
+            foreach (var r in Settings.Current.Recipes.Where(r => r.OnToasts && r.Steps.Count > 0))
+            {
+                var rec = r;
+                list.Add(new ToastAction { Label = rec.Name, Icon = Icons.Wand, Done = "Copied", Tip = "Recipe: " + string.Join(" → ", rec.Steps.Select(id => Transforms.Find(id).Label)), Run = () => ClipboardWatcher.SetText(Transforms.Apply(rec, text)) });
+            }
+            list.Add(new ToastAction { Label = "Pin on screen", Icon = Icons.Clipboard, Done = "Pinned", Run = () => PinWindow.Show(item) });
+            if (text.Length >= 400)
+            {
+                list.Add(new ToastAction { Label = "Summarise with your local AI", Icon = Icons.Wand, HandsOff = true, Run = () => _ = AskAi("Summarise this in a few short sentences. Reply with the summary only.", text, "Summary") });
+                list.Add(new ToastAction { Label = "Rewrite more simply", Icon = Icons.Wand, HandsOff = true, Run = () => _ = AskAi("Rewrite this in plain, simple English. Keep the meaning. Reply with the rewrite only.", text, "Rewritten") });
+            }
+            else if (text.Length >= 40)
+                list.Add(new ToastAction { Label = "Explain with your local AI", Icon = Icons.Wand, HandsOff = true, Run = () => _ = AskAi("Explain this briefly and simply.", text, "Explanation") });
+        }
+
         private static string IconFor(SmartDo d) => d switch { SmartDo.Copy => Icons.Clipboard, SmartDo.Open => Icons.Link, SmartDo.Code => Icons.Code, _ => null };
 
         public static void Run(SmartAction a, SmartFact fact, ClipItem item)
@@ -152,7 +171,10 @@ namespace MonitoringTools.UI
             });
         }
 
-        private static async Task Translate(string text)
+        private static Task Translate(string text) => AskAi("Translate this into English. Reply with the translation only.", text, "Translation");
+
+        /// <summary>Asks the first installed Ollama model on this PC. Nothing leaves the PC.</summary>
+        public static async Task AskAi(string instruction, string text, string title)
         {
             string answer = null, error = null;
             try
@@ -163,7 +185,7 @@ namespace MonitoringTools.UI
                 else
                 {
                     using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-                    var body = JsonSerializer.Serialize(new { model, stream = false, prompt = "Translate this into English. Reply with the translation only.\n\n" + text });
+                    var body = JsonSerializer.Serialize(new { model, stream = false, prompt = instruction + "\n\n" + (text.Length > 12000 ? text.Substring(0, 12000) : text) });
                     var r = await http.PostAsync(Ollama.BaseUrl + "/api/generate", new StringContent(body, Encoding.UTF8, "application/json"));
                     using var doc = JsonDocument.Parse(await r.Content.ReadAsStringAsync());
                     answer = doc.RootElement.TryGetProperty("response", out var resp) ? resp.GetString()?.Trim() : null;
@@ -172,8 +194,8 @@ namespace MonitoringTools.UI
             catch (Exception ex) { error = "The local AI is not running. " + ex.Message; }
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                if (answer == null) { Notice("Not translated", error ?? "No answer came back."); return; }
-                App.Toasts.ShowNotice("Translation", answer, App.Toasts.Mint, 15, new List<ToastAction>
+                if (answer == null) { Notice(title + ": no answer", error ?? "No answer came back."); return; }
+                App.Toasts.ShowNotice(title, answer, App.Toasts.Mint, 15, new List<ToastAction>
                 { new ToastAction { Label = "Copy", Icon = Icons.Clipboard, Primary = true, Done = "Copied", Run = () => ClipboardWatcher.SetText(answer) } }, Icons.Text);
             });
         }

@@ -130,6 +130,7 @@ namespace MonitoringTools.Clip
             }
 
             if (item == null) return;
+            try { item.SourceApp = NativeInput.ClipboardApp(); } catch { }
             if (item.Signature == _lastSignature && (DateTime.UtcNow - _lastAt).TotalSeconds < 1.5) return;
             _lastSignature = item.Signature;
             _lastAt = DateTime.UtcNow;

@@ -30,6 +30,22 @@ namespace MonitoringTools.UI
                     await Shot(w, name, caption, 900);
                     w.CloseAnimated(); await Task.Delay(350);
                 }
+                // Clipboard history with a rich preview on every row.
+                foreach (var t in new[] { "https://github.com/Ding-Ding-Projects/Monitoring-tools/releases", "#7CF2C2", "Item\tQty\tPrice\nCable\t2\t12.50\nAdapter\t1\t18.00", "(416) 555-0134", "5 kg", "System.NullReferenceException: Object reference not set\n   at App.Toast.Show() in C:\\src\\Toast.cs:line 42", "Thanks for the review, merging now." })
+                {
+                    var ci = ClipItem.FromText(t); ci.SourceApp = t.StartsWith("http") ? "msedge" : "Teams";
+                    App.History.Add(ci);
+                }
+                var hp = new HistoryPopup(System.IntPtr.Zero);
+                hp.Show();
+                await Shot(hp, "popup-history", "Clipboard history on Win+Shift+V: every row previews what it is", 1200);
+                hp.List.SelectedIndex = 4;
+                await Shot(hp, "popup-history-table", "The picked copy shows large on the right", 700);
+                hp.Close();
+                var pin = PinWindow.Show(ClipItem.FromText("Item\tQty\tPrice\nCable\t2\t12.50\nAdapter\t1\t18.00\nHub\t1\t24.00"));
+                await Shot(pin, "window-pinned-table", "A table pinned on screen, on top of everything", 800);
+                pin.Close();
+
                 var d = Dialogs.ConversionsDialog.Open("5 kg");
                 await Shot(d, "dialog-conversions", "Quick conversions: every unit at once, click any result to copy it", 1100);
                 d.SetText("72°F");

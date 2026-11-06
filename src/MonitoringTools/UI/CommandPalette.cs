@@ -149,7 +149,7 @@ namespace MonitoringTools.UI
             Toggle("One thing at a time", "modes", () => s.AdhdOneThing, v => { s.AdhdOneThing = v; Modes.NotifyChanged(); }, "ADHD mode · one popup on screen at once");
             Toggle("Momentum", "modes", () => s.AdhdMomentum, v => { s.AdhdMomentum = v; Modes.NotifyChanged(); }, "ADHD mode · reopen on the page you left");
 
-            Act("Quick conversions", Icons.Lines, () => Dialogs.ConversionsDialog.Open(""), "Every unit at once, each one copyable (Ctrl+Shift+U)", "Clipboard");
+            Act("Quick conversions", Icons.Lines, () => Dialogs.ConversionsDialog.Open(""), "Every unit at once, each one copyable (Ctrl+Shift+Alt+U)", "Clipboard");
             Act("Extensions", Icons.Wand, () => Dialogs.ExtensionsDialog.Open(), "Add kinds of copies and buttons, and choose what they may do", "Clipboard");
             Act("Test connection now", Icons.Wifi, () => App.Net.ProbeNow());
             Act("Check public IP now", Icons.Globe, async () => { await App.PublicIp.CheckAsync(); Go("network", "Public IP"); });

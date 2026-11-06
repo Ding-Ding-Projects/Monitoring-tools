@@ -43,12 +43,13 @@ namespace MonitoringTools.UI
                 case ClipKind.Json: Json(item.Text, list); break;
                 case ClipKind.Markdown: MarkdownActions(item.Text, list); TextActions(item.Text, list); break;
                 case ClipKind.Files: Files(item, list); DataSecActions.Add(item, list); MediaActions.Add(item, list); break;
-                case ClipKind.Image: Bitmap(item, list); break;
+                case ClipKind.Image: Bitmap(item, list); list.Add(A("Pin on screen", Icons.Image, () => PinWindow.Show(item), done: "Pinned")); break;
                 case ClipKind.Audio: AudioClip(item, list); break;
                 default:
                     SmartActions.Add(item, list);
                     TextActions(item.Text, list);
                     if (item.Text != null && item.Text.Contains('\n')) list.Add(A("SQL IN (…) list", null, () => Set(Clip.Smart.Developer2.InList(item.Text)), done: "Copied"));
+                    if (!item.Sensitive) SmartActions.AddPowerActions(item, list);
                     break;
             }
             ArchiveDiskActions.Add(item, list);

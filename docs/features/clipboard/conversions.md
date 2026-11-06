@@ -7,7 +7,7 @@ Copy an amount and see it in every unit of its kind at once. Click any result to
 ## Open it
 
 - Copy an amount such as `5 kg`. The toast already shows the other units; press **All conversions** for the full window.
-- Or press `Ctrl+Shift+U`, or search **Quick conversions** in the command palette (`Ctrl+Shift+F`).
+- Or press `Ctrl+Shift+Alt+U`, or search **Quick conversions** in the command palette (`Ctrl+Shift+F`).
 
 ## Use it
 

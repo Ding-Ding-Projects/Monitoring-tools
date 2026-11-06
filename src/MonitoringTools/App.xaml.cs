@@ -76,6 +76,7 @@ namespace MonitoringTools
 
             Log.Info($"Agent starting (elevated: {ServiceHost.IsElevated})");
             LoadExtensions();
+            try { UI.ClipPower.Start(); } catch (Exception ex) { Log.Warn("Clipboard shortcuts not started: " + ex.Message); }
             Clip = new ClipboardWatcher();
 
             Clip.Changed += OnClipboard;
@@ -173,8 +174,12 @@ namespace MonitoringTools
 
         private void OnClipboard(ClipItem item)
         {
+            var rule = UI.ClipPower.ApplyRule(item);
+            if (rule == "never") return;
+            if (UI.ClipPower.Take(item)) { if (!item.Sensitive) History.Add(item); return; }
             if (item.Sensitive && Settings.Current.SecretGuard) GuardSecret(item);
             else History.Add(item);
+            if (rule == "quiet") return;
             if (TryApplyCopiedWording(item)) return;
             if (!Modes.ClipboardToastsOn) return;
 
