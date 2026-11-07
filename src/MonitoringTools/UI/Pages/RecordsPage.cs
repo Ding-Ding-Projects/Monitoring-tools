@@ -17,10 +17,11 @@ namespace MonitoringTools.UI
         // The records page. Its content is built in this file only.
         private FrameworkElement RecordsPage()
         {
-            var root = PageRoot("Records", "Records and exports", "Notifications, settings history, exports and the changelog.");
+            var root = PageRoot("Records", "Records and exports", "Notifications, settings history, recorded actions, exports and the changelog.");
             root.Children.Add(RecordsNotifications());
             root.Children.Add(RecordsSettingsHistory());
             root.Children.Add(RecordsLocalHistory());
+            root.Children.Add(RecordsActions());
             root.Children.Add(RecordsExports());
             root.Children.Add(RecordsExportEverything());
             root.Children.Add(RecordsChangelog());

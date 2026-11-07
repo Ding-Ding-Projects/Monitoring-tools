@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using MonitoringTools.Core;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -60,7 +61,7 @@ namespace MonitoringTools.UI
         /// <param name="finish">Runs on the last step's button. Return null on success or a message to show and stay.</param>
         public GuidedForm(string title, IReadOnlyList<GuidedStep> steps, string finishLabel, Func<string> finish, Action cancel, int startStep = 0)
         {
-            _steps = steps; _finish = finish; _cancel = cancel;
+            _steps = steps; _finish = finish; _cancel = cancel; _formTitle = title;
             _built = new FrameworkElement[steps.Count];
             Background = Ui.Res("B.Surface"); CornerRadius = new CornerRadius(28); Padding = new Thickness(22); Margin = new Thickness(0, 0, 0, 16);
             AutomationProperties.SetName(this, title);
@@ -76,7 +77,7 @@ namespace MonitoringTools.UI
             root.Children.Add(_error);
 
             var bar = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
-            _cancelBtn = Ui.Button("Cancel", () => _cancel?.Invoke(), "Btn.Ghost");
+            _cancelBtn = Ui.Button("Cancel", CancelNow, "Btn.Ghost");
             _back = Ui.Button("Back", () => Go(-1), "Btn.Ghost");
             _next = Ui.Button("Next", Next, "Btn.Accent");
             _finishLabel = finishLabel;
@@ -90,12 +91,40 @@ namespace MonitoringTools.UI
             AddHandler(System.Windows.Controls.Primitives.ToggleButton.UncheckedEvent, new RoutedEventHandler((s, e) => ClearStaleError()));
             PreviewKeyDown += (s, e) =>
             {
-                if (e.Key == Key.Escape && !(Keyboard.FocusedElement is TextBox tb && tb.AcceptsReturn)) { e.Handled = true; _cancel?.Invoke(); }
+                if (e.Key == Key.Escape && !(Keyboard.FocusedElement is TextBox tb && tb.AcceptsReturn)) { e.Handled = true; CancelNow(); }
             };
             Show(startStep);
         }
 
         private readonly string _finishLabel;
+        private readonly string _formTitle;
+
+        /// <summary>
+        /// Cancel throws away what was typed, so it is recorded in the local history first, where it can be copied back.
+        /// Only text fields are kept: passwords are never in a text box here, and switches and choices are not work.
+        /// </summary>
+        private void CancelNow()
+        {
+            try
+            {
+                var lines = new List<string>();
+                foreach (var built in _built) if (built != null) CollectTyped(built, lines);
+                if (lines.Count > 0) LocalHistory.RecordDiscard("the " + _formTitle + " form", string.Join("\n", lines));
+            }
+            catch (Exception ex) { Log.Warn("The cancelled form was not recorded: " + ex.Message); }
+            _cancel?.Invoke();
+        }
+
+        private static void CollectTyped(object node, List<string> lines)
+        {
+            if (node is TextBox tb && !tb.IsReadOnly && !string.IsNullOrWhiteSpace(tb.Text))
+            {
+                var name = AutomationProperties.GetName(tb);
+                lines.Add((string.IsNullOrWhiteSpace(name) ? "Text" : name) + ": " + tb.Text);
+                return;
+            }
+            if (node is DependencyObject d) foreach (var child in LogicalTreeHelper.GetChildren(d)) CollectTyped(child, lines);
+        }
 
         private void Show(int i)
         {

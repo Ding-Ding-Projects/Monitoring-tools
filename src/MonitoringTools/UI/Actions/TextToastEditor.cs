@@ -192,6 +192,8 @@ namespace MonitoringTools.UI
             if (!_editing) return;
             _debounce.Stop();
             _editing = false;                  // the text assignment below is not an edit
+            if (!string.Equals(_box.Text, _original, StringComparison.Ordinal))
+                LocalHistory.RecordDiscard("the copied text editor", _box.Text, "Reverted to the text that was copied.");
             _box.Text = _original;
             _box.IsReadOnly = true;
             if (_dirty || _item.Edited || _lastWritten != null)

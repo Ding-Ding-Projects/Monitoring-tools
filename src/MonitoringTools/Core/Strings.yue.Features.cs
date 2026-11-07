@@ -46,6 +46,22 @@ namespace MonitoringTools.Core
             Add("The file is no longer there.", "個檔案已經唔喺度。");
             Add("There is no Base64 text in the file.", "個檔案入面冇 Base64 文字。");
             Add("The Base64 text ends one character short of a whole byte.", "Base64 文字結尾差一個字元先夠一個完整位元組。");
+
+            // recorded actions and discarded changes
+            Add("Notifications, settings history, recorded actions, exports and the changelog.", "通知、設定歷史、記錄咗嘅動作、匯出同更新日誌。");
+            Add("Actions and discarded changes", "動作同捨棄咗嘅改動");
+            Add("Every action this app records, newest first: unsaved changes you discarded, Base64 files it wrote and virtual disk operations. Discarded text is kept so you can copy it back. The record only grows: an undo or a copy-back is added as a new line. It stays on this computer.",
+                "程式記錄低嘅每個動作，最新嘅排先：你捨棄咗嘅未儲存改動、寫好嘅 Base64 檔案同虛擬磁碟操作。捨棄咗嘅文字會保留，你可以複製返出嚟。紀錄只會加唔會減：復原或者複製返都係新加一行。全部留喺呢部電腦。");
+            Add("Actions status", "動作狀態");
+            Add("Nothing recorded yet. Discarding unsaved changes, writing Base64 beside a file or changing a virtual disk adds a line here.", "暫時未有紀錄。捨棄未儲存嘅改動、喺檔案旁邊寫 Base64 或者改虛擬磁碟都會喺度加一行。");
+            Add("Copy it back", "複製返出嚟");
+            Add("The text was not kept for this one.", "呢個冇保留文字。");
+            Add("Unlock the protected history above to read this text.", "先喺上面解鎖受保護嘅紀錄，先睇得到呢段文字。");
+            Add("Copied. The discarded text is on the clipboard.", "已複製。捨棄咗嘅文字而家喺剪貼簿。");
+            Add("Open the record's folder", "開啟紀錄所在資料夾");
+            Add("Reverted to the text that was copied.", "已經還原做當初複製嘅文字。");
+            Add("The text was not kept, because the protected history is locked.", "受保護嘅紀錄鎖住咗，所以冇保留文字。");
+            Add("1 unsaved change.", "1 項未儲存嘅改動。");
         }
 
         private static void AddFeaturesPatterns(List<(Regex, Func<Match, string>)> p)
@@ -59,6 +75,16 @@ namespace MonitoringTools.Core
             Add(@"^(.+) has changed since it was written, so it was left alone\.$", "$1 寫咗之後改過，所以冇郁佢。");
             Add(@"^Byte ([\d,]+) is not Base64 text\.$", "第 $1 個位元組唔係 Base64 文字。");
             Add(@"^There is Base64 text after the padding, at byte ([\d,]+)\.$", "第 $1 個位元組：補位之後仲有 Base64 文字。");
+            Add(@"^Discarded unsaved changes in the copied text editor$", "喺複製文字編輯器捨棄咗未儲存嘅改動");
+            Add(@"^Discarded unsaved changes in the settings of (.+)$", "捨棄咗 $1 設定入面未儲存嘅改動");
+            Add(@"^Discarded unsaved changes in the (.+) form$", "捨棄咗「$1」表格入面未儲存嘅改動");
+            Add(@"^Copied back the text discarded in (.+)$", "複製返喺 $1 捨棄咗嘅文字");
+            Add(@"^Wrote (.+) beside (.+)$", "喺 $2 旁邊寫好 $1");
+            Add(@"^Decoded (.+) to (.+)$", "將 $1 解碼成 $2");
+            Add(@"^Encoded (.+) to (.+)$", "將 $1 編碼成 $2");
+            Add(@"^Undid (.+): moved it to the Recycle Bin$", "復原咗 $1：已經放入資源回收筒");
+            Add(@"^SHA-256 round trip matches\.$", "SHA-256 來回核對一致。");
+            Add(@"^(\d+) unsaved changes\.$", "$1 項未儲存嘅改動。");
         }
     }
 }

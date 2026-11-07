@@ -90,7 +90,11 @@ namespace MonitoringTools.UI.Minecraft
                 text.VerticalAlignment = VerticalAlignment.Center;
                 b.Children.Add(text);
                 var btns = new WrapPanel();
-                btns.Children.Add(Ui.Button("Discard", () => { pending.Clear(); BuildWorkspace(); }, "Btn.Ghost"));
+                btns.Children.Add(Ui.Button("Discard", () =>
+                {
+                    Core.LocalHistory.RecordDiscard("the settings of " + s.Name, string.Join("\n", pending.Select(kv => kv.Key + " = " + kv.Value)), pending.Count == 1 ? "1 unsaved change." : pending.Count + " unsaved changes.");
+                    pending.Clear(); BuildWorkspace();
+                }, "Btn.Ghost"));
                 btns.Children.Add(Ui.Button("Save, apply at next start", () => _ = SaveSettings(s, false), "Btn.Ghost", Icons.Check));
                 btns.Children.Add(Ui.Button("Save and restart", () => _ = SaveSettings(s, true), "Btn.Accent", Icons.Restart));
                 btns.HorizontalAlignment = HorizontalAlignment.Right; btns.Margin = new Thickness(0, 6, 0, 0); b.Children.Add(btns);
