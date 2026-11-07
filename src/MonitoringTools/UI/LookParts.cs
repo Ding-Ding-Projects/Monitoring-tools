@@ -135,7 +135,10 @@ namespace MonitoringTools.UI
             var c = LookShape.Keep(new Border { Height = 58, CornerRadius = new CornerRadius(rCard), Background = B(card), BorderBrush = cardEdge == null ? null : B(cardEdge), BorderThickness = new Thickness(edge), Padding = new Thickness(8) });
             if (shadow > 0) c.Effect = new DropShadowEffect { BlurRadius = 0, ShadowDepth = shadow, Direction = 315, Opacity = 1, Color = Colors.Black };
             var cg = new Grid();
-            var figure = new TextBlock { Text = "16 ms", FontSize = 14, Foreground = B(num), FontFamily = (FontFamily)Application.Current.Resources[l.DisplayFont], FontWeight = l.TitleWeight, VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = HorizontalAlignment.Left };
+            var figure = new TextBlock { FontSize = 14, Foreground = B(num), FontFamily = (FontFamily)Application.Current.Resources[l.DisplayFont], FontWeight = l.TitleWeight, VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = HorizontalAlignment.Left };
+            // marked before it gets its text: the language layer can reach a new text block before the preview is in a window
+            Core.Language.SetLiteral(figure, true);
+            figure.Text = "16 ms";
             cg.Children.Add(numBg == null ? (UIElement)figure : LookShape.Keep(new Border { Background = B(numBg), CornerRadius = new CornerRadius(3), Padding = new Thickness(5, 1, 5, 2), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top, Child = figure }));
             cg.Children.Add(LookShape.Keep(new Border { Width = 36, Height = 13, CornerRadius = new CornerRadius(rBtn), Background = B(btn), BorderBrush = btnEdge == null ? null : B(btnEdge), BorderThickness = new Thickness(btnEdge == null ? 0 : 1.2), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom }));
             c.Child = cg;
