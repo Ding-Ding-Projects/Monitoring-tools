@@ -6,9 +6,23 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.64, up to `753d3f0`.
+Commits after v1.0.66, up to `8472d69`.
 
+- Refresh screenshots for v1.0.66 ([`8472d69`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8472d698c5ef1a7b05ac078a15fe79c8cb34ffe5))
+
+## 1.0.66 (2026-11-06)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.66)
+
+- Keep built-in extension scripts plain ASCII ([`e96ced0`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e96ced04b626b229b02aa0dd6030530b6e9e2e74))
+- Ship eleven built-in extensions ([`054d7b2`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/054d7b211613691cfbdc7710c4ae1145e768b680))
+- Record v1.0.64 figures and changelog ([`21477c7`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/21477c799b46ac47bd6b89753975726031c24cf2))
 - Refresh screenshots for v1.0.64 ([`753d3f0`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/753d3f0074af525810f363761ed359d6abf48d1f))
+
+## 1.0.65 (2026-11-06)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.65)
+
 - Show the real lookup default in the settings capture ([`c287614`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c2876149fe10b07533df7df087c2056f2342bf5f))
 
 ## 1.0.64 (2026-11-06)
