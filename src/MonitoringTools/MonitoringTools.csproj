@@ -48,6 +48,11 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\docs\features\**\*.md" LogicalName="docs/features/%(RecursiveDir)%(Filename)%(Extension)" />
     <EmbeddedResource Include="..\..\README.md" LogicalName="docs/README.md" />
+  </ItemGroup>
+
+  <!-- The built-in extensions, installed into the extensions folder on start and kept current while unedited. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Extensions\Defaults\**\*" LogicalName="defaultext/%(RecursiveDir)%(Filename)%(Extension)" />
     <EmbeddedResource Include="..\..\docs\screenshots\toast-link.png;..\..\docs\screenshots\toast-compose.png;..\..\docs\screenshots\control-history.png;..\..\docs\screenshots\control-conversion.png;..\..\docs\screenshots\commit-template.png;..\..\docs\screenshots\control-shortcuts.png;..\..\docs\screenshots\offline-dialog.png;..\..\docs\screenshots\control-network.png;..\..\docs\screenshots\control-game.png;..\..\docs\screenshots\filetools-move.png;..\..\docs\screenshots\filetools-base64.png;..\..\docs\screenshots\filetools-encrypt.png;..\..\docs\screenshots\control-minecraft.png;..\..\docs\screenshots\control-service.png;..\..\docs\screenshots\tray-menu.png;..\..\docs\screenshots\command-palette.png" LogicalName="docs/screenshots/%(Filename)%(Extension)" />
   </ItemGroup>
 

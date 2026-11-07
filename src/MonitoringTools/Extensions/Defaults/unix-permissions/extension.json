@@ -1,0 +1,31 @@
+{
+  "id": "unix-permissions",
+  "name": "Unix permissions",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Translates file permissions between rwxr-xr-x and 755 forms, and says who can do what.",
+  "author": "Monitoring Tools (built in)",
+  "detect": [
+    {
+      "kind": "symbolic",
+      "label": "You copied file permissions",
+      "pattern": "^[-dlcbps]?[r-][w-][xsS-][r-][w-][xsS-][r-][w-][xtT-]$"
+    },
+    {
+      "kind": "octal",
+      "label": "You copied file permissions",
+      "pattern": "^chmod\\s+(?:-R\\s+)?[0-7]{3,4}\\b|^0[0-7]{3}$"
+    }
+  ],
+  "actions": [
+    {
+      "id": "explain",
+      "label": "Explain",
+      "primary": true
+    }
+  ],
+  "run": "unix-permissions.ps1",
+  "permissions": [
+    "read-text"
+  ]
+}

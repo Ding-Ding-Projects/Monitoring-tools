@@ -76,29 +76,21 @@ namespace MonitoringTools.UI
                 await Shot(d, "dialog-conversions-temperature", "Quick conversions for a temperature", 900);
                 d.Close();
 
-                // The extensions manager over a scratch folder with two sample extensions: one on, one waiting to be allowed.
+                // The extensions manager over a scratch folder: the built-in extensions, plus one of yours waiting to be allowed.
                 var root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "mt-shots-ext-" + System.Guid.NewGuid().ToString("N"));
-                foreach (var (id, name, pattern, label, perms) in new[]
-                {
-                    ("ticket-keys", "Ticket keys", "^[A-Z][A-Z0-9]{1,9}-\\\\d{1,7}$", "Open ticket", "\"read-text\", \"open-links\", \"change-clipboard\""),
-                    ("morse-code", "Morse code", "^[.\\\\-/ ]{5,}$", "Decode Morse", "\"read-text\", \"change-clipboard\""),
-                })
-                {
-                    var dir = System.IO.Path.Combine(root, id);
-                    System.IO.Directory.CreateDirectory(dir);
-                    System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "run.ps1"), "# sample");
-                    System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "extension.json"),
-                        "{ \"id\": \"" + id + "\", \"name\": \"" + name + "\", \"version\": \"1.0.0\", \"api\": 1, \"description\": \"A sample extension.\", " +
-                        "\"detect\": [{ \"kind\": \"k\", \"label\": \"" + (id == "morse-code" ? "Morse code" : "Ticket numbers like ABC-1234") + "\", \"pattern\": \"" + pattern + "\" }], \"actions\": [{ \"id\": \"a\", \"label\": \"" + label + "\", \"primary\": true }], " +
-                        "\"run\": \"run.ps1\", \"permissions\": [" + perms + "] }");
-                }
+                var mine = System.IO.Path.Combine(root, "ticket-keys");
+                System.IO.Directory.CreateDirectory(mine);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(mine, "run.ps1"), "# sample");
+                System.IO.File.WriteAllText(System.IO.Path.Combine(mine, "extension.json"),
+                    "{ \"id\": \"ticket-keys\", \"name\": \"Ticket keys\", \"version\": \"1.0.0\", \"api\": 1, \"description\": \"Opens ticket numbers like ABC-1234 in your tracker.\", " +
+                    "\"detect\": [{ \"kind\": \"ticket\", \"label\": \"Ticket numbers like ABC-1234\", \"pattern\": \"^[A-Z][A-Z0-9]{1,9}-\\\\d{1,7}$\" }], \"actions\": [{ \"id\": \"open\", \"label\": \"Open ticket\", \"primary\": true }], " +
+                    "\"run\": \"run.ps1\", \"permissions\": [\"read-text\", \"open-links\"] }");
                 var host = new global::MonitoringTools.Clip.Smart.ExtensionHost(root);
-                host.Load();
-                host.Allow("ticket-keys");
+                host.SyncDefaults(App.BundledExtensions());
                 var ed = new Dialogs.ExtensionsDialog(host);
                 ed.Show();
-                await Shot(ed, "dialog-extensions", "Extensions: what each one notices, the buttons it adds and what it may do", 1100);
-                ed.Ask(host.Find("morse-code"));
+                await Shot(ed, "dialog-extensions", "Extensions: the built-in ones, what each notices, the buttons it adds and what it may do", 1100);
+                ed.Ask(host.Find("ticket-keys"));
                 await Shot(ed, "dialog-extensions-allow", "Turning an extension on shows exactly what it asks for first", 700);
                 ed.Close();
                 try { System.IO.Directory.Delete(root, true); } catch { }

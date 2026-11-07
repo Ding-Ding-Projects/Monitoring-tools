@@ -1,0 +1,26 @@
+{
+  "id": "user-agents",
+  "name": "User agents",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Reads a browser user-agent string and says which browser, version and operating system it describes.",
+  "author": "Monitoring Tools (built in)",
+  "detect": [
+    {
+      "kind": "ua",
+      "label": "You copied a user agent",
+      "pattern": "^Mozilla/5\\.0 \\(.+\\)"
+    }
+  ],
+  "actions": [
+    {
+      "id": "read",
+      "label": "What is this",
+      "primary": true
+    }
+  ],
+  "run": "user-agents.ps1",
+  "permissions": [
+    "read-text"
+  ]
+}

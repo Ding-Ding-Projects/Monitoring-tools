@@ -1,0 +1,31 @@
+{
+  "id": "coordinates",
+  "name": "Coordinates",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Reads map coordinates in decimal or degrees-minutes-seconds form, converts between them and opens the place on OpenStreetMap.",
+  "author": "Monitoring Tools (built in)",
+  "detect": [
+    {
+      "kind": "coords",
+      "label": "You copied map coordinates",
+      "pattern": "^-?\\d{1,2}(?:\\.\\d+)?\\s*,\\s*-?\\d{1,3}(?:\\.\\d+)?$|^\\d{1,2}°\\s*\\d{1,2}['′]\\s*\\d{1,2}(?:\\.\\d+)?[\\\"″]?\\s*[NS][,\\s]+\\d{1,3}°\\s*\\d{1,2}['′]\\s*\\d{1,2}(?:\\.\\d+)?[\\\"″]?\\s*[EW]$"
+    }
+  ],
+  "actions": [
+    {
+      "id": "map",
+      "label": "Open the map",
+      "primary": true
+    },
+    {
+      "id": "formats",
+      "label": "Other formats"
+    }
+  ],
+  "run": "coordinates.ps1",
+  "permissions": [
+    "read-text",
+    "open-links"
+  ]
+}

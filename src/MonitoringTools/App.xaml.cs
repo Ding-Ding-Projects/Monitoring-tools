@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Threading;
@@ -151,11 +152,31 @@ namespace MonitoringTools
             try
             {
                 Extensions ??= new global::MonitoringTools.Clip.Smart.ExtensionHost(global::MonitoringTools.Clip.Smart.ExtensionHost.DefaultRoot);
+                try { Extensions.SyncDefaults(BundledExtensions()); } catch (Exception ex) { Log.Warn("Built-in extensions not installed: " + ex.Message); }
                 Extensions.Load();
                 global::MonitoringTools.Clip.Smart.SmartDetect.Extensions = t => Settings.Current.ExtensionsEnabled ? Extensions.Detect(t) : Enumerable.Empty<global::MonitoringTools.Clip.Smart.SmartFact>();
                 Log.Info($"Extensions: {Extensions.Items.Count(i => i.Enabled)} on of {Extensions.Items.Count}");
             }
             catch (Exception ex) { Log.Warn("Extensions not loaded: " + ex.Message); }
+        }
+
+        /// <summary>The built-in extensions embedded in the app, read from their resources.</summary>
+        internal static List<global::MonitoringTools.Clip.Smart.BundledExtension> BundledExtensions()
+        {
+            var asm = typeof(App).Assembly;
+            var byId = new Dictionary<string, global::MonitoringTools.Clip.Smart.BundledExtension>(StringComparer.OrdinalIgnoreCase);
+            foreach (var name in asm.GetManifestResourceNames().Where(n => n.StartsWith("defaultext/")))
+            {
+                var rel = name.Substring("defaultext/".Length).Replace('\\', '/');
+                int cut = rel.IndexOf('/');
+                if (cut <= 0) continue;
+                var id = rel.Substring(0, cut);
+                if (!byId.TryGetValue(id, out var b)) byId[id] = b = new global::MonitoringTools.Clip.Smart.BundledExtension { Id = id };
+                using var st = asm.GetManifestResourceStream(name);
+                using var ms = new MemoryStream(); st.CopyTo(ms);
+                b.Files[rel.Substring(cut + 1)] = ms.ToArray();
+            }
+            return byId.Values.ToList();
         }
 
         // The secret guard: a copied key, token or bank number is never kept in history, and it leaves the clipboard

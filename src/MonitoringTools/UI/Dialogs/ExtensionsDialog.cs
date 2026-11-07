@@ -97,7 +97,7 @@ namespace MonitoringTools.UI.Dialogs
             {
                 var item = it;
                 var name = new TextBlock { Text = it.Name, FontSize = 14.5, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis };
-                var state = it.Error != null ? "needs fixing" : it.Enabled ? "on" : it.NeedsApproval ? "waiting for you to allow it" : "off";
+                var state = (it.BuiltIn ? "built in · " : "") + (it.Error != null ? "needs fixing" : it.Enabled ? "on" : it.NeedsApproval ? "waiting for you to allow it" : "off");
                 var sub = Ui.Mono((it.Manifest?.Version ?? "") + " · " + state, it.Error != null ? Ui.Res("B.Amber") : Ui.Res("B.TextSoft"), 11);
                 var sp = new StackPanel(); sp.Children.Add(name); sp.Children.Add(sub);
                 var row = new Button { Content = sp, Style = Ui.Style("Btn.Row"), Height = double.NaN, HorizontalContentAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 0, 0, 2) };

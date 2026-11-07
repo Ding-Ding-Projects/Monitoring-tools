@@ -1,0 +1,27 @@
+{
+  "id": "morse-code",
+  "name": "Morse code",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Decodes copied Morse code, with / between words.",
+  "author": "Monitoring Tools (built in)",
+  "detect": [
+    {
+      "kind": "morse",
+      "label": "You copied Morse code",
+      "pattern": "^[.\\-]{1,7}(?:\\s+(?:/\\s+)?[.\\-]{1,7}){2,}$"
+    }
+  ],
+  "actions": [
+    {
+      "id": "decode",
+      "label": "Decode Morse",
+      "primary": true
+    }
+  ],
+  "run": "morse-code.ps1",
+  "permissions": [
+    "read-text",
+    "change-clipboard"
+  ]
+}

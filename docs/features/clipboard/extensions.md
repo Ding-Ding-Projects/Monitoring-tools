@@ -15,6 +15,26 @@ New extensions start off. If an extension's version or permissions change, it tu
 
 ![Allowing an extension](../../screenshots/dialog-extensions-allow.png)
 
+## Built-in extensions
+
+The app comes with eleven extensions, written in PowerShell so they run on every Windows PC. They are installed the first time the app starts and start on. Copy what the first column shows, then press the button on the toast.
+
+| Extension | Notices | Button and result |
+| --- | --- | --- |
+| Case styles | Names in code: `userName`, `user_name`, `user-name`, `UserName` | **Every case style**: camelCase, PascalCase, snake_case, SCREAMING_SNAKE, kebab-case and words |
+| HTML tools | Text with entities like `&amp;amp;`, or HTML markup | **Decode entities**, **Keep only the text**, **Escape as text** |
+| CIDR calculator | An IPv4 block such as `203.0.113.0/24` | **Range and hosts**: network, mask, broadcast, first and last host, usable hosts |
+| Coordinates | `43.6532, -79.3832` or `43°39′11.5″N 79°22′59.5″W` | **Open the map** on OpenStreetMap, **Other formats** |
+| Roman numerals | `MMXXVI` | **As a number** |
+| ISO durations | `PT1H30M`, `P2DT4H` | **In words**, with seconds and a clock |
+| User agents | A browser user-agent string | **What is this**: browser, version, system, device |
+| Unix permissions | `-rwxr-x---`, `chmod 644`, `0755` | **Explain**: both forms and who can read, write and run |
+| MAC addresses | `00:1A:2B:3C:4D:5E` or `001a.2b3c.4d5e` | **Every format**, unicast or multicast, maker prefix |
+| Hex to text | Hex bytes such as `48 65 6C 6C 6F` | **Decode to text** |
+| Morse code | `... --- ... / .... ..` | **Decode Morse** |
+
+The manager marks them **built in**. Each app update brings their newest version, but only while the folder is exactly as the app installed it: once you edit an extension it is yours and updates leave it alone. Delete a built-in extension's folder and it stays deleted. Turn any of them off with its switch; updates keep it off. A record of what was installed is kept in `defaults.json` in the extensions folder.
+
 ## What an extension can and cannot do
 
 - It only receives text that matches its own patterns, and only when you press its button.
@@ -25,7 +45,7 @@ New extensions start off. If an extension's version or permissions change, it tu
 
 ## Write an extension
 
-An extension is a folder that holds `extension.json` and the program it names. Two working samples are in [`samples/extensions`](../../../samples/extensions): `ticket-keys` (PowerShell) and `morse-code` (Python).
+An extension is a folder that holds `extension.json` and the program it names. Two working samples are in [`samples/extensions`](../../../samples/extensions): `ticket-keys` (PowerShell) and `morse-python` (Python). The built-in extensions below are also good starting points: copy one, change its `id`, and edit it.
 
 ### extension.json
 

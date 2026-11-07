@@ -1,0 +1,31 @@
+{
+  "id": "case-styles",
+  "name": "Case styles",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Turns an identifier such as userName, user_name or user-name into every common case style.",
+  "author": "Monitoring Tools (built in)",
+  "detect": [
+    {
+      "kind": "identifier",
+      "label": "You copied a name in code",
+      "pattern": "^(?:[a-z]+(?:[A-Z][a-z0-9]*)+|[A-Z][a-z0-9]+(?:[A-Z][a-z0-9]*)+|[A-Za-z][A-Za-z0-9]*(?:[_-][A-Za-z0-9]+)+)$"
+    }
+  ],
+  "actions": [
+    {
+      "id": "styles",
+      "label": "Every case style",
+      "primary": true
+    },
+    {
+      "id": "snake",
+      "label": "Copy snake_case"
+    }
+  ],
+  "run": "case-styles.ps1",
+  "permissions": [
+    "read-text",
+    "change-clipboard"
+  ]
+}

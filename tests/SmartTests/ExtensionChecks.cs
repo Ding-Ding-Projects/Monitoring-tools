@@ -48,9 +48,9 @@ namespace SmartTests
                 var sm = ExtensionManifest.Parse(File.ReadAllText(Path.Combine(dir, "extension.json")), dir, out var se);
                 Check("sample " + Path.GetFileName(dir) + " parses", sm != null && File.Exists(sm.RunPath), se ?? "");
             }
-            var morse = ExtensionManifest.Parse(File.ReadAllText(Path.Combine(samples, "morse-code", "extension.json")), Path.Combine(samples, "morse-code"), out _);
+            var morse = ExtensionManifest.Parse(File.ReadAllText(Path.Combine(samples, "morse-python", "extension.json")), Path.Combine(samples, "morse-python"), out _);
             Check("morse sample notices morse", morse.Match("... --- ...").Any() && !morse.Match("hello there").Any());
-            Check("ps1 runs through PowerShell", ExtensionHost.Launcher("C:\\x\\a.ps1").Exe == "powershell.exe");
+            Check("ps1 runs through PowerShell", ExtensionHost.Launcher("a.ps1").Exe == (OperatingSystem.IsWindows() ? "powershell.exe" : "pwsh"));
             if (OperatingSystem.IsWindows()) return;
             var mr = ExtensionHost.RunProgramAsync(morse, "decode", "morse", "... --- ... / .... ..").GetAwaiter().GetResult();
             Check("morse sample runs", mr.Ok && mr.Copy == "SOS HI", mr.Error ?? mr.Copy ?? "");

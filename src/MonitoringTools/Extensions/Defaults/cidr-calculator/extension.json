@@ -1,0 +1,26 @@
+{
+  "id": "cidr-calculator",
+  "name": "CIDR calculator",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Works out the range, mask, broadcast address and host count of an IPv4 block such as 203.0.113.0/24.",
+  "author": "Monitoring Tools (built in)",
+  "detect": [
+    {
+      "kind": "cidr",
+      "label": "You copied an address block",
+      "pattern": "^(?:\\d{1,3}\\.){3}\\d{1,3}/(?:[0-9]|[12][0-9]|3[0-2])$"
+    }
+  ],
+  "actions": [
+    {
+      "id": "range",
+      "label": "Range and hosts",
+      "primary": true
+    }
+  ],
+  "run": "cidr-calculator.ps1",
+  "permissions": [
+    "read-text"
+  ]
+}

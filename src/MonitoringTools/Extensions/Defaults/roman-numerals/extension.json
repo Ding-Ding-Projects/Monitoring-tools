@@ -1,0 +1,27 @@
+{
+  "id": "roman-numerals",
+  "name": "Roman numerals",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Reads Roman numerals such as MMXXVI and gives the number.",
+  "author": "Monitoring Tools (built in)",
+  "detect": [
+    {
+      "kind": "roman",
+      "label": "You copied a Roman numeral",
+      "pattern": "^(?=[MDCLXVI]{2,})M{0,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$"
+    }
+  ],
+  "actions": [
+    {
+      "id": "number",
+      "label": "As a number",
+      "primary": true
+    }
+  ],
+  "run": "roman-numerals.ps1",
+  "permissions": [
+    "read-text",
+    "change-clipboard"
+  ]
+}

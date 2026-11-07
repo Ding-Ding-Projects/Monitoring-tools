@@ -1,6 +1,6 @@
 {
-  "id": "morse-code",
-  "name": "Morse code",
+  "id": "morse-python",
+  "name": "Morse code (Python sample)",
   "version": "1.0.0",
   "api": 1,
   "description": "Decodes copied Morse code, and turns any text into Morse.",

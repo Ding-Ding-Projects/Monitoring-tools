@@ -19,6 +19,8 @@ namespace MonitoringTools.Clip.Smart
         public bool Enabled;
         /// <summary>True when it is new or its permissions changed since you allowed it.</summary>
         public bool NeedsApproval;
+        /// <summary>Shipped with the app and still exactly as installed.</summary>
+        public bool BuiltIn;
         public List<string> Log = new List<string>();
         public string Name => Manifest?.Name ?? Path.GetFileName(Folder);
     }
@@ -53,6 +55,7 @@ namespace MonitoringTools.Clip.Smart
             Directory.CreateDirectory(Root);
             ReadState();
             var list = new List<LoadedExtension>();
+            var builtIn = ExtensionDefaults.ReadRecords(Root);
             foreach (var dir in Directory.GetDirectories(Root).OrderBy(d => d, StringComparer.OrdinalIgnoreCase))
             {
                 var item = new LoadedExtension { Folder = dir };
@@ -64,6 +67,8 @@ namespace MonitoringTools.Clip.Smart
                 {
                     if (!File.Exists(item.Manifest.RunPath)) item.Error = "The program \"" + item.Manifest.Run + "\" is missing.";
                     else if (list.Any(x => x.Manifest?.Id == item.Manifest.Id)) item.Error = "Another folder already uses the id \"" + item.Manifest.Id + "\".";
+                    item.BuiltIn = builtIn.TryGetValue(item.Manifest.Id, out var rec) && !rec.Removed
+                        && rec.Hash == ExtensionDefaults.HashOf(ExtensionDefaults.ReadFolder(dir));
                     state.TryGetValue(item.Manifest.Id, out var s);
                     item.NeedsApproval = s.Approved != item.Manifest.PermissionKey;
                     item.Enabled = item.Error == null && s.Enabled && !item.NeedsApproval;
@@ -80,6 +85,24 @@ namespace MonitoringTools.Clip.Smart
         {
             var it = Find(id); if (it?.Manifest == null || it.Error != null) return;
             state[id] = (true, it.Manifest.PermissionKey); it.Enabled = true; it.NeedsApproval = false; WriteState();
+        }
+
+        /// <summary>Installs or updates the built-in extensions. New ones start on, because they ship with the app;
+        /// an updated one keeps whatever on or off choice you made.</summary>
+        public List<string> SyncDefaults(IEnumerable<BundledExtension> bundled)
+        {
+            ReadState();
+            var changed = ExtensionDefaults.Sync(Root, bundled);
+            Load();
+            foreach (var id in changed)
+            {
+                var it = Find(id);
+                if (it?.Manifest == null || it.Error != null) continue;
+                bool on = !state.TryGetValue(id, out var s) || s.Enabled;
+                state[id] = (on, it.Manifest.PermissionKey);
+            }
+            if (changed.Count > 0) { WriteState(); Load(); }
+            return changed;
         }
 
         public void TurnOff(string id)
@@ -187,7 +210,7 @@ namespace MonitoringTools.Clip.Smart
         {
             switch (Path.GetExtension(path).ToLowerInvariant())
             {
-                case ".ps1": return ("powershell.exe", new[] { "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", path });
+                case ".ps1": return (OperatingSystem.IsWindows() ? "powershell.exe" : "pwsh", new[] { "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", path });
                 case ".py": return (OperatingSystem.IsWindows() ? "py" : "python3", new[] { path });
                 case ".js": case ".mjs": return ("node", new[] { path });
                 case ".cmd": case ".bat": return ("cmd.exe", new[] { "/d", "/c", path });

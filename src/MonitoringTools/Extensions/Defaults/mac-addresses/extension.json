@@ -1,0 +1,26 @@
+{
+  "id": "mac-addresses",
+  "name": "MAC addresses",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Shows a network card address in every common format and says whether it is unicast or multicast, and universal or locally assigned.",
+  "author": "Monitoring Tools (built in)",
+  "detect": [
+    {
+      "kind": "mac",
+      "label": "You copied a MAC address",
+      "pattern": "^(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$|^[0-9A-Fa-f]{4}\\.[0-9A-Fa-f]{4}\\.[0-9A-Fa-f]{4}$"
+    }
+  ],
+  "actions": [
+    {
+      "id": "formats",
+      "label": "Every format",
+      "primary": true
+    }
+  ],
+  "run": "mac-addresses.ps1",
+  "permissions": [
+    "read-text"
+  ]
+}

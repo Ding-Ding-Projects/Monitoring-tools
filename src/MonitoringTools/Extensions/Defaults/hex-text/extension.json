@@ -1,0 +1,27 @@
+{
+  "id": "hex-text",
+  "name": "Hex to text",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Turns hexadecimal bytes such as 48 65 6C 6C 6F back into readable text, and text into hex.",
+  "author": "Monitoring Tools (built in)",
+  "detect": [
+    {
+      "kind": "hex",
+      "label": "You copied hex bytes",
+      "pattern": "^(?:[0-9A-Fa-f]{2}[ :]?){4,}$"
+    }
+  ],
+  "actions": [
+    {
+      "id": "decode",
+      "label": "Decode to text",
+      "primary": true
+    }
+  ],
+  "run": "hex-text.ps1",
+  "permissions": [
+    "read-text",
+    "change-clipboard"
+  ]
+}

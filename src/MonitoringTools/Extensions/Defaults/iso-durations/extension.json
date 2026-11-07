@@ -1,0 +1,26 @@
+{
+  "id": "iso-durations",
+  "name": "ISO durations",
+  "version": "1.0.0",
+  "api": 1,
+  "description": "Reads ISO 8601 durations such as PT1H30M or P2DT4H and says them in words, in seconds and as a clock.",
+  "author": "Monitoring Tools (built in)",
+  "detect": [
+    {
+      "kind": "duration",
+      "label": "You copied a duration",
+      "pattern": "^P(?!$)(?:\\d+Y)?(?:\\d+M)?(?:\\d+W)?(?:\\d+D)?(?:T(?=\\d)(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?$"
+    }
+  ],
+  "actions": [
+    {
+      "id": "read",
+      "label": "In words",
+      "primary": true
+    }
+  ],
+  "run": "iso-durations.ps1",
+  "permissions": [
+    "read-text"
+  ]
+}
