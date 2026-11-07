@@ -1,0 +1,16 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-07T10:10:00Z"},
+  "title": "Monitoring Tools look: Instrument",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 1060, "title": "Control centre: every page open, Overview", "expand": "fill", "is_interactive": true},
+    "Floating.dc.html": {"x": 1520, "y": 80, "w": 1440, "h": 900, "title": "Toasts, tray menu and the look picker", "is_interactive": true}
+  },
+  "order": ["Main.dc.html", "Floating.dc.html"],
+  "notes": {
+    "about": {"x": 0, "y": -300, "text": "Instrument: the app as a piece of test gear. Molded panels with fine edges, indicator lights on the page keys, live figures in dark readout windows, and the scope screen for the probe chart. Barlow and Barlow Semi Condensed, Amber colour by default. Use the Theme tweak for light and dark.", "w": 600, "fill": "orange"}
+  },
+  "designSystems": []
+}

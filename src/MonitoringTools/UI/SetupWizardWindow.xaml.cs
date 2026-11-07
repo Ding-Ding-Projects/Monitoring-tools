@@ -70,6 +70,25 @@ namespace MonitoringTools.UI
 
             _steps.Add(new Step
             {
+                Name = "Look", Title = "Pick a look", Optional = true,
+                Intro = "Four complete styles for every window, each with its own type, shapes and depth. Switch any time on the Appearance page.",
+                Build = () =>
+                {
+                    var wrap = new WrapPanel();
+                    void Paint()
+                    {
+                        wrap.Children.Clear();
+                        foreach (var l in Core.Looks.All)
+                            wrap.Children.Add(ControlCentreWindow.LookChoice(l, Core.Looks.Current == l, p => { ControlCentreWindow.ChooseLook(p); Paint(); }));
+                    }
+                    Paint();
+                    return wrap;
+                },
+                Apply = () => { Settings.Save(); return "Look: " + Core.Looks.Current.Name; }
+            });
+
+            _steps.Add(new Step
+            {
                 Name = "Clipboard", Title = "Clipboard toasts", Intro = "Every copy shows a toast in the bottom-right corner. Hover it to hold it and see actions.",
                 Build = () =>
                 {

@@ -12,7 +12,7 @@
             </TransformGroup>
         </Grid.RenderTransform>
         <Border CornerRadius="28" Background="{DynamicResource B.Window}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
-                Effect="{StaticResource Fx.Shadow}" MouseLeftButtonDown="OnDrag">
+                Effect="{DynamicResource Fx.Shadow}" MouseLeftButtonDown="OnDrag">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="250"/>

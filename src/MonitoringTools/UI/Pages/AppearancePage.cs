@@ -13,7 +13,7 @@ namespace MonitoringTools.UI
         private FrameworkElement AppearancePage()
         {
             var s = Settings.Current;
-            var root = PageRoot("Settings", "Appearance", "Theme, colour, text size, density and motion.");
+            var root = PageRoot("Settings", "Appearance", "Look, theme, colour, text size, density and motion.");
 
             // Wraps a control with a line saying what it does and what it starts as, as one searchable item.
             FrameworkElement Described(FrameworkElement control, string what, string def, string words)
@@ -28,6 +28,8 @@ namespace MonitoringTools.UI
                 });
                 return SearchScope.SetItem(sp, words);
             }
+
+            root.Children.Add(LookPicker());
 
             // ---- Live preview, drawn with dynamic references so it follows each change as it happens
             var preview = new StackPanel();

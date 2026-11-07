@@ -49,8 +49,28 @@ namespace MonitoringTools.UI.Tabs
             Margin = vertical ? new Thickness(0, 0, 0, Appearance.Gap(2)) : new Thickness(0, 0, 4, 0);
             if (compact) { Width = 44; HorizontalAlignment = HorizontalAlignment.Center; }
             else if (!vertical) { MinWidth = 120; MaxWidth = 230; }
-            if (info.Active) SetResourceReference(BackgroundProperty, "B.SecondaryContainer"); else Background = Brushes.Transparent;
-            var fg = info.Active ? "B.OnSecondaryContainer" : "B.TextSoft";
+            // How the open page is marked depends on the look: a tonal pill (Graphite), a lit key (Instrument), an outlined
+            // node on the wire (Blueprint) or a sticker with an ink outline and a hard shadow (Pop).
+            var look = Looks.Current;
+            string fg = "B.TextSoft";
+            Background = Brushes.Transparent;
+            if (info.Active)
+            {
+                switch (look.Nav)
+                {
+                    case "key":
+                        SetResourceReference(BackgroundProperty, "B.Raised"); SetResourceReference(BorderBrushProperty, "B.LineStrong");
+                        BorderThickness = new Thickness(1); fg = "B.Text"; break;
+                    case "wire":
+                        SetResourceReference(BackgroundProperty, "B.Surface"); SetResourceReference(BorderBrushProperty, "B.Mint");
+                        BorderThickness = new Thickness(1); fg = "B.Text"; break;
+                    case "sticker":
+                        SetResourceReference(BackgroundProperty, "B.MintWash"); SetResourceReference(BorderBrushProperty, "B.LineStrong");
+                        BorderThickness = new Thickness(2); SetResourceReference(EffectProperty, "Fx.Card"); fg = "B.OnPrimaryContainer"; break;
+                    default:
+                        SetResourceReference(BackgroundProperty, "B.SecondaryContainer"); fg = "B.OnSecondaryContainer"; break;
+                }
+            }
 
             var grid = new Grid();
             _hi = new Border { CornerRadius = new CornerRadius(20), Opacity = 0, IsHitTestVisible = false };
@@ -66,24 +86,51 @@ namespace MonitoringTools.UI.Tabs
                 grid.Children.Add(bar);
             }
 
-            var row = new Grid { Margin = new Thickness(compact ? 0 : 16, 0, compact ? 0 : 6, 0), IsHitTestVisible = true };
+            bool marker = !compact && vertical && (look.Nav == "key" || look.Nav == "wire");
+            if (marker && look.Nav == "wire")
+            {
+                // the wire: a fine line through every page's node, bridging the gap to the next tab
+                var wire = new Border { Width = 1, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(13, 0, 0, -Appearance.Gap(2) - 1), IsHitTestVisible = false };
+                wire.SetResourceReference(BackgroundProperty, "B.LineStrong");
+                grid.Children.Insert(0, wire);
+            }
+            var row = new Grid { Margin = new Thickness(compact ? 0 : marker ? 8 : 16, 0, compact ? 0 : 6, 0), IsHitTestVisible = true };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             row.ColumnDefinitions.Add(new ColumnDefinition());
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            if (marker)
+            {
+                FrameworkElement dot;
+                if (look.Nav == "key") dot = LookParts.Led(info.Active);
+                else
+                {
+                    var node = new Ellipse { Width = 11, Height = 11, StrokeThickness = 1.5, VerticalAlignment = VerticalAlignment.Center };
+                    node.SetResourceReference(Shape.StrokeProperty, info.Active ? "B.Mint" : "B.LineStrong");
+                    node.SetResourceReference(Shape.FillProperty, info.Active ? "B.Mint" : "B.Window");
+                    dot = node;
+                }
+                dot.IsHitTestVisible = false;
+                dot.Margin = new Thickness(look.Nav == "key" ? 2 : 0, 0, 10, 0);
+                row.ColumnDefinitions.Insert(0, new ColumnDefinition { Width = GridLength.Auto });
+                row.Children.Add(dot);
+            }
+            int c0 = marker ? 1 : 0;
             var icon = Ui.Icon(info.Icon, Ui.Res("B.TextSoft"), 16);
             icon.SetResourceReference(Shape.StrokeProperty, fg);
             icon.IsHitTestVisible = false;
             icon.VerticalAlignment = VerticalAlignment.Center;
             icon.HorizontalAlignment = compact ? HorizontalAlignment.Center : HorizontalAlignment.Left;
             icon.Margin = new Thickness(0, 0, compact ? 0 : 12, 0);
+            Grid.SetColumn(icon, c0);
             row.Children.Add(icon);
             if (compact) row.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
             if (!compact)
             {
                 var label = new TextBlock { Text = info.Label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 14, FontFamily = Ui.Font("F.Body"), FontWeight = info.Active ? FontWeights.SemiBold : FontWeights.Medium, IsHitTestVisible = false };
                 label.SetResourceReference(TextBlock.ForegroundProperty, fg);
+                if (info.Active && look.Nav == "sticker") label.FontWeight = FontWeights.Bold;
                 LabelBlock = label;
-                Grid.SetColumn(label, 1);
+                Grid.SetColumn(label, c0 + 1);
                 row.Children.Add(label);
                 FrameworkElement trail;
                 if (info.Pinned)
@@ -107,9 +154,17 @@ namespace MonitoringTools.UI.Tabs
                     x.MouseLeftButtonUp += (s, e) => { e.Handled = true; _o.CloseTab(TabId); };
                     x.MouseRightButtonUp += (s, e) => { e.Handled = true; _o.OpenTabMenuMouse(this, e.GetPosition(Window.GetWindow(this))); };
                     AutomationProperties.SetName(x, T("Close tab") + " " + info.Label);
+                    // With every page open, a close button on every tab is noise and costs the labels their room: it shows on
+                    // the open page, and on any tab while it is hovered or has keyboard focus.
+                    bool active = info.Active;
+                    void Reveal() => x.Visibility = active || IsMouseOver || IsKeyboardFocusWithin ? Visibility.Visible : Visibility.Collapsed;
+                    Reveal();
+                    MouseEnter += (s, e) => Reveal();
+                    MouseLeave += (s, e) => Reveal();
+                    IsKeyboardFocusWithinChanged += (s, e) => Reveal();
                     trail = x;
                 }
-                Grid.SetColumn(trail, 2);
+                Grid.SetColumn(trail, c0 + 2);
                 row.Children.Add(trail);
             }
             grid.Children.Add(row);

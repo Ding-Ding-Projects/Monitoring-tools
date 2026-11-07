@@ -34,6 +34,12 @@ namespace MonitoringTools.UI
                 SetCursorPos(0, 0);
                 Demo.SeedLivedIn();
                 var s = Demo.EnsureSamples();
+                if (Environment.GetEnvironmentVariable("MT_ONLY") == "sweep")   // the every-surface sweep: layout, names, focus
+                {
+                    await SurfaceSweep.RunAsync(_dir);
+                    App.Current.Shutdown(0);
+                    return;
+                }
                 if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager scenes
                 {
                     await MinecraftScenesAsync();
@@ -146,9 +152,11 @@ namespace MonitoringTools.UI
                 var wiz = new SetupWizardWindow();
                 wiz.Show();
                 await Shot(wiz, "setup-start", "Setup wizard: start-up", 1500);
-                wiz.GoTo(2);
+                wiz.GoTo(1);
+                await Shot(wiz, "setup-look", "Setup wizard: pick a look", 1100);
+                wiz.GoTo(3);
                 await Shot(wiz, "setup-connection", "Setup wizard: internet watch", 1100);
-                wiz.GoTo(6);
+                wiz.GoTo(7);
                 await Shot(wiz, "setup-done", "Setup wizard: summary", 1100);
                 wiz.Close();
                 Settings.Current.OnboardingStep = 0;
@@ -183,6 +191,7 @@ namespace MonitoringTools.UI
                 // search and the regex builder, anchored to the page's own search field
                 await SearchScenes(cc);
                 await LookScenes(cc);
+                await LookStyleScenes(cc);
                 await ScaleScenes(cc);
                 await ConvertScenes();
                 await DocSysScenes();

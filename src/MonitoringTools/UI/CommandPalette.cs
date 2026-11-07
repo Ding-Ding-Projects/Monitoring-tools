@@ -117,6 +117,14 @@ namespace MonitoringTools.UI
             Page("minecraft", "Minecraft servers", Icons.Box, "Create and run servers here, in Docker or over SSH");
             Page("service", "Service", Icons.Shield, "Start-up, administrator rights, uninstall");
             Page("about", "About and updates", Icons.Globe, "Version, bundled tools, update check");
+            Page("appearance", "Appearance", Icons.Palette, "Look, theme, colour, text size and motion");
+
+            // The four looks switch from here at once, the way they do on the Appearance page.
+            foreach (var look in Looks.All)
+            {
+                var l = look;
+                Act("Look: " + l.Name + (Looks.Current == l ? " (in use)" : ""), Icons.Palette, () => ControlCentreWindow.ChooseLook(l), l.Description, "Settings");
+            }
 
             Toggle("Clipboard toasts", "clipboard", () => s.ClipboardEnabled, v => s.ClipboardEnabled = v);
             Toggle("Keep open on hover", "clipboard", () => s.KeepOpenOnHover, v => s.KeepOpenOnHover = v);

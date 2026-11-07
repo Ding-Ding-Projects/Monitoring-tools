@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace MonitoringTools.Core
@@ -13,6 +14,21 @@ namespace MonitoringTools.Core
     internal static partial class Strings
     {
         internal static readonly Dictionary<string, string> Table = Build();
+
+        /// <summary>One count from the overview's clipboard line, in Cantonese.</summary>
+        private static string CountPart(string part)
+        {
+            var m = Regex.Match(part, @"^(\d+) (.+)$");
+            if (!m.Success) return part;
+            var n = m.Groups[1].Value;
+            return m.Groups[2].Value switch
+            {
+                "text" => n + " 段文字",
+                "link" or "links" => n + " 條連結",
+                "file" or "files" => n + " 個檔案",
+                _ => n + " 個圖片或片段",
+            };
+        }
 
         private static Dictionary<string, string> Build()
         {
@@ -39,9 +55,9 @@ namespace MonitoringTools.Core
             Add("Copy a path with a command on the end. The command runs the moment it lands on the clipboard.", "複製路徑時喺尾加個指令，指令一去到剪貼簿就即刻行。");
             Add("Recently copied", "最近複製"); Add("Gateway", "閘道"); Add("gateway silent", "閘道冇回應");
             Add("Uptime", "連線時間"); Add("Probes", "探測次數"); Add("Copies today", "今日複製次數");
-            Add("Gateway avg", "閘道平均"); Add("Outages", "斷線次數"); Add("Connection lost", "連線中斷");
+            Add("Gateway avg", "閘道平均"); Add("Gateway average", "閘道平均"); Add("DNS average", "DNS 平均"); Add("Outages", "斷線次數"); Add("Connection lost", "連線中斷");
             Add("None since the service started. Nice and quiet.", "服務啟動之後未斷過線，好平靜。");
-            Add("Live", "即時"); Add("Every probe of the last few minutes. Gaps are failed checks.", "最近幾分鐘每一次探測，有缺口即係探測失敗。");
+            Add("Live", "即時"); Add("Every probe of the last few minutes. Gaps are failed checks.", "最近幾分鐘每一次探測，有缺口即係探測失敗。"); Add("Every probe of the last few minutes. The gaps are where checks failed.", "最近幾分鐘每一次探測，有缺口嘅地方就係探測失敗。");
             Add("Conversions, pushes, shortcuts, file jobs and outages show up here.", "轉檔、推送、捷徑、檔案工作同斷線都會喺呢度顯示。");
             Add("video or audio to MP4", "影片或音訊轉 MP4"); Add("video to animated GIF", "影片轉動態 GIF"); Add("extract or convert audio", "抽取或轉換音訊");
             Add("image to WebP", "圖片轉 WebP"); Add("image or first frame to PNG", "圖片或第一格轉 PNG"); Add("commit and push the repo", "提交並推送儲存庫");
@@ -441,6 +457,7 @@ namespace MonitoringTools.Core
             AddLane4(t);
             AddLockTypes(t);
             AddToasts(t);
+            AddLooks(t);
             AddUpdate(t);
             AddMcLane(t);
             AddDocSys(t);
@@ -469,6 +486,7 @@ namespace MonitoringTools.Core
             AddMcFilesPatterns(p);
             AddLane4Patterns(p);
             AddToastsPatterns(p);
+            AddLooksPatterns(p);
             AddUpdatePatterns(p);
             AddMcLanePatterns(p);
             AddArchiveDiskPatterns(p);
@@ -486,6 +504,12 @@ namespace MonitoringTools.Core
             Add(@"^(.+) is on\. Personal wording is left out until it is off\.$", "$1 開咗。個人用語要等關咗先有。");
             Add(@"^The last (\d+) copies, kept in memory only\. Quitting the app forgets them\.$", "最近 $1 次複製，只留喺記憶體。退出程式就會忘記。");
             AddFn(@"^(\d+) text · (\d+) links · (\d+) files · (\d+) media$", m => $"{m.Groups[1].Value} 段文字 · {m.Groups[2].Value} 條連結 · {m.Groups[3].Value} 個檔案 · {m.Groups[4].Value} 個媒體");
+            // the overview's clipboard line: "9 text, 2 links, 1 file and 1 picture or clip"
+            AddFn(@"^\d+ (?:text|links?|files?|picture or clip|pictures and clips)(?:(?:, | and )\d+ (?:text|links?|files?|picture or clip|pictures and clips))*$",
+                m => string.Join("、", Regex.Split(m.Value, ", | and ").Select(CountPart)));
+            Add("Nothing yet today", "今日仲未有");
+            Add(@"^Gateway (\d+ ms|silent), DNS (\d+ ms|not answering)$", "閘道 $1，DNS $2");
+            AddFn(@"^(\d+) (?:game|games) watched, fullscreen (counts|ignored)$", m => $"監察緊 {m.Groups[1].Value} 隻遊戲，全螢幕{(m.Groups[2].Value == "counts" ? "都計" : "唔計")}");
             Add(@"^(\d+) m ago$", "$1 分鐘前"); Add(@"^(\d+) h ago$", "$1 個鐘前"); Add(@"^(\d+) s ago$", "$1 秒前");
             Add(@"^(\d+) games watched · fullscreen on$", "監察緊 $1 隻遊戲 · 全螢幕都計"); Add(@"^(\d+) games watched · fullscreen off$", "監察緊 $1 隻遊戲 · 全螢幕唔計");
             Add(@"^(\d+) of (\d+)$", "$1 / $2"); Add(@"^(\d+) selected$", "揀咗 $1 個");

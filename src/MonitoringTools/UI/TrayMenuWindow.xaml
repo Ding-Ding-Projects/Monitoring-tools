@@ -12,7 +12,7 @@
             </TransformGroup>
         </Grid.RenderTransform>
         <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
-                Effect="{StaticResource Fx.Shadow}" Padding="8">
+                Effect="{DynamicResource Fx.Shadow}" Padding="8">
             <StackPanel x:Name="Rows"/>
         </Border>
     </Grid>

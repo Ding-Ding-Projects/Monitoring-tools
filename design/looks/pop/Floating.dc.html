@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pop toasts, tray menu and look picker</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&amp;family=JetBrains+Mono:wght@400;500&amp;family=Roboto:wght@400&amp;family=Barlow+Semi+Condensed:wght@600&amp;family=IBM+Plex+Sans+Condensed:wght@600&amp;display=swap">
+<style>
+body{margin:0}
+.lk{font-family:"Bricolage Grotesque",system-ui,sans-serif;color:var(--text);background:var(--ground);width:1440px;height:900px;box-sizing:border-box;position:relative;overflow:hidden}
+.lk.light{--ground:#E9EAEE;--window:#F4F5F7;--surface:#FFFFFF;--sunken:#EBECF0;--line:#CDD0D8;--ink:#16171B;--text:#16171B;--soft:#4A4D57;--mute:#5A5E69;--p:#B32148;--onp:#FFFFFF;--pc:#FFB2BC;--sc:#FFB95F;--tc:#6FDBB4;--on:#16171B;--sh:#16171B}
+.lk.dark{--ground:#0E0F12;--window:#15161A;--surface:#1D1F24;--sunken:#2D3037;--line:#3A3D46;--ink:#ECEAE3;--text:#F6F5F0;--soft:#C4C6CE;--mute:#A9ACB6;--p:#FFB2BC;--onp:#16171B;--pc:#FFB2BC;--sc:#FFB95F;--tc:#6FDBB4;--on:#16171B;--sh:#ECEAE3}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:3px solid var(--p);outline-offset:3px}
+.stk{border:2px solid var(--ink);box-shadow:5px 5px 0 var(--sh)}
+.panel{position:absolute;left:48px;top:48px;width:560px;box-sizing:border-box;padding:24px;border-radius:28px;background:var(--window);display:flex;flex-direction:column;gap:18px}
+.tape{display:inline-block;padding:4px 12px 5px;background:var(--ink);color:var(--window);font:700 13px "Bricolage Grotesque";letter-spacing:.06em;transform:rotate(-2deg);border-radius:3px}
+.panel h2{margin:10px 0 0;font:800 30px/34px "Bricolage Grotesque";letter-spacing:-.5px}
+.panel p{margin:6px 0 0;font-size:14.5px;line-height:21px;color:var(--soft);max-width:56ch}
+.looks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.look{display:flex;flex-direction:column;gap:9px;padding:9px 9px 13px;border:2px solid var(--ink);border-radius:20px;background:var(--surface);text-align:left;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.look:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--sh)}
+.look.on{background:var(--pc);color:var(--on);box-shadow:4px 4px 0 var(--sh)}
+.look .nm{display:flex;align-items:center;gap:8px;padding:0 5px;font:800 17px "Bricolage Grotesque"}
+.look .ds{padding:0 5px;font-size:13px;line-height:17px;font-weight:500;opacity:.85}
+.tick{margin-left:auto;width:24px;height:24px;border-radius:50%;background:var(--surface);color:var(--text);border:2px solid var(--ink);display:grid;place-items:center}
+.tick svg{width:14px;height:14px}
+.mini{height:108px;border-radius:12px;display:flex;overflow:hidden;border:2px solid var(--ink)}
+.mini .mn{width:52px;padding:10px 7px;display:flex;flex-direction:column;gap:6px;box-sizing:border-box}
+.mini .mn i{display:block;height:7px;border-radius:4px;opacity:.55}
+.mini .mn i.s{height:13px;opacity:1}
+.mini .mc{flex:1;padding:12px 12px 0 6px;display:flex;flex-direction:column;gap:7px}
+.mini .h{height:11px;width:62%}
+.mini .cd{flex:1;display:flex;align-items:flex-start;gap:8px;padding:9px}
+.mini .num{font-size:15px;line-height:18px}
+.mini .bt{margin-left:auto;align-self:flex-end;width:38px;height:14px}
+.m-g{background:#0F1512}.m-g .mn i{background:#BFC9C2}.m-g .mn i.s{background:#00513A;border-radius:7px}.m-g .h{background:#DEE4DF;border-radius:4px}.m-g .cd{background:#1B211E;border-radius:12px}.m-g .num{font-family:Roboto;color:#6FDBB4}.m-g .bt{background:#6FDBB4;border-radius:7px}
+.m-i{background:#181B19}.m-i .mn i{background:#858B84}.m-i .mn i.s{background:#292D2A;border:1px solid #FFB95F;border-radius:3px}.m-i .h{background:#EAECE6;border-radius:2px}.m-i .cd{background:#202421;border:1px solid #3B403C;border-radius:6px}.m-i .num{font-family:"Barlow Semi Condensed";font-weight:600;color:#FFB95F;background:#0B0D0C;padding:2px 6px;border-radius:3px}.m-i .bt{background:#FFB95F;border-radius:4px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.35)}
+.m-b{background:#0A1D3A;background-image:linear-gradient(rgba(126,166,216,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(126,166,216,.14) 1px,transparent 1px);background-size:12px 12px}.m-b .mn i{background:#7EA6D8;border-radius:0}.m-b .mn i.s{background:#9ECAFF;border-radius:1px}.m-b .h{background:#E8F1FF;border-radius:0}.m-b .cd{background:#0E2546;border:1px solid #7EA6D8;border-radius:2px}.m-b .num{font-family:"IBM Plex Sans Condensed";font-weight:600;color:#9ECAFF}.m-b .bt{background:#9ECAFF;border-radius:2px}
+.m-p{background:#F4F5F7}.m-p .mn i{background:#16171B;opacity:.35}.m-p .mn i.s{background:#FFB2BC;border:1.5px solid #16171B;border-radius:7px;opacity:1}.m-p .h{background:#16171B;border-radius:4px}.m-p .cd{background:#FFFFFF;border:2px solid #16171B;border-radius:14px;box-shadow:3px 3px 0 #16171B}.m-p .num{font-family:"Bricolage Grotesque";font-weight:800;color:#16171B}.m-p .bt{background:#B32148;border:1.5px solid #16171B;border-radius:8px;box-shadow:2px 2px 0 #16171B}
+.row2{display:flex;gap:24px;align-items:flex-start}
+.grp{display:flex;flex-direction:column;gap:8px}
+.grp .k{font:700 14px "Bricolage Grotesque"}
+.seg{display:inline-flex;gap:6px}
+.seg button{height:36px;padding:0 16px;border:2px solid var(--ink);border-radius:18px;background:var(--surface);font:700 14px "Bricolage Grotesque";cursor:pointer}
+.seg button.on{background:var(--tc);color:var(--on);box-shadow:2px 2px 0 var(--sh)}
+.seeds{display:flex;gap:8px}
+.seed{width:34px;height:34px;border-radius:50%;border:2px solid var(--ink);cursor:pointer}
+.seed.on{box-shadow:3px 3px 0 var(--sh);transform:translate(-1px,-1px)}
+.menu{position:absolute;left:640px;bottom:52px;width:316px;box-sizing:border-box;padding:12px;border-radius:24px;background:var(--surface);display:flex;flex-direction:column;gap:2px}
+.mh{display:flex;align-items:center;gap:10px;padding:6px 8px 12px}
+.logo{width:34px;height:34px;border-radius:50%;background:var(--pc);border:2px solid var(--ink);display:grid;place-items:center;color:var(--on)}
+.logo svg{width:19px;height:19px}
+.mh b{display:block;font:800 16px "Bricolage Grotesque"}
+.mh span{font-size:13px;color:var(--mute)}
+.mi{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 10px;border:2px solid transparent;border-radius:14px;background:transparent;text-align:left;cursor:pointer;font:600 14.5px "Bricolage Grotesque"}
+.mi:hover{background:var(--sunken)}
+.mi svg{width:18px;height:18px;flex:none}
+.mi kbd{margin-left:auto;font:500 11.5px "JetBrains Mono";color:var(--mute)}
+.msep{height:2px;margin:6px 8px;background-image:linear-gradient(90deg,var(--line) 50%,transparent 50%);background-size:8px 2px}
+.sw{margin-left:auto;width:46px;height:26px;border-radius:13px;background:var(--sunken);border:2px solid var(--ink);box-sizing:border-box;position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);border:2px solid var(--ink);box-sizing:border-box;transition:left .15s}
+.sw.on{background:var(--tc)}
+.sw.on::after{left:23px}
+.toasts{position:absolute;right:52px;bottom:52px;width:396px;display:flex;flex-direction:column;gap:16px}
+.toast{position:relative;box-sizing:border-box;padding:16px 18px 20px;border-radius:24px;background:var(--surface);overflow:hidden}
+.th{display:flex;align-items:center;gap:10px}
+.ic{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;flex:none;border:2px solid var(--ink);color:var(--on)}
+.ic svg{width:17px;height:17px}
+.th b{font:800 16px "Bricolage Grotesque"}
+.gest{height:24px;padding:0 10px;border-radius:12px;display:inline-flex;align-items:center;font:700 12.5px "Bricolage Grotesque";border:2px solid var(--ink);color:var(--on)}
+.g-copy{background:var(--tc)}
+.g-cut{background:var(--sc);transform:rotate(-3deg)}
+.meta{flex:1;min-width:0;font:500 12px "JetBrains Mono";color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.when{font-size:12.5px;color:var(--mute)}
+.tb2{margin-top:10px;font:400 13px/19px "JetBrains Mono";word-break:break-all}
+.tb2 s{color:var(--mute)}
+.hint{margin-top:8px;font-size:13.5px;color:var(--soft);font-weight:500}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ta{display:inline-flex;align-items:center;height:36px;padding:0 15px;border:2px solid var(--ink);border-radius:18px;background:var(--surface);font:700 14px "Bricolage Grotesque";cursor:pointer}
+.ta.pr{background:var(--p);color:var(--onp);box-shadow:2px 2px 0 var(--sh)}
+.ta:active{transform:translate(2px,2px);box-shadow:none}
+.timer{position:absolute;left:0;bottom:0;height:6px;width:62%;background:var(--p);border-top:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:0 6px 0 0}
+.thumbs{display:flex;gap:8px;margin-top:10px}
+.th1{flex:1;display:flex;align-items:center;gap:8px;padding:6px;border:2px solid var(--ink);border-radius:14px;font-size:13px;font-weight:600;min-width:0}
+.th1 i{width:34px;height:34px;border-radius:9px;flex:none;border:2px solid var(--ink);box-sizing:border-box}
+.th1 span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</helmet>
+<div class="lk {{theme}}">
+<section class="panel stk" aria-labelledby="look-h">
+<div><span class="tape">Appearance</span><h2 id="look-h">Look</h2><p>Changes type, shapes, colour and depth everywhere at once. Your text size, motion and language choices stay as they are.</p></div>
+<div class="looks" role="radiogroup" aria-label="Look">
+<sc-for list="{{looks}}" as="l" hint-placeholder-count="4">
+<button class="{{l.cls}}" role="radio" aria-checked="{{l.on}}" onClick="{{l.pick}}">
+<span class="{{l.mini}}" aria-hidden="true"><span class="mn"><i class="s"></i><i></i><i></i><i></i><i></i></span><span class="mc"><span class="h"></span><span class="cd"><span class="num">16 ms</span><span class="bt"></span></span></span></span>
+<span class="nm">{{l.name}}<sc-if value="{{l.sel}}" hint-placeholder-val="{{ false }}"><span class="tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span></sc-if></span>
+<span class="ds">{{l.desc}}</span>
+</button>
+</sc-for>
+</div>
+<div class="row2">
+<div class="grp"><span class="k">Theme</span><div class="seg" role="radiogroup" aria-label="Theme"><button role="radio" aria-checked="false">System</button><button role="radio" aria-checked="{{lightOn}}" class="{{lightCls}}">Light</button><button role="radio" aria-checked="{{darkOn}}" class="{{darkCls}}">Dark</button></div></div>
+<div class="grp"><span class="k">Colour</span><div class="seeds" role="radiogroup" aria-label="Colour">
+<button class="seed" role="radio" aria-checked="false" aria-label="Mint" style="background: #6FDBB4"></button>
+<button class="seed" role="radio" aria-checked="false" aria-label="Violet" style="background: #CFBCFF"></button>
+<button class="seed" role="radio" aria-checked="false" aria-label="Amber" style="background: #FFB95F"></button>
+<button class="seed" role="radio" aria-checked="false" aria-label="Ocean" style="background: #9ECAFF"></button>
+<button class="seed on" role="radio" aria-checked="true" aria-label="Rose" style="background: #FFB2BC"></button>
+</div></div>
+</div>
+</section>
+<div class="menu stk" role="menu" aria-label="Monitoring Tools tray menu">
+<div class="mh"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Monitoring Tools</b><span>Online, watching the clipboard</span></div></div>
+<button class="mi" role="menuitemcheckbox" aria-checked="{{toastsOn}}" onClick="{{flipToasts}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v4H7zM4 5h16v16H4z" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linejoin="round"/></svg>Clipboard toasts<span class="{{toastsCls}}" aria-hidden="true"></span></button>
+<button class="mi" role="menuitemcheckbox" aria-checked="{{alertsOn}}" onClick="{{flipAlerts}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.6a10 10 0 0 1 14 0M8.5 16.4a5 5 0 0 1 7 0M12 20h.01" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>Network alerts<span class="{{alertsCls}}" aria-hidden="true"></span></button>
+<div class="msep" aria-hidden="true"></div>
+<button class="mi" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v14H3zM8 21h8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linejoin="round"/></svg>Open control centre</button>
+<button class="mi" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>Clipboard history<kbd>Win+Shift+V</kbd></button>
+<button class="mi" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14M15 5v14" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>Pause for an hour</button>
+<button class="mi" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>Welcome tour</button>
+<div class="msep" aria-hidden="true"></div>
+<button class="mi" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.3a8 8 0 1 0 11.4 0" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>Quit</button>
+</div>
+<div class="toasts">
+<div class="toast stk" role="status">
+<div class="th"><span class="ic" aria-hidden="true" style="background: var(--tc)"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Monitoring Tools updated</b><span class="meta"></span><span class="when">now</span></div>
+<div class="hint">Updated from 1.0.66 to 1.0.67.</div>
+</div>
+<div class="toast stk" role="status">
+<div class="th"><span class="ic" aria-hidden="true" style="background: var(--sc)"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linejoin="round"/></svg></span><b>2 files</b><span class="gest g-cut" title="Cut: pasting moves these files.">Cut</span><span class="meta">3.4 MB</span><span class="when">now</span></div>
+<div class="thumbs"><span class="th1"><i style="background: linear-gradient(135deg, #8AB4FF, #2E5FA8)"></i><span>harbour-1.jpg</span></span><span class="th1"><i style="background: linear-gradient(135deg, #FFB95F, #A0522D)"></i><span>harbour-2.jpg</span></span></div>
+<div class="hint">Pasting moves these files.</div>
+<div class="acts"><button class="ta pr">Move to</button><button class="ta">Show in folder</button><button class="ta">More</button></div>
+</div>
+<div class="toast stk" role="status">
+<div class="th"><span class="ic" aria-hidden="true" style="background: var(--pc)"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></span><b>Link</b><span class="gest g-copy" title="Copied: the original is still where it was.">Copied</span><span class="meta">example.com</span><span class="when">now</span></div>
+<div class="tb2">https://example.com/pricing<s>?utm_source=newsletter&amp;utm_medium=email</s></div>
+<div class="acts"><button class="ta pr">Open</button><button class="ta">Clean link</button><button class="ta">Copy as Markdown</button><button class="ta">More</button></div>
+<span class="timer" aria-hidden="true"></span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { look: 'pop', toasts: true, alerts: true }; }
+  renderVals() {
+    const st = this.state;
+    const defs = [
+      ['graphite', 'Graphite', 'm-g', 'Soft tonal layers and rounded shapes. The look you have today.'],
+      ['instrument', 'Instrument', 'm-i', 'Like test gear on a bench: panels, lit indicators and amber readouts.'],
+      ['blueprint', 'Blueprint', 'm-b', 'Drawn in fine ink on a grid, with square corners and no shadows.'],
+      ['pop', 'Pop', 'm-p', 'Bold outlines, sticker colours and hard shadows.']
+    ];
+    const theme = this.props.theme ?? 'light';
+    return {
+      theme,
+      looks: defs.map(([id, name, mini, desc]) => ({
+        name, desc, mini: 'mini ' + mini, sel: st.look === id, on: st.look === id ? 'true' : 'false',
+        cls: st.look === id ? 'look on' : 'look', pick: () => this.setState({ look: id })
+      })),
+      darkOn: theme === 'dark' ? 'true' : 'false', lightOn: theme === 'light' ? 'true' : 'false',
+      darkCls: theme === 'dark' ? 'on' : '', lightCls: theme === 'light' ? 'on' : '',
+      toastsOn: String(st.toasts), alertsOn: String(st.alerts),
+      toastsCls: st.toasts ? 'sw on' : 'sw', alertsCls: st.alerts ? 'sw on' : 'sw',
+      flipToasts: () => this.setState({ toasts: !st.toasts }), flipAlerts: () => this.setState({ alerts: !st.alerts })
+    };
+  }
+}
+</script>
+</body>
+</html>

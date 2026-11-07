@@ -41,6 +41,10 @@
     <EmbeddedResource Include="$(DepsDir)7zip-full\7z.exe;$(DepsDir)7zip-full\7z.dll;$(DepsDir)7zip-full\License.txt" LogicalName="bundled/7zip-full/%(Filename)%(Extension)" />
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)..\..\deps\manifest.json" LogicalName="bundled/manifest.json" />
     <Resource Include="$(DepsDir)roboto\Roboto-Light.ttf;$(DepsDir)roboto\Roboto-Regular.ttf;$(DepsDir)roboto\Roboto-Medium.ttf;$(DepsDir)roboto\Roboto-Bold.ttf" Link="Fonts\%(Filename)%(Extension)" />
+    <!-- The typefaces of the Instrument, Blueprint and Pop looks and the shared figures face (SIL Open Font License; the
+         licence texts travel with them and are listed on the About page). -->
+    <Resource Include="$(DepsDir)font-*\*.ttf" Link="Fonts\%(Filename)%(Extension)" />
+    <EmbeddedResource Include="$(DepsDir)font-*\*-OFL.txt" LogicalName="licenses/fonts/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- The offline documentation shown on the Help and docs page: every feature article, the README and

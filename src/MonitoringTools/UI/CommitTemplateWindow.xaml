@@ -12,7 +12,7 @@
             </TransformGroup>
         </Grid.RenderTransform>
         <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
-                Effect="{StaticResource Fx.Shadow}" Padding="24,22,24,20" MouseLeftButtonDown="OnDrag">
+                Effect="{DynamicResource Fx.Shadow}" Padding="24,22,24,20" MouseLeftButtonDown="OnDrag">
             <StackPanel>
                 <TextBlock Text="FIRST :PUSH" Style="{StaticResource T.Eyebrow}" Foreground="{DynamicResource B.Mint}"/>
                 <TextBlock Text="Set a default commit message" Style="{StaticResource T.Title}" FontSize="22" Margin="0,6,0,6"/>

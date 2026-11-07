@@ -14,7 +14,7 @@ namespace MonitoringTools.UI
         private FrameworkElement AppearanceLookCard()
         {
             var sp = new StackPanel();
-            sp.Children.Add(CardTitle("Make a look", "A guided way to set theme, seed colour, contrast, density and text size together, with a review of what changes before anything is applied."));
+            sp.Children.Add(CardTitle("Make a look", "A guided way to set the look, theme, seed colour, contrast, density and text size together, with a review of what changes before anything is applied."));
             var host = new ContentControl { IsTabStop = false };
             var start = Ui.Button("Make a look step by step", () =>
             {
@@ -32,6 +32,21 @@ namespace MonitoringTools.UI
             var review = new TextBlock { Style = Ui.Style("T.Body"), TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text") };
             var steps = new List<GuidedStep>
             {
+                new GuidedStep
+                {
+                    Title = "Look", Help = "The whole style: type, shapes, outlines and depth. Picking one also picks the colour it was drawn with.",
+                    Build = () =>
+                    {
+                        var wrap = new WrapPanel();
+                        void Paint()
+                        {
+                            wrap.Children.Clear();
+                            foreach (var l in Looks.All) wrap.Children.Add(LookChoice(l, look.Style == l.Id, p => { look.Style = p.Id; look.Seed = p.DefaultSeed; Paint(); }));
+                        }
+                        Paint();
+                        return wrap;
+                    }
+                },
                 new GuidedStep
                 {
                     Title = "Theme", Help = "Light, dark, or whatever Windows is using. System follows the Windows app mode.",
@@ -56,7 +71,7 @@ namespace MonitoringTools.UI
                 },
                 new GuidedStep
                 {
-                    Title = "Review and apply", Help = "Applying the look changes only the five choices above. Reset to defaults on this page undoes it.",
+                    Title = "Review and apply", Help = "Applying the look changes only the six choices above. Reset to defaults on this page undoes it.",
                     Build = () => review,
                     Entered = () =>
                     {

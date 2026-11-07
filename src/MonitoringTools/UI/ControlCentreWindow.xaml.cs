@@ -33,10 +33,10 @@ namespace MonitoringTools.UI
             ("game", "Game mode", Icons.Game),
             ("conversion", "Conversion", Icons.Bolt),
             ("minecraft", "Minecraft servers", Icons.Box),
-            ("ollama", "Local AI models", Icons.Bolt),
+            ("ollama", "Local AI models", Icons.Chip),
             ("tools", "Tools", Icons.Wand),
             ("safety", "Safety and locks", Icons.Shield),
-            ("service", "Service", Icons.Shield),
+            ("service", "Service", Icons.Gear),
             ("appearance", "Appearance", Icons.Palette),
             ("language", "Language and voice", Icons.Translate),
             ("modes", "Modes", Icons.Moon),
@@ -55,11 +55,15 @@ namespace MonitoringTools.UI
         public ControlCentreWindow()
         {
             InitializeComponent();
+            // never bigger than the screen: a 1080p display at 200 percent leaves about 960 by 500
+            var wa = Ui.WorkArea;
+            Width = Math.Min(Width, wa.Width);
+            Height = Math.Min(Height, wa.Height);
             InitBulk();
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
             StateChanged += (s, e) => Shell.Margin = WindowState == WindowState.Maximized ? new Thickness(7) : new Thickness(0);
-            FooterVersion.Text = "v" + (typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0") + (ServiceHost.IsElevated ? " · admin" : "")
-                + Environment.NewLine + BuildInfo.UpdatedLabel;
+            FooterVersion.Text = "v" + (typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0") + (ServiceHost.IsElevated ? ", admin" : "")
+                + Environment.NewLine + BuildInfo.UpdatedLabel.Replace(" (UTC", Environment.NewLine + "(UTC");
             _tabs = new Tabs.TabStrip(this, _sections.Select(x => new Tabs.PageEntry(x.Id, x.Label, x.Icon)).ToList());
             App.History.Updated += () => { if ((_current == "history" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
             Activity.Changed += () => { if ((_current == "activity" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
@@ -87,6 +91,14 @@ namespace MonitoringTools.UI
                 return _pageSearch == null || q.Length == 0 ? null : new[] { new ElementMenu.Item($"Search this page for “{q}”", Icons.Search, "Ctrl+F", () => { _pageSearch.State.SetRegex(false); _pageSearch.State.SetQuery(q); _pageSearch.Box.Focus(); }) };
             });
             RefreshStatus();
+        }
+
+        /// <summary>The rail and page ground for the look: Graphite's rail shares the window colour, the other looks set the
+        /// rail on the darker ground, and Blueprint draws its grid behind the pages.</summary>
+        private void ApplyShellLook()
+        {
+            TabHost.SetResourceReference(BackgroundProperty, Looks.Current == Looks.Graphite ? "B.Window" : "B.Ground");
+            Scroller.Background = LookParts.PageBackground();
         }
 
         public void RefreshStatus()
@@ -142,6 +154,7 @@ namespace MonitoringTools.UI
             }
             else _pageSearch = null;
             Page.Content = page;
+            ApplyShellLook();
             ElementStyles.ApplyAll(page, id);
             if (!animate) return;
             Scroller.ScrollToTop();
@@ -162,8 +175,8 @@ namespace MonitoringTools.UI
         {
             var root = new StackPanel { MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 20) };
             var head = new StackPanel { Margin = new Thickness(0, 4, 0, Appearance.Gap(22)) };
-            head.Children.Add(new TextBlock { Text = eyebrow.ToUpperInvariant(), Style = Ui.Style("T.Eyebrow"), FontSize = 12 });
-            head.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 32, Margin = new Thickness(0, 4, 0, 0) });
+            head.Children.Add(LookParts.PageEyebrow(eyebrow));
+            head.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 34, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0) });
             if (sub != null) head.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 6, 0, 0), MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Left });
             root.Children.Add(head);
             return root;
@@ -184,12 +197,26 @@ namespace MonitoringTools.UI
                 if (role != null) b.SetResourceReference(Border.BorderBrushProperty, role);
                 else b.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(edge));
             }
-            // Material 3 filled card: no outline; a soft tonal lift on hover that glides instead of snapping.
+            // Material 3 filled card: a soft tonal lift on hover that glides instead of snapping. The look adds its outline
+            // (Instrument, Blueprint, Pop) and Pop's hard shadow; Blueprint marks hover with the ink colour instead of a tint.
+            var look = Looks.Current;
+            LookParts.DecorateCard(b, keepOwnEdge: edge != null);
             var tint = new SolidColorBrush(((SolidColorBrush)Ui.Res("B.Surface")).Color);
             b.Background = tint;
-            b.MouseEnter += (s, e) => { if (Ui.Reduced) tint.Color = ((SolidColorBrush)Ui.Res("B.Raised")).Color; else Ui.ColorTo(tint, ((SolidColorBrush)Ui.Res("B.Raised")).Color, 200); };
-            b.MouseLeave += (s, e) => { if (Ui.Reduced) tint.Color = ((SolidColorBrush)Ui.Res("B.Surface")).Color; else Ui.ColorTo(tint, ((SolidColorBrush)Ui.Res("B.Surface")).Color, 260); };
-            Ui.Liftable(b);
+            if (look.Grid)
+            {
+                if (edge == null)
+                {
+                    b.MouseEnter += (s, e) => b.SetResourceReference(Border.BorderBrushProperty, "B.Mint");
+                    b.MouseLeave += (s, e) => b.SetResourceReference(Border.BorderBrushProperty, "B.CardEdge");
+                }
+            }
+            else
+            {
+                b.MouseEnter += (s, e) => { if (Ui.Reduced) tint.Color = ((SolidColorBrush)Ui.Res("B.Raised")).Color; else Ui.ColorTo(tint, ((SolidColorBrush)Ui.Res("B.Raised")).Color, 200); };
+                b.MouseLeave += (s, e) => { if (Ui.Reduced) tint.Color = ((SolidColorBrush)Ui.Res("B.Surface")).Color; else Ui.ColorTo(tint, ((SolidColorBrush)Ui.Res("B.Surface")).Color, 260); };
+            }
+            if (look.Lift) Ui.Liftable(b);
             return b;
         }
 
@@ -267,15 +294,43 @@ namespace MonitoringTools.UI
         private static NumberField Number(string label, string sub, double value, double min, double max, double step, Action<double> set, string unit = null, int decimals = 0, bool snap = false)
             => new NumberField(label, sub, value, min, max, step, v => { set(v); Settings.Save(); }, unit, decimals, snap);
 
-        private static FrameworkElement Tile(string label, string value, string sub, Brush accent, string edge = null)
+        /// <summary>
+        /// One status tile on the overview: a label, the state in large type and a line of detail. Instrument shows the state
+        /// in a readout window and Pop fills each tile with one of its three sticker colours (<paramref name="index"/>).
+        /// </summary>
+        private static FrameworkElement Tile(string label, string value, string sub, Brush accent, string edge = null, int index = 0)
         {
+            var look = Looks.Current;
             var sp = new StackPanel();
-            sp.Children.Add(new TextBlock { Text = label, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
-            sp.Children.Add(new TextBlock { Text = value, Style = Ui.Style("T.Title"), FontSize = 22, Foreground = accent, Margin = new Thickness(0, 6, 0, 4) });
-            sp.Children.Add(Ui.Mono(sub, Ui.Res("B.TextMute")));
-            var c = Card(sp, edge, 16);
+            var labelText = new TextBlock { Text = label, Style = Ui.Style("T.Body"), FontSize = 13, Foreground = Ui.Res("B.TextSoft") };
+            sp.Children.Add(labelText);
+            var valueText = new TextBlock { Text = value, Style = Ui.Style("T.Title"), FontSize = 26, Foreground = accent, Margin = new Thickness(0, 6, 0, 6), TextTrimming = TextTrimming.CharacterEllipsis };
+            var subText = new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12.5, Foreground = Ui.Res("B.TextMute") };
+            string fill = null, ink = null;
+            if (look.Vibrant)
+            {
+                (fill, ink) = (index % 3) switch { 0 => ("B.TertiaryContainer", "B.OnTertiaryContainer"), 1 => ("B.MintWash", "B.OnPrimaryContainer"), _ => ("B.SecondaryContainer", "B.OnSecondaryContainer") };
+                foreach (var t in new[] { labelText, valueText, subText }) t.SetResourceReference(TextBlock.ForegroundProperty, ink);
+                edge = null;
+            }
+            sp.Children.Add(LookParts.Readout(valueText));
+            sp.Children.Add(subText);
+            var c = Card(sp, look.Vibrant ? null : edge, 16);
+            if (fill != null)
+            {
+                c.SetResourceReference(Border.BackgroundProperty, fill);
+                c.MouseEnter += (s, e) => c.SetResourceReference(Border.BackgroundProperty, fill);
+            }
             c.Margin = new Thickness(0, 0, 14, Appearance.Gap(14));
             return SearchScope.SetItem(c);
+        }
+
+        /// <summary>"9 text, 2 links, 1 file and 1 picture": counts with the right singular or plural, empty kinds left out.</summary>
+        private static string Counted(params (int N, string One, string Many)[] parts)
+        {
+            var items = parts.Where(p => p.N > 0).Select(p => $"{p.N} {(p.N == 1 ? p.One : p.Many)}").ToList();
+            if (items.Count == 0) return "Nothing yet today";
+            return items.Count == 1 ? items[0] : string.Join(", ", items.Take(items.Count - 1)) + " and " + items[^1];
         }
 
         private static TextBox Input(string text, double width = double.NaN, string hint = null)
@@ -293,16 +348,45 @@ namespace MonitoringTools.UI
             bool online = net == null || net.Online;
             var root = PageRoot("Overview", online ? (App.ShouldSuppress ? (App.Games.IsGaming ? Core.Language.Headline("game.mode", App.Games.ActiveGame) : App.IsSnoozed ? Core.Language.Headline("snooze", App.SnoozeUntil.ToString("HH:mm")) : "Quiet while you play") : "Everything is quiet") : (net.Headline ?? "Offline"));
 
-            var tiles = new UniformGrid { Columns = 3, Margin = new Thickness(0, 0, -14, 0) };
-            tiles.Children.Add(Tile("Internet", online ? "Online" : "Offline",
-                online && net != null ? $"gateway {(net.GatewayMs >= 0 ? net.GatewayMs + " ms" : "silent")} · dns {(net.DnsMs >= 0 ? net.DnsMs + " ms" : "?")}" : DnsSwitcher.ActiveProfileName() ?? "",
-                online ? Ui.Res("B.Mint") : Ui.Res("B.Amber"), online ? null : "#FF4A3A22"));
             var h = App.History;
-            tiles.Children.Add(Tile("Clipboard today", $"{h.Today} copies", $"{h.TextCount} text · {h.LinkCount} links · {h.FileCount} files · {h.MediaCount} media", Ui.Res("B.Text")));
             var s = Settings.Current;
-            tiles.Children.Add(Tile("Game mode", !s.GameModeEnabled ? "Off" : App.Games.IsGaming ? App.Games.ActiveGame : "Standing by",
-                $"{s.GameProcesses.Count} games watched · fullscreen {(s.GameModeFullscreen ? "on" : "off")}", Ui.Res("B.Violet"), "#FF3A2F5A"));
-            root.Children.Add(tiles);
+            var status = new[]
+            {
+                (Label: "Internet", Value: online ? "Online" : "Offline",
+                 Sub: online && net != null ? $"Gateway {(net.GatewayMs >= 0 ? net.GatewayMs + " ms" : "silent")}, DNS {(net.DnsMs >= 0 ? net.DnsMs + " ms" : "not answering")}" : DnsSwitcher.ActiveProfileName() ?? "",
+                 Accent: online ? Ui.Res("B.Mint") : Ui.Res("B.Amber"), Edge: online ? null : "#FF4A3A22"),
+                (Label: "Clipboard today", Value: h.Today == 1 ? "1 copy" : $"{h.Today} copies",
+                 Sub: Counted((h.TextCount, "text", "text"), (h.LinkCount, "link", "links"), (h.FileCount, "file", "files"), (h.MediaCount, "picture or clip", "pictures and clips")),
+                 Accent: Ui.Res("B.Text"), Edge: (string)null),
+                (Label: "Game mode", Value: !s.GameModeEnabled ? "Off" : App.Games.IsGaming ? App.Games.ActiveGame : "Standing by",
+                 Sub: $"{s.GameProcesses.Count} {(s.GameProcesses.Count == 1 ? "game" : "games")} watched, fullscreen {(s.GameModeFullscreen ? "counts" : "ignored")}",
+                 Accent: Ui.Res("B.Violet"), Edge: "#FF3A2F5A"),
+            };
+            var lookNow = Looks.Current;
+            if (lookNow == Looks.Graphite || lookNow == Looks.Blueprint)
+            {
+                // Graphite and Blueprint: one status band split in three, instead of three cards that look the same
+                var band = new Grid();
+                for (int i = 0; i < status.Length; i++)
+                {
+                    band.ColumnDefinitions.Add(new ColumnDefinition());
+                    var seg = new StackPanel { Margin = new Thickness(i == 0 ? 0 : 20, 0, i == status.Length - 1 ? 0 : 20, 0) };
+                    seg.Children.Add(new TextBlock { Text = status[i].Label, Style = Ui.Style("T.Body"), FontSize = 13, Foreground = Ui.Res("B.TextSoft") });
+                    seg.Children.Add(new TextBlock { Text = status[i].Value, Style = Ui.Style("T.Title"), FontSize = 26, Foreground = status[i].Accent, Margin = new Thickness(0, 6, 0, 6), TextTrimming = TextTrimming.CharacterEllipsis });
+                    seg.Children.Add(new TextBlock { Text = status[i].Sub, Style = Ui.Style("T.Body"), FontSize = 12.5, Foreground = Ui.Res("B.TextMute") });
+                    var cell = new Border { Child = seg, BorderThickness = new Thickness(i == 0 ? 0 : 1, 0, 0, 0) };
+                    cell.SetResourceReference(Border.BorderBrushProperty, lookNow == Looks.Blueprint ? "B.LineStrong" : "B.Line");
+                    Grid.SetColumn(cell, i);
+                    band.Children.Add(SearchScope.SetItem(cell));
+                }
+                root.Children.Add(Card(band, null, 16));
+            }
+            else
+            {
+                var tiles = new UniformGrid { Columns = 3, Margin = new Thickness(0, 0, -14, 0) };
+                for (int i = 0; i < status.Length; i++) tiles.Children.Add(Tile(status[i].Label, status[i].Value, status[i].Sub, status[i].Accent, status[i].Edge, i));
+                root.Children.Add(tiles);
+            }
 
             // quick command cheat sheet
             root.Children.Add(LiveCard());
@@ -1069,11 +1153,11 @@ namespace MonitoringTools.UI
 
             var sp = new StackPanel();
             var head = new Grid();
-            head.Children.Add(CardTitle("Live", "Every probe of the last few minutes. Gaps are failed checks."));
+            head.Children.Add(CardTitle("Live", "Every probe of the last few minutes. The gaps are where checks failed."));
             var legend = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top };
-            legend.Children.Add(Dot(Ui.Res("B.Mint"))); legend.Children.Add(Ui.Mono("gateway", Ui.Res("B.TextMute"), 11));
+            legend.Children.Add(Dot(Ui.Res("B.Mint"))); legend.Children.Add(new TextBlock { Text = "Gateway", Style = Ui.Style("T.Body"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center });
             legend.Children.Add(new Border { Width = 14 });
-            legend.Children.Add(Dot(Ui.Res("B.OnTertiaryContainer"))); legend.Children.Add(Ui.Mono("dns", Ui.Res("B.TextMute"), 11));
+            legend.Children.Add(Dot(Ui.Res("B.OnTertiaryContainer"))); legend.Children.Add(new TextBlock { Text = "DNS", Style = Ui.Style("T.Body"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center });
             head.Children.Add(legend);
             sp.Children.Add(head);
 
@@ -1081,8 +1165,8 @@ namespace MonitoringTools.UI
             stats.Children.Add(Stat("Uptime", up.TotalHours >= 1 ? $"{(int)up.TotalHours} h {up.Minutes} m" : $"{up.Minutes} m {up.Seconds:00} s"));
             stats.Children.Add(Stat("Probes", net.ProbeCount > 0 ? net.ProbeCount.ToString("N0") : samples.Count.ToString("N0")));
             stats.Children.Add(Stat("Copies today", App.History.Today.ToString("N0")));
-            stats.Children.Add(Stat("Gateway avg", gws.Count > 0 ? $"{gws.Average():0} ms" : "–"));
-            stats.Children.Add(Stat("DNS avg", dnss.Count > 0 ? $"{dnss.Average():0} ms" : "–"));
+            stats.Children.Add(Stat("Gateway average", gws.Count > 0 ? $"{gws.Average():0} ms" : "–"));
+            stats.Children.Add(Stat("DNS average", dnss.Count > 0 ? $"{dnss.Average():0} ms" : "–"));
             sp.Children.Add(stats);
             sp.Children.Add(Chart(samples));
             return Card(sp);
@@ -1094,7 +1178,7 @@ namespace MonitoringTools.UI
         {
             var sp = new StackPanel();
             sp.Children.Add(new TextBlock { Text = label, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
-            sp.Children.Add(new TextBlock { Text = value, Style = Ui.Style("T.Title"), FontSize = 16, Margin = new Thickness(0, 4, 0, 0) });
+            sp.Children.Add(LookParts.Readout(new TextBlock { Text = value, Style = Ui.Style("T.Title"), FontSize = 18, Margin = new Thickness(0, 4, 8, 0) }));
             return sp;
         }
 

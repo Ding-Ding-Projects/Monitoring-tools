@@ -82,7 +82,7 @@ namespace MonitoringTools.UI
             {
                 wiz.Show();
                 await Settle(wiz, 600);
-                for (int i = 0; i <= 6; i++) { wiz.GoTo(i); await Settle(wiz, 250); Scan(wiz, "setup step " + (i + 1)); }
+                for (int i = 0; i <= 7; i++) { wiz.GoTo(i); await Settle(wiz, 250); Scan(wiz, "setup step " + (i + 1)); }
             }
             finally { wiz.Close(); Settings.Current.OnboardingStep = 0; }
             if (choices < 8) return $"only {choices} choices were found, so the walk is not covering the app";

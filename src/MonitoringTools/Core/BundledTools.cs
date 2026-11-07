@@ -39,7 +39,10 @@ namespace MonitoringTools.Core
                     using var s = Asm.GetManifestResourceStream("bundled/manifest.json");
                     if (s == null) return _pinsKey = "unbundled";
                     using var doc = JsonDocument.Parse(s);
-                    var tags = doc.RootElement.GetProperty("dependencies").EnumerateArray().Select(d => d.GetProperty("tag").GetString());
+                    // Fonts are not extracted tools, so a font update never moves the tools folder.
+                    var tags = doc.RootElement.GetProperty("dependencies").EnumerateArray()
+                        .Where(d => !(d.TryGetProperty("kind", out var k) && k.GetString() == "font"))
+                        .Select(d => d.GetProperty("tag").GetString());
                     var hash = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(string.Join("|", tags)));
                     _pinsKey = Convert.ToHexString(hash)[..12].ToLowerInvariant();
                 }

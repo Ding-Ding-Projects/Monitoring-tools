@@ -1,0 +1,16 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-07T09:55:00Z"},
+  "title": "Monitoring Tools look: Graphite",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 1030, "title": "Control centre: every page open, Overview", "expand": "fill", "is_interactive": true},
+    "Floating.dc.html": {"x": 1520, "y": 65, "w": 1440, "h": 900, "title": "Toasts, tray menu and the look picker", "is_interactive": true}
+  },
+  "order": ["Main.dc.html", "Floating.dc.html"],
+  "notes": {
+    "about": {"x": 0, "y": -300, "text": "Graphite: today's look, polished. Material 3 tonal surfaces on the Mint seed, Roboto with JetBrains Mono for figures, soft shadows only on things that float. Use the Theme tweak on each board for light and dark.", "w": 560, "fill": "green"}
+  },
+  "designSystems": []
+}

@@ -8,7 +8,7 @@
         <Grid.RenderTransform>
             <ScaleTransform x:Name="RootScale"/>
         </Grid.RenderTransform>
-        <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderThickness="1" Effect="{StaticResource Fx.Shadow}" Padding="24,22,24,20">
+        <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderThickness="1" Effect="{DynamicResource Fx.Shadow}" Padding="24,22,24,20">
             <Border.BorderBrush>
                 <SolidColorBrush x:Name="Edge" Color="{DynamicResource C.Line}"/>
             </Border.BorderBrush>

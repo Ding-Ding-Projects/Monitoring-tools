@@ -214,6 +214,7 @@ namespace MonitoringTools.Core
                 };
             }
             MonitoringTools.UI.AccessibleLabels.Install();
+            MonitoringTools.UI.LookShape.Install();
             if (!_densityHooked)
             {
                 _densityHooked = true;
@@ -230,21 +231,38 @@ namespace MonitoringTools.Core
             if (!app.Dispatcher.CheckAccess()) { app.Dispatcher.BeginInvoke(new Action(Apply)); return; }
 
             bool dark = IsDark;
+            var look = Looks.Current;
             var r = Scheme(Seed, dark);
-            var ground = dark ? Darker(r[8], 5) : r[8];
-            var line = S.HighContrastOutlines ? r[15] : r[16];
-
-            Set("Ground", ground);
-            Set("Window", r[8]);
-            Set("Surface", r[10]);
-            Set("Raised", r[11]);
-            Set("Sunken", r[12]);
-            Set("Line", line);
-            Set("LineStrong", r[15]);
-            Set("Text", r[13]);
-            Set("TextSoft", r[14]);
-            // muted text is the outline role nudged just far enough to read at 4.5:1 on the strongest surface it sits on
-            Set("TextMute", EnsureContrast(r[15], r[12], 4.9));
+            var n = dark ? look.Dark : look.Light;
+            if (n == null)
+            {
+                // Graphite: the seed's own tinted neutrals
+                var ground = dark ? Darker(r[8], 5) : r[8];
+                Set("Ground", ground);
+                Set("Window", r[8]);
+                Set("Surface", r[10]);
+                Set("Raised", r[11]);
+                Set("Sunken", r[12]);
+                Set("Line", S.HighContrastOutlines ? r[15] : r[16]);
+                Set("LineStrong", r[15]);
+                Set("Text", r[13]);
+                Set("TextSoft", r[14]);
+                // muted text is the outline role nudged just far enough to read at 4.5:1 on the strongest surface it sits on
+                Set("TextMute", EnsureContrast(r[15], r[12], 4.9));
+            }
+            else
+            {
+                Set("Ground", n.Ground);
+                Set("Window", n.Window);
+                Set("Surface", n.Surface);
+                Set("Raised", n.Raised);
+                Set("Sunken", n.Sunken);
+                Set("Line", S.HighContrastOutlines ? n.LineStrong : n.Line);
+                Set("LineStrong", n.LineStrong);
+                Set("Text", n.Text);
+                Set("TextSoft", n.TextSoft);
+                Set("TextMute", EnsureContrast(Mix(n.TextSoft, n.Sunken, 0.3), n.Sunken, 4.9));
+            }
             Set("Mint", r[0]);
             Set("MintInk", r[1]);
             Set("MintWash", r[2]);
@@ -253,6 +271,20 @@ namespace MonitoringTools.Core
             Set("OnSecondaryContainer", r[5]);
             Set("TertiaryContainer", r[6]);
             Set("OnTertiaryContainer", r[7]);
+            if (look.Vibrant)
+            {
+                // sticker colours: the bright tone of this seed and two companions, all with dark ink on them
+                var ink = Color.FromRgb(0x16, 0x17, 0x1B);
+                var (b, c) = Companions(Seed);
+                Set("MintWash", Scheme(Seed, true)[0]); Set("OnPrimaryContainer", ink);
+                Set("SecondaryContainer", Scheme(b, true)[0]); Set("OnSecondaryContainer", ink);
+                Set("TertiaryContainer", Scheme(c, true)[0]); Set("OnTertiaryContainer", ink);
+                if (dark) Set("MintInk", ink);
+            }
+            // readout windows (Instrument): the seed's bright tone on a near-black well, in both themes
+            Set("Readout", Scheme(Seed, true)[0]);
+            Set("ReadoutWell", Color.FromRgb(0x0B, 0x0D, 0x0C));
+            ApplyLook(look, dark, n);
 
             // the warning, accent and error families have a dark and a light set, so text in them stays readable on either theme
             if (dark)
@@ -275,6 +307,54 @@ namespace MonitoringTools.Core
                 foreach (Window w in app.Windows) FitTree(w);
             }
             Changed?.Invoke();
+        }
+
+        private static Color Mix(Color a, Color b, double t) =>
+            Color.FromRgb((byte)Math.Round(a.R + (b.R - a.R) * t), (byte)Math.Round(a.G + (b.G - a.G) * t), (byte)Math.Round(a.B + (b.B - a.B) * t));
+
+        /// <summary>The two seeds whose bright tones join this one in the vibrant (Pop) containers.</summary>
+        private static (string, string) Companions(string seed) => seed switch
+        {
+            "mint" => ("amber", "violet"),
+            "violet" => ("mint", "amber"),
+            "amber" => ("ocean", "rose"),
+            "ocean" => ("amber", "mint"),
+            _ => ("amber", "mint"),
+        };
+
+        private static string _appliedLook;
+
+        /// <summary>The look's fonts, title weight, shadows and card outlines; shapes are remapped when the look changes.</summary>
+        private static void ApplyLook(LookSpec look, bool dark, LookNeutrals n)
+        {
+            var res = Application.Current.Resources;
+            if (res[look.DisplayFont] is FontFamily display) res["F.Display"] = display;
+            if (res[look.BodyFont] is FontFamily body) res["F.Body"] = body;
+            if (res[look.MonoFont] is FontFamily mono) res["F.Mono"] = mono;
+            res["W.Display"] = look.TitleWeight;
+
+            var shadowInk = look.HardShadow > 0 && n != null ? n.LineStrong : Colors.Black;
+            var floating = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                BlurRadius = look.FloatBlur, ShadowDepth = look.FloatDepth, Direction = look.HardShadow > 0 ? 315 : 270,
+                Opacity = look.FloatOpacity, Color = shadowInk
+            };
+            floating.Freeze();
+            res["Fx.Shadow"] = floating;
+            if (look.HardShadow > 0)
+            {
+                var card = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 0, ShadowDepth = look.HardShadow, Direction = 315, Opacity = 1, Color = shadowInk };
+                card.Freeze();
+                res["Fx.Card"] = card;
+            }
+            else res.Remove("Fx.Card");
+
+            res["Th.CardEdge"] = new Thickness(look.CardEdge);
+            var edge = res[look.CardEdgeStrong ? "B.LineStrong" : "B.Line"];
+            res["B.CardEdge"] = look.CardEdge > 0 ? edge : Brushes.Transparent;
+
+            if (_appliedLook != null && _appliedLook != look.Id) MonitoringTools.UI.LookShape.RemapAll();
+            _appliedLook = look.Id;
         }
 
         private static void Set(string name, Color c)
@@ -304,6 +384,7 @@ namespace MonitoringTools.Core
         {
             var d = new Settings();
             S.ThemeMode = d.ThemeMode;
+            S.Look = d.Look;
             S.SeedColour = d.SeedColour;
             S.TextScalePercent = d.TextScalePercent;
             S.CompactDensity = d.CompactDensity;

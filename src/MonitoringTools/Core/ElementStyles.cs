@@ -146,6 +146,9 @@ namespace MonitoringTools.Core
         private sealed class Hooks { public ElementStyle Style; public bool Hover, Pressed, Focused, Wired, LoadedWired, TextTouched; }
         private static readonly ConditionalWeakTable<FrameworkElement, Hooks> HookTable = new ConditionalWeakTable<FrameworkElement, Hooks>();
 
+        /// <summary>True when the person gave this element its own corner radius, which a look must not reshape.</summary>
+        public static bool HasCustomRadius(FrameworkElement fe) => HookTable.TryGetValue(fe, out var h) && h.Style?.CornerRadius != null;
+
         /// <summary>Remembers the text and decorations of a text element before letter spacing and underline changed them.</summary>
         private sealed class TextMemo { public string Original, Spaced; public bool DecorationsSaved; public object Decorations; }
         private static readonly ConditionalWeakTable<DependencyObject, TextMemo> TextMemos = new ConditionalWeakTable<DependencyObject, TextMemo>();

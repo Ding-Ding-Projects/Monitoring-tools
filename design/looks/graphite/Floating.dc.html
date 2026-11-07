@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Graphite toasts, tray menu and look picker</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Barlow+Semi+Condensed:wght@600&amp;family=IBM+Plex+Sans+Condensed:wght@600&amp;family=Bricolage+Grotesque:opsz,wght@12..96,800&amp;display=swap">
+<style>
+body{margin:0}
+.lk{font-family:Roboto,system-ui,sans-serif;color:var(--text);background:var(--ground);width:1440px;height:900px;box-sizing:border-box;padding:48px;position:relative;overflow:hidden}
+.lk.dark{--ground:#0A100D;--window:#0F1512;--surface:#1B211E;--raised:#262B28;--sunken:#303633;--line:#404943;--line2:#89938C;--text:#DEE4DF;--soft:#BFC9C2;--mute:#A6B0A9;--p:#6FDBB4;--onp:#003827;--pc:#00513A;--onpc:#8CF8CF;--sc:#354B41;--onsc:#CFE9DB;--amb:#FFB95F;--ambw:#3B2A12;--shadow:0 24px 60px rgba(0,0,0,.55)}
+.lk.light{--ground:#DCE3DE;--window:#F5FBF6;--surface:#E9EFEA;--raised:#E4EAE5;--sunken:#DEE4DF;--line:#BFC9C2;--line2:#707973;--text:#171D1A;--soft:#404943;--mute:#57605A;--p:#006C4F;--onp:#FFFFFF;--pc:#8CF8CF;--onpc:#002116;--sc:#CFE9DB;--onsc:#09201A;--amb:#7A4A00;--ambw:#FFDDB3;--shadow:0 24px 60px rgba(23,29,26,.28)}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.panel{position:absolute;left:48px;top:48px;width:560px;box-sizing:border-box;padding:28px;border-radius:28px;background:var(--window);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:18px}
+.panel h2{margin:0;font:400 26px/32px Roboto}
+.panel p{margin:4px 0 0;font-size:14px;line-height:20px;color:var(--mute);max-width:56ch}
+.looks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.look{display:flex;flex-direction:column;gap:10px;padding:10px 10px 14px;border:2px solid transparent;border-radius:22px;background:var(--surface);text-align:left;cursor:pointer;transition:background .2s,border-color .2s}
+.look:hover{background:var(--raised)}
+.look.on{border-color:var(--p);background:var(--raised)}
+.look .nm{display:flex;align-items:center;gap:8px;padding:0 6px;font:500 15px Roboto}
+.look .ds{padding:0 6px;font-size:12.5px;line-height:17px;color:var(--mute)}
+.tick{margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--p);color:var(--onp);display:grid;place-items:center}
+.tick svg{width:14px;height:14px}
+.mini{height:118px;border-radius:14px;display:flex;overflow:hidden;position:relative}
+.mini .mn{width:54px;padding:10px 7px;display:flex;flex-direction:column;gap:6px;box-sizing:border-box}
+.mini .mn i{display:block;height:7px;border-radius:4px;opacity:.55}
+.mini .mn i.s{height:13px;opacity:1}
+.mini .mc{flex:1;padding:12px 12px 0 6px;display:flex;flex-direction:column;gap:7px}
+.mini .h{height:11px;width:62%}
+.mini .cd{flex:1;display:flex;align-items:flex-start;gap:8px;padding:9px}
+.mini .num{font-size:15px;line-height:18px}
+.mini .bt{margin-left:auto;align-self:flex-end;width:38px;height:14px}
+.m-g{background:#0F1512}.m-g .mn i{background:#BFC9C2}.m-g .mn i.s{background:#00513A;border-radius:7px}.m-g .h{background:#DEE4DF;border-radius:4px}.m-g .cd{background:#1B211E;border-radius:12px}.m-g .num{font-family:Roboto;color:#6FDBB4}.m-g .bt{background:#6FDBB4;border-radius:7px}
+.m-i{background:#181B19}.m-i .mn i{background:#858B84}.m-i .mn i.s{background:#292D2A;border:1px solid #FFB95F;border-radius:3px}.m-i .h{background:#EAECE6;border-radius:2px}.m-i .cd{background:#202421;border:1px solid #3B403C;border-radius:6px}.m-i .num{font-family:"Barlow Semi Condensed";font-weight:600;color:#FFB95F;background:#0F1210;padding:2px 6px;border-radius:3px}.m-i .bt{background:#FFB95F;border-radius:4px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.35)}
+.m-b{background:#0A1D3A;background-image:linear-gradient(rgba(126,166,216,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(126,166,216,.14) 1px,transparent 1px);background-size:12px 12px}.m-b .mn i{background:#7EA6D8;border-radius:0}.m-b .mn i.s{background:#9ECAFF;border-radius:1px}.m-b .h{background:#E8F1FF;border-radius:0}.m-b .cd{background:#0E2546;border:1px solid #7EA6D8;border-radius:2px}.m-b .num{font-family:"IBM Plex Sans Condensed";font-weight:600;color:#9ECAFF}.m-b .bt{background:#9ECAFF;border-radius:2px}
+.m-p{background:#F4F5F7}.m-p .mn i{background:#16171B;opacity:.35}.m-p .mn i.s{background:#FFB2BC;border:1.5px solid #16171B;border-radius:7px;opacity:1}.m-p .h{background:#16171B;border-radius:4px}.m-p .cd{background:#FFFFFF;border:2px solid #16171B;border-radius:14px;box-shadow:3px 3px 0 #16171B}.m-p .num{font-family:"Bricolage Grotesque";font-weight:800;color:#16171B}.m-p .bt{background:#B32148;border:1.5px solid #16171B;border-radius:8px;box-shadow:2px 2px 0 #16171B}
+.row2{display:flex;gap:24px;align-items:flex-start}
+.grp{display:flex;flex-direction:column;gap:8px}
+.grp .k{font-size:13px;color:var(--soft)}
+.seg{display:inline-flex;border-radius:20px;background:var(--sunken);padding:3px}
+.seg button{height:34px;padding:0 16px;border:0;border-radius:17px;background:transparent;color:var(--soft);font:500 13.5px Roboto;cursor:pointer}
+.seg button.on{background:var(--pc);color:var(--onpc)}
+.seeds{display:flex;gap:8px}
+.seed{width:34px;height:34px;border-radius:50%;border:3px solid var(--window);box-shadow:0 0 0 2px transparent;cursor:pointer}
+.seed.on{box-shadow:0 0 0 2px var(--p)}
+.menu{position:absolute;left:636px;bottom:48px;width:320px;box-sizing:border-box;padding:14px;border-radius:24px;background:var(--window);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px}
+.mh{display:flex;align-items:center;gap:10px;padding:6px 8px 12px}
+.mh svg{width:22px;height:22px;color:var(--p)}
+.mh b{display:block;font:500 15px Roboto}
+.mh span{font-size:12.5px;color:var(--mute)}
+.mi{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 10px;border:0;border-radius:14px;background:transparent;text-align:left;cursor:pointer;font:400 14px Roboto}
+.mi:hover{background:color-mix(in srgb,var(--text) 8%,transparent)}
+.mi svg{width:18px;height:18px;color:var(--soft);flex:none}
+.mi kbd{margin-left:auto;font:500 11.5px "JetBrains Mono";color:var(--mute)}
+.msep{height:1px;background:var(--line);margin:6px 8px}
+.sw{margin-left:auto;width:44px;height:26px;border-radius:13px;background:var(--sunken);border:2px solid var(--line2);box-sizing:border-box;position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:var(--line2);transition:all .2s}
+.sw.on{background:var(--p);border-color:var(--p)}
+.sw.on::after{left:21px;top:2px;width:18px;height:18px;background:var(--onp)}
+.toasts{position:absolute;right:48px;bottom:48px;width:400px;display:flex;flex-direction:column;gap:14px}
+.toast{position:relative;box-sizing:border-box;padding:16px 18px 20px;border-radius:28px;background:var(--raised);color:var(--text);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}
+.th{display:flex;align-items:center;gap:10px}
+.ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--pc);color:var(--onpc)}
+.ic svg{width:17px;height:17px}
+.th b{font:500 15px Roboto}
+.gest{height:22px;padding:0 9px;border-radius:8px;display:inline-flex;align-items:center;font:500 12px Roboto}
+.g-copy{background:var(--pc);color:var(--onpc)}
+.g-cut{background:var(--ambw);color:var(--amb)}
+.meta{flex:1;min-width:0;font:500 12px "JetBrains Mono";color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.when{font-size:12px;color:var(--mute)}
+.tb2{margin-top:10px;font:400 13px/19px "JetBrains Mono";word-break:break-all}
+.tb2 s{color:var(--mute)}
+.hint{margin-top:8px;font-size:12.5px;color:var(--mute)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.ta{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:0;border-radius:18px;background:var(--sc);color:var(--onsc);font:500 13px Roboto;cursor:pointer}
+.ta.pr{background:var(--p);color:var(--onp)}
+.timer{position:absolute;left:0;bottom:0;height:4px;width:62%;background:var(--p)}
+.thumbs{display:flex;gap:8px;margin-top:10px}
+.th1{flex:1;display:flex;align-items:center;gap:8px;padding:6px;border-radius:12px;background:var(--sunken);font-size:12.5px;min-width:0}
+.th1 i{width:34px;height:34px;border-radius:8px;flex:none}
+.th1 span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</helmet>
+<div class="lk {{theme}}">
+<section class="panel" aria-labelledby="look-h">
+<div><h2 id="look-h">Look</h2><p>Changes type, shapes, colour and depth everywhere at once. Your text size, motion and language choices stay as they are.</p></div>
+<div class="looks" role="radiogroup" aria-label="Look">
+<sc-for list="{{looks}}" as="l" hint-placeholder-count="4">
+<button class="{{l.cls}}" role="radio" aria-checked="{{l.on}}" onClick="{{l.pick}}">
+<span class="{{l.mini}}" aria-hidden="true"><span class="mn"><i class="s"></i><i></i><i></i><i></i><i></i></span><span class="mc"><span class="h"></span><span class="cd"><span class="num">16 ms</span><span class="bt"></span></span></span></span>
+<span class="nm">{{l.name}}<sc-if value="{{l.sel}}" hint-placeholder-val="{{ false }}"><span class="tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span></sc-if></span>
+<span class="ds">{{l.desc}}</span>
+</button>
+</sc-for>
+</div>
+<div class="row2">
+<div class="grp"><span class="k">Theme</span><div class="seg" role="radiogroup" aria-label="Theme"><button role="radio" aria-checked="false">System</button><button role="radio" aria-checked="{{darkOn}}" class="{{darkCls}}">Dark</button><button role="radio" aria-checked="{{lightOn}}" class="{{lightCls}}">Light</button></div></div>
+<div class="grp"><span class="k">Colour</span><div class="seeds" role="radiogroup" aria-label="Colour">
+<button class="seed on" role="radio" aria-checked="true" aria-label="Mint" style="background: #6FDBB4"></button>
+<button class="seed" role="radio" aria-checked="false" aria-label="Violet" style="background: #CFBCFF"></button>
+<button class="seed" role="radio" aria-checked="false" aria-label="Amber" style="background: #FFB95F"></button>
+<button class="seed" role="radio" aria-checked="false" aria-label="Ocean" style="background: #9ECAFF"></button>
+<button class="seed" role="radio" aria-checked="false" aria-label="Rose" style="background: #FFB2BC"></button>
+</div></div>
+</div>
+</section>
+<div class="menu" role="menu" aria-label="Monitoring Tools tray menu">
+<div class="mh"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Monitoring Tools</b><span>Online, watching the clipboard</span></div></div>
+<button class="mi" role="menuitemcheckbox" aria-checked="{{toastsOn}}" onClick="{{flipToasts}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v4H7zM4 5h16v16H4z" stroke="currentColor" stroke-width="2" fill="none"/></svg>Clipboard toasts<span class="{{toastsCls}}" aria-hidden="true"></span></button>
+<button class="mi" role="menuitemcheckbox" aria-checked="{{alertsOn}}" onClick="{{flipAlerts}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.6a10 10 0 0 1 14 0M8.5 16.4a5 5 0 0 1 7 0M12 20h.01" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Network alerts<span class="{{alertsCls}}" aria-hidden="true"></span></button>
+<div class="msep" aria-hidden="true"></div>
+<button class="mi" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v14H3zM8 21h8" stroke="currentColor" stroke-width="2" fill="none"/></svg>Open control centre</button>
+<button class="mi" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2" stroke="currentColor" stroke-width="2" fill="none"/></svg>Clipboard history<kbd>Win+Shift+V</kbd></button>
+<button class="mi" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14M15 5v14" stroke="currentColor" stroke-width="2" fill="none"/></svg>Pause for an hour</button>
+<button class="mi" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01" stroke="currentColor" stroke-width="2" fill="none"/></svg>Welcome tour</button>
+<div class="msep" aria-hidden="true"></div>
+<button class="mi" role="menuitem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.3a8 8 0 1 0 11.4 0" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Quit</button>
+</div>
+<div class="toasts">
+<div class="toast" role="status">
+<div class="th"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 4h18v14H3zM8 21h8" stroke="currentColor" stroke-width="2" fill="none"/></svg></span><b>Monitoring Tools updated</b><span class="meta"></span><span class="when">now</span></div>
+<div class="hint">Updated from 1.0.66 to 1.0.67.</div>
+</div>
+<div class="toast" role="status">
+<div class="th"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5" stroke="currentColor" stroke-width="2" fill="none"/></svg></span><b>2 files</b><span class="gest g-cut" title="Cut: pasting moves these files.">Cut</span><span class="meta">3.4 MB</span><span class="when">now</span></div>
+<div class="thumbs"><span class="th1"><i style="background: linear-gradient(135deg, #8AB4FF, #2E5FA8)"></i><span>harbour-1.jpg</span></span><span class="th1"><i style="background: linear-gradient(135deg, #FFB95F, #A0522D)"></i><span>harbour-2.jpg</span></span></div>
+<div class="hint">Pasting moves these files.</div>
+<div class="acts"><button class="ta pr">Move to</button><button class="ta">Show in folder</button><button class="ta">More</button></div>
+</div>
+<div class="toast" role="status">
+<div class="th"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span><b>Link</b><span class="gest g-copy" title="Copied: the original is still where it was.">Copied</span><span class="meta">example.com</span><span class="when">now</span></div>
+<div class="tb2">https://example.com/pricing<s>?utm_source=newsletter&amp;utm_medium=email</s></div>
+<div class="acts"><button class="ta pr">Open</button><button class="ta">Clean link</button><button class="ta">Copy as Markdown</button><button class="ta">More</button></div>
+<span class="timer" aria-hidden="true"></span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { look: 'graphite', toasts: true, alerts: true }; }
+  renderVals() {
+    const st = this.state;
+    const defs = [
+      ['graphite', 'Graphite', 'm-g', 'Soft tonal layers and rounded shapes. The look you have today.'],
+      ['instrument', 'Instrument', 'm-i', 'Like test gear on a bench: panels, lit indicators and amber readouts.'],
+      ['blueprint', 'Blueprint', 'm-b', 'Drawn in fine ink on a grid, with square corners and no shadows.'],
+      ['pop', 'Pop', 'm-p', 'Bold outlines, sticker colours and hard shadows.']
+    ];
+    const theme = this.props.theme ?? 'dark';
+    return {
+      theme,
+      looks: defs.map(([id, name, mini, desc]) => ({
+        name, desc, mini: 'mini ' + mini, sel: st.look === id, on: st.look === id ? 'true' : 'false',
+        cls: st.look === id ? 'look on' : 'look', pick: () => this.setState({ look: id })
+      })),
+      darkOn: theme === 'dark' ? 'true' : 'false', lightOn: theme === 'light' ? 'true' : 'false',
+      darkCls: theme === 'dark' ? 'on' : '', lightCls: theme === 'light' ? 'on' : '',
+      toastsOn: String(st.toasts), alertsOn: String(st.alerts),
+      toastsCls: st.toasts ? 'sw on' : 'sw', alertsCls: st.alerts ? 'sw on' : 'sw',
+      flipToasts: () => this.setState({ toasts: !st.toasts }), flipAlerts: () => this.setState({ alerts: !st.alerts })
+    };
+  }
+}
+</script>
+</body>
+</html>

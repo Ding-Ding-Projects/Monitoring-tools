@@ -87,6 +87,129 @@
         "License.txt": "License.txt"
       },
       "target": "7zip"
+    },
+    {
+      "name": "font-barlow",
+      "kind": "font",
+      "purpose": "Barlow, the body type of the Instrument look, embedded so the look renders the same on any Windows install",
+      "license": "OFL-1.1 (Barlow by Jeremy Tribby); static instances from Google Fonts, packaged as @expo-google-fonts/barlow 0.4.1; source: https://github.com/expo/google-fonts",
+      "npm": "@expo-google-fonts/barlow",
+      "tag": "0.4.1",
+      "asset": "barlow-0.4.1.tgz",
+      "sha256": "af51f5b0620c217a9d0da50fdf93f394c2b7843b6cfedd55b6ceecb281c47aff",
+      "extract": {
+        "400Regular/Barlow_400Regular.ttf": "Barlow-Regular.ttf",
+        "500Medium/Barlow_500Medium.ttf": "Barlow-Medium.ttf",
+        "600SemiBold/Barlow_600SemiBold.ttf": "Barlow-SemiBold.ttf",
+        "700Bold/Barlow_700Bold.ttf": "Barlow-Bold.ttf",
+        "LICENSE_FONT": "Barlow-OFL.txt"
+      },
+      "target": "font-barlow"
+    },
+    {
+      "name": "font-barlow-semi-condensed",
+      "kind": "font",
+      "purpose": "Barlow Semi Condensed, the headings of the Instrument look, embedded so the look renders the same on any Windows install",
+      "license": "OFL-1.1 (Barlow by Jeremy Tribby); static instances from Google Fonts, packaged as @expo-google-fonts/barlow-semi-condensed 0.4.1; source: https://github.com/expo/google-fonts",
+      "npm": "@expo-google-fonts/barlow-semi-condensed",
+      "tag": "0.4.1",
+      "asset": "barlow-semi-condensed-0.4.1.tgz",
+      "sha256": "aa7c4efe8f43d34a907e6efedd1e09548934e63bb4b54e898eb6492a5398fce0",
+      "extract": {
+        "500Medium/BarlowSemiCondensed_500Medium.ttf": "BarlowSemiCondensed-Medium.ttf",
+        "600SemiBold/BarlowSemiCondensed_600SemiBold.ttf": "BarlowSemiCondensed-SemiBold.ttf",
+        "700Bold/BarlowSemiCondensed_700Bold.ttf": "BarlowSemiCondensed-Bold.ttf",
+        "LICENSE_FONT": "BarlowSemiCondensed-OFL.txt"
+      },
+      "target": "font-barlow-semi-condensed"
+    },
+    {
+      "name": "font-ibm-plex-sans",
+      "kind": "font",
+      "purpose": "IBM Plex Sans, the body type of the Blueprint look, embedded so the look renders the same on any Windows install",
+      "license": "OFL-1.1 (IBM Plex by Mike Abbink and Bold Monday for IBM); static instances from Google Fonts, packaged as @expo-google-fonts/ibm-plex-sans 0.4.1; source: https://github.com/expo/google-fonts",
+      "npm": "@expo-google-fonts/ibm-plex-sans",
+      "tag": "0.4.1",
+      "asset": "ibm-plex-sans-0.4.1.tgz",
+      "sha256": "8b0e86cb17fbcf46a1b3ee9fcf339ebb552938cc5b753eb28671725aa3f66671",
+      "extract": {
+        "400Regular/IBMPlexSans_400Regular.ttf": "IBMPlexSans-Regular.ttf",
+        "500Medium/IBMPlexSans_500Medium.ttf": "IBMPlexSans-Medium.ttf",
+        "600SemiBold/IBMPlexSans_600SemiBold.ttf": "IBMPlexSans-SemiBold.ttf",
+        "700Bold/IBMPlexSans_700Bold.ttf": "IBMPlexSans-Bold.ttf",
+        "LICENSE_FONT": "IBMPlexSans-OFL.txt"
+      },
+      "target": "font-ibm-plex-sans"
+    },
+    {
+      "name": "font-ibm-plex-sans-condensed",
+      "kind": "font",
+      "purpose": "IBM Plex Sans Condensed, the headings of the Blueprint look, embedded so the look renders the same on any Windows install",
+      "license": "OFL-1.1 (IBM Plex by Mike Abbink and Bold Monday for IBM); static instances from Google Fonts, packaged as @expo-google-fonts/ibm-plex-sans-condensed 0.4.1; source: https://github.com/expo/google-fonts",
+      "npm": "@expo-google-fonts/ibm-plex-sans-condensed",
+      "tag": "0.4.1",
+      "asset": "ibm-plex-sans-condensed-0.4.1.tgz",
+      "sha256": "cbf657f60f559e9d6ee31b5f78a4cd48d458a7b480231f791811f8028dd4bebb",
+      "extract": {
+        "500Medium/IBMPlexSansCondensed_500Medium.ttf": "IBMPlexSansCondensed-Medium.ttf",
+        "600SemiBold/IBMPlexSansCondensed_600SemiBold.ttf": "IBMPlexSansCondensed-SemiBold.ttf",
+        "700Bold/IBMPlexSansCondensed_700Bold.ttf": "IBMPlexSansCondensed-Bold.ttf",
+        "LICENSE_FONT": "IBMPlexSansCondensed-OFL.txt"
+      },
+      "target": "font-ibm-plex-sans-condensed"
+    },
+    {
+      "name": "font-ibm-plex-mono",
+      "kind": "font",
+      "purpose": "IBM Plex Mono, the figures of the Blueprint look, embedded so the look renders the same on any Windows install",
+      "license": "OFL-1.1 (IBM Plex by Mike Abbink and Bold Monday for IBM); static instances from Google Fonts, packaged as @expo-google-fonts/ibm-plex-mono 0.4.1; source: https://github.com/expo/google-fonts",
+      "npm": "@expo-google-fonts/ibm-plex-mono",
+      "tag": "0.4.1",
+      "asset": "ibm-plex-mono-0.4.1.tgz",
+      "sha256": "6cfa21777fb37b07a2225fef573f92aefc9a3a8dcc784b5747bb1fef60cb13ee",
+      "extract": {
+        "400Regular/IBMPlexMono_400Regular.ttf": "IBMPlexMono-Regular.ttf",
+        "500Medium/IBMPlexMono_500Medium.ttf": "IBMPlexMono-Medium.ttf",
+        "600SemiBold/IBMPlexMono_600SemiBold.ttf": "IBMPlexMono-SemiBold.ttf",
+        "LICENSE_FONT": "IBMPlexMono-OFL.txt"
+      },
+      "target": "font-ibm-plex-mono"
+    },
+    {
+      "name": "font-bricolage-grotesque",
+      "kind": "font",
+      "purpose": "Bricolage Grotesque, the type of the Pop look, embedded so the look renders the same on any Windows install",
+      "license": "OFL-1.1 (Bricolage Grotesque by Mathieu Triay); static instances from Google Fonts, packaged as @expo-google-fonts/bricolage-grotesque 0.4.1; source: https://github.com/expo/google-fonts",
+      "npm": "@expo-google-fonts/bricolage-grotesque",
+      "tag": "0.4.1",
+      "asset": "bricolage-grotesque-0.4.1.tgz",
+      "sha256": "7615c33517f80a1e9a11c33bc962b009792a9b22de49ea47aedd982055525ee6",
+      "extract": {
+        "400Regular/BricolageGrotesque_400Regular.ttf": "BricolageGrotesque-Regular.ttf",
+        "500Medium/BricolageGrotesque_500Medium.ttf": "BricolageGrotesque-Medium.ttf",
+        "600SemiBold/BricolageGrotesque_600SemiBold.ttf": "BricolageGrotesque-SemiBold.ttf",
+        "700Bold/BricolageGrotesque_700Bold.ttf": "BricolageGrotesque-Bold.ttf",
+        "800ExtraBold/BricolageGrotesque_800ExtraBold.ttf": "BricolageGrotesque-ExtraBold.ttf",
+        "LICENSE_FONT": "BricolageGrotesque-OFL.txt"
+      },
+      "target": "font-bricolage-grotesque"
+    },
+    {
+      "name": "font-jetbrains-mono",
+      "kind": "font",
+      "purpose": "JetBrains Mono, the figures of the Graphite, Instrument and Pop looks, embedded so the look renders the same on any Windows install",
+      "license": "OFL-1.1 (JetBrains Mono by JetBrains); static instances from Google Fonts, packaged as @expo-google-fonts/jetbrains-mono 0.4.1; source: https://github.com/expo/google-fonts",
+      "npm": "@expo-google-fonts/jetbrains-mono",
+      "tag": "0.4.1",
+      "asset": "jetbrains-mono-0.4.1.tgz",
+      "sha256": "aead50085a2d56fffdac882c5945f9fc4e4785ccb5c8d6f1988f21faa1737c9a",
+      "extract": {
+        "400Regular/JetBrainsMono_400Regular.ttf": "JetBrainsMono-Regular.ttf",
+        "500Medium/JetBrainsMono_500Medium.ttf": "JetBrainsMono-Medium.ttf",
+        "700Bold/JetBrainsMono_700Bold.ttf": "JetBrainsMono-Bold.ttf",
+        "LICENSE_FONT": "JetBrainsMono-OFL.txt"
+      },
+      "target": "font-jetbrains-mono"
     }
   ]
 }

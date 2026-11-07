@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Instrument control centre</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&amp;family=Barlow+Semi+Condensed:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.lk{font-family:Barlow,system-ui,sans-serif;color:var(--text);background:var(--window);min-height:100vh;display:flex;flex-wrap:wrap;position:relative;box-sizing:border-box}
+.lk.dark{--ground:#121413;--window:#181B19;--surface:#202421;--raised:#292D2A;--sunken:#303531;--line:#3B403C;--line2:#858B84;--text:#EAECE6;--soft:#B8BDB5;--mute:#A3A9A1;--p:#FFB95F;--onp:#462A00;--pc:#653E00;--onpc:#FFDDB8;--sc:#56442A;--onsc:#FADEBC;--vio:#CFBCFF;--err:#FFB4AB;--edge:rgba(0,0,0,.45);--hi:rgba(255,255,255,.04)}
+.lk.light{--ground:#D3D5CF;--window:#DFE1DB;--surface:#EEEFEA;--raised:#F7F7F3;--sunken:#D7D9D2;--line:#B3B7AE;--line2:#6E736A;--text:#191B19;--soft:#41463F;--mute:#585D55;--p:#855300;--onp:#FFFFFF;--pc:#FFDDB8;--onpc:#2A1700;--sc:#FADEBC;--onsc:#271904;--vio:#6247B0;--err:#BA1A1A;--edge:rgba(25,27,25,.22);--hi:rgba(255,255,255,.6)}
+.well{background:#0B0D0C;color:#FFB95F;border-radius:6px;box-shadow:inset 0 2px 6px rgba(0,0,0,.6),0 1px 0 var(--hi);font-family:"Barlow Semi Condensed",Barlow,sans-serif;font-weight:600;text-shadow:0 0 10px rgba(255,185,95,.35);font-variant-numeric:tabular-nums}
+.well.pale{color:#D8E2D0;text-shadow:0 0 10px rgba(216,226,208,.25)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.led{width:7px;height:7px;border-radius:50%;background:var(--line);flex:none;box-shadow:inset 0 1px 1px rgba(0,0,0,.4)}
+.led.on{background:#FFB95F;box-shadow:0 0 0 2px rgba(255,185,95,.18),0 0 10px rgba(255,185,95,.7)}
+.led.ok{background:#7EE0A6;box-shadow:0 0 0 2px rgba(126,224,166,.18),0 0 10px rgba(126,224,166,.6)}
+.nav{flex:1 1 236px;max-width:100%;box-sizing:border-box;padding:16px 12px;display:flex;flex-direction:column;gap:3px;background:var(--ground);border-right:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 10px 16px;font:600 19px "Barlow Semi Condensed";letter-spacing:.2px}
+.badge{width:30px;height:30px;border-radius:7px;background:#0B0D0C;display:grid;place-items:center;box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+.badge svg{width:18px;height:18px;color:#FFB95F}
+.tabs{display:flex;flex-direction:column;gap:3px}
+.tab{display:flex;align-items:center;gap:10px;width:100%;min-height:38px;padding:0 12px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--soft);font:500 14.5px Barlow;text-align:left;cursor:pointer;transition:background .15s,border-color .15s}
+.tab:hover{background:var(--window)}
+.tab.on{background:var(--raised);border-color:var(--line2);color:var(--text);box-shadow:0 1px 0 var(--edge)}
+.tab svg{width:18px;height:18px;flex:none}
+.tab .lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab .pin{width:13px;height:13px;opacity:.65}
+.sep{height:1px;background:var(--line);margin:6px 12px}
+.navfoot{margin-top:auto;padding-top:14px;display:flex;flex-direction:column;gap:3px}
+.act{display:flex;align-items:center;gap:10px;min-height:38px;padding:0 12px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--text);font:500 14.5px Barlow;cursor:pointer;text-align:left}
+.act:hover{background:var(--window)}
+.act svg{width:18px;height:18px}
+.act kbd{margin-left:auto;font:500 11.5px "JetBrains Mono";color:var(--mute)}
+.state{margin:10px 12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--mute)}
+.state b{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--soft)}
+.main{flex:999 1 560px;min-width:0;box-sizing:border-box;padding:28px 36px 40px;display:flex;flex-direction:column;gap:16px}
+.caps{position:absolute;top:8px;right:10px;display:flex;gap:2px}
+.cap{width:44px;height:34px;border:0;border-radius:8px;background:transparent;color:var(--soft);display:grid;place-items:center;cursor:pointer}
+.cap:hover{background:var(--surface)}
+.cap svg{width:14px;height:14px}
+.plate{display:inline-flex;align-items:center;gap:8px;height:24px;padding:0 10px;border:1px solid var(--line2);border-radius:6px;font:500 13px Barlow;color:var(--soft)}
+.ph h1{margin:10px 0 4px;font:600 36px/42px "Barlow Semi Condensed";letter-spacing:.2px}
+.ph p{margin:0;max-width:62ch;font-size:15px;line-height:21px;color:var(--mute)}
+.search{display:flex;align-items:center;gap:6px;height:48px;padding:0 6px 0 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:inset 0 1px 2px var(--edge)}
+.search:focus-within{outline:2px solid var(--p);outline-offset:2px}
+.search svg{width:19px;height:19px;color:var(--soft);flex:none}
+.search input{flex:1;min-width:0;border:0;background:transparent;font:400 15px Barlow;color:var(--text);outline:none}
+.search input::placeholder{color:var(--mute)}
+.count{font:500 12px "JetBrains Mono";color:var(--mute);padding:0 6px}
+.ib{height:34px;min-width:40px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--soft);font:500 13px "JetBrains Mono";cursor:pointer;box-shadow:0 1px 0 var(--edge)}
+.tb{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border:0;border-radius:8px;background:var(--p);color:var(--onp);font:600 14px Barlow;cursor:pointer;box-shadow:inset 0 -2px 0 rgba(0,0,0,.28)}
+.tb svg{width:16px;height:16px}
+.meters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.panel{border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 1px 0 var(--edge),inset 0 1px 0 var(--hi);min-width:0}
+.meter{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.mh{display:flex;align-items:center;gap:8px;font:500 13.5px Barlow;color:var(--soft)}
+.mh .led{margin-left:auto}
+.meter .well{padding:8px 12px;font-size:30px;line-height:36px}
+.meter .well small{font-size:16px;margin-left:6px;color:#C99550;text-shadow:none}
+.meter .s{font-size:13px;color:var(--mute)}
+.card{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.ct{display:flex;align-items:flex-start;gap:12px}
+.ct h2{margin:0;font:600 19px/24px "Barlow Semi Condensed";letter-spacing:.2px}
+.ct p{margin:3px 0 0;font-size:14px;color:var(--mute)}
+.legend{margin-left:auto;display:flex;gap:14px;font-size:13px;color:var(--soft)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.trace{width:16px;height:3px;border-radius:2px}
+.readouts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.ro{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ro .k{font-size:13px;color:var(--soft)}
+.ro .well{padding:5px 10px;font-size:20px;line-height:26px}
+.scope{position:relative;height:160px;border-radius:8px;background:#0B0D0C;box-shadow:inset 0 2px 8px rgba(0,0,0,.7);overflow:hidden;background-image:linear-gradient(rgba(255,185,95,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(255,185,95,.10) 1px,transparent 1px);background-size:10% 25%}
+.scope svg{position:absolute;inset:12px;width:calc(100% - 24px);height:calc(100% - 24px)}
+.scope .max{position:absolute;top:8px;right:12px;font:500 12px "JetBrains Mono";color:#C99550}
+.scope .gapl{position:absolute;bottom:8px;left:43%;font:500 12.5px Barlow;color:#FFB4AB}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.row{display:flex;align-items:center;gap:12px;min-height:46px}
+.row+.row{border-top:1px solid var(--line)}
+.row .t{flex:1;min-width:0}
+.row .t b{display:block;font-weight:500;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .t span{font-size:13px;color:var(--mute)}
+.row .w{font:500 12.5px "JetBrains Mono";color:var(--soft);white-space:nowrap}
+.chip{width:32px;height:32px;border-radius:7px;display:grid;place-items:center;flex:none;background:#0B0D0C;color:#FFB95F}
+.chip svg{width:17px;height:17px}
+@media (max-width:760px){.meters,.two{grid-template-columns:minmax(0,1fr)}.readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.main{padding:20px}.tabs{flex-direction:row;overflow-x:auto}.tab{width:auto;white-space:nowrap}.sep{display:none}.nav{border-right:0;border-bottom:1px solid var(--line)}}
+</style>
+</helmet>
+<div class="lk {{theme}}">
+<div class="caps">
+<button class="cap" aria-label="Minimise"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+<button class="cap" aria-label="Maximise"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12v12H6z" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+<button class="cap" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+</div>
+<nav class="nav" aria-label="Control centre pages">
+<div class="brand"><span class="badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Monitoring Tools</div>
+<div class="tabs">
+<sc-for list="{{pinned}}" as="t" hint-placeholder-count="1">
+<button class="{{t.cls}}" onClick="{{t.pick}}" aria-current="{{t.cur}}"><span class="{{t.led}}" aria-hidden="true"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.icon}}" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">{{t.label}}</span><svg class="pin" viewBox="0 0 24 24" role="img" aria-label="Pinned"><path d="M9 4h6l-1 6 3 3H7l3-3zM12 13v7" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/></svg></button>
+</sc-for>
+<div class="sep" aria-hidden="true"></div>
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="18">
+<button class="{{t.cls}}" onClick="{{t.pick}}" aria-current="{{t.cur}}"><span class="{{t.led}}" aria-hidden="true"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.icon}}" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">{{t.label}}</span></button>
+</sc-for>
+</div>
+<div class="navfoot">
+<button class="act"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>New tab<kbd>Ctrl+T</kbd></button>
+<button class="act"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>Tab options</button>
+<div class="state"><b><span class="led ok" aria-hidden="true"></span>Online and watching</b><span>1.0.67, updated 2 h ago</span></div>
+</div>
+</nav>
+<main class="main">
+<header class="ph">
+<span class="plate"><span class="led on" aria-hidden="true"></span>{{curLabel}}</span>
+<h1>Everything is quiet</h1>
+<p>The connection is steady, the clipboard is watched and game mode is waiting for a game.</p>
+</header>
+<div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg><label class="vh" for="q">Search overview</label><input id="q" placeholder="Search overview"><span class="count">15 results</span><button class="ib" aria-label="Match case">Aa</button><button class="ib" aria-label="Regular expression">.*</button><button class="tb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20L14 10M15 4v3M18.5 5.5l-2 2M20 9h-3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Builder</button></div>
+<section class="meters" aria-label="Status">
+<div class="panel meter"><div class="mh">Internet<span class="led ok" aria-hidden="true"></span></div><div class="well">Online</div><span class="s">Checked every 2 seconds, automatic fixes on</span></div>
+<div class="panel meter"><div class="mh">Clipboard today<span class="led on" aria-hidden="true"></span></div><div class="well">13<small>copies</small></div><span class="s">9 text, 2 links, 1 file, 1 picture</span></div>
+<div class="panel meter"><div class="mh">Game mode<span class="led" aria-hidden="true"></span></div><div class="well pale">Standing by</div><span class="s">18 games watched, fullscreen counts</span></div>
+</section>
+<section class="panel card" aria-labelledby="live-h">
+<div class="ct"><div><h2 id="live-h">Live</h2><p>Every probe of the last few minutes. The gap is where checks failed.</p></div>
+<div class="legend"><span><i class="trace" style="background: #FFB95F"></i>Gateway</span><span><i class="trace" style="background: #D8E2D0"></i>DNS</span></div></div>
+<div class="readouts">
+<div class="ro"><span class="k">Uptime</span><span class="well">1 h 30 m</span></div>
+<div class="ro"><span class="k">Probes</span><span class="well">2,690</span></div>
+<div class="ro"><span class="k">Copies today</span><span class="well">13</span></div>
+<div class="ro"><span class="k">Gateway average</span><span class="well">5 ms</span></div>
+<div class="ro"><span class="k">DNS average</span><span class="well">16 ms</span></div>
+</div>
+<div class="scope">
+<svg viewBox="0 0 600 140" preserveAspectRatio="none" role="img" aria-label="Gateway near 5 ms and DNS near 16 ms, with one gap where checks failed">
+<rect x="246" y="0" width="40" height="140" fill="rgba(255,180,171,.16)"/>
+<polyline points="0,33.4 10,97.8 20,93.2 30,95.5 40,93.2 50,102.4 60,100.1 70,100.1 80,97.8 90,102.4 100,95.5 110,93.2 120,97.8 130,100.1 140,42.6 150,95.5 160,100.1 170,102.4 180,97.8 190,93.2 200,100.1 210,102.4 220,97.8 230,95.5 240,90.9" fill="none" stroke="#D8E2D0" stroke-width="1.8" vector-effect="non-scaling-stroke"/>
+<polyline points="290,38.0 300,97.8 310,100.1 320,93.2 330,95.5 340,100.1 350,102.4 360,97.8 370,100.1 380,95.5 390,102.4 400,97.8 410,100.1 420,102.4 430,97.8 440,93.2 450,95.5 460,100.1 470,102.4 480,95.5 490,93.2 500,28.8 510,97.8 520,100.1 530,95.5 540,102.4 550,97.8 560,93.2 570,100.1 580,95.5 590,97.8 600,100.1" fill="none" stroke="#D8E2D0" stroke-width="1.8" vector-effect="non-scaling-stroke"/>
+<polyline points="0,116.2 10,118.5 20,120.8 30,118.5 40,118.5 50,116.2 60,120.8 70,118.5 80,113.9 90,118.5 100,120.8 110,118.5 120,100.1 130,118.5 140,120.8 150,118.5 160,116.2 170,118.5 180,120.8 190,118.5 200,118.5 210,116.2 220,118.5 230,120.8 240,116.2" fill="none" stroke="#FFB95F" stroke-width="2.2" vector-effect="non-scaling-stroke"/>
+<polyline points="290,118.5 300,120.8 310,118.5 320,118.5 330,100.1 340,116.2 350,118.5 360,120.8 370,118.5 380,118.5 390,116.2 400,118.5 410,120.8 420,118.5 430,116.2 440,118.5 450,118.5 460,120.8 470,118.5 480,116.2 490,118.5 500,100.1 510,118.5 520,120.8 530,118.5 540,116.2 550,118.5 560,120.8 570,118.5 580,118.5 590,116.2 600,120.8" fill="none" stroke="#FFB95F" stroke-width="2.2" vector-effect="non-scaling-stroke"/>
+</svg>
+<span class="max">49 ms</span><span class="gapl">No answer for 40 s</span>
+</div>
+</section>
+<div class="two">
+<section class="panel card" aria-labelledby="out-h">
+<div class="ct"><div><h2 id="out-h">Outages</h2><p>The last two times the line dropped.</p></div></div>
+<div>
+<div class="row"><span class="led" aria-hidden="true"></span><div class="t"><b>DNS lookups failing</b><span>Saturday 02:05</span></div><span class="w">2 m 00 s</span></div>
+<div class="row"><span class="led" aria-hidden="true"></span><div class="t"><b>Router is not responding</b><span>Friday 23:41</span></div><span class="w">7 m 00 s</span></div>
+</div>
+</section>
+<section class="panel card" aria-labelledby="act-h">
+<div class="ct"><div><h2 id="act-h">Latest activity</h2><p>Conversions, installs and shortcuts.</p></div></div>
+<div>
+<div class="row"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 3L4 14h7l-1 7 9-11h-7z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/></svg></span><div class="t"><b>Converted launch-teaser.mov to MP4</b><span>412 MB to 96 MB</span></div><span class="w">now</span></div>
+<div class="row"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/></svg></span><div class="t"><b>Install cancelled: winget install Git.Git</b><span>Cancelled during the start delay</span></div><span class="w">4 m</span></div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1060}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { cur: 'overview' }; }
+  renderVals() {
+    const I = {
+      pulse: 'M3 12h4l3-7 4 14 3-7h4', lines: 'M4 7h16M4 12h16M4 17h10', clip: 'M7 3h10v4H7zM4 5h16v16H4z', text: 'M4 6h16M4 12h10M4 18h13',
+      code: 'M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14', wifi: 'M2 8.8a15 15 0 0 1 20 0M5 12.6a10 10 0 0 1 14 0M8.5 16.4a5 5 0 0 1 7 0M12 20h.01',
+      game: 'M6 9h4M8 7v4M15 10h.01M18 8h.01M5 5h14a3 3 0 0 1 3 3l-1 8a3 3 0 0 1-5 1.5L14 16h-4l-2 1.5A3 3 0 0 1 3 16L2 8a3 3 0 0 1 3-3z',
+      bolt: 'M13 3L4 14h7l-1 7 9-11h-7z', box: 'M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5',
+      chip: 'M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3M6 6h12v12H6zM10 10h4v4h-4z', wand: 'M4 20L14 10M15 4v3M18.5 5.5l-2 2M20 9h-3',
+      shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', gear: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1',
+      palette: 'M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z',
+      translate: 'M4 5h8M8 3v2M6 5c0 4 3 7 6 8M10 5c0 4-3 7-6 9M13 21l4-10 4 10M14.5 18h5', moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',
+      archive: 'M3 5h18v4H3zM5 9v10h14V9M10 13h4', help: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01',
+      globe: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18'
+    };
+    const pages = [
+      ['overview', 'Overview', 'pulse'], ['activity', 'Activity', 'lines'], ['history', 'Clipboard history', 'clip'], ['clipboard', 'Clipboard', 'text'],
+      ['shortcuts', 'Shortcuts and scripts', 'code'], ['network', 'Network and DNS', 'wifi'], ['game', 'Game mode', 'game'], ['conversion', 'Conversion', 'bolt'],
+      ['minecraft', 'Minecraft servers', 'box'], ['ollama', 'Local AI models', 'chip'], ['tools', 'Tools', 'wand'], ['safety', 'Safety and locks', 'shield'],
+      ['service', 'Service', 'gear'], ['appearance', 'Appearance', 'palette'], ['language', 'Language and voice', 'translate'], ['modes', 'Modes', 'moon'],
+      ['records', 'Records and exports', 'archive'], ['help', 'Help and docs', 'help'], ['about', 'About and updates', 'globe']
+    ];
+    const cur = this.state.cur;
+    const all = pages.map(([id, label, icon]) => ({
+      id, label, icon: I[icon], cls: id === cur ? 'tab on' : 'tab', led: id === cur ? 'led on' : 'led', cur: id === cur ? 'page' : 'false',
+      pick: () => this.setState({ cur: id })
+    }));
+    const here = all.find((t) => t.id === cur) || all[0];
+    return { theme: this.props.theme ?? 'dark', pinned: all.slice(0, 1), tabs: all.slice(1), curLabel: here.label };
+  }
+}
+</script>
+</body>
+</html>

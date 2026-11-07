@@ -795,7 +795,7 @@ namespace MonitoringTools.UI
             {
                 wiz.Show();
                 await Settle(wiz, 600);
-                for (int i = 0; i <= 6; i++)
+                for (int i = 0; i <= 7; i++)
                 {
                     wiz.GoTo(i);
                     await Settle(wiz, 250);

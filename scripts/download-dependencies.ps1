@@ -26,6 +26,10 @@ New-Item -ItemType Directory -Force -Path $cacheDir | Out-Null
 function Say($m) { Write-Host "[dependencies] $m" }
 
 function Get-AssetUrl($dep) {
+    if ($dep.npm) {
+        # A package from the npm registry (the embedded fonts): the tarball address is fixed by name and version.
+        return [pscustomobject]@{ name = $dep.asset; size = 0; browser_download_url = "https://registry.npmjs.org/$($dep.npm)/-/$($dep.asset)" }
+    }
     $api = "https://api.github.com/repos/$($dep.repository)/releases/tags/$($dep.tag)"
     $headers = @{ 'User-Agent' = 'monitoring-tools-dependencies' }
     if ($env:GITHUB_TOKEN) { $headers.Authorization = "Bearer $($env:GITHUB_TOKEN)" }
@@ -56,7 +60,8 @@ foreach ($dep in $manifest.dependencies) {
         $asset = Get-AssetUrl $dep
         $archive = Join-Path $cacheDir $asset.name
         if (-not (Test-Path $archive)) {
-            Say "$($dep.name): downloading $($asset.name) ($([math]::Round($asset.size / 1MB, 1)) MB) from $($dep.repository) $($dep.tag)"
+            $from = if ($dep.npm) { "$($dep.npm) on npm" } else { $dep.repository }
+            Say "$($dep.name): downloading $($asset.name) ($([math]::Round($asset.size / 1MB, 1)) MB) from $from $($dep.tag)"
             Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "$archive.part" -Headers @{ 'User-Agent' = 'monitoring-tools-dependencies' }
             Move-Item -Force "$archive.part" $archive
         }
@@ -88,6 +93,11 @@ foreach ($dep in $manifest.dependencies) {
             if (-not (Test-Path $opener)) { throw "$($dep.extractWith).exe is needed to open $($asset.name) but is not installed. It must be listed before $($dep.name) in deps/manifest.json." }
             & $opener x "-o$tmp" $archive -y | Out-Null
             if ($LASTEXITCODE -ne 0) { throw "$($dep.extractWith) could not open $($asset.name) (exit $LASTEXITCODE)" }
+        } elseif ($asset.name -like '*.tgz') {
+            # An npm tarball: Windows 10 and later ship tar.exe, which reads gzip.
+            New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+            & tar -xzf $archive -C $tmp
+            if ($LASTEXITCODE -ne 0) { throw "tar could not open $($asset.name) (exit $LASTEXITCODE)" }
         } else {
             Expand-Archive -Path $archive -DestinationPath $tmp -Force
         }
@@ -114,7 +124,8 @@ foreach ($dep in $manifest.dependencies) {
         Say "$($dep.name): installed $($dep.tag) to $target in $([math]::Round($sw.Elapsed.TotalSeconds, 1)) s"
     }
     catch {
-        Write-Host "[dependencies] FAILED $($dep.name) (pin $($dep.tag), source $($dep.repository)): $($_.Exception.Message)"
+        $source = if ($dep.npm) { $dep.npm } else { $dep.repository }
+        Write-Host "[dependencies] FAILED $($dep.name) (pin $($dep.tag), source $source): $($_.Exception.Message)"
         $failed = $true
     }
 }

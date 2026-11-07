@@ -105,6 +105,31 @@ jobs:
           path: screenshots
           if-no-files-found: warn
 
+      # Every look, every language mode, a desktop window, a 1080p screen at 200 percent and 150 percent text: each page,
+      # toast, menu, dialog and setup step is opened and its real layout walked. Cut-off or overlapping text, content too
+      # wide for a box that cannot scroll, windows bigger than the screen, unnamed controls, missing focus rings and a
+      # keyboard walk onto hidden controls fail the build. Trimmed text is listed for review in sweep.md.
+      - name: Sweep every surface
+        id: sweep
+        shell: pwsh
+        run: |
+          $env:MT_ONLY = 'sweep'
+          $p = Start-Process -FilePath out/MonitoringTools.exe -ArgumentList '--screenshots', "$PWD/sweep" -PassThru
+          if (-not $p.WaitForExit(1500000)) { $p.Kill(); throw "The sweep timed out" }
+          if (Test-Path sweep/error.txt) { Get-Content sweep/error.txt; throw "The sweep could not run" }
+          if (-not (Test-Path sweep/sweep.json)) { throw "The sweep wrote no results" }
+          $r = Get-Content sweep/sweep.json -Raw | ConvertFrom-Json
+          Get-Content sweep/sweep.md | Select-Object -First 200
+          Write-Host "Scans: $($r.scans). Findings that fail the sweep: $($r.gating)."
+          if ($r.gating -gt 0) { throw "The every-surface sweep found $($r.gating) problems; see sweep.md in the sweep artifact." }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sweep
+          path: sweep
+          if-no-files-found: warn
+
       - name: Commit refreshed screenshots
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh

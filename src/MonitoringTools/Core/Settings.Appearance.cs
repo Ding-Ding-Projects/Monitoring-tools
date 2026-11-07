@@ -6,6 +6,10 @@ namespace MonitoringTools.Core
         /// <summary>"system", "light" or "dark".</summary>
         public string ThemeMode { get; set; } = "system";
 
+        /// <summary>The look: "graphite" (default), "instrument", "blueprint" or "pop". Changes type, shapes, depth and the
+        /// neutral colours everywhere; see <see cref="Looks"/>.</summary>
+        public string Look { get; set; } = "graphite";
+
         /// <summary>"mint", "violet", "amber", "ocean" or "rose".</summary>
         public string SeedColour { get; set; } = "mint";
 

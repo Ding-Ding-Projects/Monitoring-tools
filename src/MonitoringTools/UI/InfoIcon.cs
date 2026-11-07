@@ -49,6 +49,7 @@ namespace MonitoringTools.UI
             Add("Start when I sign in", "Starts the background service at sign-in so the watchers run without opening the app.", s => OnOff(s.StartWithWindows));
             Add("Watch the public IP", "Checks your public IP address every few minutes and right after the network changes, and records when it changes.", s => OnOff(s.PublicIpEnabled));
             Add("Watch my public IP address", "Checks your public IP address and shows a dialog on every change.", s => OnOff(s.PublicIpEnabled));
+            Add("Look", "The whole style of every window: type, shapes, outlines and depth. Graphite, Instrument, Blueprint or Pop.", s => "Graphite");
             Add("Theme", "Light, dark, or follow the Windows app theme.", s => "System");
             Add("Seed colour", "The colour the whole Material 3 palette is generated from.", s => "Mint");
             Add("High-contrast outlines", "Draws dividers and borders with a stronger outline colour so edges are easier to see.", s => OnOff(s.HighContrastOutlines));

@@ -12,7 +12,7 @@
             </TransformGroup>
         </Grid.RenderTransform>
         <Border CornerRadius="28" Background="{DynamicResource B.Window}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
-                Effect="{StaticResource Fx.Shadow}" Padding="33,36,33,32" MouseLeftButtonDown="OnDrag">
+                Effect="{DynamicResource Fx.Shadow}" Padding="33,36,33,32" MouseLeftButtonDown="OnDrag">
             <!-- Three rows: the welcome, the cards (they scroll when the screen is short) and the footer, which always shows. -->
             <Grid>
                 <Grid.RowDefinitions>

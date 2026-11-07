@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Blueprint control centre</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Sans+Condensed:wght@500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.lk{font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--text);background-color:var(--window);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;min-height:100vh;display:flex;flex-wrap:wrap;position:relative;box-sizing:border-box}
+.lk.dark{--ground:#061630;--window:#0A1D3A;--surface:#0E2546;--raised:#132D53;--sunken:#183560;--line:#2A4F80;--line2:#7EA6D8;--text:#E8F1FF;--soft:#A8C0E4;--mute:#7EA6D8;--p:#9ECAFF;--onp:#003258;--pc:#00497D;--onpc:#D1E4FF;--sc:#3B4858;--onsc:#D7E3F7;--amb:#FFB95F;--ambw:#3B2A12;--vio:#CFBCFF;--grid:rgba(126,166,216,.08)}
+.lk.light{--ground:#D8E3EF;--window:#E8EFF7;--surface:#F4F8FC;--raised:#FFFFFF;--sunken:#DCE6F1;--line:#A9BDD6;--line2:#4A6A92;--text:#0D2140;--soft:#33507A;--mute:#3F5E86;--p:#0061A4;--onp:#FFFFFF;--pc:#D1E4FF;--onpc:#001D36;--sc:#D7E3F7;--onsc:#101C2B;--amb:#7A4A00;--ambw:#FFDDB3;--vio:#6247B0;--grid:rgba(74,106,146,.10)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.nav{flex:1 1 236px;max-width:100%;box-sizing:border-box;padding:18px 14px 16px;display:flex;flex-direction:column;gap:2px;background:var(--ground);border-right:1px solid var(--line2)}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 4px 18px;font:600 19px "IBM Plex Sans Condensed"}
+.brand svg{width:24px;height:24px;color:var(--p)}
+.tabs{display:flex;flex-direction:column;gap:2px;position:relative}
+.tabs::before{content:"";position:absolute;left:12px;top:18px;bottom:18px;width:1px;background:var(--line2)}
+.tab{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:36px;padding:0 10px 0 6px;border:1px solid transparent;border-radius:2px;background:transparent;color:var(--soft);font:400 14px "IBM Plex Sans";text-align:left;cursor:pointer}
+.tab:hover{color:var(--text);border-color:var(--line)}
+.node{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--line2);background:var(--ground);box-sizing:border-box;flex:none;z-index:1}
+.tab.on{color:var(--text);font-weight:600;border-color:var(--p);background:var(--surface)}
+.tab.on .node{background:var(--p);border-color:var(--p);box-shadow:0 0 0 3px var(--ground),0 0 0 4px var(--p)}
+.tab svg{width:17px;height:17px;flex:none}
+.tab .lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab .pin{width:13px;height:13px;opacity:.7}
+.navfoot{margin-top:auto;padding-top:16px;display:flex;flex-direction:column;gap:2px}
+.act{display:flex;align-items:center;gap:12px;min-height:36px;padding:0 10px;border:1px solid transparent;border-radius:2px;background:transparent;color:var(--text);font:500 14px "IBM Plex Sans";cursor:pointer;text-align:left}
+.act:hover{border-color:var(--line)}
+.act svg{width:17px;height:17px}
+.act kbd{margin-left:auto;font:500 11.5px "IBM Plex Mono";color:var(--mute)}
+.state{margin:12px 4px 0;padding-top:10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--mute)}
+.state b{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--soft)}
+.main{flex:999 1 560px;min-width:0;box-sizing:border-box;padding:30px 40px 40px;display:flex;flex-direction:column;gap:18px}
+.caps{position:absolute;top:8px;right:10px;display:flex;gap:2px}
+.cap{width:44px;height:34px;border:1px solid transparent;border-radius:2px;background:transparent;color:var(--soft);display:grid;place-items:center;cursor:pointer}
+.cap:hover{border-color:var(--line)}
+.cap svg{width:14px;height:14px}
+.crumb{display:flex;align-items:center;gap:10px;font:500 13px "IBM Plex Mono";color:var(--p)}
+.crumb::after{content:"";flex:1;height:1px;background:var(--line)}
+.ph h1{margin:8px 0 4px;font:600 36px/42px "IBM Plex Sans Condensed"}
+.ph p{margin:0;max-width:62ch;font-size:14.5px;line-height:21px;color:var(--mute)}
+.search{display:flex;align-items:center;gap:6px;height:46px;padding:0 6px 0 14px;border:1px solid var(--line2);border-radius:3px;background:var(--surface)}
+.search:focus-within{outline:2px solid var(--p);outline-offset:2px}
+.search svg{width:18px;height:18px;color:var(--soft);flex:none}
+.search input{flex:1;min-width:0;border:0;background:transparent;font:400 15px "IBM Plex Sans";color:var(--text);outline:none}
+.search input::placeholder{color:var(--mute)}
+.count{font:500 12px "IBM Plex Mono";color:var(--mute);padding:0 6px}
+.ib{height:34px;min-width:40px;border:1px solid var(--line);border-radius:2px;background:transparent;color:var(--soft);font:500 13px "IBM Plex Mono";cursor:pointer}
+.tb{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border:1px solid var(--p);border-radius:2px;background:var(--p);color:var(--onp);font:600 13.5px "IBM Plex Sans";cursor:pointer}
+.tb svg{width:16px;height:16px}
+.box{border:1px solid var(--line2);border-radius:3px;background:var(--surface);min-width:0}
+.band{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.seg{padding:16px 20px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.seg+.seg{border-left:1px solid var(--line2)}
+.seg .k{font:500 12.5px "IBM Plex Mono";color:var(--soft)}
+.seg .v{font:600 30px/36px "IBM Plex Sans Condensed"}
+.seg .s{font-size:13px;color:var(--mute)}
+.ok{color:var(--p)}.std{color:var(--vio)}
+.card{display:flex;flex-direction:column}
+.ct{display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line)}
+.ct h2{margin:0;font:600 19px/24px "IBM Plex Sans Condensed"}
+.ct p{margin:2px 0 0;font-size:13.5px;color:var(--mute)}
+.legend{margin-left:auto;display:flex;gap:16px;font-size:12.5px;color:var(--soft)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.key{width:22px;height:0;border-top:2px solid}
+.key.dash{border-top-style:dashed}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-bottom:1px solid var(--line)}
+.stats div{display:flex;flex-direction:column;gap:2px;padding:12px 20px}
+.stats div+div{border-left:1px solid var(--line)}
+.stats .k{font:500 12px "IBM Plex Mono";color:var(--soft)}
+.stats .v{font:600 21px/26px "IBM Plex Sans Condensed"}
+.plot{position:relative;height:170px;margin:14px 20px 18px 56px}
+.plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ax{position:absolute;left:-44px;font:500 11.5px "IBM Plex Mono";color:var(--mute)}
+.gapl{position:absolute;bottom:-2px;left:42%;font:500 12px "IBM Plex Mono";color:var(--amb);background:var(--surface);padding:0 4px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.rows{padding:2px 20px 8px}
+.row{display:flex;align-items:center;gap:12px;min-height:46px}
+.row+.row{border-top:1px solid var(--line)}
+.row .t{flex:1;min-width:0}
+.row .t b{display:block;font-weight:500;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .t span{font-size:12.5px;color:var(--mute)}
+.row .w{font:500 12.5px "IBM Plex Mono";color:var(--soft);white-space:nowrap}
+.chip{width:30px;height:30px;border:1px solid var(--line2);border-radius:2px;display:grid;place-items:center;flex:none;color:var(--p)}
+.chip svg{width:16px;height:16px}
+.sq{width:9px;height:9px;border:1.5px solid var(--line2);flex:none}
+@media (max-width:760px){.band,.two{grid-template-columns:minmax(0,1fr)}.seg+.seg{border-left:0;border-top:1px solid var(--line2)}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.main{padding:20px}.tabs{flex-direction:row;overflow-x:auto}.tabs::before{display:none}.tab{width:auto;white-space:nowrap}.nav{border-right:0;border-bottom:1px solid var(--line2)}}
+</style>
+</helmet>
+<div class="lk {{theme}}">
+<div class="caps">
+<button class="cap" aria-label="Minimise"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>
+<button class="cap" aria-label="Maximise"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12v12H6z" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>
+<button class="cap" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>
+</div>
+<nav class="nav" aria-label="Control centre pages">
+<div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>Monitoring Tools</div>
+<div class="tabs">
+<sc-for list="{{all}}" as="t" hint-placeholder-count="19">
+<button class="{{t.cls}}" onClick="{{t.pick}}" aria-current="{{t.cur}}"><span class="node" aria-hidden="true"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.icon}}" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">{{t.label}}</span></button>
+</sc-for>
+</div>
+<div class="navfoot">
+<button class="act"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.7" fill="none"/></svg>New tab<kbd>Ctrl+T</kbd></button>
+<button class="act"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>Tab options</button>
+<div class="state"><b><span class="sq" aria-hidden="true" style="background: var(--p); border-color: var(--p)"></span>Online and watching</b><span>1.0.67, updated 2 h ago</span></div>
+</div>
+</nav>
+<main class="main">
+<header class="ph">
+<div class="crumb">{{crumb}}</div>
+<h1>Everything is quiet</h1>
+<p>The connection is steady, the clipboard is watched and game mode is waiting for a game.</p>
+</header>
+<div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4" stroke="currentColor" stroke-width="1.8" fill="none"/></svg><label class="vh" for="q">Search overview</label><input id="q" placeholder="Search overview"><span class="count">15 results</span><button class="ib" aria-label="Match case">Aa</button><button class="ib" aria-label="Regular expression">.*</button><button class="tb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20L14 10M15 4v3M18.5 5.5l-2 2M20 9h-3" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>Builder</button></div>
+<section class="box band" aria-label="Status">
+<div class="seg"><span class="k">Internet</span><span class="v ok">Online</span><span class="s">Checked every 2 seconds, automatic fixes on</span></div>
+<div class="seg"><span class="k">Clipboard today</span><span class="v">13 copies</span><span class="s">9 text, 2 links, 1 file, 1 picture</span></div>
+<div class="seg"><span class="k">Game mode</span><span class="v std">Standing by</span><span class="s">18 games watched, fullscreen counts</span></div>
+</section>
+<section class="box card" aria-labelledby="live-h">
+<div class="ct"><div><h2 id="live-h">Live</h2><p>Every probe of the last few minutes. The gap is where checks failed.</p></div>
+<div class="legend"><span><i class="key" style="border-color: var(--p)"></i>Gateway</span><span><i class="key dash" style="border-color: var(--text)"></i>DNS</span></div></div>
+<div class="stats">
+<div><span class="k">Uptime</span><span class="v">1 h 30 m</span></div>
+<div><span class="k">Probes</span><span class="v">2,690</span></div>
+<div><span class="k">Copies today</span><span class="v">13</span></div>
+<div><span class="k">Gateway average</span><span class="v">5 ms</span></div>
+<div><span class="k">DNS average</span><span class="v">16 ms</span></div>
+</div>
+<div class="plot">
+<span class="ax" style="top: 38px">40 ms</span><span class="ax" style="top: 94px">20 ms</span><span class="ax" style="top: 150px">0 ms</span>
+<svg viewBox="0 0 600 140" preserveAspectRatio="none" role="img" aria-label="Gateway near 5 ms and DNS near 16 ms, with one gap where checks failed">
+<line x1="0" y1="38" x2="600" y2="38" stroke="var(--line)" vector-effect="non-scaling-stroke"/>
+<line x1="0" y1="84" x2="600" y2="84" stroke="var(--line)" vector-effect="non-scaling-stroke"/>
+<line x1="0" y1="130" x2="600" y2="130" stroke="var(--line2)" vector-effect="non-scaling-stroke"/>
+<rect x="246" y="10" width="40" height="120" fill="none" stroke="var(--amb)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
+<polyline points="0,33.4 10,97.8 20,93.2 30,95.5 40,93.2 50,102.4 60,100.1 70,100.1 80,97.8 90,102.4 100,95.5 110,93.2 120,97.8 130,100.1 140,42.6 150,95.5 160,100.1 170,102.4 180,97.8 190,93.2 200,100.1 210,102.4 220,97.8 230,95.5 240,90.9" fill="none" stroke="var(--text)" stroke-width="1.4" stroke-dasharray="5 3" vector-effect="non-scaling-stroke"/>
+<polyline points="290,38.0 300,97.8 310,100.1 320,93.2 330,95.5 340,100.1 350,102.4 360,97.8 370,100.1 380,95.5 390,102.4 400,97.8 410,100.1 420,102.4 430,97.8 440,93.2 450,95.5 460,100.1 470,102.4 480,95.5 490,93.2 500,28.8 510,97.8 520,100.1 530,95.5 540,102.4 550,97.8 560,93.2 570,100.1 580,95.5 590,97.8 600,100.1" fill="none" stroke="var(--text)" stroke-width="1.4" stroke-dasharray="5 3" vector-effect="non-scaling-stroke"/>
+<polyline points="0,116.2 10,118.5 20,120.8 30,118.5 40,118.5 50,116.2 60,120.8 70,118.5 80,113.9 90,118.5 100,120.8 110,118.5 120,100.1 130,118.5 140,120.8 150,118.5 160,116.2 170,118.5 180,120.8 190,118.5 200,118.5 210,116.2 220,118.5 230,120.8 240,116.2" fill="none" stroke="var(--p)" stroke-width="2" vector-effect="non-scaling-stroke"/>
+<polyline points="290,118.5 300,120.8 310,118.5 320,118.5 330,100.1 340,116.2 350,118.5 360,120.8 370,118.5 380,118.5 390,116.2 400,118.5 410,120.8 420,118.5 430,116.2 440,118.5 450,118.5 460,120.8 470,118.5 480,116.2 490,118.5 500,100.1 510,118.5 520,120.8 530,118.5 540,116.2 550,118.5 560,120.8 570,118.5 580,118.5 590,116.2 600,120.8" fill="none" stroke="var(--p)" stroke-width="2" vector-effect="non-scaling-stroke"/>
+</svg>
+<span class="gapl">No answer for 40 s</span>
+</div>
+</section>
+<div class="two">
+<section class="box card" aria-labelledby="out-h">
+<div class="ct"><div><h2 id="out-h">Outages</h2><p>The last two times the line dropped.</p></div></div>
+<div class="rows">
+<div class="row"><span class="sq" aria-hidden="true"></span><div class="t"><b>DNS lookups failing</b><span>Saturday 02:05</span></div><span class="w">2 m 00 s</span></div>
+<div class="row"><span class="sq" aria-hidden="true"></span><div class="t"><b>Router is not responding</b><span>Friday 23:41</span></div><span class="w">7 m 00 s</span></div>
+</div>
+</section>
+<section class="box card" aria-labelledby="act-h">
+<div class="ct"><div><h2 id="act-h">Latest activity</h2><p>Conversions, installs and shortcuts.</p></div></div>
+<div class="rows">
+<div class="row"><span class="chip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 3L4 14h7l-1 7 9-11h-7z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg></span><div class="t"><b>Converted launch-teaser.mov to MP4</b><span>412 MB to 96 MB</span></div><span class="w">now</span></div>
+<div class="row"><span class="chip" aria-hidden="true" style="color: var(--amb)"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg></span><div class="t"><b>Install cancelled: winget install Git.Git</b><span>Cancelled during the start delay</span></div><span class="w">4 m</span></div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { cur: 'overview' }; }
+  renderVals() {
+    const I = {
+      pulse: 'M3 12h4l3-7 4 14 3-7h4', lines: 'M4 7h16M4 12h16M4 17h10', clip: 'M7 3h10v4H7zM4 5h16v16H4z', text: 'M4 6h16M4 12h10M4 18h13',
+      code: 'M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14', wifi: 'M2 8.8a15 15 0 0 1 20 0M5 12.6a10 10 0 0 1 14 0M8.5 16.4a5 5 0 0 1 7 0M12 20h.01',
+      game: 'M6 9h4M8 7v4M15 10h.01M18 8h.01M5 5h14a3 3 0 0 1 3 3l-1 8a3 3 0 0 1-5 1.5L14 16h-4l-2 1.5A3 3 0 0 1 3 16L2 8a3 3 0 0 1 3-3z',
+      bolt: 'M13 3L4 14h7l-1 7 9-11h-7z', box: 'M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5',
+      chip: 'M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3M6 6h12v12H6zM10 10h4v4h-4z', wand: 'M4 20L14 10M15 4v3M18.5 5.5l-2 2M20 9h-3',
+      shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', gear: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1',
+      palette: 'M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z',
+      translate: 'M4 5h8M8 3v2M6 5c0 4 3 7 6 8M10 5c0 4-3 7-6 9M13 21l4-10 4 10M14.5 18h5', moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',
+      archive: 'M3 5h18v4H3zM5 9v10h14V9M10 13h4', help: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01',
+      globe: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18'
+    };
+    const pages = [
+      ['overview', 'Overview', 'pulse'], ['activity', 'Activity', 'lines'], ['history', 'Clipboard history', 'clip'], ['clipboard', 'Clipboard', 'text'],
+      ['shortcuts', 'Shortcuts and scripts', 'code'], ['network', 'Network and DNS', 'wifi'], ['game', 'Game mode', 'game'], ['conversion', 'Conversion', 'bolt'],
+      ['minecraft', 'Minecraft servers', 'box'], ['ollama', 'Local AI models', 'chip'], ['tools', 'Tools', 'wand'], ['safety', 'Safety and locks', 'shield'],
+      ['service', 'Service', 'gear'], ['appearance', 'Appearance', 'palette'], ['language', 'Language and voice', 'translate'], ['modes', 'Modes', 'moon'],
+      ['records', 'Records and exports', 'archive'], ['help', 'Help and docs', 'help'], ['about', 'About and updates', 'globe']
+    ];
+    const cur = this.state.cur;
+    const all = pages.map(([id, label, icon], i) => ({
+      id, label, num: i + 1, icon: I[icon], cls: id === cur ? 'tab on' : 'tab', cur: id === cur ? 'page' : 'false',
+      pick: () => this.setState({ cur: id })
+    }));
+    const here = all.find((t) => t.id === cur) || all[0];
+    return { theme: this.props.theme ?? 'dark', all, crumb: here.label + ', page ' + here.num + ' of 19' };
+  }
+}
+</script>
+</body>
+</html>

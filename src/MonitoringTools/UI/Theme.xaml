@@ -65,6 +65,21 @@
     <FontFamily x:Key="F.Body">/MonitoringTools;component/Fonts/#Roboto, Segoe UI Variable Text, Segoe UI</FontFamily>
     <FontFamily x:Key="F.Mono">Cascadia Mono, Cascadia Code, Consolas</FontFamily>
 
+    <!-- The looks' typefaces. Appearance.Apply copies the current look's three into F.Display, F.Body and F.Mono and its
+         title weight into W.Display. Each falls back to a Windows face when the embedded file is missing (a dev build). -->
+    <FontFamily x:Key="F.Look.Graphite.Display">/MonitoringTools;component/Fonts/#Roboto, Segoe UI Variable Display, Segoe UI</FontFamily>
+    <FontFamily x:Key="F.Look.Graphite.Body">/MonitoringTools;component/Fonts/#Roboto, Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="F.Look.Mono">/MonitoringTools;component/Fonts/#JetBrains Mono, Cascadia Mono, Cascadia Code, Consolas</FontFamily>
+    <FontFamily x:Key="F.Look.Instrument.Display">/MonitoringTools;component/Fonts/#Barlow Semi Condensed, Bahnschrift SemiCondensed, Segoe UI</FontFamily>
+    <FontFamily x:Key="F.Look.Instrument.Body">/MonitoringTools;component/Fonts/#Barlow, Bahnschrift, Segoe UI</FontFamily>
+    <FontFamily x:Key="F.Look.Blueprint.Display">/MonitoringTools;component/Fonts/#IBM Plex Sans Condensed, Segoe UI</FontFamily>
+    <FontFamily x:Key="F.Look.Blueprint.Body">/MonitoringTools;component/Fonts/#IBM Plex Sans, Segoe UI</FontFamily>
+    <FontFamily x:Key="F.Look.Blueprint.Mono">/MonitoringTools;component/Fonts/#IBM Plex Mono, Cascadia Mono, Consolas</FontFamily>
+    <FontFamily x:Key="F.Look.Pop.Display">/MonitoringTools;component/Fonts/#Bricolage Grotesque, Segoe UI Variable Display, Segoe UI</FontFamily>
+    <FontFamily x:Key="F.Look.Pop.Body">/MonitoringTools;component/Fonts/#Bricolage Grotesque, Segoe UI Variable Text, Segoe UI</FontFamily>
+    <Thickness x:Key="Th.CardEdge">0</Thickness>
+    <SolidColorBrush x:Key="B.CardEdge" Color="Transparent"/>
+
     <!-- Motion: emphasized decelerate for arrivals, a gentle overshoot for shape and selection. -->
     <CubicEase x:Key="E.Out" EasingMode="EaseOut"/>
     <BackEase x:Key="E.Spring" EasingMode="EaseOut" Amplitude="0.35"/>
@@ -395,7 +410,7 @@
     </Style>
     <Style x:Key="T.Title" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{DynamicResource F.Display}"/>
-        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="FontWeight" Value="{DynamicResource W.Display}"/>
         <Setter Property="FontSize" Value="16"/>
         <Setter Property="Foreground" Value="{DynamicResource B.Text}"/>
     </Style>

@@ -8,7 +8,7 @@
         <Grid.RenderTransform>
             <TranslateTransform x:Name="RootShift"/>
         </Grid.RenderTransform>
-        <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderThickness="1" Effect="{StaticResource Fx.Shadow}">
+        <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderThickness="1" Effect="{DynamicResource Fx.Shadow}">
             <Border.BorderBrush>
                 <SolidColorBrush x:Name="EdgeBrush" Color="{DynamicResource C.Line}"/>
             </Border.BorderBrush>

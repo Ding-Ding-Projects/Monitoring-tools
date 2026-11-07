@@ -1,0 +1,16 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-07T10:30:00Z"},
+  "title": "Monitoring Tools look: Pop",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 1100, "title": "Control centre: every page open, Overview", "expand": "fill", "is_interactive": true},
+    "Floating.dc.html": {"x": 1520, "y": 100, "w": 1440, "h": 900, "title": "Toasts, tray menu and the look picker", "is_interactive": true}
+  },
+  "order": ["Main.dc.html", "Floating.dc.html"],
+  "notes": {
+    "about": {"x": 0, "y": -300, "text": "Pop: everything is a sticker. Ink outlines, hard offset shadows, bright fills, and each page name printed on label tape. Buttons press down into their shadow. Bricolage Grotesque throughout, Rose colour by default. Use the Theme tweak for light and dark.", "w": 600, "fill": "pink"}
+  },
+  "designSystems": []
+}

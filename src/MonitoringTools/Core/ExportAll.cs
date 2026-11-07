@@ -62,7 +62,7 @@ namespace MonitoringTools.Core
                     var s = Settings.Current;
                     foreach (var (k, v) in new[]
                     {
-                        ("Theme", s.ThemeMode), ("Seed colour", s.SeedColour), ("Text size percent", s.TextScalePercent.ToString()),
+                        ("Look", s.Look), ("Theme", s.ThemeMode), ("Seed colour", s.SeedColour), ("Text size percent", s.TextScalePercent.ToString()),
                         ("Compact density", s.CompactDensity ? "yes" : "no"), ("Reduce motion", s.MotionMode), ("High-contrast outlines", s.HighContrastOutlines ? "yes" : "no"),
                         ("Display name", s.DisplayName), ("Logo tint", s.LogoSource), ("Logo custom colour", s.LogoCustomHex), ("Logo glyph", s.LogoGlyph),
                         ("Logo custom image", string.IsNullOrEmpty(s.LogoImageFile) ? "none" : s.LogoImageFile)
