@@ -3,187 +3,187 @@
     "file": "toast-markdown.png",
     "caption": "Markdown copied, hovered",
     "width": 872,
-    "height": 920
+    "height": 930
   },
   {
     "file": "toast-link.png",
     "caption": "Link with tracking parameters",
     "width": 872,
-    "height": 658
+    "height": 568
   },
   {
     "file": "toast-image-file.png",
     "caption": "Image file with a rich preview",
     "width": 872,
-    "height": 1274
+    "height": 1268
   },
   {
     "file": "toast-csv.png",
     "caption": "CSV file preview",
     "width": 872,
-    "height": 952
+    "height": 966
   },
   {
     "file": "toast-quoted-path.png",
     "caption": "Path copied with quotes",
     "width": 872,
-    "height": 1214
+    "height": 1206
   },
   {
     "file": "toast-compose.png",
     "caption": "Docker Compose file",
     "width": 872,
-    "height": 990
+    "height": 1016
   },
   {
     "file": "toast-folder.png",
     "caption": "Folder with batch conversion chips",
     "width": 872,
-    "height": 1040
+    "height": 1056
   },
   {
     "file": "toast-multi.png",
     "caption": "Several files at once",
     "width": 872,
-    "height": 806
+    "height": 824
   },
   {
     "file": "toast-cut-files.png",
     "caption": "Files that were cut: pasting moves them",
     "width": 872,
-    "height": 750
+    "height": 760
   },
   {
     "file": "toast-cut-text.png",
     "caption": "Text that was cut with Ctrl\u002BX",
     "width": 872,
-    "height": 622
+    "height": 644
   },
   {
     "file": "toast-bitmap.png",
     "caption": "Screenshot on the clipboard",
     "width": 872,
-    "height": 858
+    "height": 852
   },
   {
     "file": "toast-color.png",
     "caption": "Color value",
     "width": 872,
-    "height": 558
+    "height": 552
   },
   {
     "file": "toast-base64.png",
     "caption": "Base64 text",
     "width": 872,
-    "height": 742
+    "height": 736
   },
   {
     "file": "toast-text-idle.png",
     "caption": "Copied text, idle: nothing has focus",
     "width": 872,
-    "height": 470
+    "height": 482
   },
   {
     "file": "toast-text-editing.png",
     "caption": "Copied text, editing in place",
     "width": 872,
-    "height": 690
+    "height": 684
   },
   {
     "file": "toast-text-reverted.png",
     "caption": "Copied text, reverted",
     "width": 872,
-    "height": 726
+    "height": 738
   },
   {
     "file": "toast-held.png",
     "caption": "Held until closed: the countdown stops and the header says so",
     "width": 872,
-    "height": 470
+    "height": 482
   },
   {
     "file": "toast-text-long.png",
     "caption": "Long copied text scrolls inside the toast",
     "width": 872,
-    "height": 886
+    "height": 898
   },
   {
     "file": "toast-install-choco.png",
     "caption": "choco install: names, source, consent note",
     "width": 872,
-    "height": 656
+    "height": 654
   },
   {
     "file": "toast-install-winget.png",
     "caption": "winget install: the installer decides",
     "width": 872,
-    "height": 560
+    "height": 558
   },
   {
     "file": "toast-install-refused.png",
     "caption": "Refused command, with a reason per flag",
     "width": 872,
-    "height": 594
+    "height": 592
   },
   {
     "file": "toast-install-running.png",
     "caption": "Installing: steps and the consent step named",
     "width": 872,
-    "height": 522
+    "height": 516
   },
   {
     "file": "toast-install-done.png",
     "caption": "Installed: versions, Open log, Copy summary",
     "width": 872,
-    "height": 476
+    "height": 492
   },
   {
     "file": "toast-install-declined.png",
     "caption": "Consent prompt declined: exit code 1223",
     "width": 872,
-    "height": 502
+    "height": 500
   },
   {
     "file": "toast-install-auto.png",
     "caption": "Automatic mode: command, countdown, Cancel",
     "width": 872,
-    "height": 506
+    "height": 518
   },
   {
     "file": "toast-smart-unit.png",
     "caption": "An amount: every unit of its kind, tap one to copy it",
     "width": 872,
-    "height": 932
+    "height": 948
   },
   {
     "file": "toast-smart-phone.png",
     "caption": "A phone number, tidied, with Call and Text",
     "width": 872,
-    "height": 840
+    "height": 850
   },
   {
     "file": "toast-smart-trace.png",
     "caption": "A stack trace: open the exact line in VS Code",
     "width": 872,
-    "height": 840
+    "height": 884
   },
   {
     "file": "toast-smart-table.png",
     "caption": "Cells from a spreadsheet: sums, and copy as Markdown, CSV, JSON or HTML",
     "width": 872,
-    "height": 1116
+    "height": 1280
   },
   {
     "file": "toast-smart-cron.png",
     "caption": "A cron schedule in words, with the next runs",
     "width": 872,
-    "height": 928
+    "height": 950
   },
   {
     "file": "toast-smart-secret.png",
     "caption": "A secret: kept out of history and cleared after 30 seconds",
     "width": 872,
-    "height": 646
+    "height": 648
   },
   {
     "file": "popup-history.png",
@@ -200,8 +200,8 @@
   {
     "file": "window-pinned-table.png",
     "caption": "A table pinned on screen, on top of everything",
-    "width": 546,
-    "height": 349
+    "width": 552,
+    "height": 364
   },
   {
     "file": "window-paste-queue.png",
@@ -231,7 +231,7 @@
     "file": "dialog-rules.png",
     "caption": "Per-app rules: toast, history only or never, and one automatic action",
     "width": 1864,
-    "height": 1257
+    "height": 1261
   },
   {
     "file": "dialog-conversions.png",
@@ -267,17 +267,23 @@
     "file": "offline-dialog.png",
     "caption": "Internet connection lost",
     "width": 1048,
-    "height": 1310
+    "height": 1396
   },
   {
     "file": "tray-menu.png",
     "caption": "Tray right-click menu",
     "width": 744,
-    "height": 1576
+    "height": 1440
   },
   {
     "file": "setup-start.png",
     "caption": "Setup wizard: start-up",
+    "width": 1560,
+    "height": 1280
+  },
+  {
+    "file": "setup-look.png",
+    "caption": "Setup wizard: pick a look",
     "width": 1560,
     "height": 1280
   },
@@ -303,7 +309,7 @@
     "file": "toast-public-ip.png",
     "caption": "Public IP changed",
     "width": 872,
-    "height": 618
+    "height": 640
   },
   {
     "file": "welcome.png",
@@ -630,6 +636,126 @@
     "height": 1576
   },
   {
+    "file": "look-graphite-light.png",
+    "caption": "The Graphite look in the light theme: the overview with every page open",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-graphite-dark.png",
+    "caption": "The Graphite look in the dark theme: the overview with every page open",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-graphite-appearance.png",
+    "caption": "The Graphite look: the Appearance page and its look picker",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-graphite-toast.png",
+    "caption": "The Graphite look: a copied link",
+    "width": 872,
+    "height": 568
+  },
+  {
+    "file": "look-graphite-tray.png",
+    "caption": "The Graphite look: the tray menu",
+    "width": 744,
+    "height": 1440
+  },
+  {
+    "file": "look-instrument-light.png",
+    "caption": "The Instrument look in the light theme: the overview with every page open",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-instrument-dark.png",
+    "caption": "The Instrument look in the dark theme: the overview with every page open",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-instrument-appearance.png",
+    "caption": "The Instrument look: the Appearance page and its look picker",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-instrument-toast.png",
+    "caption": "The Instrument look: a copied link",
+    "width": 872,
+    "height": 568
+  },
+  {
+    "file": "look-instrument-tray.png",
+    "caption": "The Instrument look: the tray menu",
+    "width": 744,
+    "height": 1440
+  },
+  {
+    "file": "look-blueprint-light.png",
+    "caption": "The Blueprint look in the light theme: the overview with every page open",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-blueprint-dark.png",
+    "caption": "The Blueprint look in the dark theme: the overview with every page open",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-blueprint-appearance.png",
+    "caption": "The Blueprint look: the Appearance page and its look picker",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-blueprint-toast.png",
+    "caption": "The Blueprint look: a copied link",
+    "width": 872,
+    "height": 562
+  },
+  {
+    "file": "look-blueprint-tray.png",
+    "caption": "The Blueprint look: the tray menu",
+    "width": 744,
+    "height": 1440
+  },
+  {
+    "file": "look-pop-light.png",
+    "caption": "The Pop look in the light theme: the overview with every page open",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-pop-dark.png",
+    "caption": "The Pop look in the dark theme: the overview with every page open",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-pop-appearance.png",
+    "caption": "The Pop look: the Appearance page and its look picker",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "look-pop-toast.png",
+    "caption": "The Pop look: a copied link",
+    "width": 872,
+    "height": 568
+  },
+  {
+    "file": "look-pop-tray.png",
+    "caption": "The Pop look: the tray menu",
+    "width": 744,
+    "height": 1440
+  },
+  {
     "file": "scale200-en-overview.png",
     "caption": "overview at 960 x 540 (200 % on 1080p), en",
     "width": 1920,
@@ -711,7 +837,7 @@
     "file": "docsys-extract-ready.png",
     "caption": "Extract an archive: the contents with check marks, a destination and a rule for names that exist",
     "width": 1640,
-    "height": 1344
+    "height": 1391
   },
   {
     "file": "docsys-extract-working.png",
@@ -741,7 +867,7 @@
     "file": "docsys-extract-7z.png",
     "caption": "Extract an archive: a 7z archive listed and extracted through the bundled 7-Zip",
     "width": 1640,
-    "height": 1344
+    "height": 1363
   },
   {
     "file": "docsys-extract-7z-names-locked.png",
@@ -753,7 +879,7 @@
     "file": "docsys-extract-rar.png",
     "caption": "Extract an archive: a RAR5 archive listed and extracted through the bundled full 7-Zip",
     "width": 1640,
-    "height": 1344
+    "height": 1391
   },
   {
     "file": "docsys-extract-rar-password.png",
@@ -795,7 +921,7 @@
     "file": "docsys-subtitle-problems.png",
     "caption": "Subtitle timing: overlapping and unreadable cues listed, with Fix overlaps and Skip broken cue",
     "width": 1600,
-    "height": 1344
+    "height": 1440
   },
   {
     "file": "docsys-font-ready.png",
@@ -819,7 +945,7 @@
     "file": "docsys-font-collection.png",
     "caption": "Font preview and install: a font collection lists every face, previews the one picked and installs them all",
     "width": 1560,
-    "height": 1344
+    "height": 1440
   },
   {
     "file": "docsys-font-unreadable.png",
@@ -855,7 +981,7 @@
     "file": "docsys-tray-mounted.png",
     "caption": "Tray menu: a disc image this app mounted, with its drive letter and Eject",
     "width": 744,
-    "height": 1576
+    "height": 1440
   },
   {
     "file": "archive-dialog.png",
@@ -885,7 +1011,7 @@
     "file": "archive-done.png",
     "caption": "Archive done (preview with fixed numbers): sizes, test result, location",
     "width": 976,
-    "height": 760
+    "height": 772
   },
   {
     "file": "archive-error.png",
@@ -921,7 +1047,7 @@
     "file": "disk-done.png",
     "caption": "Virtual disk done (preview with fixed numbers): Open, Show file, Detach",
     "width": 976,
-    "height": 745
+    "height": 756
   },
   {
     "file": "disk-error.png",
@@ -939,19 +1065,19 @@
     "file": "datasec-hash-ready.png",
     "caption": "Hash and verify: the SHA-256 in groups of eight, ready for a pasted checksum",
     "width": 1520,
-    "height": 941
+    "height": 944
   },
   {
     "file": "datasec-hash-match.png",
     "caption": "Hash and verify: it matches the publisher\u0027s checksum",
     "width": 1520,
-    "height": 1085
+    "height": 1089
   },
   {
     "file": "datasec-hash-mismatch.png",
     "caption": "Hash and verify: it does not match, with the first differing group marked",
     "width": 1520,
-    "height": 1321
+    "height": 1328
   },
   {
     "file": "datasec-signed-valid.png",
@@ -975,19 +1101,19 @@
     "file": "datasec-cert-valid.png",
     "caption": "Certificate inspector: a valid certificate with its countdown",
     "width": 1560,
-    "height": 1115
+    "height": 1122
   },
   {
     "file": "datasec-cert-expiring.png",
     "caption": "Certificate inspector: expiring soon",
     "width": 1560,
-    "height": 1259
+    "height": 1267
   },
   {
     "file": "datasec-cert-expired.png",
     "caption": "Certificate inspector: expired",
     "width": 1560,
-    "height": 1259
+    "height": 1267
   },
   {
     "file": "datasec-cert-password.png",
@@ -1005,49 +1131,49 @@
     "file": "datasec-data-table.png",
     "caption": "Data viewer: a valid CSV as a table with the conversion options",
     "width": 1600,
-    "height": 1344
+    "height": 1440
   },
   {
     "file": "datasec-data-done.png",
     "caption": "Data viewer: converted, with the size and how numbers were typed",
     "width": 1600,
-    "height": 1344
+    "height": 1440
   },
   {
     "file": "datasec-data-error.png",
     "caption": "Data viewer: invalid JSON with line, column and context",
     "width": 1600,
-    "height": 1026
+    "height": 1041
   },
   {
     "file": "datasec-data-text.png",
     "caption": "Data viewer: YAML in the text view",
     "width": 1600,
-    "height": 1313
+    "height": 1351
   },
   {
     "file": "datasec-encoding-batch.png",
     "caption": "Encoding and line endings: a batch of four, with what each file is and will become",
     "width": 1680,
-    "height": 1344
+    "height": 1440
   },
   {
     "file": "datasec-encoding-mixed.png",
     "caption": "Encoding and line endings: a file that mixes line endings",
     "width": 1680,
-    "height": 1344
+    "height": 1440
   },
   {
     "file": "datasec-encoding-done.png",
     "caption": "Encoding and line endings: converted, with Undo from backups",
     "width": 1680,
-    "height": 1249
+    "height": 1253
   },
   {
     "file": "datasec-encoding-error.png",
     "caption": "Encoding and line endings: a byte that is not valid stops the file, nothing is written",
     "width": 1680,
-    "height": 838
+    "height": 853
   },
   {
     "file": "media-trim-ready.png",
@@ -1077,7 +1203,7 @@
     "file": "media-trim-error.png",
     "caption": "Trim and cut video: a damaged file, what was not changed",
     "width": 1584,
-    "height": 842
+    "height": 853
   },
   {
     "file": "media-gif-ready.png",
@@ -1119,7 +1245,7 @@
     "file": "media-audio-error.png",
     "caption": "Trim, fade and loudness: audio that cannot be decoded",
     "width": 1624,
-    "height": 842
+    "height": 853
   },
   {
     "file": "media-images-ready.png",
@@ -1233,7 +1359,7 @@
     "file": "search-tray-filter.png",
     "caption": "Tray menu filtered with its own search",
     "width": 744,
-    "height": 508
+    "height": 510
   },
   {
     "file": "search-palette-regex.png",
@@ -1263,7 +1389,7 @@
     "file": "commit-template.png",
     "caption": "First :push asks for a commit message",
     "width": 1040,
-    "height": 892
+    "height": 895
   },
   {
     "file": "uninstall-confirm.png",
@@ -1281,7 +1407,7 @@
     "file": "menu-offline.png",
     "caption": "Element menu on the offline dialog",
     "width": 1048,
-    "height": 1310
+    "height": 1396
   },
   {
     "file": "menu-setup.png",
