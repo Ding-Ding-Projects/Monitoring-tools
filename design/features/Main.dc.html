@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Virtual disks</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.lk{--r-card:24px;--r-in:16px;--r-btn:20px;--r-chip:8px;font-family:Roboto,system-ui,sans-serif;color:var(--text);background:var(--window);min-height:100vh;display:flex;flex-wrap:wrap;position:relative;box-sizing:border-box}
+.lk.dark{--window:#0F1512;--surface:#1B211E;--raised:#262B28;--sunken:#303633;--line:#404943;--line2:#89938C;--text:#DEE4DF;--soft:#BFC9C2;--mute:#A6B0A9;--p:#6FDBB4;--onp:#003827;--pc:#00513A;--onpc:#8CF8CF;--sc:#354B41;--onsc:#CFE9DB;--tc:#244C5D;--ontc:#C2E8FD;--amb:#FFB95F;--ambw:#3B2A12;--vio:#CFBCFF;--viow:#2B2640;--err:#FFB4AB}
+.lk.light{--window:#F5FBF6;--surface:#E9EFEA;--raised:#E4EAE5;--sunken:#DEE4DF;--line:#BFC9C2;--line2:#707973;--text:#171D1A;--soft:#404943;--mute:#57605A;--p:#006C4F;--onp:#FFFFFF;--pc:#8CF8CF;--onpc:#002116;--sc:#CFE9DB;--onsc:#0B1F17;--tc:#C2E8FD;--ontc:#001F2A;--amb:#7A4F00;--ambw:#FFDDB3;--vio:#5B4B99;--viow:#E9DDFF;--err:#BA1A1A}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.nav{flex:1 1 248px;max-width:100%;box-sizing:border-box;padding:18px 12px 16px;display:flex;flex-direction:column;gap:2px;background:var(--window)}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 14px 16px;font:500 19px Roboto}
+.brand svg{width:24px;height:24px;color:var(--p)}
+.tab{display:flex;align-items:center;gap:12px;width:100%;min-height:38px;padding:0 14px;border:0;border-radius:var(--r-btn);background:transparent;color:var(--soft);font:500 14px Roboto;text-align:left;cursor:pointer}
+.tab:hover{background:color-mix(in srgb,var(--text) 8%,transparent)}
+.tab.on{background:var(--pc);color:var(--onpc)}
+.tab svg{width:18px;height:18px;flex:none}
+.main{flex:999 1 560px;min-width:0;box-sizing:border-box;padding:30px 40px 40px;display:flex;flex-direction:column;gap:16px}
+.crumb{display:inline-flex;align-items:center;gap:8px;font:500 13px Roboto;color:var(--p)}
+.crumb svg{width:16px;height:16px}
+h1{margin:6px 0 4px;font:400 34px/40px Roboto;letter-spacing:-.2px}
+.lede{margin:0;max-width:64ch;font-size:14px;line-height:20px;color:var(--mute)}
+.routes{display:flex;flex-wrap:wrap;gap:8px}
+.route{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 12px;border-radius:var(--r-chip);background:var(--surface);font-size:13px;color:var(--soft)}
+.route svg{width:16px;height:16px}
+.route.ok svg{color:var(--p)}
+.route.off{background:transparent;border:1px dashed var(--line)}
+.route.off svg{color:var(--mute)}
+.pack{display:flex;flex-wrap:wrap;align-items:center;gap:18px;padding:18px 22px;border-radius:var(--r-card);border:1.5px dashed color-mix(in srgb,var(--p) 55%,transparent);background:color-mix(in srgb,var(--p) 6%,var(--window))}
+.pack .ic{width:52px;height:52px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;flex:none}
+.pack .ic svg{width:26px;height:26px}
+.pack .tx{flex:1 1 320px;min-width:0}
+.pack b{display:block;font:500 16px Roboto}
+.pack span{font-size:13.5px;line-height:19px;color:var(--soft)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border:0;border-radius:20px;background:var(--sc);color:var(--onsc);font:500 14px Roboto;cursor:pointer}
+.btn.pri{background:var(--p);color:var(--onp)}
+.btn.ghost{background:transparent;color:var(--p);padding:0 12px}
+.btn svg{width:18px;height:18px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.search{flex:1 1 360px;display:flex;align-items:center;gap:6px;height:48px;padding:0 8px 0 16px;border-radius:24px;background:var(--sunken)}
+.search svg{width:20px;height:20px;color:var(--soft);flex:none}
+.search input{flex:1;min-width:0;border:0;background:transparent;font:400 15px Roboto;color:var(--text);outline:none}
+.search input::placeholder{color:var(--mute)}
+.ib{height:34px;min-width:38px;border:0;border-radius:17px;background:transparent;color:var(--soft);font:500 13px "JetBrains Mono";cursor:pointer}
+.fold{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px;border:0;border-radius:17px;background:transparent;color:var(--soft);font:500 13px Roboto;cursor:pointer}
+.fold svg{width:16px;height:16px}
+.badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:10px;background:var(--ambw);color:var(--amb);font:500 12px Roboto}
+.split{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.lib{flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;width:100%;padding:12px 16px;border:0;border-radius:var(--r-in);background:var(--surface);text-align:left;cursor:pointer}
+.row:hover{background:color-mix(in srgb,var(--text) 6%,var(--surface))}
+.row.sel{background:var(--pc);color:var(--onpc)}
+.row .fmt{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--raised);font:500 11px "JetBrains Mono";color:var(--soft)}
+.row.sel .fmt{background:color-mix(in srgb,var(--onpc) 14%,transparent);color:var(--onpc)}
+.row b{display:block;font:500 15px Roboto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .path{display:block;font:400 12px "JetBrains Mono";color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.sel .path{color:color-mix(in srgb,var(--onpc) 75%,transparent)}
+.row .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;background:var(--raised);font:500 12px Roboto;color:var(--soft)}
+.row.sel .chip{background:color-mix(in srgb,var(--onpc) 12%,transparent);color:var(--onpc)}
+.att{display:flex;align-items:center;gap:10px;font-size:13px}
+.sw{position:relative;width:46px;height:28px;border-radius:14px;border:2px solid var(--line2);background:var(--sunken);flex:none}
+.sw i{position:absolute;top:4px;left:4px;width:16px;height:16px;border-radius:50%;background:var(--line2)}
+.sw.on{background:var(--p);border-color:var(--p)}
+.sw.on i{left:auto;right:3px;top:3px;width:18px;height:18px;background:var(--onp)}
+.detail{flex:1 1 440px;min-width:0;padding:22px 24px;border-radius:var(--r-card);background:var(--surface);display:flex;flex-direction:column;gap:16px}
+.dh{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;justify-content:space-between}
+.dh h2{margin:0;font:400 24px/30px Roboto}
+.dh p{margin:4px 0 0;font:400 12.5px "JetBrains Mono";color:var(--mute);word-break:break-all}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.tabs2{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.t2{height:40px;padding:0 14px;border:0;background:transparent;color:var(--soft);font:500 14px Roboto;border-bottom:3px solid transparent;cursor:pointer}
+.t2.on{color:var(--p);border-bottom-color:var(--p)}
+.figs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fig{padding:12px 14px;border-radius:14px;background:var(--raised)}
+.fig small{display:block;font-size:12px;color:var(--mute)}
+.fig b{display:block;margin-top:4px;font:500 18px "JetBrains Mono"}
+.fig em{display:block;margin-top:2px;font-style:normal;font-size:12px;color:var(--soft)}
+.vol{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--raised)}
+.vol .bar{height:8px;border-radius:4px;background:var(--sunken);overflow:hidden}
+.vol .bar i{display:block;height:100%;width:62%;background:var(--p);border-radius:4px}
+.vol .l{font:500 13px "JetBrains Mono";color:var(--onsc);background:var(--sc);border-radius:8px;padding:4px 8px}
+.chain{display:flex;flex-direction:column;gap:6px;font:400 13px "JetBrains Mono";color:var(--soft)}
+.chain div{display:flex;align-items:center;gap:8px}
+.chain .k{width:10px;height:10px;border-radius:50%;border:2px solid var(--line2)}
+.chain .here .k{background:var(--p);border-color:var(--p)}
+.foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-top:4px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}
+.foot b{font-weight:500;color:var(--soft)}
+.caps{position:absolute;top:8px;right:10px;display:flex;gap:2px}
+.cap{width:44px;height:34px;border:0;border-radius:10px;background:transparent;color:var(--soft);display:grid;place-items:center}
+.cap svg{width:14px;height:14px}
+</style>
+</helmet>
+<div class="lk {{theme}}">
+  <div class="caps" aria-label="Window controls">
+    <button class="cap" type="button" aria-label="Minimise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+    <button class="cap" type="button" aria-label="Maximise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 5h14v14H5z"/></svg></button>
+    <button class="cap" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <nav class="nav" aria-label="Pages">
+    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Monitoring Tools</div>
+    <sc-for list="{{pages}}" as="pg" hint-placeholder-count="10">
+      <button type="button" class="{{pg.cls}}" aria-current="{{pg.cur}}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{pg.icon}}"/></svg>{{pg.label}}
+      </button>
+    </sc-for>
+  </nav>
+  <main class="main">
+    <div>
+      <span class="crumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16v5H4zM4 13h16v5H4zM7.5 8.5h.01M7.5 15.5h.01"/></svg>Virtual disks</span>
+      <h1>Virtual disks</h1>
+      <p class="lede">VHD, VHDX and VHD Set files, and ISO images. Every action runs through a way this PC has, says which one did it, and can copy the same steps as a script.</p>
+    </div>
+    <div class="routes" aria-label="Ways this PC can work with virtual disks">
+      <span class="route ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Windows virtual disk service</span>
+      <span class="route ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Storage commands</span>
+      <span class="route ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>DiskPart</span>
+      <span class="route off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 8v5M12 16h.01"/></svg>Hyper-V commands: not on Windows 11 Home. Nothing here needs them.</span>
+    </div>
+    <section class="pack" aria-label="Quick pack">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 17v3h16v-3"/></svg></div>
+      <div class="tx"><b>Quick pack</b><span>Drop files or folders here. A new VHDX is made in the folder they came from, sized for them, grown if it runs short, and every file is checked against its original.</span></div>
+      <button class="btn" type="button">Pick files</button>
+    </section>
+    <div class="tools">
+      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4"/></svg><input type="text" placeholder="Search virtual disks" aria-label="Search virtual disks"><span class="mono" style="font-size:12px;color:var(--mute);padding:0 6px">4</span><button class="ib" type="button" aria-label="Match case">Aa</button><button class="ib" type="button" aria-label="Regular expression">.*</button><button class="ib" type="button" aria-label="Open the regex builder" style="font-family:Roboto">Builder</button></label>
+      <button class="fold" type="button" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>Filters <span class="badge">1 on: attached</span></button>
+      <button class="btn pri" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New disk</button>
+      <button class="btn" type="button">Add files</button>
+    </div>
+    <div class="split">
+      <div class="lib" role="listbox" aria-label="Virtual disks">
+        <sc-for list="{{disks}}" as="d" hint-placeholder-count="4">
+          <button type="button" class="{{d.cls}}" role="option" aria-selected="{{d.selected}}" onClick="{{d.pick}}">
+            <span class="fmt">{{d.fmt}}</span>
+            <span style="min-width:0">
+              <b>{{d.name}}</b>
+              <span class="path">{{d.path}}</span>
+              <span class="meta"><span class="chip">{{d.kind}}</span><span class="chip">{{d.size}}</span><span class="chip">{{d.used}} on disk</span></span>
+            </span>
+            <span class="att"><span>{{d.state}}</span><span class="{{d.sw}}" role="switch" aria-checked="{{d.on}}" aria-label="Attached"><i></i></span></span>
+          </button>
+        </sc-for>
+      </div>
+      <section class="detail" aria-label="Selected disk">
+        <div class="dh">
+          <div style="min-width:0"><h2>{{sel.name}}</h2><p>{{sel.path}}</p></div>
+          <div class="acts">
+            <button class="btn" type="button">{{sel.attachVerb}}</button>
+            <button class="btn" type="button">Resize</button>
+            <button class="btn" type="button">Compact</button>
+            <button class="btn" type="button">Convert</button>
+            <button class="btn ghost" type="button" aria-haspopup="menu">More</button>
+          </div>
+        </div>
+        <div class="tabs2" role="tablist" aria-label="Disk details">
+          <button class="t2 on" type="button" role="tab" aria-selected="true">Overview</button>
+          <button class="t2" type="button" role="tab" aria-selected="false">Inside</button>
+          <button class="t2" type="button" role="tab" aria-selected="false">Chain</button>
+          <button class="t2" type="button" role="tab" aria-selected="false">Identity</button>
+          <button class="t2" type="button" role="tab" aria-selected="false">Script</button>
+        </div>
+        <div class="figs">
+          <div class="fig"><small>Virtual size</small><b>{{sel.size}}</b><em>{{sel.kind}}</em></div>
+          <div class="fig"><small>On disk</small><b>{{sel.used}}</b><em>grows as it fills</em></div>
+          <div class="fig"><small>Smallest safe size</small><b>{{sel.min}}</b><em>shrink no lower</em></div>
+          <div class="fig"><small>Block size</small><b>32 MB</b><em>default for VHDX</em></div>
+          <div class="fig"><small>Sectors</small><b>512 / 4096</b><em>logical / physical</em></div>
+          <div class="fig"><small>Fragmentation</small><b>3 %</b><em>4K aligned</em></div>
+        </div>
+        <div class="vol">
+          <span class="l">{{sel.letter}}</span>
+          <span style="min-width:0"><span style="display:flex;justify-content:space-between;gap:8px;font-size:13.5px"><span>{{sel.volume}}</span><span class="mono" style="color:var(--mute)">{{sel.free}}</span></span><span class="bar" style="display:block;margin-top:8px"><i></i></span></span>
+          <button class="btn ghost" type="button">Open</button>
+        </div>
+        <div class="chain" aria-label="Parent chain">
+          <div><span class="k"></span>{{sel.parent}}</div>
+          <div class="here"><span class="k"></span>{{sel.name}}, chain test passed</div>
+        </div>
+        <div class="foot"><span>Last action: <b>{{sel.last}}</b></span><button class="btn ghost" type="button">Copy the script</button><button class="btn ghost" type="button">History</button></div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1060}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { sel: 'photos' }; }
+  renderVals() {
+    const I = {
+      pulse: 'M3 12h4l3-8 4 16 3-8h4', lines: 'M4 6h16M4 12h16M4 18h10', clip: 'M9 4h6v3H9zM7 5H5v16h14V5h-2',
+      net: 'M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01', bolt: 'M13 3L5 13h6l-1 8 8-10h-6z',
+      disk: 'M4 6h16v5H4zM4 13h16v5H4zM7.5 8.5h.01M7.5 15.5h.01', wand: 'M4 20L14 10M15 4v3M18.5 5.5l-2 2M20 9h-3',
+      shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', palette: 'M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z',
+      archive: 'M3 5h18v4H3zM5 9v10h14V9M10 13h4'
+    };
+    const pages = [['Overview','pulse'],['Activity','lines'],['Clipboard history','clip'],['Network and DNS','net'],['Conversion','bolt'],['Virtual disks','disk'],['Tools','wand'],['Safety and locks','shield'],['Appearance','palette'],['Records and exports','archive']]
+      .map(([label, icon]) => ({ label, icon: I[icon], cls: label === 'Virtual disks' ? 'tab on' : 'tab', cur: label === 'Virtual disks' ? 'page' : 'false' }));
+    const all = [
+      { id: 'photos', fmt: 'VHDX', name: 'Photos.vhdx', path: 'D:\\Archive\\2026\\Photos.vhdx', kind: 'VHDX, dynamic', size: '64 GB', used: '11.2 GB', min: '9.8 GB', on: true, state: 'E:', letter: 'E:', volume: 'Photos, NTFS', free: '52.1 GB free of 63.9 GB', parent: 'no parent: a base disk', last: 'Attached through the Windows virtual disk service, 2 minutes ago', attachVerb: 'Detach' },
+      { id: 'dev', fmt: 'VHDX', name: 'DevDrive.vhdx', path: 'C:\\Users\\sam\\DevDrive.vhdx', kind: 'VHDX, dynamic, Dev Drive', size: '80 GB', used: '23.4 GB', min: '21.0 GB', on: true, state: 'F:', letter: 'F:', volume: 'Dev, ReFS, trusted', free: '56.4 GB free of 79.9 GB', parent: 'no parent: a base disk', last: 'Trust set with fsutil, yesterday', attachVerb: 'Detach' },
+      { id: 'lab', fmt: 'AVHDX', name: 'lab-child.avhdx', path: 'D:\\VMs\\lab-child.avhdx', kind: 'VHDX, differencing', size: '127 GB', used: '1.4 GB', min: '127 GB', on: false, state: 'Detached', letter: 'No letter', volume: 'Attach it to see inside', free: '', parent: 'lab-base.vhdx, 4 Nov 09:12', last: 'Chain tested through DiskPart, today 08:40', attachVerb: 'Attach' },
+      { id: 'iso', fmt: 'ISO', name: 'ubuntu-26.04.iso', path: 'D:\\Downloads\\ubuntu-26.04.iso', kind: 'ISO image, read-only', size: '5.9 GB', used: '5.9 GB', min: 'fixed size', on: false, state: 'Detached', letter: 'No letter', volume: 'Attach it to see inside', free: '', parent: 'no parent: an image', last: 'Added by dropping it on the window, today 09:01', attachVerb: 'Attach' }
+    ];
+    const cur = this.state.sel;
+    const disks = all.map((d) => ({ ...d, cls: d.id === cur ? 'row sel' : 'row', selected: d.id === cur ? 'true' : 'false', sw: d.on ? 'sw on' : 'sw', on: d.on ? 'true' : 'false', pick: () => this.setState({ sel: d.id }) }));
+    return { theme: this.props.theme ?? 'dark', pages, disks, sel: all.find((d) => d.id === cur) || all[0] };
+  }
+}
+</script>
+</body>
+</html>

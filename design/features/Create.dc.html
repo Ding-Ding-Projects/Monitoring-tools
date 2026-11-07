@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New virtual disk</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.lk{--r-card:24px;--r-in:16px;--r-btn:20px;--r-chip:8px;font-family:Roboto,system-ui,sans-serif;color:var(--text);background:var(--window);min-height:100vh;display:flex;flex-wrap:wrap;position:relative;box-sizing:border-box}
+.lk.dark{--window:#0F1512;--surface:#1B211E;--raised:#262B28;--sunken:#303633;--line:#404943;--line2:#89938C;--text:#DEE4DF;--soft:#BFC9C2;--mute:#A6B0A9;--p:#6FDBB4;--onp:#003827;--pc:#00513A;--onpc:#8CF8CF;--sc:#354B41;--onsc:#CFE9DB;--tc:#244C5D;--ontc:#C2E8FD;--amb:#FFB95F;--ambw:#3B2A12;--vio:#CFBCFF;--viow:#2B2640;--err:#FFB4AB;--errw:#3D1714}
+.lk.light{--window:#F5FBF6;--surface:#E9EFEA;--raised:#E4EAE5;--sunken:#DEE4DF;--line:#BFC9C2;--line2:#707973;--text:#171D1A;--soft:#404943;--mute:#57605A;--p:#006C4F;--onp:#FFFFFF;--pc:#8CF8CF;--onpc:#002116;--sc:#CFE9DB;--onsc:#0B1F17;--tc:#C2E8FD;--ontc:#001F2A;--amb:#7A4F00;--ambw:#FFDDB3;--vio:#5B4B99;--viow:#E9DDFF;--err:#BA1A1A;--errw:#FFDAD6}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+button,input{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.nav{flex:1 1 248px;max-width:100%;box-sizing:border-box;padding:18px 12px 16px;display:flex;flex-direction:column;gap:2px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 14px 16px;font:500 19px Roboto}
+.brand svg{width:24px;height:24px;color:var(--p)}
+.tab{display:flex;align-items:center;gap:12px;width:100%;min-height:38px;padding:0 14px;border:0;border-radius:var(--r-btn);background:transparent;color:var(--soft);font:500 14px Roboto;text-align:left;cursor:pointer}
+.tab:hover{background:color-mix(in srgb,var(--text) 8%,transparent)}
+.tab.on{background:var(--pc);color:var(--onpc)}
+.tab svg{width:18px;height:18px;flex:none}
+.main{flex:999 1 560px;min-width:0;box-sizing:border-box;padding:28px 40px 36px;display:flex;flex-direction:column;gap:14px}
+.crumb{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px 0 4px;border:0;border-radius:16px;background:transparent;font:500 13px Roboto;color:var(--p);cursor:pointer}
+.crumb svg{width:18px;height:18px}
+h1{margin:2px 0 2px;font:400 32px/38px Roboto}
+.lede{margin:0;max-width:70ch;font-size:14px;line-height:20px;color:var(--mute)}
+.presets{display:flex;flex-wrap:wrap;gap:10px}
+.pre{flex:1 1 170px;min-width:0;display:flex;flex-direction:column;gap:4px;padding:14px 16px;border:1.5px solid var(--line);border-radius:var(--r-in);background:transparent;text-align:left;cursor:pointer}
+.pre b{font:500 14.5px Roboto}
+.pre span{font-size:12.5px;line-height:17px;color:var(--mute)}
+.pre.on{border-color:var(--p);background:color-mix(in srgb,var(--p) 10%,transparent)}
+.pre.on b{color:var(--p)}
+.cols{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.form{flex:1 1 540px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.side{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.card{padding:18px 20px;border-radius:var(--r-card);background:var(--surface);display:flex;flex-direction:column;gap:14px}
+.card h2{margin:0;font:500 16px Roboto}
+.fld{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.fld>.lab{flex:0 0 132px;font-size:13.5px;color:var(--soft)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line2);border-radius:20px;overflow:hidden}
+.seg button{height:36px;padding:0 14px;border:0;border-left:1px solid var(--line2);background:transparent;font:500 13.5px Roboto;color:var(--text);cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--sc);color:var(--onsc)}
+.seg button.on::before{content:"✓ ";}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.ch{height:32px;padding:0 12px;border:1px solid var(--line2);border-radius:var(--r-chip);background:transparent;font:500 13px Roboto;color:var(--soft);cursor:pointer}
+.ch.on{border-color:transparent;background:var(--sc);color:var(--onsc)}
+.ch.mono{font-family:"JetBrains Mono";font-size:12.5px}
+.ch[aria-disabled="true"]{opacity:.38;cursor:default}
+.in{display:flex;align-items:center;height:44px;border-radius:12px;background:var(--sunken);padding:0 12px;gap:8px;min-width:0}
+.in input{flex:1;min-width:0;border:0;background:transparent;outline:none;font:400 14.5px Roboto}
+.in.mono input{font:400 13.5px "JetBrains Mono"}
+.in .suf{font:400 13px "JetBrains Mono";color:var(--mute)}
+.in.bad{box-shadow:inset 0 0 0 2px var(--err)}
+.hint{flex-basis:100%;margin:-4px 0 0 146px;font-size:12.5px;line-height:17px;color:var(--mute)}
+.hint.bad{color:var(--err)}
+.part{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:var(--r-in);background:var(--raised)}
+.part .top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font:500 14px Roboto}
+.part .top span{font-weight:400;color:var(--mute);font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:0;border-radius:20px;background:var(--sc);color:var(--onsc);font:500 14px Roboto;cursor:pointer}
+.btn.pri{background:var(--p);color:var(--onp)}
+.btn.pri[aria-disabled="true"]{background:color-mix(in srgb,var(--text) 12%,transparent);color:color-mix(in srgb,var(--text) 45%,transparent);cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--p);padding:0 12px}
+.btn svg{width:18px;height:18px}
+.checks{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.checks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;font-size:13.5px;line-height:19px}
+.checks svg{width:20px;height:20px;margin-top:-1px}
+.ok svg{color:var(--p)}
+.warn svg{color:var(--amb)}
+.stop svg{color:var(--err)}
+.info svg{color:var(--ontc)}
+.route{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--raised);font-size:13px;color:var(--soft)}
+.route b{font-weight:500;color:var(--text)}
+.stabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.st{height:36px;padding:0 12px;border:0;border-bottom:3px solid transparent;background:transparent;font:500 13.5px Roboto;color:var(--soft);cursor:pointer}
+.st.on{color:var(--p);border-bottom-color:var(--p)}
+pre{margin:0;padding:14px 16px;border-radius:14px;background:var(--sunken);font:400 12.5px/19px "JetBrains Mono";color:var(--text);white-space:pre-wrap;word-break:break-all}
+.acts{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.caps{position:absolute;top:8px;right:10px;display:flex;gap:2px}
+.cap{width:44px;height:34px;border:0;border-radius:10px;background:transparent;color:var(--soft);display:grid;place-items:center}
+.cap svg{width:14px;height:14px}
+@media (max-width:700px){.fld>.lab{flex-basis:100%}.hint{margin-left:0}}
+</style>
+</helmet>
+<div class="lk {{theme}}">
+  <div class="caps" aria-label="Window controls">
+    <button class="cap" type="button" aria-label="Minimise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+    <button class="cap" type="button" aria-label="Maximise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 5h14v14H5z"/></svg></button>
+    <button class="cap" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <nav class="nav" aria-label="Pages">
+    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Monitoring Tools</div>
+    <sc-for list="{{pages}}" as="pg" hint-placeholder-count="10">
+      <button type="button" class="{{pg.cls}}" aria-current="{{pg.cur}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{pg.icon}}"/></svg>{{pg.label}}</button>
+    </sc-for>
+  </nav>
+  <main class="main">
+    <div>
+      <button class="crumb" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Virtual disks</button>
+      <h1>New virtual disk</h1>
+      <p class="lede">Start from a preset or choose every setting. Nothing is written until you start it, and the checks beside the form say what will happen first.</p>
+    </div>
+    <div class="presets" role="radiogroup" aria-label="Start from">
+      <sc-for list="{{presets}}" as="p" hint-placeholder-count="5">
+        <button type="button" class="{{p.cls}}" role="radio" aria-checked="{{p.on}}" onClick="{{p.pick}}"><b>{{p.name}}</b><span>{{p.note}}</span></button>
+      </sc-for>
+    </div>
+    <div class="cols">
+      <div class="form">
+        <section class="card" aria-label="Disk">
+          <h2>Disk</h2>
+          <div class="fld"><span class="lab" id="l-fmt">Format</span>
+            <div class="seg" role="radiogroup" aria-labelledby="l-fmt"><sc-for list="{{fmts}}" as="f" hint-placeholder-count="3"><button type="button" class="{{f.cls}}" role="radio" aria-checked="{{f.on}}" onClick="{{f.pick}}">{{f.label}}</button></sc-for></div>
+            <span class="hint">{{fmtNote}}</span>
+          </div>
+          <div class="fld"><span class="lab" id="l-type">Type</span>
+            <div class="seg" role="radiogroup" aria-labelledby="l-type"><sc-for list="{{types}}" as="t" hint-placeholder-count="4"><button type="button" class="{{t.cls}}" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div>
+            <span class="hint">{{typeNote}}</span>
+          </div>
+          <sc-if value="{{hasSource}}" hint-placeholder-val="{{ false }}">
+            <div class="fld"><label class="lab" for="f-src">{{sourceLabel}}</label>
+              <div class="in mono" style="flex:1 1 300px"><input id="f-src" value="{{source}}" onInput="{{onSource}}" spellcheck="false"></div>
+              <button class="btn ghost" type="button">Browse</button>
+              <span class="hint">{{sourceNote}}</span>
+            </div>
+          </sc-if>
+          <div class="fld"><label class="lab" for="f-size">Size</label>
+            <sc-if value="{{sizeFree}}" hint-placeholder-val="{{ true }}">
+              <div class="{{sizeCls}}" style="width:150px"><input id="f-size" inputmode="decimal" value="{{size}}" onInput="{{onSize}}" aria-describedby="h-size"></div>
+              <div class="seg" role="radiogroup" aria-label="Unit"><sc-for list="{{units}}" as="u" hint-placeholder-count="3"><button type="button" class="{{u.cls}}" role="radio" aria-checked="{{u.on}}" onClick="{{u.pick}}">{{u.label}}</button></sc-for></div>
+            </sc-if>
+            <sc-if value="{{sizeLocked}}" hint-placeholder-val="{{ false }}">
+              <div class="in mono" style="width:150px;opacity:.7" aria-describedby="h-size"><span id="f-size">127 GB</span></div>
+            </sc-if>
+            <span class="{{sizeHintCls}}" id="h-size">{{sizeHint}}</span>
+          </div>
+          <div class="fld"><label class="lab" for="f-dir">Save in</label>
+            <div class="in mono" style="flex:1 1 220px"><input id="f-dir" value="{{dir}}" onInput="{{onDir}}" spellcheck="false"></div>
+            <button class="btn ghost" type="button">Browse</button>
+          </div>
+          <div class="fld"><label class="lab" for="f-name">Name</label>
+            <div class="{{nameCls}}" style="flex:1 1 220px"><input id="f-name" value="{{name}}" onInput="{{onName}}" spellcheck="false"><span class="suf">{{ext}}</span></div>
+          </div>
+        </section>
+        <sc-if value="{{showVhdx}}" hint-placeholder-val="{{ true }}">
+          <section class="card" aria-label="VHDX options">
+            <h2>{{vhdxTitle}}</h2>
+            <div class="fld"><span class="lab" id="l-blk">Block size, MB</span>
+              <div class="chips" role="radiogroup" aria-labelledby="l-blk"><sc-for list="{{blocks}}" as="b" hint-placeholder-count="9"><button type="button" class="{{b.cls}}" role="radio" aria-checked="{{b.on}}" onClick="{{b.pick}}">{{b.label}}</button></sc-for></div>
+            </div>
+            <div class="fld"><span class="lab" id="l-sec">Sectors</span>
+              <div class="seg" role="radiogroup" aria-label="Logical sector size"><sc-for list="{{logical}}" as="s" hint-placeholder-count="2"><button type="button" class="{{s.cls}}" role="radio" aria-checked="{{s.on}}" onClick="{{s.pick}}">{{s.label}}</button></sc-for></div>
+              <div class="seg" role="radiogroup" aria-label="Physical sector size"><sc-for list="{{physical}}" as="s" hint-placeholder-count="2"><button type="button" class="{{s.cls}}" role="radio" aria-checked="{{s.on}}" onClick="{{s.pick}}">{{s.label}}</button></sc-for></div>
+            </div>
+            <div class="fld"><label class="lab" for="f-sddl">Access filter</label>
+              <div class="in mono" style="flex:1 1 300px"><input id="f-sddl" placeholder="Optional SDDL, such as O:BAG:BAD:(A;;GA;;;BA)" spellcheck="false"></div>
+            </div>
+          </section>
+        </sc-if>
+        <section class="card" aria-label="After creating">
+          <h2>After creating</h2>
+          <div class="fld"><span class="lab" id="l-init">Prepare it</span>
+            <div class="seg" role="radiogroup" aria-labelledby="l-init"><sc-for list="{{inits}}" as="i" hint-placeholder-count="3"><button type="button" class="{{i.cls}}" role="radio" aria-checked="{{i.on}}" onClick="{{i.pick}}">{{i.label}}</button></sc-for></div>
+            <span class="hint">{{initNote}}</span>
+          </div>
+          <sc-if value="{{showPart}}" hint-placeholder-val="{{ true }}">
+            <div class="part">
+              <div class="top">Partition 1 <span>uses the rest of the disk</span></div>
+              <div class="fld"><span class="lab" id="l-fs">File system</span>
+                <div class="chips" role="radiogroup" aria-labelledby="l-fs"><sc-for list="{{fss}}" as="f" hint-placeholder-count="5"><button type="button" class="{{f.cls}}" role="radio" aria-checked="{{f.on}}" onClick="{{f.pick}}">{{f.label}}</button></sc-for></div>
+              </div>
+              <div class="fld"><label class="lab" for="f-label">Label</label>
+                <div class="in" style="flex:1 1 180px;max-width:260px"><input id="f-label" value="{{label}}" onInput="{{onLabel}}"></div>
+                <span class="lab" style="flex:0 0 auto" id="l-au">Allocation unit</span>
+                <div class="chips" role="radiogroup" aria-labelledby="l-au"><sc-for list="{{aus}}" as="a" hint-placeholder-count="3"><button type="button" class="{{a.cls}}" role="radio" aria-checked="{{a.on}}" onClick="{{a.pick}}">{{a.label}}</button></sc-for></div>
+              </div>
+              <div class="fld"><span class="lab">Options</span>
+                <div class="chips"><sc-for list="{{opts}}" as="o" hint-placeholder-count="6"><button type="button" class="{{o.cls}}" aria-pressed="{{o.on}}" onClick="{{o.pick}}" aria-disabled="{{o.off}}" title="{{o.why}}">{{o.label}}</button></sc-for></div>
+              </div>
+            </div>
+            <button class="btn ghost" type="button" style="align-self:flex-start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add a partition</button>
+            <div class="fld"><span class="lab" id="l-as">Open it as</span>
+              <div class="seg" role="radiogroup" aria-labelledby="l-as"><sc-for list="{{assigns}}" as="a" hint-placeholder-count="3"><button type="button" class="{{a.cls}}" role="radio" aria-checked="{{a.on}}" onClick="{{a.pick}}">{{a.label}}</button></sc-for></div>
+            </div>
+          </sc-if>
+        </section>
+      </div>
+      <div class="side">
+        <section class="card" aria-label="Checks before creating" aria-live="polite">
+          <h2>Before it starts</h2>
+          <ul class="checks">
+            <sc-for list="{{checks}}" as="c" hint-placeholder-count="5">
+              <li class="{{c.kind}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{c.icon}}"/></svg><span><span class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">{{c.word}}: </span>{{c.text}}</span></li>
+            </sc-for>
+          </ul>
+          <div class="route"><span>Runs through</span><b>{{route}}</b></div>
+        </section>
+        <section class="card" aria-label="The same steps as a script">
+          <h2>The same steps as a script</h2>
+          <div class="stabs" role="tablist" aria-label="Script language"><sc-for list="{{langs}}" as="l" hint-placeholder-count="2"><button type="button" class="{{l.cls}}" role="tab" aria-selected="{{l.on}}" onClick="{{l.pick}}">{{l.label}}</button></sc-for></div>
+          <pre aria-label="Script">{{script}}</pre>
+          <button class="btn ghost" type="button" style="align-self:flex-start" onClick="{{copy}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 8h11v11H8zM5 16V5h11"/></svg>{{copyLabel}}</button>
+        </section>
+        <div class="acts">
+          <button class="btn ghost" type="button">Cancel</button>
+          <button class="btn pri" type="button" aria-disabled="{{blocked}}">{{createLabel}}</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":1140}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { preset: 'portable', fmt: 'VHDX', type: 'dynamic', size: '64', unit: 'GB', dir: 'D:\\Archive', name: 'Portable', source: 'D:\\VMs\\lab-base.vhdx',
+      block: 32, logical: 512, physical: 4096, init: 'GPT', fs: 'exFAT', label: 'Portable', au: 'Default', quick: true, compress: false, integrity: false, short: false, frs: false, dev: false, assign: 'letter', lang: 'ps', copied: false };
+  }
+  apply(id) {
+    const P = {
+      portable: { fmt: 'VHDX', type: 'dynamic', size: '64', unit: 'GB', dir: 'D:\\Archive', name: 'Portable', init: 'GPT', fs: 'exFAT', label: 'Portable', dev: false, assign: 'letter' },
+      dev: { fmt: 'VHDX', type: 'dynamic', size: '80', unit: 'GB', dir: 'C:\\Users\\sam\\Disks', name: 'DevDrive', init: 'GPT', fs: 'ReFS', label: 'Dev', dev: true, assign: 'letter' },
+      boot: { fmt: 'VHDX', type: 'fixed', size: '64', unit: 'GB', dir: 'D:\\Boot', name: 'Windows', init: 'GPT', fs: 'NTFS', label: 'Windows', dev: false, assign: 'letter' },
+      scratch: { fmt: 'VHDX', type: 'diff', size: '127', unit: 'GB', dir: 'D:\\VMs', name: 'lab-scratch', init: 'keep', fs: 'NTFS', label: '', dev: false, assign: 'none' },
+      blank: { fmt: 'VHDX', type: 'dynamic', size: '1', unit: 'GB', dir: 'D:\\Archive', name: 'New disk', init: 'raw', fs: 'NTFS', label: 'New disk', dev: false, assign: 'none' }
+    };
+    this.setState({ preset: id, ...P[id], copied: false });
+  }
+  renderVals() {
+    const st = this.state;
+    const I = { pulse: 'M3 12h4l3-8 4 16 3-8h4', lines: 'M4 6h16M4 12h16M4 18h10', clip: 'M9 4h6v3H9zM7 5H5v16h14V5h-2', net: 'M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01', bolt: 'M13 3L5 13h6l-1 8 8-10h-6z', disk: 'M4 6h16v5H4zM4 13h16v5H4zM7.5 8.5h.01M7.5 15.5h.01', wand: 'M4 20L14 10M15 4v3M18.5 5.5l-2 2M20 9h-3', shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', palette: 'M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z', archive: 'M3 5h18v4H3zM5 9v10h14V9M10 13h4' };
+    const pages = [['Overview','pulse'],['Activity','lines'],['Clipboard history','clip'],['Network and DNS','net'],['Conversion','bolt'],['Virtual disks','disk'],['Tools','wand'],['Safety and locks','shield'],['Appearance','palette'],['Records and exports','archive']]
+      .map(([label, icon]) => ({ label, icon: I[icon], cls: label === 'Virtual disks' ? 'tab on' : 'tab', cur: label === 'Virtual disks' ? 'page' : 'false' }));
+    const presets = [
+      ['portable', 'Portable data disk', 'Moves between PCs. VHDX that grows as it fills, exFAT inside.'],
+      ['dev', 'Dev Drive', 'ReFS tuned for code and builds. Needs 50 GB at least.'],
+      ['boot', 'Native boot disk', 'A fixed VHDX that Windows can start from. NTFS inside.'],
+      ['scratch', 'Scratch copy', 'A child of a disk you pick. Changes land here, the parent stays as it was.'],
+      ['blank', 'Blank', 'Choose every setting yourself.']
+    ].map(([id, name, note]) => ({ name, note, cls: st.preset === id ? 'pre on' : 'pre', on: String(st.preset === id), pick: () => this.apply(id) }));
+    const seg = (list, key, extra) => list.map(([v, label]) => ({ label, cls: st[key] === v ? 'on' : '', on: String(st[key] === v), pick: () => this.setState({ [key]: v, copied: false, ...(extra ? extra(v) : {}) }) }));
+    const diff = st.type === 'diff', copy = st.type === 'copy', vhd = st.fmt === 'VHD', set = st.fmt === 'VHD Set';
+    const ext = { VHD: '.vhd', VHDX: '.vhdx', 'VHD Set': '.vhds' }[st.fmt];
+    const mul = { MB: 1, GB: 1024, TB: 1048576 }[st.unit];
+    const n = parseFloat(String(st.size).replace(',', '.'));
+    const mb = isFinite(n) ? n * mul : NaN;
+    const maxMb = vhd ? 2040 * 1024 : 64 * 1048576;
+    const fmtGb = (m) => m >= 1048576 ? (m / 1048576).toLocaleString('en', { maximumFractionDigits: 1 }) + ' TB' : m >= 1024 ? (m / 1024).toLocaleString('en', { maximumFractionDigits: 1 }) + ' GB' : Math.round(m) + ' MB';
+    let sizeBad = '';
+    if (!diff && !copy) {
+      if (!isFinite(mb) || mb <= 0) sizeBad = 'Type a size, such as 64.';
+      else if (mb < 3) sizeBad = '3 MB is the smallest disk any format allows.';
+      else if (mb > maxMb) sizeBad = vhd ? 'A VHD holds at most 2,040 GB. Choose VHDX for a bigger disk, or a smaller size.' : 'A VHDX holds at most 64 TB.';
+    }
+    const sizeHint = diff ? 'A child is always the size of its parent: 127 GB.' : copy ? 'A copy is the size of its source: 127 GB.' : (sizeBad || (vhd ? '3 MB to 2,040 GB for a VHD.' : '3 MB to 64 TB for a ' + st.fmt + '.'));
+    const free = { 'D:': 412 * 1024, 'C:': 186 * 1024 }[(st.dir || 'D:').slice(0, 2).toUpperCase()] ?? 412 * 1024;
+    const drive = (st.dir || 'D:').slice(0, 2).toUpperCase();
+    const taken = st.dir.toLowerCase() === 'd:\\archive' && ['photos'].includes(st.name.trim().toLowerCase()) && ext === '.vhdx';
+    const fileName = (st.name.trim() || 'New disk') + ext;
+    const devOn = st.dev && st.fs === 'ReFS' && st.init !== 'raw' && st.init !== 'keep';
+    const ck = (kind, text) => ({ kind, text, word: { ok: 'Ready', warn: 'Note', stop: 'Blocked', info: 'Info' }[kind], icon: { ok: 'M5 12l5 5 9-10', warn: 'M12 4l9 16H3zM12 10v4M12 17h.01', stop: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM8 8l8 8M16 8l-8 8', info: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v6M12 7.5h.01' }[kind] });
+    const checks = [];
+    if (sizeBad) checks.push(ck('stop', sizeBad));
+    else if (st.type === 'fixed') checks.push(mb <= free ? ck('ok', 'Takes ' + fmtGb(mb) + ' now. ' + drive + ' has ' + fmtGb(free) + ' free, so ' + fmtGb(free - mb) + ' will be left.') : ck('stop', 'Takes ' + fmtGb(mb) + ' now, and ' + drive + ' has ' + fmtGb(free) + ' free: ' + fmtGb(mb - free) + ' short.'));
+    else if (diff) checks.push(ck('warn', 'Starts small and grows with changes, up to the parent\u2019s 127 GB. Writing to the parent later breaks this child.'));
+    else if (copy) checks.push(ck('ok', 'Copies about 41 GB. ' + drive + ' has ' + fmtGb(free) + ' free.'));
+    else checks.push(ck('warn', 'Starts small and can grow to ' + fmtGb(mb) + '. Windows does not set that space aside on ' + drive + ', so keep it free.'));
+    checks.push(taken ? ck('stop', fileName + ' already exists in ' + st.dir + '. Choose another name; nothing is ever overwritten.') : ck('ok', fileName + ' is a new name in ' + st.dir + '.'));
+    checks.push(ck('ok', st.dir + ' is a local folder that is not compressed, encrypted or shared.'));
+    if (devOn) checks.push(isFinite(mb) && mb >= 50 * 1024 ? ck('ok', 'Dev Drive: Windows 11 build 26100 and ' + fmtGb(mb) + ' meet the 10.0.22621.2338 and 50 GB minimums.') : ck('stop', 'A Dev Drive needs 50 GB at least.'));
+    if (st.preset === 'boot') checks.push(ck('info', 'Next, apply a Windows image from the Native boot page. Nothing restarts the PC.'));
+    if (st.block !== 32 || st.logical !== 512 || st.physical !== 4096) checks.push(ck('info', 'DiskPart cannot set block or sector sizes, so the Windows virtual disk service makes this disk.'));
+    checks.push(ck('info', 'Windows asks once for administrator permission, to attach and format. Cancelling it changes nothing.'));
+    const blocked = checks.some((c) => c.kind === 'stop');
+    const q = (s) => '"' + s + '"';
+    const full = st.dir.replace(/\\+$/, '') + '\\' + fileName;
+    const sizeMb = Math.round(mb);
+    const dp = [];
+    if (set) dp.push('rem DiskPart has no VHD Set command. Monitoring Tools makes', 'rem this disk through the Windows virtual disk service.');
+    else {
+      if (diff) dp.push('create vdisk file=' + q(full) + ' parent=' + q(st.source));
+      else if (copy) dp.push('create vdisk file=' + q(full) + ' source=' + q(st.source));
+      else dp.push('create vdisk file=' + q(full) + ' maximum=' + (isFinite(sizeMb) ? sizeMb : 0) + ' type=' + (st.type === 'fixed' ? 'fixed' : 'expandable'));
+      dp.push('select vdisk file=' + q(full), 'attach vdisk');
+      if (st.init === 'GPT' || st.init === 'MBR') {
+        dp.push('convert ' + st.init.toLowerCase(), 'create partition primary');
+        dp.push('format fs=' + st.fs.toLowerCase() + (st.label ? ' label=' + q(st.label) : '') + (st.au !== 'Default' ? ' unit=' + st.au.replace(' KB', 'K') : '') + (st.quick ? ' quick' : '') + (st.compress ? ' compress' : ''));
+        if (devOn) dp.push('rem A Dev Drive needs Format-Volume -DevDrive, see PowerShell.');
+        if (st.assign === 'letter') dp.push('assign letter=E');
+        if (st.assign === 'folder') dp.push('assign mount=' + q(st.dir + '\\Mounts\\' + (st.label || 'Disk')));
+      }
+    }
+    const ps = [];
+    ps.push('# Hyper-V commands are not on this PC, so DiskPart makes the file.');
+    if (set) ps.push('# A VHD Set comes from the Windows virtual disk service instead.');
+    else ps.push("@'", dp[0], "'@ | diskpart");
+    ps.push("Mount-DiskImage -ImagePath '" + full + "' -NoDriveLetter");
+    ps.push("$disk = Get-DiskImage -ImagePath '" + full + "' | Get-Disk");
+    if (st.init === 'GPT' || st.init === 'MBR') {
+      ps.push('Initialize-Disk -Number $disk.Number -PartitionStyle ' + st.init);
+      ps.push('New-Partition -DiskNumber $disk.Number -UseMaximumSize' + (st.assign === 'letter' ? ' -DriveLetter E' : '') + ' |');
+      ps.push('  Format-Volume ' + (devOn ? '-DevDrive' : '-FileSystem ' + st.fs) + (st.label ? " -NewFileSystemLabel '" + st.label + "'" : '') + (st.au !== 'Default' ? ' -AllocationUnitSize ' + (parseInt(st.au) * 1024) : '') + (st.quick ? '' : ' -Full') + (st.compress ? ' -Compress' : '') + (st.integrity ? ' -SetIntegrityStreams $true' : '') + (st.short ? ' -ShortFileNameSupport $true' : '') + (st.frs ? ' -UseLargeFRS' : ''));
+      if (st.assign === 'folder') ps.push("Add-PartitionAccessPath -DiskNumber $disk.Number -PartitionNumber 2 -AccessPath '" + st.dir + '\\Mounts\\' + (st.label || 'Disk') + "'");
+    }
+    const fsList = [['NTFS', 'NTFS'], ['ReFS', 'ReFS'], ['exFAT', 'exFAT'], ['FAT32', 'FAT32'], ['FAT', 'FAT']];
+    const tog = (key, label, ok, why) => ({ label, cls: st[key] && ok ? 'ch on' : 'ch', on: String(!!st[key] && ok), off: String(!ok), why: ok ? '' : why, pick: () => ok && this.setState({ [key]: !st[key], copied: false }) });
+    const ntfs = st.fs === 'NTFS', refs = st.fs === 'ReFS';
+    return {
+      theme: this.props.theme ?? 'dark', pages, presets,
+      fmts: seg([['VHD', 'VHD'], ['VHDX', 'VHDX'], ['VHD Set', 'VHD Set']], 'fmt'),
+      fmtNote: vhd ? 'The oldest format. Any Windows can read it, up to 2,040 GB.' : set ? 'For a disk shared between machines, with checkpoints. Ends in .vhds.' : 'Recommended. Up to 64 TB, and it recovers better after a power cut.',
+      types: seg([['fixed', 'Fixed size'], ['dynamic', 'Grows as it fills'], ['diff', 'Child of a disk'], ['copy', 'Copy of a disk']], 'type', (v) => (v === 'diff' ? { init: 'keep', assign: 'none' } : st.init === 'keep' ? { init: 'GPT', assign: 'letter' } : {})),
+      typeNote: st.type === 'fixed' ? 'Takes its full size now. Recommended for a disk Windows starts from.' : st.type === 'dynamic' ? 'Starts small and grows up to its size. Easier to damage in a sudden power loss than a fixed disk.' : diff ? 'Records changes against a parent, which then stays read-only.' : 'An independent copy of a virtual disk, or of a physical disk that is offline or read-only. The source is only read.',
+      hasSource: diff || copy, sourceLabel: diff ? 'Parent' : 'Copy from', source: st.source, onSource: (e) => this.setState({ source: e.target.value }),
+      sourceNote: diff ? 'lab-base.vhdx, VHDX, 127 GB, last changed 4 Nov 09:12.' : 'Disk 3 and virtual disk files are listed when you browse. A physical disk must be offline or read-only first.',
+      size: st.size, sizeLocked: diff || copy, sizeFree: !(diff || copy), sizeCls: sizeBad ? 'in mono bad' : 'in mono', sizeHint, sizeHintCls: sizeBad ? 'hint bad' : 'hint',
+      onSize: (e) => this.setState({ size: e.target.value, copied: false }),
+      units: seg([['MB', 'MB'], ['GB', 'GB'], ['TB', 'TB']], 'unit'),
+      dir: st.dir, onDir: (e) => this.setState({ dir: e.target.value, copied: false }), name: st.name, onName: (e) => this.setState({ name: e.target.value, copied: false }), ext, nameCls: taken ? 'in bad' : 'in',
+      showVhdx: !vhd, vhdxTitle: st.fmt + ' options',
+      blocks: [1, 2, 4, 8, 16, 32, 64, 128, 256].map((v) => ({ label: v === 32 ? '32 (default)' : String(v), cls: st.block === v ? 'ch mono on' : 'ch mono', on: String(st.block === v), pick: () => this.setState({ block: v, copied: false }) })),
+      logical: [512, 4096].map((v) => ({ label: 'Logical ' + v, cls: st.logical === v ? 'on' : '', on: String(st.logical === v), pick: () => this.setState({ logical: v, copied: false }) })),
+      physical: [512, 4096].map((v) => ({ label: 'Physical ' + v, cls: st.physical === v ? 'on' : '', on: String(st.physical === v), pick: () => this.setState({ physical: v, copied: false }) })),
+      inits: diff ? [{ label: 'Keep the parent\u2019s partitions', cls: 'on', on: 'true', pick: () => {} }] : seg([['GPT', 'GPT'], ['MBR', 'MBR'], ['raw', 'Leave it empty']], 'init'),
+      initNote: diff ? 'A child starts with exactly what the parent holds.' : st.init === 'raw' ? 'The disk is created and attached with no partitions. Disk Management or this page can prepare it later.' : st.init === 'MBR' ? 'For older PCs and disks up to 2 TB.' : 'Recommended for every disk on a current PC.',
+      showPart: st.init === 'GPT' || st.init === 'MBR',
+      fss: seg(fsList, 'fs', (v) => ({ dev: v === 'ReFS' ? st.dev : false })),
+      label: st.label, onLabel: (e) => this.setState({ label: e.target.value, copied: false }),
+      aus: seg([['Default', 'Default'], ['4 KB', '4 KB'], ['64 KB', '64 KB']], 'au'),
+      opts: [tog('quick', 'Quick format', true, ''), tog('compress', 'Compress', ntfs, 'NTFS only'), tog('integrity', 'Integrity streams', refs, 'ReFS only'), tog('short', 'Short 8.3 names', ntfs, 'NTFS only'), tog('frs', 'Large file records', ntfs, 'NTFS only'), tog('dev', 'Dev Drive', refs, 'ReFS only')],
+      assigns: seg([['letter', 'Drive letter E:'], ['folder', 'A folder'], ['none', 'Neither']], 'assign'),
+      checks, route: set || st.block !== 32 || st.logical !== 512 || st.physical !== 4096 ? 'Windows virtual disk service, then Storage commands' : 'DiskPart, then Storage commands',
+      langs: [['ps', 'PowerShell'], ['dp', 'DiskPart']].map(([v, label]) => ({ label, cls: st.lang === v ? 'st on' : 'st', on: String(st.lang === v), pick: () => this.setState({ lang: v }) })),
+      script: (st.lang === 'ps' ? ps : dp).join('\n'), copy: () => this.setState({ copied: true }), copyLabel: st.copied ? 'Copied the script' : 'Copy the script',
+      blocked: String(blocked), createLabel: st.init === 'GPT' || st.init === 'MBR' ? 'Create and format' : 'Create disk'
+    };
+  }
+}
+</script>
+</body>
+</html>

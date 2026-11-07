@@ -14,6 +14,8 @@ checked; anything unchecked is labelled.
 
 ## Virtual disks, Quick pack and the smaller features beside them (2026-11-07)
 
+- **Design:** [design/features](design/features/HANDOFF.md), five interactive boards made before the build: the page,
+  New virtual disk, Quick pack, the live chart and the menus with live controls.
 - **Virtual disks page:** `UI/Pages/VirtualDisksPage.cs` (routes row, library, one disk, action panels, New virtual
   disk) and `VirtualDisksPage.QuickPack.cs`. The page is a section of the control centre (`"vdisks"`), and a disk file
   dropped anywhere on the control centre joins the library (`Settings.DiskLibrary`).

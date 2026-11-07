@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Overview live chart</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.lk{--r-card:24px;--r-in:16px;font-family:Roboto,system-ui,sans-serif;color:var(--text);background:var(--window);min-height:100vh;display:flex;flex-wrap:wrap;position:relative;box-sizing:border-box}
+.lk.dark{--window:#0F1512;--surface:#1B211E;--raised:#262B28;--sunken:#303633;--line:#404943;--line2:#89938C;--text:#DEE4DF;--soft:#BFC9C2;--mute:#A6B0A9;--p:#6FDBB4;--onp:#003827;--pc:#00513A;--onpc:#8CF8CF;--sc:#354B41;--onsc:#CFE9DB;--tc:#244C5D;--ontc:#C2E8FD;--g2:#8ECFF2;--amb:#FFB95F;--ambw:#3B2A12;--err:#FFB4AB;--errw:#3D1714}
+.lk.light{--window:#F5FBF6;--surface:#E9EFEA;--raised:#E4EAE5;--sunken:#DEE4DF;--line:#BFC9C2;--line2:#707973;--text:#171D1A;--soft:#404943;--mute:#57605A;--p:#006C4F;--onp:#FFFFFF;--pc:#8CF8CF;--onpc:#002116;--sc:#CFE9DB;--onsc:#0B1F17;--tc:#C2E8FD;--ontc:#001F2A;--g2:#1F6584;--amb:#7A4F00;--ambw:#FFDDB3;--err:#BA1A1A;--errw:#FFDAD6}
+button,input{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,.plot:focus-visible,.split-h:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.nav{flex:1 1 248px;max-width:100%;box-sizing:border-box;padding:18px 12px 16px;display:flex;flex-direction:column;gap:2px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 14px 16px;font:500 19px Roboto}
+.brand svg{width:24px;height:24px;color:var(--p)}
+.tab{display:flex;align-items:center;gap:12px;width:100%;min-height:38px;padding:0 14px;border:0;border-radius:20px;background:transparent;color:var(--soft);font:500 14px Roboto;text-align:left;cursor:pointer}
+.tab.on{background:var(--pc);color:var(--onpc)}
+.tab svg{width:18px;height:18px;flex:none}
+.main{flex:999 1 560px;min-width:0;box-sizing:border-box;padding:24px 40px 28px;display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font:400 30px/36px Roboto}
+.band{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:16px 20px;border-radius:var(--r-card);background:var(--surface)}
+.band>div{padding:0 20px;border-left:1px solid var(--line);min-width:0}
+.band>div:first-child{padding-left:0;border-left:0}
+.band small{display:block;font-size:13px;color:var(--soft)}
+.band b{display:block;margin:4px 0 2px;font:400 26px/32px Roboto}
+.band span{font-size:12.5px;color:var(--mute)}
+.card{padding:16px 20px;border-radius:var(--r-card);background:var(--surface);display:flex;flex-direction:column;gap:10px}
+.ch-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.ch-head h2{margin:0;font:500 16px Roboto}
+.ch-head p{margin:2px 0 0;font-size:12.5px;color:var(--mute)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-left:auto;font-size:13px;color:var(--soft)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.legend b{font:500 13px "JetBrains Mono";color:var(--text)}
+.chip{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:14px;font:500 12.5px Roboto}
+.chip.live{background:var(--pc);color:var(--onpc)}
+.chip.paused{background:var(--raised);color:var(--soft)}
+.chip.stale{background:var(--ambw);color:var(--amb)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:currentColor}
+.ib{height:32px;padding:0 12px;border:0;border-radius:16px;background:transparent;color:var(--p);font:500 13px Roboto;cursor:pointer}
+.plotwrap{display:grid;grid-template-columns:44px minmax(0,1fr);grid-template-rows:200px 20px;gap:0 8px}
+.yax{position:relative;font:400 11px "JetBrains Mono";color:var(--mute)}
+.yax span{position:absolute;right:0;transform:translateY(-50%)}
+.plot{position:relative;border-radius:12px;overflow:hidden;cursor:crosshair}
+.plot svg{position:absolute;inset:0;width:100%;height:100%}
+.grid{position:absolute;left:0;right:0;border-top:1px dashed color-mix(in srgb,var(--line) 70%,transparent)}
+.off{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--err) 16%,transparent) 0 6px,transparent 6px 12px);border-left:1px solid color-mix(in srgb,var(--err) 50%,transparent);border-right:1px solid color-mix(in srgb,var(--err) 50%,transparent)}
+.off span{position:absolute;top:6px;left:6px;font:500 11px Roboto;color:var(--err);white-space:nowrap}
+.dot{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--p);box-shadow:0 0 0 2px var(--surface)}
+.dot.g{background:var(--g2);width:8px;height:8px;margin:-4px 0 0 -4px}
+.dot.pulse::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--p);opacity:0;animation:ring 1.6s ease-out infinite}
+.dot.hollow{background:var(--surface);border:2px solid var(--mute)}
+@keyframes ring{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+.badge{position:absolute;right:14px;transform:translateY(-50%);padding:3px 8px;border-radius:8px;background:var(--p);color:var(--onp);font:500 12px "JetBrains Mono";pointer-events:none}
+.badge.g{background:var(--tc);color:var(--ontc)}
+.badge.mute{background:var(--raised);color:var(--soft)}
+.xline{position:absolute;top:0;bottom:0;width:0;border-left:1.5px solid var(--line2)}
+.tip{position:absolute;top:10px;padding:8px 10px;border-radius:10px;background:var(--raised);box-shadow:0 2px 8px rgba(0,0,0,.28);font-size:12.5px;line-height:18px;white-space:nowrap;pointer-events:none}
+.tip b{font:500 12.5px "JetBrains Mono"}
+.xax{grid-column:2;position:relative;font:400 11px "JetBrains Mono";color:var(--mute)}
+.xax span{position:absolute;top:4px;transform:translateX(-50%)}
+.xax span:last-child{transform:translateX(-100%)}
+.empty{display:grid;place-items:center;height:200px;border-radius:12px;background:var(--sunken);text-align:center;font-size:13.5px;color:var(--soft)}
+.empty b{display:block;font:500 15px Roboto;color:var(--text);margin-bottom:4px}
+.skel{height:200px;border-radius:12px;background:linear-gradient(90deg,var(--sunken) 0%,var(--raised) 50%,var(--sunken) 100%);background-size:200% 100%;animation:sh 1.4s linear infinite;display:grid;place-items:center;color:var(--soft);font-size:13.5px}
+@keyframes sh{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.fold{display:flex;flex-direction:column;border-radius:var(--r-in);background:var(--surface)}
+.fold>button{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:48px;padding:0 16px;border:0;border-radius:var(--r-in);background:transparent;text-align:left;cursor:pointer;font:500 14.5px Roboto}
+.fold>button svg{width:18px;height:18px;transition:transform .18s}
+.fold>button[aria-expanded="true"] svg{transform:rotate(90deg)}
+.fold .sum{font:400 13px Roboto;color:var(--mute)}
+.fold .on{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;background:var(--ambw);color:var(--amb);font:500 12px Roboto}
+.fold .body{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:2px 16px 14px}
+.search{flex:1 1 280px;display:flex;align-items:center;gap:6px;height:42px;padding:0 8px 0 14px;border-radius:21px;background:var(--sunken)}
+.search svg{width:18px;height:18px;color:var(--soft);flex:none}
+.search input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:14px}
+.fchip{height:32px;padding:0 12px;border:1px solid var(--line2);border-radius:8px;background:transparent;font:500 13px Roboto;color:var(--soft);cursor:pointer}
+.fchip.on{border-color:transparent;background:var(--sc);color:var(--onsc)}
+.fchip.on::before{content:"✓ "}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;width:100%}
+.stat{padding:10px 12px;border-radius:12px;background:var(--raised)}
+.stat small{display:block;font-size:12px;color:var(--mute)}
+.stat b{display:block;margin-top:2px;font:500 16px "JetBrains Mono"}
+.lists{display:flex;align-items:stretch;min-height:150px}
+.list{min-width:0;padding:14px 16px;border-radius:var(--r-in);background:var(--surface);display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.list h3{margin:0 0 2px;font:500 14.5px Roboto}
+.item{display:grid;grid-template-columns:58px minmax(0,1fr);gap:10px;font-size:13px;line-height:18px}
+.item time{font:400 12px "JetBrains Mono";color:var(--mute);padding-top:1px}
+.item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.split-h{flex:0 0 16px;display:grid;place-items:center;cursor:col-resize;border-radius:8px}
+.split-h i{width:4px;height:36px;border-radius:2px;background:var(--line2)}
+.split-h:hover i{background:var(--p)}
+.under{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--mute)}
+@media (prefers-reduced-motion:reduce){.dot.pulse::after{animation:none;opacity:0}.skel{animation:none}.fold>button svg{transition:none}}
+</style>
+</helmet>
+<div class="lk {{theme}}">
+  <nav class="nav" aria-label="Pages">
+    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Monitoring Tools</div>
+    <sc-for list="{{pages}}" as="pg" hint-placeholder-count="10">
+      <button type="button" class="{{pg.cls}}" aria-current="{{pg.cur}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{pg.icon}}"/></svg>{{pg.label}}</button>
+    </sc-for>
+  </nav>
+  <main class="main">
+    <h1>Overview</h1>
+    <div class="band">
+      <div><small>Internet</small><b style="color:var(--p)">Online</b><span>for 3 h 12 m</span></div>
+      <div><small>Gateway</small><b>{{gwNow}}</b><span>your router answers</span></div>
+      <div><small>DNS</small><b>{{dnsNow}}</b><span>Cloudflare, 1.1.1.1</span></div>
+    </div>
+    <section class="card" aria-labelledby="ch-t">
+      <div class="ch-head">
+        <div><h2 id="ch-t">Response times</h2><p>The last minute, one probe a second</p></div>
+        <span class="{{chipCls}}" role="status"><span class="d" aria-hidden="true"></span>{{chipText}}</span>
+        <button class="ib" type="button" onClick="{{togglePause}}">{{pauseLabel}}</button>
+        <div class="legend" aria-hidden="true"><span><i style="background:var(--p)"></i>DNS <b>{{dnsNow}}</b></span><span><i style="background:var(--g2)"></i>Gateway <b>{{gwNow}}</b></span></div>
+      </div>
+      <sc-if value="{{showChart}}" hint-placeholder-val="{{ true }}">
+        <div class="plotwrap">
+          <div class="yax" aria-hidden="true"><sc-for list="{{yLabels}}" as="y" hint-placeholder-count="4"><span style="top:{{y.top}}">{{y.text}}</span></sc-for></div>
+          <div class="plot" tabindex="0" role="group" aria-roledescription="chart" aria-label="Response times, last minute" aria-describedby="ch-sum ch-keys" onPointerMove="{{onMove}}" onPointerLeave="{{onLeave}}" onKeyDown="{{onKey}}">
+            <sc-for list="{{grid}}" as="g" hint-placeholder-count="4"><div class="grid" style="top:{{g.top}}"></div></sc-for>
+            <sc-for list="{{offs}}" as="o" hint-placeholder-count="1"><div class="off" style="left:{{o.left}};width:{{o.width}}"><span>{{o.label}}</span></div></sc-for>
+            <svg viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true">
+              <defs><linearGradient id="fillg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--p)" stop-opacity=".30"/><stop offset="1" stop-color="var(--p)" stop-opacity="0"/></linearGradient></defs>
+              <path d="{{dnsFill}}" fill="url(#fillg)" opacity="{{lineOpacity}}"/>
+              <path d="{{gwPath}}" fill="none" stroke="var(--g2)" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" opacity="{{lineOpacity}}"/>
+              <path d="{{dnsPath}}" fill="none" stroke="{{dnsStroke}}" stroke-width="2.4" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+            <div class="{{gDotCls}}" style="left:100%;top:{{gwHeadTop}}" aria-hidden="true"></div>
+            <div class="{{dotCls}}" style="left:100%;top:{{dnsHeadTop}}" aria-hidden="true"></div>
+            <div class="{{badgeCls}}" style="top:{{dnsHeadTop}}" aria-hidden="true">{{dnsBadge}}</div>
+            <sc-if value="{{scrubbing}}" hint-placeholder-val="{{ false }}">
+              <div class="xline" style="left:{{scrubLeft}}" aria-hidden="true"></div>
+              <div class="tip" style="{{tipPos}}" role="status" aria-live="polite"><b>{{scrubTime}}</b><br>{{scrubText}}</div>
+            </sc-if>
+          </div>
+          <div class="xax" aria-hidden="true"><span style="left:0;transform:none">60 s ago</span><span style="left:25%">45 s</span><span style="left:50%">30 s</span><span style="left:75%">15 s</span><span style="left:100%">now</span></div>
+        </div>
+        <p class="sr" id="ch-sum">{{summary}}</p>
+        <p class="sr" id="ch-keys">Use the left and right arrow keys to read each second, Home and End to jump, Escape to stop.</p>
+      </sc-if>
+      <sc-if value="{{isLoading}}" hint-placeholder-val="{{ false }}"><div class="skel" role="status">Waiting for the first probes</div></sc-if>
+      <sc-if value="{{isEmpty}}" hint-placeholder-val="{{ false }}"><div class="empty" role="status"><div><b>No probes yet</b>Probing starts as soon as this PC has a network connection.<br><button class="ib" type="button">Check now</button></div></div></sc-if>
+    </section>
+    <div class="fold">
+      <button type="button" aria-expanded="{{filtersOpen}}" aria-controls="f-body" onClick="{{toggleFilters}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>Search and filters<sc-if value="{{filterHidden}}" hint-placeholder-val="{{ true }}"><span class="on">1 filter on: today only</span></sc-if></button>
+      <sc-if value="{{filtersShown}}" hint-placeholder-val="{{ false }}">
+        <div class="body" id="f-body">
+          <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4"/></svg><input type="text" placeholder="Search outages and activity" aria-label="Search outages and activity"><button class="ib" type="button" aria-label="Open the regex builder">.*</button></label>
+          <button class="fchip on" type="button" aria-pressed="true">Today only</button>
+          <button class="fchip" type="button" aria-pressed="false">Errors only</button>
+          <button class="ib" type="button">Clear the filter</button>
+        </div>
+      </sc-if>
+    </div>
+    <div class="fold">
+      <button type="button" aria-expanded="{{statsOpen}}" aria-controls="s-body" onClick="{{toggleStats}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>Statistics<sc-if value="{{statsHidden}}" hint-placeholder-val="{{ true }}"><span class="sum">Up 3 h 12 m, 11,532 probes, DNS average {{dnsAvg}}</span></sc-if></button>
+      <sc-if value="{{statsShown}}" hint-placeholder-val="{{ false }}">
+        <div class="body" id="s-body"><div class="stats">
+          <div class="stat"><small>Uptime</small><b>3 h 12 m</b></div>
+          <div class="stat"><small>Probes</small><b>11,532</b></div>
+          <div class="stat"><small>Copies today</small><b>214</b></div>
+          <div class="stat"><small>Gateway average</small><b>{{gwAvg}}</b></div>
+          <div class="stat"><small>DNS average</small><b>{{dnsAvg}}</b></div>
+        </div></div>
+      </sc-if>
+    </div>
+    <div class="lists">
+      <section class="list" style="flex:0 0 {{splitPct}}" aria-label="Outages"><h3>Outages</h3>
+        <div class="item"><time>09:12</time><span>DNS stopped answering for 5 s</span></div>
+        <div class="item"><time>07:40</time><span>Wi-Fi dropped for 2 min 10 s</span></div>
+        <div class="item"><time>06:03</time><span>Gateway timed out three times in 12 s</span></div>
+      </section>
+      <div class="split-h" role="separator" aria-orientation="vertical" aria-label="Resize the two lists" aria-valuemin="25" aria-valuemax="75" aria-valuenow="{{splitNum}}" tabindex="0" onPointerDown="{{onSplitDown}}" onKeyDown="{{onSplitKey}}"><i></i></div>
+      <section class="list" style="flex:1 1 0" aria-label="Latest activity"><h3>Latest activity</h3>
+        <div class="item"><time>12:03</time><span>Copied a link from Edge</span></div>
+        <div class="item"><time>12:01</time><span>Converted clip.mov to MP4, 18.4 MB</span></div>
+        <div class="item"><time>11:58</time><span>Pushed monitoring-tools to main</span></div>
+      </section>
+    </div>
+    <div class="under"><span>Drag the handle or use the arrow keys on it. The split is kept for this page.</span><button class="ib" type="button" onClick="{{resetSplit}}">Reset sizes</button></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"show":{"editor":"enum","options":["live","paused","stale","loading","empty"],"default":"live"},"$preview":{"width":1440,"height":820}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    const N = 61; let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const dns = [], gw = [];
+    let d = 16, g = 4;
+    for (let i = 0; i < N; i++) {
+      d = Math.max(9, Math.min(36, d + (rnd() - 0.5) * 5 + (16 - d) * 0.25));
+      g = Math.max(2, Math.min(9, g + (rnd() - 0.5) * 1.4 + (4 - g) * 0.3));
+      const off = i >= 14 && i <= 18;
+      dns.push(off ? null : Math.round(d)); gw.push(off ? null : Math.round(g));
+    }
+    dns[44] = 31;
+    this.state = { dns, gw, frac: 0, t: 0, yMax: 40, head: dns[N - 1], headG: gw[N - 1], paused: p.show === 'paused', scrub: null, filters: false, stats: false, split: 50 };
+  }
+  componentDidMount() {
+    this.reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.last = Date.now();
+    this.iv = setInterval(() => this.tick(), this.reduced ? 1000 : 60);
+  }
+  componentWillUnmount() { clearInterval(this.iv); this.endDrag && this.endDrag(); }
+  nice(v) { const steps = [10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 150, 200, 300, 500]; return steps.find((s) => s >= v) || 500; }
+  tick() {
+    const st = this.state, show = this.props.show || 'live';
+    const now = Date.now(); const dt = (now - this.last) / 1000; this.last = now;
+    if (st.paused || show !== 'live') return;
+    let frac = st.frac + dt, dns = st.dns, gw = st.gw, t = st.t;
+    while (frac >= 1) {
+      frac -= 1; t += 1;
+      const ld = dns[dns.length - 1] ?? 16, lg = gw[gw.length - 1] ?? 4;
+      const spike = Math.random() < 0.04 ? 10 + Math.random() * 14 : 0;
+      dns = dns.slice(1).concat(Math.round(Math.max(9, Math.min(60, ld + (Math.random() - 0.5) * 5 + (16 - ld) * 0.25 + spike))));
+      gw = gw.slice(1).concat(Math.round(Math.max(2, Math.min(12, lg + (Math.random() - 0.5) * 1.4 + (4 - lg) * 0.3))));
+    }
+    if (this.reduced) frac = 0;
+    const vis = dns.filter((v) => v != null);
+    const target = this.nice(Math.max(...vis, st.head) * 1.2);
+    const k = this.reduced ? 1 : 0.14;
+    const latest = dns[dns.length - 1] ?? st.head, latestG = gw[gw.length - 1] ?? st.headG;
+    this.setState({ dns, gw, frac, t, yMax: st.yMax + (target - st.yMax) * k, head: st.head + (latest - st.head) * (this.reduced ? 1 : 0.2), headG: st.headG + (latestG - st.headG) * (this.reduced ? 1 : 0.2) });
+  }
+  renderVals() {
+    const st = this.state, show = this.props.show || 'live';
+    const I = { pulse: 'M3 12h4l3-8 4 16 3-8h4', lines: 'M4 6h16M4 12h16M4 18h10', clip: 'M9 4h6v3H9zM7 5H5v16h14V5h-2', net: 'M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01', bolt: 'M13 3L5 13h6l-1 8 8-10h-6z', disk: 'M4 6h16v5H4zM4 13h16v5H4zM7.5 8.5h.01M7.5 15.5h.01', wand: 'M4 20L14 10M15 4v3M18.5 5.5l-2 2M20 9h-3', shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', palette: 'M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z', archive: 'M3 5h18v4H3zM5 9v10h14V9M10 13h4' };
+    const pages = [['Overview','pulse'],['Activity','lines'],['Clipboard history','clip'],['Network and DNS','net'],['Conversion','bolt'],['Virtual disks','disk'],['Tools','wand'],['Safety and locks','shield'],['Appearance','palette'],['Records and exports','archive']]
+      .map(([label, icon]) => ({ label, icon: I[icon], cls: label === 'Overview' ? 'tab on' : 'tab', cur: label === 'Overview' ? 'page' : 'false' }));
+    const W = 1000, H = 200, N = st.dns.length, dx = W / (N - 1);
+    const frac = st.frac, yMax = st.yMax;
+    const X = (i) => W - (N - 1 - i + frac) * dx;
+    const Y = (v) => H - (v / yMax) * H * 0.92;
+    const series = (vals, head) => {
+      const pts = vals.map((v, i) => (v == null ? null : [X(i), Y(i === N - 1 ? head : v)]));
+      if (pts[N - 1]) pts.push([W, Y(head)]);
+      const segs = []; let cur = [];
+      pts.forEach((p) => { if (p) cur.push(p); else if (cur.length) { segs.push(cur); cur = []; } });
+      if (cur.length) segs.push(cur);
+      const smooth = (s) => {
+        if (s.length < 2) return '';
+        let d = 'M' + s[0][0].toFixed(1) + ' ' + s[0][1].toFixed(1);
+        for (let i = 0; i < s.length - 1; i++) {
+          const p0 = s[i - 1] || s[i], p1 = s[i], p2 = s[i + 1], p3 = s[i + 2] || p2;
+          const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+          d += 'C' + c1[0].toFixed(1) + ' ' + c1[1].toFixed(1) + ' ' + c2[0].toFixed(1) + ' ' + c2[1].toFixed(1) + ' ' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1);
+        }
+        return d;
+      };
+      return { line: segs.map(smooth).join(' '), fill: segs.filter((s) => s.length > 1).map((s) => smooth(s) + 'L' + s[s.length - 1][0].toFixed(1) + ' ' + H + 'L' + s[0][0].toFixed(1) + ' ' + H + 'Z').join(' ') };
+    };
+    const dS = series(st.dns, st.head), gS = series(st.gw, st.headG);
+    const pct = (x) => (x / W * 100).toFixed(3) + '%';
+    const offs = [];
+    for (let i = 0; i < N; i++) if (st.dns[i] == null) { let j = i; while (j + 1 < N && st.dns[j + 1] == null) j++; const l = Math.max(0, X(i) - dx / 2), r = Math.min(W, X(j) + dx / 2); if (r > 0) offs.push({ left: pct(l), width: pct(r - l), label: r - l > 60 ? 'Offline ' + (j - i + 1) + ' s' : '' }); i = j; }
+    const vis = st.dns.filter((v) => v != null), visG = st.gw.filter((v) => v != null);
+    const avg = (a) => Math.round(a.reduce((x, y) => x + y, 0) / Math.max(1, a.length));
+    const base = 12 * 3600 + 4 * 60 + 30 + st.t;
+    const hms = (s) => [Math.floor(s / 3600) % 24, Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, '0')).join(':');
+    const stale = show === 'stale', paused = st.paused || show === 'paused';
+    const sIdx = st.scrub;
+    const scrubbing = sIdx != null && show !== 'loading' && show !== 'empty';
+    const sx = scrubbing ? X(sIdx) : 0;
+    const sd = scrubbing ? st.dns[sIdx] : null, sg = scrubbing ? st.gw[sIdx] : null;
+    const offCount = st.dns.filter((v) => v == null).length;
+    const moveTo = (i) => this.setState({ scrub: Math.max(0, Math.min(N - 1, i)) });
+    return {
+      theme: this.props.theme ?? 'dark', pages,
+      dnsNow: Math.round(st.head) + ' ms', gwNow: Math.round(st.headG) + ' ms', dnsAvg: avg(vis) + ' ms', gwAvg: avg(visG) + ' ms',
+      chipCls: stale ? 'chip stale' : paused ? 'chip paused' : 'chip live', chipText: stale ? 'No new probe for 14 s' : paused ? 'Paused' : 'Live',
+      pauseLabel: paused ? 'Resume' : 'Pause', togglePause: () => { this.last = Date.now(); this.setState({ paused: !st.paused }); },
+      showChart: show === 'live' || show === 'paused' || show === 'stale', isLoading: show === 'loading', isEmpty: show === 'empty',
+      yLabels: [1, 0.75, 0.5, 0.25, 0].map((f) => ({ top: (100 - f * 92) + '%', text: Math.round(yMax * f) + (f === 1 ? ' ms' : '') })),
+      grid: [0.75, 0.5, 0.25].map((f) => ({ top: (100 - f * 92) + '%' })),
+      offs, dnsPath: dS.line, dnsFill: dS.fill, gwPath: gS.line, dnsStroke: stale ? 'var(--mute)' : 'var(--p)', lineOpacity: stale ? '.45' : '1',
+      dnsHeadTop: (Y(st.head) / H * 100).toFixed(2) + '%', gwHeadTop: (Y(st.headG) / H * 100).toFixed(2) + '%',
+      dotCls: stale ? 'dot hollow' : paused || this.reduced ? 'dot' : 'dot pulse', gDotCls: 'dot g', badgeCls: stale ? 'badge mute' : 'badge', dnsBadge: Math.round(st.head) + ' ms',
+      scrubbing, scrubLeft: pct(sx), tipPos: sx > W * 0.6 ? 'right:' + (100 - sx / W * 100).toFixed(2) + '%;margin-right:10px' : 'left:' + (sx / W * 100).toFixed(2) + '%;margin-left:10px',
+      scrubTime: scrubbing ? hms(base - (N - 1 - sIdx)) : '', scrubText: scrubbing ? (sd == null ? 'Offline, no answer' : 'DNS ' + sd + ' ms, gateway ' + sg + ' ms') : '',
+      onMove: (e) => { const r = e.currentTarget.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * W; moveTo(Math.round(N - 1 - (W - x) / dx + frac)); },
+      onLeave: () => this.setState({ scrub: null }),
+      onKey: (e) => { const k = e.key; const cur = st.scrub == null ? N - 1 : st.scrub; if (k === 'ArrowLeft') { moveTo(cur - 1); e.preventDefault(); } else if (k === 'ArrowRight') { moveTo(cur + 1); e.preventDefault(); } else if (k === 'Home') { moveTo(0); e.preventDefault(); } else if (k === 'End') { moveTo(N - 1); e.preventDefault(); } else if (k === 'Escape') this.setState({ scrub: null }); },
+      summary: 'DNS answers in ' + Math.round(st.head) + ' ms now, ' + avg(vis) + ' ms on average over the last minute, ' + Math.max(...vis) + ' ms at most. The gateway answers in ' + Math.round(st.headG) + ' ms.' + (offCount ? ' Offline for ' + offCount + ' seconds in this minute.' : ''),
+      filtersOpen: String(st.filters), filtersShown: st.filters, filterHidden: !st.filters, toggleFilters: () => this.setState({ filters: !st.filters }),
+      statsOpen: String(st.stats), statsShown: st.stats, statsHidden: !st.stats, toggleStats: () => this.setState({ stats: !st.stats }),
+      splitPct: 'calc(' + st.split + '% - 8px)', splitNum: String(Math.round(st.split)), resetSplit: () => this.setState({ split: 50 }),
+      onSplitKey: (e) => { if (e.key === 'ArrowLeft') { this.setState({ split: Math.max(25, st.split - 5) }); e.preventDefault(); } else if (e.key === 'ArrowRight') { this.setState({ split: Math.min(75, st.split + 5) }); e.preventDefault(); } else if (e.key === 'Home') this.setState({ split: 50 }); },
+      onSplitDown: (e) => {
+        const box = e.currentTarget.parentElement.getBoundingClientRect();
+        const move = (ev) => this.setState({ split: Math.max(25, Math.min(75, (ev.clientX - box.left) / box.width * 100)) });
+        const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); this.endDrag = null; };
+        this.endDrag = up; window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); e.preventDefault();
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

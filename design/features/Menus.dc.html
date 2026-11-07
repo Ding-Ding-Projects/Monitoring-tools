@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Menus, switch, Base64 and panels</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.lk{font-family:Roboto,system-ui,sans-serif;color:var(--text);background:var(--ground);min-height:100vh;box-sizing:border-box;padding:28px 32px 32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,600px),1fr));gap:20px}
+.lk.dark{--ground:#0A100D;--window:#0F1512;--surface:#1B211E;--raised:#262B28;--sunken:#303633;--line:#404943;--line2:#89938C;--text:#DEE4DF;--soft:#BFC9C2;--mute:#A6B0A9;--p:#6FDBB4;--onp:#003827;--pc:#00513A;--onpc:#8CF8CF;--sc:#354B41;--onsc:#CFE9DB;--tc:#244C5D;--ontc:#C2E8FD;--amb:#FFB95F;--ambw:#3B2A12;--err:#FFB4AB}
+.lk.light{--ground:#E3E9E4;--window:#F5FBF6;--surface:#E9EFEA;--raised:#FFFFFF;--sunken:#DEE4DF;--line:#BFC9C2;--line2:#707973;--text:#171D1A;--soft:#404943;--mute:#57605A;--p:#006C4F;--onp:#FFFFFF;--pc:#8CF8CF;--onpc:#002116;--sc:#CFE9DB;--onsc:#0B1F17;--tc:#C2E8FD;--ontc:#001F2A;--amb:#7A4F00;--ambw:#FFDDB3;--err:#BA1A1A}
+button,input{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.scene{display:flex;flex-direction:column;gap:10px;min-width:0}
+.scene h2{margin:0;font:500 18px Roboto}
+.scene>p{margin:0;max-width:66ch;font-size:13.5px;line-height:19px;color:var(--mute)}
+.stage{position:relative;flex:1;min-height:340px;border-radius:24px;background:var(--window);border:1px solid var(--line);overflow:hidden}
+.ghost{position:absolute;inset:22px;display:flex;flex-direction:column;gap:12px;opacity:.5;pointer-events:none}
+.ghost i{display:block;height:14px;border-radius:7px;background:var(--raised)}
+.ghost .c{height:84px;border-radius:18px;background:var(--surface)}
+.menu{position:absolute;width:318px;max-height:calc(100% - 24px);display:flex;flex-direction:column;border-radius:16px;background:var(--raised);box-shadow:0 6px 20px rgba(0,0,0,.35),0 0 0 1px var(--line);overflow:hidden}
+.mf{display:flex;align-items:center;gap:4px;margin:8px;padding:0 4px 0 10px;height:38px;border-radius:10px;background:var(--sunken)}
+.mf svg{width:16px;height:16px;color:var(--soft);flex:none}
+.mf input{flex:1;min-width:0;border:0;outline:none;background:transparent;font-size:13.5px}
+.mf .n{font:400 11.5px "JetBrains Mono";color:var(--mute);padding:0 4px}
+.mf button{height:28px;min-width:30px;border:0;border-radius:8px;background:transparent;font:500 12px "JetBrains Mono";color:var(--soft);cursor:pointer}
+.mf button.on{background:var(--sc);color:var(--onsc)}
+.items{overflow:auto;padding:0 6px 8px}
+.it{display:flex;align-items:center;gap:10px;min-height:40px;padding:4px 10px;border-radius:10px;font-size:14px;cursor:default}
+.it.act{background:color-mix(in srgb,var(--text) 9%,transparent)}
+.it .lbl{flex:1;min-width:0}
+.it .key{font:400 11.5px "JetBrains Mono";color:var(--mute)}
+.sep{height:1px;margin:6px 10px;background:var(--line)}
+.sw{position:relative;width:40px;height:24px;border-radius:12px;border:2px solid var(--line2);background:var(--sunken);flex:none;box-sizing:border-box;cursor:pointer;padding:0}
+.sw i{position:absolute;top:5px;left:5px;width:10px;height:10px;border-radius:50%;background:var(--line2);transition:all .16s}
+.sw.on{background:var(--p);border-color:var(--p)}
+.sw.on i{left:19px;top:3px;width:14px;height:14px;background:var(--onp)}
+.step{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:14px;overflow:hidden}
+.step button{width:28px;height:26px;border:0;background:transparent;cursor:pointer;font-size:15px}
+.step span{min-width:46px;text-align:center;font:500 12px "JetBrains Mono"}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:14px;overflow:hidden}
+.seg button{height:26px;padding:0 9px;border:0;border-left:1px solid var(--line2);background:transparent;font:500 12px Roboto;cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--sc);color:var(--onsc)}
+.hintbar{position:absolute;left:16px;bottom:12px;right:16px;font-size:12.5px;color:var(--mute)}
+.card{position:absolute;inset:22px;display:flex;flex-direction:column;gap:12px;padding:18px 20px;border-radius:20px;background:var(--surface)}
+.row{display:flex;align-items:center;gap:14px;min-height:56px}
+.row .t{flex:1;min-width:0}
+.row b{display:block;font:500 15px Roboto}
+.row small{display:block;margin-top:2px;font-size:12.5px;line-height:17px;color:var(--mute)}
+.big{width:52px;height:32px;border-radius:16px}
+.big i{top:6px;left:6px;width:16px;height:16px}
+.big.on i{left:auto;right:4px;top:4px;width:20px;height:20px}
+.say{padding:12px 14px;border-radius:14px;background:var(--ambw);color:var(--amb);font-size:13.5px;line-height:19px}
+.say b{font-weight:500}
+.dish{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:var(--raised);font-size:13px;color:var(--soft)}
+.dish .pic{width:44px;height:44px;border-radius:12px;background:radial-gradient(circle at 35% 35%,#F6E7C8,#E3C48E 60%,#B98B4A);flex:none}
+.drop{position:absolute;left:22px;right:22px;top:22px;height:118px;display:flex;align-items:center;justify-content:center;gap:14px;border-radius:18px;border:1.5px dashed color-mix(in srgb,var(--p) 60%,transparent);background:color-mix(in srgb,var(--p) 6%,transparent);text-align:left;cursor:pointer}
+.drop.over{background:color-mix(in srgb,var(--p) 16%,transparent);border-style:solid}
+.drop svg{width:28px;height:28px;color:var(--p)}
+.drop b{display:block;font:500 15px Roboto}
+.drop span{font-size:12.5px;color:var(--soft)}
+.ops{position:absolute;left:22px;right:22px;top:156px;bottom:16px;display:flex;flex-direction:column;gap:8px;overflow:auto}
+.op{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 14px;border-radius:14px;background:var(--surface)}
+.op .f{font:400 12.5px "JetBrains Mono";overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.op small{grid-column:1;font-size:12px;color:var(--mute)}
+.op button{grid-row:1/span 2;grid-column:2;height:32px;padding:0 12px;border:0;border-radius:16px;background:transparent;color:var(--p);font:500 13px Roboto;cursor:pointer}
+.status{position:absolute;left:22px;right:22px;bottom:14px;font-size:12.5px;color:var(--soft)}
+.panel{position:absolute;display:flex;flex-direction:column;border-radius:16px;background:var(--raised);box-shadow:0 8px 24px rgba(0,0,0,.35),0 0 0 1px var(--line);overflow:hidden;min-width:220px;min-height:150px}
+.ph{display:flex;align-items:center;gap:8px;height:40px;padding:0 6px 0 14px;background:var(--surface);cursor:move;font:500 13.5px Roboto;touch-action:none}
+.ph .grip{width:16px;height:16px;color:var(--mute)}
+.ph button{margin-left:auto;height:28px;padding:0 10px;border:0;border-radius:14px;background:transparent;color:var(--p);font:500 12.5px Roboto;cursor:pointer}
+.pb{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:8px;overflow:auto;font-size:13px}
+.tok{display:flex;flex-wrap:wrap;gap:6px}
+.tok span{padding:4px 8px;border-radius:8px;background:var(--sunken);font:400 12px "JetBrains Mono"}
+.rz{position:absolute;right:0;bottom:0;width:22px;height:22px;cursor:nwse-resize;touch-action:none;display:grid;place-items:center;color:var(--mute)}
+.rz svg{width:14px;height:14px}
+.edge-r{position:absolute;top:40px;right:0;bottom:22px;width:6px;cursor:ew-resize;touch-action:none}
+.edge-b{position:absolute;left:0;right:22px;bottom:0;height:6px;cursor:ns-resize;touch-action:none}
+@media (prefers-reduced-motion:reduce){.sw i{transition:none}}
+</style>
+</helmet>
+<div class="lk {{theme}}">
+  <section class="scene" aria-labelledby="s1">
+    <h2 id="s1">Live controls in every menu</h2>
+    <p>A setting in a menu is changed right there: a switch for on and off, a stepper for a level, choices side by side. The menu stays open, and every menu starts with a filter that has its own regex builder.</p>
+    <div class="stage" onContextMenu="{{openAt}}">
+      <div class="ghost" aria-hidden="true"><i style="width:40%"></i><div class="c"></div><div class="c"></div><i style="width:60%"></i></div>
+      <sc-if value="{{menuOpen}}" hint-placeholder-val="{{ true }}">
+        <div class="menu" role="menu" aria-label="Tray menu" style="left:{{mx}}px;top:{{my}}px" onKeyDown="{{menuKey}}">
+          <div class="mf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4"/></svg><input value="{{q}}" onInput="{{onQ}}" placeholder="Filter this menu" aria-label="Filter this menu" aria-describedby="m-count"><span class="n" id="m-count" aria-live="polite">{{countText}}</span><button type="button" class="{{rxCls}}" aria-pressed="{{rxOn}}" aria-label="Regular expression" onClick="{{toggleRx}}">.*</button><button type="button" aria-label="Open the regex builder">Builder</button></div>
+          <div class="items">
+            <sc-for list="{{items}}" as="m" hint-placeholder-count="9">
+              <sc-if value="{{m.isSep}}" hint-placeholder-val="{{ false }}"><div class="sep" role="separator"></div></sc-if>
+              <sc-if value="{{m.isToggle}}" hint-placeholder-val="{{ false }}"><div class="{{m.cls}}" role="menuitemcheckbox" aria-checked="{{m.on}}" onClick="{{m.run}}" onPointerEnter="{{m.hover}}"><span class="lbl">{{m.label}}</span><span class="{{m.sw}}" aria-hidden="true"><i></i></span></div></sc-if>
+              <sc-if value="{{m.isStep}}" hint-placeholder-val="{{ false }}"><div class="{{m.cls}}" role="menuitem" aria-label="{{m.aria}}" onPointerEnter="{{m.hover}}"><span class="lbl">{{m.label}}</span><span class="step"><button type="button" aria-label="Smaller" onClick="{{m.down}}">−</button><span>{{m.value}}</span><button type="button" aria-label="Larger" onClick="{{m.up}}">+</button></span></div></sc-if>
+              <sc-if value="{{m.isSeg}}" hint-placeholder-val="{{ false }}"><div class="{{m.cls}}" role="group" aria-label="{{m.label}}" onPointerEnter="{{m.hover}}"><span class="lbl">{{m.label}}</span><span class="seg"><sc-for list="{{m.opts}}" as="o" hint-placeholder-count="3"><button type="button" class="{{o.cls}}" role="menuitemradio" aria-checked="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for></span></div></sc-if>
+              <sc-if value="{{m.isAction}}" hint-placeholder-val="{{ true }}"><div class="{{m.cls}}" role="menuitem" onClick="{{m.run}}" onPointerEnter="{{m.hover}}"><span class="lbl">{{m.label}}</span><span class="key">{{m.key}}</span></div></sc-if>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <div class="hintbar" role="status">{{menuHint}}</div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="s2">
+    <h2 id="s2">The dim sum surprise switch</h2>
+    <p>Each launch has a 10% chance of a dish. The switch on the Modes page looks like it turns that off. It does not: it springs back on and says so. School mode is the one thing that holds the surprise back.</p>
+    <div class="stage">
+      <div class="card">
+        <div class="row"><div class="t"><b>Dim sum surprise</b><small>One dish with its English and Cantonese names, at most once per launch, never during a first run, an update or a task.</small></div><button type="button" class="{{trollSw}}" role="switch" aria-checked="{{trollOn}}" aria-label="Dim sum surprise" onClick="{{troll}}"><i></i></button></div>
+        <sc-if value="{{trollSaid}}" hint-placeholder-val="{{ true }}"><div class="say" role="status"><b>{{trollLine}}</b> The dim sum surprise cannot be turned off. 點心驚喜係關唔到㗎。</div></sc-if>
+        <div class="dish" aria-label="Last surprise"><span class="pic" role="img" aria-label="Har gow, a steamed shrimp dumpling"></span><span>Last surprise: har gow, 蝦餃, on Tuesday. Pictures come from the public dim sum catalogue.</span></div>
+        <div class="row"><div class="t"><b>School mode</b><small>Holds the surprise back while it is on, along with the other playful extras.</small></div><button type="button" class="{{schoolSw}}" role="switch" aria-checked="{{schoolOn}}" aria-label="School mode" onClick="{{school}}"><i></i></button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="s3">
+    <h2 id="s3">Base64, written beside the file</h2>
+    <p>Drop any file and its Base64 is written next to it as name.ext.base64.txt. Drop that text file and the original comes back beside it with its extension. Nothing is overwritten, every result is checked by a SHA-256 round trip, and each one can be undone.</p>
+    <div class="stage">
+      <button type="button" class="{{dropCls}}" onDragOver="{{dragOver}}" onDragLeave="{{dragLeave}}" onDrop="{{drop}}" onClick="{{pick}}" aria-label="Drop files here, or choose files"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 17v3h16v-3"/></svg><span><b>Drop files here</b><span>or choose files. A .base64.txt file turns back into its original.</span></span></button>
+      <div class="ops" aria-label="Recent Base64 results">
+        <sc-for list="{{ops}}" as="o" hint-placeholder-count="3"><div class="op"><span class="f" title="{{o.out}}">{{o.out}}</span><small>{{o.note}}</small><button type="button" onClick="{{o.undo}}">Undo</button></div></sc-for>
+      </div>
+      <div class="status" role="status">{{b64Status}}</div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="s4">
+    <h2 id="s4">Panels you can resize and move</h2>
+    <p>Drag the header to move a floating panel and any edge or corner to resize it. On the keyboard, focus the header and use the arrow keys to move it, with Shift to resize. The size and place are kept for each page, with a reset.</p>
+    <div class="stage" id="pstage">
+      <div class="ghost" aria-hidden="true"><i style="width:30%"></i><div class="c"></div><i style="width:50%"></i></div>
+      <div class="panel" role="dialog" aria-label="Regex builder" style="left:{{px}}px;top:{{py}}px;width:{{pw}}px;height:{{ph}}px">
+        <div class="ph" tabindex="0" aria-describedby="p-keys" onPointerDown="{{dragStart}}" onKeyDown="{{panelKey}}"><svg class="grip" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="7" r="1.6"/><circle cx="15" cy="7" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="17" r="1.6"/><circle cx="15" cy="17" r="1.6"/></svg>Regex builder<button type="button" onClick="{{resetPanel}}" onPointerDown="{{stop}}">Reset</button></div>
+        <div class="pb">
+          <span>Matches a time such as 09:41</span>
+          <div class="tok"><span>start</span><span>digit, 2</span><span>":"</span><span>digit, 2</span><span>end</span></div>
+          <span class="mono" style="color:var(--mute)">^\d{2}:\d{2}$</span>
+          <span style="color:var(--mute)">{{sizeText}}</span>
+        </div>
+        <div class="edge-r" onPointerDown="{{resizeR}}" aria-hidden="true"></div>
+        <div class="edge-b" onPointerDown="{{resizeB}}" aria-hidden="true"></div>
+        <div class="rz" onPointerDown="{{resizeBR}}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 10L10 20M20 16l-4 4"/></svg></div>
+      </div>
+      <p class="sr" id="p-keys">Arrow keys move the panel. Shift with the arrow keys resizes it. Home puts it back.</p>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { menu: true, mx: 150, my: 26, q: '', rx: false, act: 0, toasts: true, quiet: true, size: 100, theme: 'Dark', look: 'Graphite', hint: 'Right-click anywhere here to open the menu where you click.',
+      trollOn: true, trollSaid: false, trollN: 0, school: false,
+      over: false, ops: [
+        { out: 'D:\\Reports\\Q3 summary.pdf.base64.txt', note: 'From Q3 summary.pdf, 1.4 MB to 1.9 MB, round trip matches' },
+        { out: 'D:\\Logos\\logo (1).png', note: 'From logo.png.base64.txt; logo.png was already there, so this one is numbered' }
+      ], b64: 'Two results today. Undo removes only the file it wrote.',
+      px: 70, py: 60, pw: 300, ph: 200 };
+  }
+  componentWillUnmount() { this.off && this.off(); }
+  drag(e, fn) {
+    e.preventDefault();
+    const sx = e.clientX, sy = e.clientY, s0 = { ...this.state };
+    const stage = e.currentTarget.closest('.stage').getBoundingClientRect();
+    const move = (ev) => this.setState(fn(ev.clientX - sx, ev.clientY - sy, s0, stage));
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); this.off = null; };
+    this.off = up; window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+  }
+  fit(s, stage) {
+    const W = stage ? stage.width : 640, H = stage ? stage.height : 340;
+    const pw = Math.max(220, Math.min(s.pw, W - 8)), ph = Math.max(150, Math.min(s.ph, H - 8));
+    return { pw, ph, px: Math.max(4, Math.min(s.px, W - pw - 4)), py: Math.max(4, Math.min(s.py, H - ph - 4)) };
+  }
+  renderVals() {
+    const st = this.state;
+    const all = [
+      { kind: 'action', label: 'Open control centre', key: 'double-click' },
+      { kind: 'action', label: 'Command palette', key: 'Ctrl+Shift+F' },
+      { kind: 'sep' },
+      { kind: 'toggle', label: 'Clipboard toasts', get: 'toasts' },
+      { kind: 'toggle', label: 'Network alerts', get: 'quiet' },
+      { kind: 'step', label: 'Text size' },
+      { kind: 'seg', label: 'Theme', get: 'theme', opts: ['Light', 'Dark', 'System'] },
+      { kind: 'seg', label: 'Look', get: 'look', opts: ['Graphite', 'Instrument', 'Blueprint', 'Pop'] },
+      { kind: 'sep' },
+      { kind: 'action', label: 'Edit appearance…', key: '' },
+      { kind: 'action', label: 'Lock this element…', key: '' },
+      { kind: 'action', label: 'Quit until next sign-in', key: '' }
+    ];
+    let test = (s) => true;
+    if (st.q) {
+      if (st.rx) { try { const r = new RegExp(st.q, 'i'); test = (s) => r.test(s); } catch (e) { test = () => false; } }
+      else { const q = st.q.toLowerCase(); test = (s) => s.toLowerCase().includes(q); }
+    }
+    const shown = all.filter((m) => m.kind !== 'sep' ? test(m.label) : !st.q);
+    const real = shown.filter((m) => m.kind !== 'sep');
+    const act = Math.min(st.act, Math.max(0, real.length - 1));
+    const say = (h) => this.setState({ hint: h });
+    const items = shown.map((m) => {
+      const idx = real.indexOf(m), isAct = idx === act;
+      const base = { isSep: m.kind === 'sep', isToggle: m.kind === 'toggle', isStep: m.kind === 'step', isSeg: m.kind === 'seg', isAction: m.kind === 'action', label: m.label || '', key: m.key || '', cls: isAct ? 'it act' : 'it', hover: () => this.setState({ act: idx }) };
+      if (m.kind === 'toggle') { const on = st[m.get]; return { ...base, on: String(on), sw: on ? 'sw on' : 'sw', run: () => { this.setState({ [m.get]: !on }); say(m.label + (on ? ' off.' : ' on.') + ' The menu stays open.'); } }; }
+      if (m.kind === 'step') return { ...base, value: st.size + '%', aria: 'Text size, ' + st.size + ' percent', down: () => { const v = Math.max(80, st.size - 10); this.setState({ size: v }); say('Text size ' + v + '%.'); }, up: () => { const v = Math.min(200, st.size + 10); this.setState({ size: v }); say('Text size ' + v + '%.'); } };
+      if (m.kind === 'seg') return { ...base, opts: m.opts.map((o) => ({ label: o, cls: st[m.get] === o ? 'on' : '', on: String(st[m.get] === o), pick: () => { this.setState({ [m.get]: o }); say(m.label + ': ' + o + '.'); } })) };
+      return { ...base, run: () => { this.setState({ menu: false }); say(m.label.replace('…', '') + ' runs, and the menu closes because this item is an action.'); } };
+    });
+    const runAct = () => {
+      const m = real[act]; if (!m) return;
+      if (m.kind === 'toggle') { this.setState({ [m.get]: !st[m.get] }); say(m.label + (st[m.get] ? ' off.' : ' on.') + ' The menu stays open.'); }
+      else if (m.kind === 'action') { this.setState({ menu: false }); say(m.label.replace('…', '') + ' runs, and the menu closes.'); }
+    };
+    const ops = st.ops.map((o, i) => ({ ...o, undo: () => this.setState({ ops: st.ops.filter((x, j) => j !== i), b64: 'Removed ' + o.out.split('\\').pop() + '. The file it came from was not touched.' }) }));
+    const encode = (files) => {
+      const list = Array.from(files || []);
+      if (!list.length) return;
+      const made = list.map((f) => {
+        const back = /\.base64\.txt$/i.test(f.name);
+        const out = back ? f.name.replace(/\.base64\.txt$/i, '') : f.name + '.base64.txt';
+        const kb = (n) => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+        return { out: 'Beside it: ' + out, note: back ? 'Decoded from ' + f.name + ', type found from its first bytes, round trip matches' : 'From ' + f.name + ', ' + kb(f.size) + ' to ' + kb(Math.ceil(f.size / 3) * 4) + ', round trip matches' };
+      });
+      this.setState({ over: false, ops: made.concat(st.ops).slice(0, 6), b64: made.length === 1 ? 'Wrote one file beside the one you dropped.' : 'Wrote ' + made.length + ' files, each beside its original.' });
+    };
+    return {
+      theme: this.props.theme ?? 'dark',
+      menuOpen: st.menu, mx: st.mx, my: st.my, q: st.q, onQ: (e) => this.setState({ q: e.target.value, act: 0 }),
+      countText: st.q ? real.length + ' of ' + all.filter((m) => m.kind !== 'sep').length : all.filter((m) => m.kind !== 'sep').length + ' items',
+      rxCls: st.rx ? 'on' : '', rxOn: String(st.rx), toggleRx: () => this.setState({ rx: !st.rx }), items, menuHint: st.hint,
+      menuKey: (e) => {
+        if (e.key === 'ArrowDown') { this.setState({ act: Math.min(real.length - 1, act + 1) }); e.preventDefault(); }
+        else if (e.key === 'ArrowUp') { this.setState({ act: Math.max(0, act - 1) }); e.preventDefault(); }
+        else if (e.key === 'Enter') { runAct(); e.preventDefault(); }
+        else if (e.key === 'Escape') { if (st.q) this.setState({ q: '' }); else { this.setState({ menu: false }); say('Closed. Right-click to open it again.'); } e.preventDefault(); }
+      },
+      openAt: (e) => { e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(); this.setState({ menu: true, mx: Math.max(8, Math.min(e.clientX - r.left, r.width - 326)), my: Math.max(8, Math.min(e.clientY - r.top, r.height - 330)), q: '', act: 0, hint: 'Opened where you clicked.' }); },
+      trollSw: st.trollOn ? 'sw big on' : 'sw big', trollOn: String(st.trollOn), trollSaid: st.trollSaid,
+      trollLine: ['Nice try.', 'Still no.', 'It really does stay on.', 'Have a har gow instead.'][Math.min(3, Math.max(0, st.trollN - 1))],
+      troll: () => {
+        if (!st.trollOn) return;
+        const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.setState({ trollOn: false });
+        setTimeout(() => this.setState({ trollOn: true, trollSaid: true, trollN: this.state.trollN + 1 }), reduced ? 0 : 650);
+      },
+      schoolSw: st.school ? 'sw big on' : 'sw big', schoolOn: String(st.school), school: () => this.setState({ school: !st.school }),
+      dropCls: st.over ? 'drop over' : 'drop',
+      dragOver: (e) => { e.preventDefault(); if (!st.over) this.setState({ over: true }); }, dragLeave: () => this.setState({ over: false }),
+      drop: (e) => { e.preventDefault(); encode(e.dataTransfer && e.dataTransfer.files); },
+      pick: () => { const i = document.createElement('input'); i.type = 'file'; i.multiple = true; i.onchange = () => encode(i.files); i.click(); },
+      ops, b64Status: st.b64,
+      px: st.px, py: st.py, pw: st.pw, ph: st.ph, sizeText: Math.round(st.pw) + ' by ' + Math.round(st.ph) + ', kept for this page',
+      stop: (e) => e.stopPropagation(),
+      dragStart: (e) => this.drag(e, (dx, dy, s0, stage) => this.fit({ ...s0, px: s0.px + dx, py: s0.py + dy }, stage)),
+      resizeR: (e) => this.drag(e, (dx, dy, s0, stage) => this.fit({ ...s0, pw: s0.pw + dx }, stage)),
+      resizeB: (e) => this.drag(e, (dx, dy, s0, stage) => this.fit({ ...s0, ph: s0.ph + dy }, stage)),
+      resizeBR: (e) => this.drag(e, (dx, dy, s0, stage) => this.fit({ ...s0, pw: s0.pw + dx, ph: s0.ph + dy }, stage)),
+      panelKey: (e) => {
+        const d = { ArrowLeft: [-10, 0], ArrowRight: [10, 0], ArrowUp: [0, -10], ArrowDown: [0, 10] }[e.key];
+        const stage = e.currentTarget.closest('.stage').getBoundingClientRect();
+        if (d) { e.preventDefault(); this.setState(this.fit(e.shiftKey ? { ...st, pw: st.pw + d[0], ph: st.ph + d[1] } : { ...st, px: st.px + d[0], py: st.py + d[1] }, stage)); }
+        else if (e.key === 'Home') { e.preventDefault(); this.setState({ px: 70, py: 60, pw: 300, ph: 200 }); }
+      },
+      resetPanel: () => this.setState({ px: 70, py: 60, pw: 300, ph: 200 })
+    };
+  }
+}
+</script>
+</body>
+</html>

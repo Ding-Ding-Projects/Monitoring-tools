@@ -1,0 +1,72 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-07T17:20:00Z"
+  },
+  "title": "Monitoring Tools: new features",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1060,
+      "title": "Virtual disks: the library page",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Create.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1140,
+      "title": "Virtual disks: create, with presets, preflight and the script",
+      "is_interactive": true
+    },
+    "QuickPack.dc.html": {
+      "x": 0,
+      "y": 1240,
+      "w": 1440,
+      "h": 820,
+      "title": "Quick pack: drop, pack with automatic growth, verified result",
+      "is_interactive": true
+    },
+    "LiveChart.dc.html": {
+      "x": 1520,
+      "y": 1240,
+      "w": 1440,
+      "h": 820,
+      "title": "Overview: the live chart and collapsible panels",
+      "is_interactive": true
+    },
+    "Menus.dc.html": {
+      "x": 0,
+      "y": 2160,
+      "w": 1440,
+      "h": 900,
+      "title": "Live menu controls, the dim sum switch, Base64 drop and resizable panels",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Create.dc.html",
+    "QuickPack.dc.html",
+    "LiveChart.dc.html",
+    "Menus.dc.html"
+  ],
+  "notes": {
+    "about": {
+      "x": 0,
+      "y": -300,
+      "text": "New surfaces for Monitoring Tools, drawn in the Graphite look (Material 3 tonal surfaces on the Mint seed, Roboto with JetBrains Mono for figures). Every value shown is a working control where the app can change it. Sample disks, paths and figures are made up and safe. Use the Theme tweak on each board for light and dark.",
+      "w": 620,
+      "fill": "green"
+    }
+  },
+  "designSystems": []
+}

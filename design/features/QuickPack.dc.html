@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quick pack</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.lk{--r-card:24px;--r-in:16px;--r-chip:8px;font-family:Roboto,system-ui,sans-serif;color:var(--text);background:var(--window);min-height:100vh;display:flex;flex-wrap:wrap;position:relative;box-sizing:border-box}
+.lk.dark{--window:#0F1512;--surface:#1B211E;--raised:#262B28;--sunken:#303633;--line:#404943;--line2:#89938C;--text:#DEE4DF;--soft:#BFC9C2;--mute:#A6B0A9;--p:#6FDBB4;--onp:#003827;--pc:#00513A;--onpc:#8CF8CF;--sc:#354B41;--onsc:#CFE9DB;--tc:#244C5D;--ontc:#C2E8FD;--amb:#FFB95F;--ambw:#3B2A12;--err:#FFB4AB;--errw:#3D1714}
+.lk.light{--window:#F5FBF6;--surface:#E9EFEA;--raised:#E4EAE5;--sunken:#DEE4DF;--line:#BFC9C2;--line2:#707973;--text:#171D1A;--soft:#404943;--mute:#57605A;--p:#006C4F;--onp:#FFFFFF;--pc:#8CF8CF;--onpc:#002116;--sc:#CFE9DB;--onsc:#0B1F17;--tc:#C2E8FD;--ontc:#001F2A;--amb:#7A4F00;--ambw:#FFDDB3;--err:#BA1A1A;--errw:#FFDAD6}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.nav{flex:1 1 248px;max-width:100%;box-sizing:border-box;padding:18px 12px 16px;display:flex;flex-direction:column;gap:2px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 14px 16px;font:500 19px Roboto}
+.brand svg{width:24px;height:24px;color:var(--p)}
+.tab{display:flex;align-items:center;gap:12px;width:100%;min-height:38px;padding:0 14px;border:0;border-radius:20px;background:transparent;color:var(--soft);font:500 14px Roboto;text-align:left;cursor:pointer}
+.tab.on{background:var(--pc);color:var(--onpc)}
+.tab svg{width:18px;height:18px;flex:none}
+.main{flex:999 1 560px;min-width:0;box-sizing:border-box;padding:26px 40px 32px;display:flex;flex-direction:column;gap:14px}
+.crumb{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px 0 4px;border:0;border-radius:16px;background:transparent;font:500 13px Roboto;color:var(--p);cursor:pointer}
+.crumb svg{width:18px;height:18px}
+h1{margin:2px 0;font:400 32px/38px Roboto}
+.lede{margin:0;max-width:72ch;font-size:14px;line-height:20px;color:var(--mute)}
+.cols{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.colL{flex:1 1 520px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.colR{flex:1 1 400px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.card{padding:18px 20px;border-radius:var(--r-card);background:var(--surface);display:flex;flex-direction:column;gap:12px}
+.card h2{margin:0;font:500 16px Roboto}
+.drop{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--r-in);border:1.5px dashed color-mix(in srgb,var(--p) 55%,transparent);background:color-mix(in srgb,var(--p) 6%,transparent)}
+.drop .ic{width:44px;height:44px;border-radius:14px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;flex:none}
+.drop .ic svg{width:22px;height:22px}
+.drop .tx{flex:1 1 240px;min-width:0}
+.drop b{display:block;font:500 15px Roboto}
+.drop span{font-size:13px;color:var(--soft)}
+.from{font:400 12.5px "JetBrains Mono";color:var(--mute);word-break:break-all}
+.fld{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.fld>.lab{flex:0 0 112px;font-size:13.5px;color:var(--soft)}
+.val{font:500 14.5px "JetBrains Mono";word-break:break-all}
+.note{flex-basis:100%;margin:-2px 0 0 126px;font-size:12.5px;line-height:17px;color:var(--mute)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line2);border-radius:20px;overflow:hidden}
+.seg button{height:34px;padding:0 14px;border:0;border-left:1px solid var(--line2);background:transparent;font:500 13.5px Roboto;cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--sc);color:var(--onsc)}
+.seg button.on::before{content:"✓ "}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:40px;padding:0;border:0;background:transparent;text-align:left;cursor:pointer;font-size:14px}
+.tg small{display:block;font-size:12.5px;color:var(--mute);margin-top:2px}
+.sw{position:relative;width:46px;height:28px;border-radius:14px;border:2px solid var(--line2);background:var(--sunken);flex:none;box-sizing:border-box}
+.sw i{position:absolute;top:6px;left:6px;width:12px;height:12px;border-radius:50%;background:var(--line2)}
+.sw.on{background:var(--p);border-color:var(--p)}
+.sw.on i{left:auto;right:4px;top:4px;width:16px;height:16px;background:var(--onp)}
+.plan{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;margin:0;font-size:13.5px}
+.plan dt{color:var(--soft)}
+.plan dd{margin:0;font:500 13px "JetBrains Mono";text-align:right}
+.plan .sum{padding-top:8px;border-top:1px solid var(--line);font-weight:500;color:var(--text)}
+.plan dd.sum{color:var(--p);font-size:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:0;border-radius:20px;background:var(--sc);color:var(--onsc);font:500 14px Roboto;cursor:pointer}
+.btn.pri{background:var(--p);color:var(--onp)}
+.btn.ghost{background:transparent;color:var(--p);padding:0 12px}
+.btn.warnb{background:var(--errw);color:var(--err)}
+.btn svg{width:18px;height:18px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.big{display:flex;align-items:baseline;gap:10px}
+.big b{font:400 44px/48px Roboto;letter-spacing:-.5px}
+.big span{font-size:14px;color:var(--soft)}
+.bar{height:10px;border-radius:5px;background:var(--sunken);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--p);border-radius:5px;transition:width .12s linear}
+.figs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fig{padding:10px 12px;border-radius:14px;background:var(--raised)}
+.fig small{display:block;font-size:12px;color:var(--mute)}
+.fig b{display:block;margin-top:2px;font:500 15px "JetBrains Mono"}
+.cur{padding:10px 12px;border-radius:12px;background:var(--sunken);font:400 12.5px "JetBrains Mono";color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.log li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:10px;font-size:13px;line-height:18px;color:var(--soft)}
+.log svg{width:18px;height:18px}
+.log .grow{color:var(--text)}
+.log .grow svg{color:var(--amb)}
+.log .ok svg{color:var(--p)}
+.log .bad svg{color:var(--err)}
+.banner{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;align-items:start;padding:14px 16px;border-radius:var(--r-in)}
+.banner svg{width:24px;height:24px;margin:2px 0 0 4px}
+.banner b{display:block;font:500 17px Roboto}
+.banner span{font-size:13.5px;line-height:19px}
+.banner.good{background:var(--pc);color:var(--onpc)}
+.banner.part{background:var(--ambw);color:var(--amb)}
+.banner.stop{background:var(--errw);color:var(--err)}
+.banner.neutral{background:var(--raised);color:var(--text)}
+.caps{position:absolute;top:8px;right:10px;display:flex;gap:2px}
+.cap{width:44px;height:34px;border:0;border-radius:10px;background:transparent;color:var(--soft);display:grid;place-items:center}
+.cap svg{width:14px;height:14px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</helmet>
+<div class="lk {{theme}}">
+  <div class="caps" aria-label="Window controls">
+    <button class="cap" type="button" aria-label="Minimise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+    <button class="cap" type="button" aria-label="Maximise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 5h14v14H5z"/></svg></button>
+    <button class="cap" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <nav class="nav" aria-label="Pages">
+    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Monitoring Tools</div>
+    <sc-for list="{{pages}}" as="pg" hint-placeholder-count="10">
+      <button type="button" class="{{pg.cls}}" aria-current="{{pg.cur}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{pg.icon}}"/></svg>{{pg.label}}</button>
+    </sc-for>
+  </nav>
+  <main class="main">
+    <div>
+      <button class="crumb" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Virtual disks</button>
+      <h1>Quick pack</h1>
+      <p class="lede">Packs what you dropped into one new VHDX beside it. The disk grows by itself if it runs short, every file is checked against its original, and your originals are never moved or changed.</p>
+    </div>
+    <div class="cols">
+      <div class="colL">
+        <section class="card" aria-label="What goes in">
+          <h2>What goes in</h2>
+          <div class="drop">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"/></svg></div>
+            <div class="tx"><b>Photos</b><span>12,406 files in 318 folders, 41.7 GB</span><div class="from">from D:\Archive\2026</div></div>
+            <button class="btn ghost" type="button">Add more</button>
+          </div>
+        </section>
+        <section class="card" aria-label="The new disk">
+          <h2>The new disk</h2>
+          <div class="fld"><span class="lab">Name</span><span class="val">Photos (1).vhdx</span><span class="note">Photos.vhdx is already in this folder, so the new one is numbered. Nothing is ever overwritten.</span></div>
+          <div class="fld"><span class="lab">Saved in</span><span class="val">D:\Archive\2026</span></div>
+          <div class="fld"><span class="lab" id="l-type">Type</span><div class="seg" role="radiogroup" aria-labelledby="l-type"><sc-for list="{{types}}" as="t" hint-placeholder-count="2"><button type="button" class="{{t.cls}}" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for></div></div>
+          <div class="fld"><span class="lab" id="l-fs">File system</span><div class="seg" role="radiogroup" aria-labelledby="l-fs"><sc-for list="{{fss}}" as="f" hint-placeholder-count="3"><button type="button" class="{{f.cls}}" role="radio" aria-checked="{{f.on}}" onClick="{{f.pick}}">{{f.label}}</button></sc-for></div></div>
+          <sc-for list="{{toggles}}" as="g" hint-placeholder-count="2">
+            <button type="button" class="tg" role="switch" aria-checked="{{g.on}}" onClick="{{g.flip}}"><span>{{g.label}}<small>{{g.note}}</small></span><span class="{{g.sw}}" aria-hidden="true"><i></i></span></button>
+          </sc-for>
+          <dl class="plan" aria-label="How the size was worked out">
+            <dt>Files and folders</dt><dd>41.7 GB</dd>
+            <dt>Rounding every file up to whole clusters</dt><dd>196 MB</dd>
+            <dt>File system records for 12,724 entries</dt><dd>62 MB</dd>
+            <dt>Partition table and reserved space</dt><dd>17 MB</dd>
+            <dt>Headroom</dt><dd>4.2 GB</dd>
+            <dt class="sum">Starting size</dt><dd class="sum">46.2 GB</dd>
+          </dl>
+        </section>
+      </div>
+      <div class="colR">
+        <section class="card" aria-label="{{cardLabel}}">
+          <sc-if value="{{isReady}}" hint-placeholder-val="{{ false }}">
+            <h2>Ready to pack</h2>
+            <ul class="log">
+              <li class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>D: has 412 GB free. The pack needs about 42 GB on disk.</span></li>
+              <li class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>{{readyGrowNote}}</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v6M12 7.5h.01"/></svg><span>Windows asks once for administrator permission, to attach the new disk. Cancelling it changes nothing.</span></li>
+            </ul>
+            <div class="row"><button class="btn pri" type="button" onClick="{{start}}">Pack 41.7 GB</button></div>
+          </sc-if>
+          <sc-if value="{{isPacking}}" hint-placeholder-val="{{ true }}">
+            <h2>{{packTitle}}</h2>
+            <div class="big" aria-live="polite"><b>{{pct}}</b><span>{{bytes}}</span></div>
+            <div class="bar" role="progressbar" aria-label="Packed so far" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{pctNum}}"><i style="width:{{pct}}"></i></div>
+            <div class="figs">
+              <div class="fig"><small>Files</small><b>{{files}}</b></div>
+              <div class="fig"><small>Speed</small><b>{{speed}}</b></div>
+              <div class="fig"><small>Time left</small><b>{{left}}</b></div>
+              <div class="fig"><small>Disk size now</small><b>{{diskNow}}</b></div>
+            </div>
+            <div class="cur" title="{{current}}"><span class="sr">Now copying </span>{{current}}</div>
+            <ul class="log" aria-label="What happened so far">
+              <sc-for list="{{log}}" as="l" hint-placeholder-count="2"><li class="{{l.cls}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{l.icon}}"/></svg><span>{{l.text}}</span></li></sc-for>
+            </ul>
+            <div class="row"><button class="btn" type="button" onClick="{{pause}}">{{pauseLabel}}</button><button class="btn ghost" type="button" onClick="{{cancel}}">Cancel</button></div>
+          </sc-if>
+          <sc-if value="{{isDone}}" hint-placeholder-val="{{ false }}">
+            <div class="banner good" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><div><b>Packed and checked</b><span>All 12,406 files match their originals by SHA-256. The disk is detached and sits beside the folder.</span></div></div>
+            <div class="cur">D:\Archive\2026\Photos (1).vhdx</div>
+            <div class="figs">
+              <div class="fig"><small>Virtual size</small><b>{{doneSize}}</b></div>
+              <div class="fig"><small>On disk</small><b>42.1 GB</b></div>
+              <div class="fig"><small>Files</small><b>12,406</b></div>
+              <div class="fig"><small>Grew by itself</small><b>{{growCount}}</b></div>
+            </div>
+            <ul class="log"><sc-for list="{{log}}" as="l" hint-placeholder-count="2"><li class="{{l.cls}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{l.icon}}"/></svg><span>{{l.text}}</span></li></sc-for></ul>
+            <div class="row"><button class="btn pri" type="button">Show in folder</button><button class="btn" type="button">Attach now</button><button class="btn ghost" type="button">Open in Virtual disks</button><button class="btn ghost" type="button" onClick="{{again}}">Pack again</button></div>
+          </sc-if>
+          <sc-if value="{{isPartial}}" hint-placeholder-val="{{ false }}">
+            <div class="banner part" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l9 16H3zM12 10v4M12 17h.01"/></svg><div><b>Partial: 2 files were skipped</b><span>12,404 of 12,406 files match their originals. The pack is not complete until the two below are in.</span></div></div>
+            <ul class="log">
+              <li class="bad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 8l8 8M16 8l-8 8"/></svg><span><span class="mono">Photos\raw\DSC_0091.NEF</span>: open in another app, which locks it.</span></li>
+              <li class="bad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 8l8 8M16 8l-8 8"/></svg><span><span class="mono">Photos\old\Thumbs.db</span>: Windows denied read access.</span></li>
+            </ul>
+            <div class="row"><button class="btn pri" type="button" onClick="{{finish}}">Try the 2 files again</button><button class="btn ghost" type="button">Show in folder</button></div>
+          </sc-if>
+          <sc-if value="{{isShort}}" hint-placeholder-val="{{ false }}">
+            <div class="banner stop" role="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 8v5M12 16h.01"/></svg><div><b>Stopped: D: is 3.1 GB short</b><span>The disk needs to grow to keep going, and D: does not have the room. Free 3.1 GB on D: and resume, or cancel to remove the new disk.</span></div></div>
+            <div class="figs">
+              <div class="fig"><small>Packed so far</small><b>{{bytesShort}}</b></div>
+              <div class="fig"><small>Stopped at</small><b>IMG_7702.CR3</b></div>
+            </div>
+            <div class="row"><button class="btn pri" type="button" onClick="{{resume}}">Resume</button><button class="btn warnb" type="button" onClick="{{cancel}}">Cancel and remove the new disk</button></div>
+          </sc-if>
+          <sc-if value="{{isCancelled}}" hint-placeholder-val="{{ false }}">
+            <div class="banner neutral" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9 9h6v6H9z"/></svg><div><b>Cancelled</b><span>Detached and removed Photos (1).vhdx, the only file this run made. Your files were not touched.</span></div></div>
+            <div class="row"><button class="btn pri" type="button" onClick="{{again}}">Pack again</button></div>
+          </sc-if>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark"},"start":{"editor":"enum","options":["ready","packing","done","partial","short","cancelled"],"default":"packing"},"$preview":{"width":1440,"height":820}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    const s = p.start || 'packing';
+    this.state = { phase: s, p: s === 'packing' ? 0.31 : s === 'short' ? 0.83 : s === 'ready' || s === 'cancelled' ? 0 : 1, paused: false, grew: s === 'done' || s === 'partial' || s === 'short', type: 'dynamic', fs: 'NTFS', perms: false, tight: false, tick: 0 };
+  }
+  componentDidMount() {
+    const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.t = setInterval(() => {
+      const st = this.state;
+      if (st.phase !== 'packing' || st.paused) return;
+      const step = reduced ? 0.05 : 0.006;
+      const np = Math.min(1, st.p + step);
+      this.setState({ p: np, grew: st.grew || np >= 0.58, tick: st.tick + 1, phase: np >= 1 ? 'done' : 'packing' });
+    }, reduced ? 1000 : 140);
+  }
+  componentWillUnmount() { clearInterval(this.t); }
+  renderVals() {
+    const st = this.state;
+    const I = { pulse: 'M3 12h4l3-8 4 16 3-8h4', lines: 'M4 6h16M4 12h16M4 18h10', clip: 'M9 4h6v3H9zM7 5H5v16h14V5h-2', net: 'M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01', bolt: 'M13 3L5 13h6l-1 8 8-10h-6z', disk: 'M4 6h16v5H4zM4 13h16v5H4zM7.5 8.5h.01M7.5 15.5h.01', wand: 'M4 20L14 10M15 4v3M18.5 5.5l-2 2M20 9h-3', shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', palette: 'M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z', archive: 'M3 5h18v4H3zM5 9v10h14V9M10 13h4' };
+    const pages = [['Overview','pulse'],['Activity','lines'],['Clipboard history','clip'],['Network and DNS','net'],['Conversion','bolt'],['Virtual disks','disk'],['Tools','wand'],['Safety and locks','shield'],['Appearance','palette'],['Records and exports','archive']]
+      .map(([label, icon]) => ({ label, icon: I[icon], cls: label === 'Virtual disks' ? 'tab on' : 'tab', cur: label === 'Virtual disks' ? 'page' : 'false' }));
+    const totalGb = 41.7, files = 12406;
+    const gb = (x) => x.toLocaleString('en', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' GB';
+    const done = st.p * totalGb;
+    const names = ['2026-01 Snow\\IMG_0112.CR3', '2026-02 Porto\\IMG_1188.CR3', '2026-03 Kyoto\\DSC_2214.NEF', '2026-04 Garden\\IMG_3021.HEIC', '2026-05 Rome\\IMG_3907.CR3', '2026-06 Lisbon\\IMG_4410.CR3', '2026-07 Coast\\IMG_5216.CR3', '2026-08 Fair\\IMG_6120.MOV', '2026-09 Hike\\IMG_7702.CR3'];
+    const current = 'Photos\\' + names[Math.min(names.length - 1, Math.floor(st.p * names.length))];
+    const icon = { ok: 'M5 12l5 5 9-10', grow: 'M12 19V5M6 11l6-6 6 6', dot: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z' };
+    const fit = st.tight ? ' Fitted tightly afterwards: 42.6 GB.' : '';
+    const log = [
+      { cls: 'ok', icon: icon.ok, text: 'Made Photos (1).vhdx: 46.2 GB, ' + (st.type === 'fixed' ? 'fixed size' : 'grows as it fills') + ', GPT, ' + st.fs + ', a fresh disk ID. Attached through the Windows virtual disk service.' }
+    ];
+    if (st.grew) log.push({ cls: 'grow', icon: icon.grow, text: 'Ran out of room at 2026-06 Lisbon\\IMG_4410.CR3. Grew the disk from 46.2 GB to 52.0 GB, extended the volume, carried on from that file and checked it again.' });
+    if (st.phase === 'done') log.push({ cls: 'ok', icon: icon.ok, text: 'Checked every file by SHA-256, copied timestamps, attributes and alternate data streams, then detached.' + fit });
+    else log.push({ cls: '', icon: icon.dot, text: 'Copying with folder tree, long paths, timestamps, attributes and alternate data streams, and checking each file as it lands.' });
+    const pct = Math.round(st.p * 100);
+    const rem = (1 - st.p) * totalGb * 1024 / 412;
+    const go = (phase, extra) => this.setState({ phase, paused: false, ...(extra || {}) });
+    return {
+      theme: this.props.theme ?? 'dark', pages,
+      types: [['dynamic', 'Grows as it fills'], ['fixed', 'Fixed size']].map(([v, label]) => ({ label, cls: st.type === v ? 'on' : '', on: String(st.type === v), pick: () => this.setState({ type: v }) })),
+      fss: [['NTFS', 'NTFS'], ['exFAT', 'exFAT'], ['ReFS', 'ReFS']].map(([v, label]) => ({ label, cls: st.fs === v ? 'on' : '', on: String(st.fs === v), pick: () => this.setState({ fs: v }) })),
+      toggles: [
+        { label: 'Copy permissions too', note: 'Keeps who can open each file. Off by default.', on: String(st.perms), sw: st.perms ? 'sw on' : 'sw', flip: () => this.setState({ perms: !st.perms }) },
+        { label: 'Fit it tightly when done', note: 'Shrinks the disk to its smallest safe size plus a small margin.', on: String(st.tight), sw: st.tight ? 'sw on' : 'sw', flip: () => this.setState({ tight: !st.tight }) }
+      ],
+      readyGrowNote: st.type === 'fixed' ? 'A fixed disk takes 46.2 GB now and grows by itself if it runs short.' : 'It starts at 46.2 GB and grows by itself if it runs short.',
+      cardLabel: 'Progress', isReady: st.phase === 'ready', isPacking: st.phase === 'packing', isDone: st.phase === 'done', isPartial: st.phase === 'partial', isShort: st.phase === 'short', isCancelled: st.phase === 'cancelled',
+      packTitle: st.paused ? 'Paused' : 'Packing', pct: pct + '%', pctNum: String(pct), bytes: gb(done) + ' of ' + gb(totalGb),
+      files: Math.round(st.p * files).toLocaleString('en') + ' of ' + files.toLocaleString('en'), speed: st.paused ? 'paused' : (405 + (st.tick * 7) % 19) + ' MB/s',
+      left: st.paused ? 'paused' : rem < 60 ? 'under a minute' : 'about ' + Math.ceil(rem / 60) + ' min', diskNow: st.grew ? '52.0 GB' : '46.2 GB', current,
+      log, pauseLabel: st.paused ? 'Resume' : 'Pause',
+      pause: () => this.setState({ paused: !st.paused }), cancel: () => go('cancelled', { p: 0, grew: false }), start: () => go('packing', { p: 0, grew: false }),
+      runShort: () => go('short', { p: Math.max(st.p, 0.83), grew: true }), resume: () => go('packing'), finish: () => go('done', { p: 1 }), again: () => go('ready', { p: 0, grew: false }),
+      doneSize: st.tight ? '42.6 GB' : st.grew ? '52.0 GB' : '46.2 GB', growCount: st.grew ? 'once, 46.2 to 52.0 GB' : 'not needed', bytesShort: gb(Math.max(st.p, 0.83) * totalGb)
+    };
+  }
+}
+</script>
+</body>
+</html>
