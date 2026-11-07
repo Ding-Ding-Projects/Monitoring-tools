@@ -104,12 +104,15 @@ namespace MonitoringTools
             var updated = AutoUpdater.TakeUpdatedNote();
             if (updated != null) Toasts.ShowNotice("Monitoring Tools updated", updated, Toasts.Mint, 6);
 
-            var flag = Path.Combine(Settings.DataDir, "welcome.flag");
-            if (File.Exists(flag))
+            // First install: the setup wizard does the real setup and the tour stays one click away in the tray. A reinstall
+            // or the same version started again just opens the control centre. Updates never bring the tour back.
+            if (InstallNote.Take(Settings.DataDir, InstallNote.WelcomeFlag))
             {
-                try { File.Delete(flag); } catch { }
-                // First run: the setup wizard does the real setup; the tour stays one click away in the tray.
                 if (!Settings.Current.OnboardingDone) ShowSetup(); else ShowWelcome();
+            }
+            else if (InstallNote.Take(Settings.DataDir, InstallNote.OpenFlag))
+            {
+                if (!Settings.Current.OnboardingDone) ShowSetup(); else OpenControlCentre(null);
             }
         }
 

@@ -12,16 +12,26 @@
             </TransformGroup>
         </Grid.RenderTransform>
         <Border CornerRadius="28" Background="{DynamicResource B.Window}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
-                Effect="{StaticResource Fx.Shadow}" Padding="40,36,40,32" MouseLeftButtonDown="OnDrag">
-            <StackPanel>
-                <Grid>
-                    <StackPanel x:Name="Hero">
+                Effect="{StaticResource Fx.Shadow}" Padding="33,36,33,32" MouseLeftButtonDown="OnDrag">
+            <!-- Three rows: the welcome, the cards (they scroll when the screen is short) and the footer, which always shows. -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid Margin="7,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel x:Name="Hero" Margin="0,0,16,0">
                         <TextBlock Text="WELCOME" Style="{StaticResource T.Eyebrow}" FontSize="12" Foreground="{DynamicResource B.Mint}"/>
-                        <TextBlock Text="It lives in your tray now." Style="{StaticResource T.Title}" FontSize="36" Margin="0,8,0,8"/>
+                        <TextBlock Text="It lives in your tray now." Style="{StaticResource T.Title}" FontSize="36" Margin="0,8,0,8" TextWrapping="Wrap"/>
                         <TextBlock Style="{StaticResource T.Body}" FontSize="14" Foreground="{DynamicResource B.TextMute}" MaxWidth="540" HorizontalAlignment="Left"
-                                   Text="Everything below works on its own. Press Try it to see each one right now instead of waiting for it to happen."/>
+                                   TextWrapping="Wrap" Text="Everything below works on its own. Press Try it to see each one right now instead of waiting for it to happen."/>
                     </StackPanel>
-                    <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="{DynamicResource B.SecondaryContainer}" BorderBrush="{x:Null}"
+                    <Border Grid.Column="1" VerticalAlignment="Top" Background="{DynamicResource B.SecondaryContainer}" BorderBrush="{x:Null}"
                             BorderThickness="0" CornerRadius="20" Padding="14,10">
                         <StackPanel Orientation="Horizontal">
                             <Grid Width="12" Height="12" Margin="0,0,10,0">
@@ -35,17 +45,24 @@
                     </Border>
                 </Grid>
 
-                <UniformGrid x:Name="Cards" Columns="3" Margin="-7,28,-7,0"/>
+                <ScrollViewer x:Name="CardScroll" Grid.Row="1" Margin="0,21,0,0" VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                    <UniformGrid x:Name="Cards" Columns="3"/>
+                </ScrollViewer>
 
-                <Grid Margin="0,22,0,0">
-                    <TextBlock Style="{StaticResource T.Body}" Foreground="{DynamicResource B.TextMute}" VerticalAlignment="Center"
-                               Text="Right-click the tray icon any time. This tour lives there too."/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Grid Grid.Row="2" Margin="7,22,7,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource T.Body}" Foreground="{DynamicResource B.TextMute}" VerticalAlignment="Center" TextWrapping="Wrap"
+                               Margin="0,0,16,0" Text="Right-click the tray icon any time. This tour lives there too."/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Content="Close" Style="{StaticResource Btn.Ghost}" Height="40" Margin="0,0,8,0" Click="OnClose" IsCancel="True"/>
                         <Button Content="Open control centre" Style="{StaticResource Btn.Accent}" Height="40" Padding="20,0" Click="OnCentre"/>
                     </StackPanel>
                 </Grid>
-            </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>

@@ -54,6 +54,11 @@ namespace MonitoringTools.UI
     public static class Ui
     {
         public static Brush Res(string key) => (Brush)Application.Current.Resources[key];
+
+        /// <summary>The usable screen area windows size themselves to. The every-surface sweep sets it to emulate a small
+        /// screen (a 1080p display at 200 percent is 960 by 540).</summary>
+        public static Rect WorkArea => WorkAreaOverride ?? SystemParameters.WorkArea;
+        internal static Rect? WorkAreaOverride;
         public static Style Style(string key) => (Style)Application.Current.Resources[key];
         public static FontFamily Font(string key) => (FontFamily)Application.Current.Resources[key];
         public static Color C(string key) => (Color)Application.Current.Resources[key];

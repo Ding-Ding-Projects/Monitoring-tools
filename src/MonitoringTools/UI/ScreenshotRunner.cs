@@ -105,6 +105,10 @@ namespace MonitoringTools.UI
                 await Toast("toast-compose", "Docker Compose file", App.Toasts.ShowClip(ClipItem.FromFiles(new[] { s["compose"] })), 1500);
                 await Toast("toast-folder", "Folder with batch conversion chips", App.Toasts.ShowClip(ClipItem.FromFiles(new[] { s["folder"] })), 1800);
                 await Toast("toast-multi", "Several files at once", App.Toasts.ShowClip(ClipItem.FromFiles(new[] { s["image"], s["image2"], s["csv"] })));
+                var cutFiles = ClipItem.FromFiles(new[] { s["image"], s["image2"] }); cutFiles.Gesture = global::MonitoringTools.Clip.Smart.CopyGesture.Cut;
+                await Toast("toast-cut-files", "Files that were cut: pasting moves them", App.Toasts.ShowClip(cutFiles));
+                var cutText = ClipItem.FromText("Meeting moved to Thursday at 3 pm."); cutText.Gesture = global::MonitoringTools.Clip.Smart.CopyGesture.Cut;
+                await Toast("toast-cut-text", "Text that was cut with Ctrl+X", App.Toasts.ShowClip(cutText));
                 await Toast("toast-bitmap", "Screenshot on the clipboard", App.Toasts.ShowClip(ClipItem.FromImage(Demo.SampleBitmap(1920, 1080, "Capture", Color.FromRgb(0x8A, 0xB4, 0xFF)))));
                 await Toast("toast-color", "Color value", App.Toasts.ShowClip(ClipItem.FromText("#7CF2C2")));
                 await Toast("toast-base64", "Base64 text", App.Toasts.ShowClip(ClipItem.FromText(FileOps.EncodeText("Monitoring Tools decodes this for you."))));

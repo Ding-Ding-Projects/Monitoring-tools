@@ -51,8 +51,15 @@ namespace MonitoringTools
                 // Launched by hand (double-click, Start menu, explorer relaunch)
                 if (!ServiceHost.IsRunningInstalled)
                 {
+                    // Look at what was here before the copy is replaced: only a genuine first install gets the welcome,
+                    // an upgrade by hand gets the quiet "updated" notice and a reinstall just opens the control centre.
+                    bool installedBefore = File.Exists(ServiceHost.InstalledExe);
+                    var before = installedBefore ? AutoUpdater.OwnVersion(ServiceHost.InstalledExe) : null;
+                    bool settingsExisted = File.Exists(Path.Combine(Settings.DataDir, "settings.json"));
                     ServiceHost.Install();
-                    File.WriteAllText(Path.Combine(Settings.DataDir, "welcome.flag"), DateTime.Now.ToString("O"));
+                    var kind = InstallNote.Decide(installedBefore, settingsExisted, before, AutoUpdater.Current);
+                    try { InstallNote.Write(Settings.DataDir, kind, before, AutoUpdater.Current); }
+                    catch (Exception ex) { Log.Warn("Could not leave the install note: " + ex.Message); }
                     ServiceHost.LaunchSupervisor();
                     return 0;
                 }

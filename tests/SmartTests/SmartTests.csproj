@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Runs the clipboard detectors on any machine: dotnet run -project tests/SmartTests -->
+  <!-- Runs the clipboard detectors, the tab defaults and the install note on any machine (dotnet run in this folder) -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -9,5 +9,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\src\MonitoringTools\Clip\Smart\*.cs" Link="Smart\%(Filename)%(Extension)" />
+    <Compile Include="..\..\src\MonitoringTools\Core\TabDefaults.cs;..\..\src\MonitoringTools\Core\InstallNote.cs" Link="Core\%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

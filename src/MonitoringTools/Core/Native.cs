@@ -39,6 +39,10 @@ namespace MonitoringTools.Core
         [DllImport("user32.dll")]
         public static extern IntPtr GetClipboardOwner();
 
+        /// <summary>The high bit is set while the key is held down.</summary>
+        [DllImport("user32.dll")]
+        public static extern short GetAsyncKeyState(int vKey);
+
         [DllImport("user32.dll")]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 

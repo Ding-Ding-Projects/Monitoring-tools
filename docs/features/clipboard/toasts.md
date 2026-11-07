@@ -8,6 +8,16 @@ A small card slides into the bottom-right corner each time the clipboard changes
 
 The toast shows a preview of what you copied and four actions up front. Everything else is behind **More**. Hovering reveals the full set of actions that make sense for that kind of content.
 
+## Cut or copied
+
+Beside the title a small label says **Cut** (amber) or **Copied** (green), and clipboard history says "cut" or "copied" in the same way.
+
+- **Files**: Explorer and most file managers mark files that were cut. Cut files say "pasting moves these files"; copied files say "pasting makes copies and leaves the originals".
+- **Text, pictures and everything else**: the clipboard itself does not record it, so the shortcut you held tells: Ctrl+X or Shift+Delete is a cut, Ctrl+C or Ctrl+Insert (and Ctrl+Shift+C in terminals) is a copy. The keys are read only at the moment the clipboard changes; nothing you type is recorded.
+- **Cut or Copy picked from a menu** leaves no trace, so the toast shows no label rather than guessing.
+
+![A toast for files that were cut](../../screenshots/toast-cut-files.png)
+
 ## Actions by kind of content
 
 | You copied | Preview | Actions |

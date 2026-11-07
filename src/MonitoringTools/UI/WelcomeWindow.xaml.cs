@@ -21,6 +21,7 @@ namespace MonitoringTools.UI
             Card("Your shortcuts", "Write a batch or PowerShell script, name it, and copy anything with :name to run it.", Icons.Code, "Open editor", () => App.Current.OpenControlCentre("shortcuts"));
             Card("Game mode", "Roblox, Minecraft, League and friends keep the screen. Popups wait until you stop.", Icons.Game, "Pick games", () => App.Current.OpenControlCentre("game"), tint: "B.VioletWash");
 
+            FitToScreen();
             var (_, status) = App.Tray.State();
             StatusText.Text = status;
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
@@ -28,6 +29,16 @@ namespace MonitoringTools.UI
             CommandPalette.Attach(this);
             Loaded += (s, e) => Enter();
             KeyDown += (s, e) => { if (e.Key == Key.Escape) Close(); };
+        }
+
+        /// <summary>Never taller or wider than the screen: on a short screen the cards scroll and the footer stays in view,
+        /// and a narrow screen gets two columns.</summary>
+        private void FitToScreen()
+        {
+            var wa = Ui.WorkArea;
+            Width = Math.Min(1040, wa.Width);
+            MaxHeight = wa.Height;
+            Cards.Columns = Width < 880 ? 2 : 3;
         }
 
         private void Card(string title, string body, string icon, string button, Action act, bool primary = false, string tint = null)

@@ -101,6 +101,8 @@ namespace MonitoringTools.Core
             Add(@"^GitHub's limit for update checks is used up\. It tries again at ([\d:]+)\.$", "GitHub 檢查更新嘅次數用晒，$1 再試。");
             Add(@"^Updated from ([\d.]+) to ([\d.]+) in the background\.$", "已經喺背景由 $1 更新到 $2。");
             Add(@"^Updated to ([\d.]+) in the background\.$", "已經喺背景更新到 $1。");
+            Add(@"^Updated from ([\d.]+) to ([\d.]+)\.$", "已經由 $1 更新到 $2。");
+            Add(@"^Updated to ([\d.]+)\.$", "已經更新到 $1。");
             Add(@"^You have ([\d.]+)\. It installs by itself in the background\.$", "你而家用緊 $1。佢會自己喺背景安裝。");
         }
 

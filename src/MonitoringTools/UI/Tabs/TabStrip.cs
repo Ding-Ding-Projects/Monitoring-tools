@@ -201,6 +201,7 @@ namespace MonitoringTools.UI.Tabs
             S.TabGroupOf ??= new Dictionary<string, string>();
             var valid = new HashSet<string>(_pages.Select(p => p.Id));
             S.OpenTabs = S.OpenTabs.Where(valid.Contains).Distinct().ToList();
+            OpenUnseenPages();
             if (S.OpenTabs.Count == 0) S.OpenTabs.Add("overview");
             S.PinnedTabs = S.PinnedTabs.Where(S.OpenTabs.Contains).Distinct().ToList();
             S.TabGroups = S.TabGroups.Where(g => g != null && !string.IsNullOrEmpty(g.Id)).GroupBy(g => g.Id).Select(g => g.First()).ToList();
@@ -210,6 +211,30 @@ namespace MonitoringTools.UI.Tabs
             S.TabDock = Normalise(S.TabDock);
             if (!S.OpenTabs.Contains(S.ActiveTab)) S.ActiveTab = S.OpenTabs[0];
         }
+
+        /// <summary>
+        /// Every page starts open so nothing is hidden behind New tab. A page the strip has never offered opens once: on a
+        /// new install that is every page, after an update it is just the new ones, and a tab the person closed stays closed.
+        /// A strip still on the old single-tab default is laid out in page order.
+        /// </summary>
+        private void OpenUnseenPages()
+        {
+            S.KnownTabs ??= new List<string>();
+            if (TabDefaults.OpenUnseen(S.OpenTabs, S.KnownTabs, _pages.Select(p => p.Id).ToList())) Settings.Save();
+        }
+
+        /// <summary>Opens every page that is not open yet, in page order after the open ones.</summary>
+        public void OpenEveryPage()
+        {
+            var missing = _pages.Select(p => p.Id).Where(id => !S.OpenTabs.Contains(id)).ToList();
+            if (missing.Count == 0) { FocusTab(_active); return; }
+            S.OpenTabs.AddRange(missing);
+            Settings.Save();
+            Rebuild();
+            FocusTab(_active);
+        }
+
+        public bool AllPagesOpen => _pages.All(p => S.OpenTabs.Contains(p.Id));
 
         private bool IsPinned(string id) => S.PinnedTabs.Contains(id);
         private string GroupIdOf(string id) => S.TabGroupOf.TryGetValue(id, out var g) ? g : null;
@@ -532,6 +557,7 @@ namespace MonitoringTools.UI.Tabs
                 new ElementMenu.Item(T("New tab…"), Icons.Plus, "Ctrl+T", OpenCatalog),
                 new ElementMenu.Item(T("New group…"), Icons.Folder, null, () => NewGroupFlow(null)),
             };
+            if (!AllPagesOpen) items.Insert(1, new ElementMenu.Item(T("Open every page"), Icons.Lines, null, OpenEveryPage));
             items.AddRange(SharedItems());
             ElementMenu.Open(_w, _w.TabHost, _ => items, at);
         }

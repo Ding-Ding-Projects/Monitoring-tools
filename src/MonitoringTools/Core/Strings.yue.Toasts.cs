@@ -12,7 +12,11 @@ namespace MonitoringTools.Core
             void Add(string en, string yue) => t.TryAdd(en, yue);
 
             // ---- text toast, edited in place
-            Add("Copied text", "已複製嘅文字"); Add("edited", "已編輯"); Add("Copied", "已複製");
+            Add("Copied text", "已複製嘅文字"); Add("Cut text", "已剪下嘅文字"); Add("Cut", "已剪下");
+            Add("Cut: pasting moves these files.", "已剪下：貼上會搬走呢啲檔案。");
+            Add("Cut: it was taken out of where it came from.", "已剪下：原本嗰度已經拎走咗。");
+            Add("Copied: pasting makes copies and leaves the originals.", "已複製：貼上會整副本，原本嘅檔案留喺度。");
+            Add("Copied: the original is still where it was.", "已複製：原本嘅內容仲喺原位。"); Add("edited", "已編輯"); Add("Copied", "已複製");
             Add("Edit text", "編輯文字"); Add("Keep", "保留"); Add("Revert", "還原");
             Add("Copied text, editable", "已複製嘅文字，可以編輯");
             Add("Edit the copied text here. The clipboard follows your edits.", "喺度編輯已複製嘅文字，剪貼簿會跟住你嘅修改。");

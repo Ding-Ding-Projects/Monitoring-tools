@@ -383,7 +383,7 @@ namespace MonitoringTools.Core
             AddNew("Edit tab appearance…", "編輯分頁外觀…"); AddNew("Edit group appearance…", "編輯群組外觀…"); AddNew("Close tab", "關閉分頁");
             AddNew("Close other tabs", "關閉其他分頁"); AddNew("Expand group", "展開群組"); AddNew("Collapse group", "收合群組");
             AddNew("Rename group…", "重新命名群組…"); AddNew("Group colour…", "群組顏色…"); AddNew("Remove group (keeps its tabs)", "移除群組（保留分頁）");
-            AddNew("New tab…", "新分頁…"); AddNew("New group…", "新群組…"); AddNew("New tab", "新分頁");
+            AddNew("New tab…", "新分頁…"); AddNew("New group…", "新群組…"); AddNew("New tab", "新分頁"); AddNew("Open every page", "打開全部頁面");
             AddNew("More tabs", "更多分頁"); AddNew("Tab options", "分頁選項"); AddNew("More tabs, {0} hidden", "更多分頁，隱藏咗 {0} 個");
             AddNew("Open tabs", "已開分頁"); AddNew("(active)", "（目前）"); AddNew("All open tabs are visible; scroll the strip to move through them", "所有已開分頁都睇到，捲動分頁列就可以逐個睇");
             AddNew("Close (Esc)", "關閉 (Esc)"); AddNew("Close dialog", "關閉視窗"); AddNew("{0} tab", "{0} 個分頁");

@@ -42,8 +42,15 @@
                         </Grid.ColumnDefinitions>
                         <ContentControl x:Name="IconHost" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <TextBlock x:Name="TitleText" Grid.Column="1" Style="{StaticResource T.Title}" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="MetaText" Grid.Column="2" Style="{StaticResource T.Mono}" Foreground="{DynamicResource B.TextMute}"
-                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="10,0,8,0"/>
+                        <DockPanel Grid.Column="2" Margin="10,0,8,0" VerticalAlignment="Center" LastChildFill="True">
+                            <!-- Cut or Copied, when it can be told: files carry the mark, text goes by the shortcut held. -->
+                            <Border x:Name="GestureChip" DockPanel.Dock="Left" Visibility="Collapsed" CornerRadius="8" Padding="8,2,8,3"
+                                    Margin="0,0,8,0" VerticalAlignment="Center">
+                                <TextBlock x:Name="GestureText" FontSize="12" FontWeight="Medium" FontFamily="{StaticResource F.Body}"/>
+                            </Border>
+                            <TextBlock x:Name="MetaText" Style="{StaticResource T.Mono}" Foreground="{DynamicResource B.TextMute}"
+                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                        </DockPanel>
                         <StackPanel x:Name="Held" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Opacity="0">
                             <Path Data="M9 5v14M15 5v14" Stroke="{DynamicResource B.Mint}" StrokeThickness="2.5" Width="10" Height="10" Stretch="Uniform" Margin="0,0,5,0"/>
                             <TextBlock x:Name="HeldText" Text="held" FontSize="12" Foreground="{DynamicResource B.Mint}" FontFamily="{StaticResource F.Body}"/>

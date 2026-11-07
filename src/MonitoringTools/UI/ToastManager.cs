@@ -134,12 +134,13 @@ namespace MonitoringTools.UI
                     else if (item.Kind == ClipKind.Text)
                     {
                         editor = new TextToastEditor(w, item);
-                        w.SetHeader(Icons.Text, "Copied text", TextToastEditor.Counts(item.Text));
+                        w.SetHeader(Icons.Text, item.Gesture == global::MonitoringTools.Clip.Smart.CopyGesture.Cut ? "Cut text" : "Copied text", TextToastEditor.Counts(item.Text));
                         w.SetBody(editor.Build());
                     }
                     else { w.SetHeader(Icons.Text, "Text", Counts(item.Text)); w.SetBody(PlainText(item.Text)); }
                     break;
             }
+            w.SetGesture(item.Gesture, item.Kind == ClipKind.Files || item.Kind == ClipKind.Command);
             var offered = ActionProvider.For(item);
             if (editor != null) { editor.Decorate(offered); w.SetActions(offered); editor.ApplyIdleHeader(); }
             else w.SetActions(offered);

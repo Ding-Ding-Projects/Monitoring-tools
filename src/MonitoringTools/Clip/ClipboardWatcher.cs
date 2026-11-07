@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using MonitoringTools.Clip.Smart;
 using MonitoringTools.Core;
 
 namespace MonitoringTools.Clip
@@ -74,16 +75,44 @@ namespace MonitoringTools.Clip
         {
             if (msg == Native.WM_CLIPBOARDUPDATE)
             {
+                // The shortcut is read now, while it is still held; by the time the burst settles it may be released.
+                if (!_debounce.IsEnabled || _keys == CopyGesture.Unknown) _keys = KeysHeld();
                 _debounce.Stop();
                 _debounce.Start();
             }
             return IntPtr.Zero;
         }
 
+        private CopyGesture _keys;
+
+        private static bool Down(int vk) => (Native.GetAsyncKeyState(vk) & 0x8000) != 0;
+
+        /// <summary>Cut or copy, from the keys held right now (Ctrl+X, Shift+Delete, Ctrl+C, Ctrl+Insert).</summary>
+        private static CopyGesture KeysHeld()
+        {
+            try { return CopyOrigin.FromKeys(Down(0x11), Down(0x10), Down(0x12), Down(0x58), Down(0x43), Down(0x2D), Down(0x2E)); }
+            catch { return CopyGesture.Unknown; }
+        }
+
+        /// <summary>Explorer marks cut files with a Preferred DropEffect of move.</summary>
+        private static CopyGesture FileGesture(IDataObject data)
+        {
+            try
+            {
+                if (!data.GetDataPresent(CopyOrigin.DropEffectFormat)) return CopyGesture.Unknown;
+                if (data.GetData(CopyOrigin.DropEffectFormat) is MemoryStream ms) return CopyOrigin.FromDropEffect(CopyOrigin.ReadDropEffect(ms.ToArray()));
+            }
+            catch { }
+            return CopyGesture.Unknown;
+        }
+
         private void Read()
         {
+            var keys = _keys;
+            _keys = CopyGesture.Unknown;
             if (DateTime.UtcNow < _ignoreUntil) return;
             ClipItem item = null;
+            var fileGesture = CopyGesture.Unknown;
             try
             {
                 IDataObject data = null;
@@ -95,7 +124,7 @@ namespace MonitoringTools.Clip
                 if (data.GetDataPresent(DataFormats.FileDrop))
                 {
                     var files = data.GetData(DataFormats.FileDrop) as string[];
-                    if (files != null && files.Length > 0) item = ClipItem.FromFiles(files);
+                    if (files != null && files.Length > 0) { item = ClipItem.FromFiles(files); fileGesture = FileGesture(data); }
                 }
                 if (item == null && data.GetDataPresent(DataFormats.UnicodeText))
                 {
@@ -130,6 +159,7 @@ namespace MonitoringTools.Clip
             }
 
             if (item == null) return;
+            item.Gesture = CopyOrigin.Combine(fileGesture, keys);
             try { item.SourceApp = NativeInput.ClipboardApp(); } catch { }
             if (item.Signature == _lastSignature && (DateTime.UtcNow - _lastAt).TotalSeconds < 1.5) return;
             _lastSignature = item.Signature;

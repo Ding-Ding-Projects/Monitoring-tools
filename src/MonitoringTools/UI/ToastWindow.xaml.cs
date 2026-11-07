@@ -115,6 +115,22 @@ namespace MonitoringTools.UI
             Core.Language.Refresh(MetaText);
         }
 
+        /// <summary>Shows "Cut" or "Copied" beside the title, or nothing when it cannot be told.</summary>
+        public void SetGesture(global::MonitoringTools.Clip.Smart.CopyGesture gesture, bool files)
+        {
+            var label = global::MonitoringTools.Clip.Smart.CopyOrigin.Label(gesture);
+            if (label == null) { GestureChip.Visibility = Visibility.Collapsed; return; }
+            bool cut = gesture == global::MonitoringTools.Clip.Smart.CopyGesture.Cut;
+            GestureChip.SetResourceReference(Border.BackgroundProperty, cut ? "B.AmberWash" : "B.MintWash");
+            GestureText.SetResourceReference(TextBlock.ForegroundProperty, cut ? "B.Amber" : "B.Mint");
+            GestureText.Text = label;
+            var why = global::MonitoringTools.Clip.Smart.CopyOrigin.Explain(gesture, files);
+            GestureChip.ToolTip = why;
+            System.Windows.Automation.AutomationProperties.SetName(GestureChip, why);
+            GestureChip.Visibility = Visibility.Visible;
+            Core.Language.Refresh(GestureText);
+        }
+
         public void SetBody(UIElement body) => BodyHost.Content = body;
 
         public void SetHint(string hint)

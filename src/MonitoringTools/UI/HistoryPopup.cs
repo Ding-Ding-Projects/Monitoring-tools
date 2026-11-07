@@ -305,7 +305,7 @@ namespace MonitoringTools.UI
         {
             if (!(Selected is ClipItem it)) return;
             var sp = new StackPanel();
-            var meta = Ui.Mono(KindLabel(it) + " · copied " + When(it.At) + (it.SourceApp != null ? " · from " + it.SourceApp : ""), Ui.Res("B.TextSoft"), 12);
+            var meta = Ui.Mono(KindLabel(it) + (it.Gesture == global::MonitoringTools.Clip.Smart.CopyGesture.Cut ? " · cut " : " · copied ") + When(it.At) + (it.SourceApp != null ? " · from " + it.SourceApp : ""), Ui.Res("B.TextSoft"), 12);
             meta.Margin = new Thickness(0, 0, 0, 12); sp.Children.Add(meta);
             var f = it.BestFact;
             if (it.Kind == ClipKind.Image && it.Image != null) sp.Children.Add(new Border { CornerRadius = new CornerRadius(14), ClipToBounds = true, Child = new Image { Source = it.Image, MaxHeight = 300, Stretch = Stretch.Uniform } });

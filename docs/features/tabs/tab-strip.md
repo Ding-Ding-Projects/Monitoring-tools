@@ -1,6 +1,6 @@
 # Tab strip
 
-Each open tab is one page of the control centre (the sixteen page ids such as `overview`, `history`, `modes`). Only Overview is open on a fresh install, and it is pinned. Opening any other page, from the New tab catalog or from a link inside another page, opens its tab; selecting a page that already has a tab focuses that tab and never duplicates it.
+Each open tab is one page of the control centre (the nineteen page ids such as `overview`, `history`, `modes`). Every page is open on a fresh install, in page order, with Overview pinned, so nothing hides behind New tab. A page the strip has never offered before opens once: after an update that is only the new pages, and an existing strip keeps its own order and gains them at the end. A tab you close stays closed (the list of pages already offered is saved as `KnownTabs`). **Open every page** in the strip menu (right-click the strip or Tab options) brings back every closed page at once. Opening any page, from the New tab catalog or from a link inside another page, opens its tab; selecting a page that already has a tab focuses that tab and never duplicates it.
 
 ## Docking
 

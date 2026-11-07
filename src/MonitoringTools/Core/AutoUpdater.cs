@@ -266,17 +266,17 @@ namespace MonitoringTools.Core
 
         // ------------------------------------------------------------- the installing process
 
-        private static string FlagPath => Path.Combine(Settings.DataDir, "updated.flag");
+        private static string FlagPath => Path.Combine(Settings.DataDir, InstallNote.UpdatedFlag);
 
         /// <summary>Runs in the downloaded installer: replace the installed copy, then start the service again.
         /// The previous version keeps running from the same folder if the copy fails.</summary>
         public static int RunInstall()
         {
-            var from = ServiceHost.IsRunningInstalled ? "" : (OwnVersion(ServiceHost.InstalledExe)?.ToString(3) ?? "");
+            var from = ServiceHost.IsRunningInstalled ? null : OwnVersion(ServiceHost.InstalledExe);
             try
             {
                 ServiceHost.Install();
-                File.WriteAllText(FlagPath, $"{from}>{Current.ToString(3)}");
+                File.WriteAllText(FlagPath, InstallNote.UpdatedText(from, Current, manual: false));
             }
             catch (Exception ex) { Log.Error("Background update could not replace the installed copy; starting the previous version", ex); }
             try
@@ -294,11 +294,9 @@ namespace MonitoringTools.Core
             try
             {
                 if (!File.Exists(FlagPath)) return null;
-                var parts = File.ReadAllText(FlagPath).Split('>');
+                var text = File.ReadAllText(FlagPath);
                 File.Delete(FlagPath);
-                var to = parts.Length > 1 ? parts[1] : Current.ToString(3);
-                var from = parts[0];
-                return from.Length > 0 ? $"Updated from {from} to {to} in the background." : $"Updated to {to} in the background.";
+                return InstallNote.UpdatedSentence(text, Current);
             }
             catch { return null; }
         }

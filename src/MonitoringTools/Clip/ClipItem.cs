@@ -46,6 +46,8 @@ namespace MonitoringTools.Clip
         public bool Sensitive { get; set; }
         /// <summary>The app the copy came from (its process name, like "msedge"), when Windows says.</summary>
         public string SourceApp { get; set; }
+        /// <summary>Whether this was cut or copied, when it can be told (see CopyOrigin).</summary>
+        public global::MonitoringTools.Clip.Smart.CopyGesture Gesture { get; set; }
         public global::MonitoringTools.Clip.Smart.SmartFact BestFact => Smart.Count > 0 ? Smart[0] : null;
 
         public string FirstFile => Files.Length > 0 ? Files[0] : null;
