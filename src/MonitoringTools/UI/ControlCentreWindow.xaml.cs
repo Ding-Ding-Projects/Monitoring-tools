@@ -67,10 +67,20 @@ namespace MonitoringTools.UI
             _tabs = new Tabs.TabStrip(this, _sections.Select(x => new Tabs.PageEntry(x.Id, x.Label, x.Icon)).ToList());
             App.History.Updated += () => { if ((_current == "history" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
             Activity.Changed += () => { if ((_current == "activity" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
-            App.Net.Sampled += () => { if (_current == "overview" && IsActive && !SearchField.AnyActive) Navigate(_current, animate: false); };
+            App.Net.Sampled += () =>
+            {
+                if (_current != "overview" || !IsActive || SearchField.AnyActive) return;
+                // while someone reads the chart with the pointer or the arrow keys, only the chart takes the new probe, so the page does not jump under them
+                if (_liveChart != null && (_liveChart.IsKeyboardFocusWithin || _liveChart.IsMouseOver))
+                {
+                    lock (App.Net.Samples) _liveChart.Update(App.Net.Samples.Select(x => new LiveChart.Sample(x.At, x.Gateway, x.Dns, x.Online)).ToList());
+                    return;
+                }
+                Navigate(_current, animate: false);
+            };
             PreviewKeyDown += (s, e) =>
             {
-                if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && _pageSearch != null) { _pageSearch.Box.Focus(); _pageSearch.Box.SelectAll(); e.Handled = true; }
+                if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control && _pageSearch != null) { _unfoldSearch?.Invoke(); _pageSearch.Box.Focus(); _pageSearch.Box.SelectAll(); e.Handled = true; }
             };
             Loaded += (s, e) =>
             {
@@ -149,10 +159,10 @@ namespace MonitoringTools.UI
                 var label = _sections[idx].Label;
                 _pageSearch = new SearchField("page:" + id, "Search " + label.ToLowerInvariant()) { MinWidth = 360 };
                 _pageSearch.SearchEverywhere = st => CommandPalette.OpenWith(st, this);
-                sp.Children.Insert(1, _pageSearch);
+                sp.Children.Insert(1, FoldableSearch(id, _pageSearch));
                 SearchScope.Attach(sp, _pageSearch, id switch { "history" => "copies", "activity" => "entries", "shortcuts" => "shortcuts", _ => "settings and sections" });
             }
-            else _pageSearch = null;
+            else { _pageSearch = null; _unfoldSearch = null; }
             Page.Content = page;
             ApplyShellLook();
             ElementStyles.ApplyAll(page, id);
@@ -1157,6 +1167,9 @@ namespace MonitoringTools.UI
             return card;
         }
 
+        /// <summary>The live chart lives with the window and moves into each rebuilt overview, so its motion and scrub carry on.</summary>
+        private LiveChart _liveChart;
+
         private FrameworkElement LiveCard()
         {
             var net = App.Net;
@@ -1166,24 +1179,76 @@ namespace MonitoringTools.UI
             var gws = samples.Where(x => x.Gateway >= 0).Select(x => x.Gateway).ToList();
             var dnss = samples.Where(x => x.Dns >= 0).Select(x => x.Dns).ToList();
 
+            if (_liveChart == null) _liveChart = new LiveChart();
+            switch (_liveChart.Parent)
+            {
+                case System.Windows.Controls.Decorator d: d.Child = null; break;
+                case Panel p: p.Children.Remove(_liveChart); break;
+            }
+            _liveChart.Update(samples.Select(x => new LiveChart.Sample(x.At, x.Gateway, x.Dns, x.Online)));
+
             var sp = new StackPanel();
             var head = new Grid();
-            head.Children.Add(CardTitle("Live", "Every probe of the last few minutes. The gaps are where checks failed."));
-            var legend = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top };
-            legend.Children.Add(Dot(Ui.Res("B.Mint"))); legend.Children.Add(new TextBlock { Text = "Gateway", Style = Ui.Style("T.Body"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center });
-            legend.Children.Add(new Border { Width = 14 });
-            legend.Children.Add(Dot(Ui.Res("B.OnTertiaryContainer"))); legend.Children.Add(new TextBlock { Text = "DNS", Style = Ui.Style("T.Body"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center });
-            head.Children.Add(legend);
+            head.ColumnDefinitions.Add(new ColumnDefinition());
+            head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            head.Children.Add(CardTitle("Response times", "Every probe of the last few minutes. A gap or a shaded stretch is where a check failed."));
+            var side = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(12, 0, 0, 0) };
+            double stale = _liveChart.StaleSeconds;
+            var chip = new Border { CornerRadius = new CornerRadius(14), Padding = new Thickness(10, 4, 12, 5), Margin = new Thickness(0, 0, 8, 6), VerticalAlignment = VerticalAlignment.Center };
+            var chipRow = new StackPanel { Orientation = Orientation.Horizontal };
+            var chipDot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 0, 7, 0), VerticalAlignment = VerticalAlignment.Center };
+            var chipText = new TextBlock { FontSize = 12.5, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
+            chipRow.Children.Add(chipDot); chipRow.Children.Add(chipText);
+            chip.Child = chipRow;
+            AutomationProperties.SetLiveSetting(chipText, System.Windows.Automation.AutomationLiveSetting.Polite);
+            void Chip()
+            {
+                string bg, fg, text;
+                if (samples.Count < 2) { bg = "B.Raised"; fg = "B.TextSoft"; text = "Waiting"; }
+                else if (_liveChart.Paused) { bg = "B.Raised"; fg = "B.TextSoft"; text = "Paused"; }
+                else if (stale > 0) { bg = "B.AmberWash"; fg = "B.Amber"; text = $"No new probe for {stale:0} s"; }
+                else { bg = "B.SecondaryContainer"; fg = "B.OnSecondaryContainer"; text = "Live"; }
+                chip.SetResourceReference(Border.BackgroundProperty, bg);
+                chipText.SetResourceReference(TextBlock.ForegroundProperty, fg);
+                chipDot.SetResourceReference(Border.BackgroundProperty, fg);
+                chipText.Text = text;
+                Core.Language.Refresh(chipText);
+            }
+            Chip();
+            side.Children.Add(chip);
+            var pause = Ui.Button(_liveChart.Paused ? "Resume" : "Pause", null, "Btn.Ghost", _liveChart.Paused ? Icons.Play : Icons.Pause);
+            pause.Click += (s, e) =>
+            {
+                _liveChart.SetPaused(!_liveChart.Paused);
+                if (!_liveChart.Paused) { lock (net.Samples) _liveChart.Update(net.Samples.Select(x => new LiveChart.Sample(x.At, x.Gateway, x.Dns, x.Online)).ToList()); }
+                Navigate(_current, animate: false);
+            };
+            pause.Margin = new Thickness(0, 0, 0, 6);
+            side.Children.Add(pause);
+            Grid.SetColumn(side, 1);
+            head.Children.Add(side);
             sp.Children.Add(head);
 
-            var stats = new CardGrid { Columns = 5, MinColumnWidth = 110, Margin = new Thickness(0, 0, 0, 14) };
-            stats.Children.Add(Stat("Uptime", up.TotalHours >= 1 ? $"{(int)up.TotalHours} h {up.Minutes} m" : $"{up.Minutes} m {up.Seconds:00} s"));
-            stats.Children.Add(Stat("Probes", net.ProbeCount > 0 ? net.ProbeCount.ToString("N0") : samples.Count.ToString("N0")));
+            var legend = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
+            legend.Children.Add(Dot(Ui.Res("B.Mint"))); legend.Children.Add(new TextBlock { Text = "DNS", Style = Ui.Style("T.Body"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0) });
+            legend.Children.Add(Dot(Ui.Res("B.OnTertiaryContainer"))); legend.Children.Add(new TextBlock { Text = "Gateway", Style = Ui.Style("T.Body"), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center });
+            sp.Children.Add(legend);
+            sp.Children.Add(_liveChart);
+            var words = new TextBlock { Text = _liveChart.Summary, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 4) };
+            sp.Children.Add(words);
+
+            // statistics describe what the chart shows, so they start folded, with their figures in the header
+            var stats = new CardGrid { Columns = 5, MinColumnWidth = 110, Margin = new Thickness(0, 4, 0, 4) };
+            string upText = up.TotalHours >= 1 ? $"{(int)up.TotalHours} h {up.Minutes} m" : $"{up.Minutes} m {up.Seconds:00} s";
+            string probes = net.ProbeCount > 0 ? net.ProbeCount.ToString("N0") : samples.Count.ToString("N0");
+            stats.Children.Add(Stat("Uptime", upText));
+            stats.Children.Add(Stat("Probes", probes));
             stats.Children.Add(Stat("Copies today", App.History.Today.ToString("N0")));
             stats.Children.Add(Stat("Gateway average", gws.Count > 0 ? $"{gws.Average():0} ms" : "–"));
             stats.Children.Add(Stat("DNS average", dnss.Count > 0 ? $"{dnss.Average():0} ms" : "–"));
-            sp.Children.Add(stats);
-            sp.Children.Add(Chart(samples));
+            var fold = new Collapsible("overview.stats", "Statistics", stats, startOpen: false);
+            fold.SetSummary($"Up {upText}, {probes} probes" + (dnss.Count > 0 ? $", DNS average {dnss.Average():0} ms" : ""));
+            sp.Children.Add(fold);
             return Card(sp);
         }
 
@@ -1195,60 +1260,6 @@ namespace MonitoringTools.UI
             sp.Children.Add(new TextBlock { Text = label, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
             sp.Children.Add(LookParts.Readout(new TextBlock { Text = value, Style = Ui.Style("T.Title"), FontSize = 18, Margin = new Thickness(0, 4, 8, 0) }));
             return sp;
-        }
-
-        /// <summary>Latency sparkline: drawn on a fixed 600×96 canvas and stretched to the card's width.</summary>
-        private static FrameworkElement Chart(List<(DateTime At, long Gateway, long Dns, bool Online)> samples)
-        {
-            const double W = 600, H = 96;
-            var canvas = new Canvas { Width = W, Height = H };
-            for (int i = 1; i <= 3; i++)
-                canvas.Children.Add(new Line { X1 = 0, X2 = W, Y1 = H * i / 4, Y2 = H * i / 4, Stroke = Ui.Res("B.Line"), StrokeThickness = 1, StrokeDashArray = new DoubleCollection { 2, 4 } });
-
-            if (samples.Count < 2)
-            {
-                var wait = Ui.Mono("collecting the first probes…", Ui.Res("B.TextMute"), 11);
-                Canvas.SetLeft(wait, 8); Canvas.SetTop(wait, H / 2 - 8);
-                canvas.Children.Add(wait);
-            }
-            else
-            {
-                long max = Math.Max(10, samples.Select(x => Math.Max(x.Gateway, x.Dns)).Max());
-                double step = W / Math.Max(1, samples.Count - 1);
-                for (int i = 0; i < samples.Count; i++)
-                    if (!samples[i].Online)
-                    {
-                        var r = new Rectangle { Width = Math.Max(step, 3), Height = H, Fill = new SolidColorBrush(Color.FromArgb(0x30, ((SolidColorBrush)Ui.Res("B.Amber")).Color.R, ((SolidColorBrush)Ui.Res("B.Amber")).Color.G, ((SolidColorBrush)Ui.Res("B.Amber")).Color.B)) };
-                        Canvas.SetLeft(r, i * step - step / 2);
-                        canvas.Children.Add(r);
-                    }
-                void Series(Func<(DateTime At, long Gateway, long Dns, bool Online), long> pick, Brush stroke, double thick)
-                {
-                    PointCollection pts = null;
-                    for (int i = 0; i < samples.Count; i++)
-                    {
-                        var v = pick(samples[i]);
-                        if (v < 0)
-                        {
-                            if (pts != null && pts.Count > 1) canvas.Children.Add(new Polyline { Points = pts, Stroke = stroke, StrokeThickness = thick, StrokeLineJoin = PenLineJoin.Round });
-                            pts = null; continue;
-                        }
-                        pts ??= new PointCollection();
-                        pts.Add(new Point(i * step, H - 6 - (H - 12) * Math.Min(1, v / (double)max)));
-                    }
-                    if (pts != null && pts.Count > 1) canvas.Children.Add(new Polyline { Points = pts, Stroke = stroke, StrokeThickness = thick, StrokeLineJoin = PenLineJoin.Round });
-                }
-                Series(x => x.Dns, Ui.Res("B.OnTertiaryContainer"), 1.6);
-                Series(x => x.Gateway, Ui.Res("B.Mint"), 2.2);
-                var top = Ui.Mono($"{max} ms", Ui.Res("B.TextMute"), 11);
-                Canvas.SetLeft(top, W - 44); Canvas.SetTop(top, 2);
-                canvas.Children.Add(top);
-            }
-            return new Border
-            {
-                Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(10), BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1),
-                Child = new Viewbox { Stretch = Stretch.Fill, Height = 110, Child = canvas }
-            };
         }
 
         private static FrameworkElement OutagesCard(int n)
@@ -1333,10 +1344,65 @@ namespace MonitoringTools.UI
 
         private ActivityKind? _activityFilter;
 
+        /// <summary>Opens a folded page search, for Ctrl+F; null when the page has none.</summary>
+        private Action _unfoldSearch;
+
+        /// <summary>
+        /// The page's search bar with a button that folds it away into a small Search pill, kept folded or open per page.
+        /// A folded search with an active query says what it is filtering by, so nothing is hidden silently.
+        /// </summary>
+        private FrameworkElement FoldableSearch(string id, SearchField search)
+        {
+            var key = "search:" + id;
+            var host = new ContentControl { Focusable = false, IsTabStop = false };
+            var row = new Grid();
+            row.ColumnDefinitions.Add(new ColumnDefinition());
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            row.Children.Add(search);
+            var fold = new Button { Style = Ui.Style("Btn.Ghost"), Content = Ui.Icon("M6 15l6-6 6 6", Ui.Res("B.TextSoft"), 16), Width = 40, Height = 40, Padding = new Thickness(0), Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Top };
+            fold.ToolTip = "Fold the search bar";
+            AutomationProperties.SetName(fold, "Fold the search bar");
+            AutomationProperties.SetItemStatus(fold, "expanded");
+            Grid.SetColumn(fold, 1);
+            row.Children.Add(fold);
+            var pillText = new TextBlock { Text = "Search", VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
+            var pillRow = new StackPanel { Orientation = Orientation.Horizontal };
+            pillRow.Children.Add(new ContentControl { Content = Ui.Icon(Icons.Search, Ui.Res("B.TextSoft"), 14), Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center, Focusable = false });
+            pillRow.Children.Add(pillText);
+            var pill = new Button { Style = Ui.Style("Btn.Chip"), Content = pillRow, HorizontalAlignment = HorizontalAlignment.Left };
+            pill.Margin = new Thickness(0, 0, 0, Appearance.Gap(10));
+            AutomationProperties.SetItemStatus(pill, "collapsed");
+            void Label()
+            {
+                var q = search.State.IsActive ? search.State.Query : null;
+                pillText.Text = q == null ? "Search" : $"Search, filter on: “{q}”";
+                AutomationProperties.SetName(pill, q == null ? "Open the search bar" : $"Open the search bar. A filter is on: {q}");
+                Core.Language.Refresh(pill);
+            }
+            void Show(bool open, bool save)
+            {
+                host.Content = open ? row : pill;
+                if (!open) Label();
+                if (save)
+                {
+                    Settings.Current.Folds ??= new Dictionary<string, bool>();
+                    Settings.Current.Folds[key] = open;
+                    Settings.Save();
+                }
+            }
+            fold.Click += (s, e) => { Show(false, true); pill.Focus(); };
+            pill.Click += (s, e) => { Show(true, true); search.Box.Focus(); };
+            search.Filter += () => { if (host.Content == pill) Label(); };
+            _unfoldSearch = () => { if (host.Content != row) Show(true, true); };
+            bool start = !(Settings.Current.Folds != null && Settings.Current.Folds.TryGetValue(key, out var o) && !o);
+            Show(start, false);
+            return host;
+        }
+
         private FrameworkElement ActivityPage()
         {
             var root = PageRoot("Activity", "What it has been doing", "Kept in memory while the service runs. The log folder keeps the full record.");
-            var chips = new WrapPanel { Margin = new Thickness(0, 0, 0, 14) };
+            var chips = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
             void Chip(string label, ActivityKind? k)
             {
                 var b = Ui.Button(label, () => { _activityFilter = k; Navigate("activity", animate: false); }, "Btn.Chip");
@@ -1353,7 +1419,9 @@ namespace MonitoringTools.UI
             Chip("Files", ActivityKind.Files);
             Chip("Network", ActivityKind.Network);
             Chip("Docker", ActivityKind.Docker);
-            root.Children.Add(chips);
+            var filters = new Collapsible("activity.filters", "Filters", chips, startOpen: true);
+            if (_activityFilter != null) filters.SetBadge("1 filter on: " + _activityFilter switch { ActivityKind.Convert => "Conversions", ActivityKind.Push => "Pushes", ActivityKind.Shortcut => "Shortcuts", ActivityKind.Files => "Files", ActivityKind.Network => "Network", ActivityKind.Docker => "Docker", _ => _activityFilter.ToString() });
+            root.Children.Add(filters);
             root.Children.Add(ActivityCard(100, _activityFilter, _activityFilter == null ? "Everything" : _activityFilter.ToString(), _activityBulk));
             root.Children.Add(OutagesBulkCard());
             root.Children.Add(Ui.Button("Open log folder", () => ActionProvider.Shell(Log.Folder), "Btn.Ghost", Icons.Lines));

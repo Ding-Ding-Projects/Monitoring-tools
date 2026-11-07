@@ -71,6 +71,23 @@ namespace MonitoringTools.Core
             // live controls in menus and the dropdown filter
             Add("Filter choices", "篩選選項");
             Add("On", "開");
+
+            // the live chart, folding panels and the folding search
+            Add("Response times", "回應時間");
+            Add("Every probe of the last few minutes. A gap or a shaded stretch is where a check failed.", "最近幾分鐘每一次探測。有缺口或者有陰影嘅一段，就係探測失敗嘅地方。");
+            Add("Waiting", "等緊"); Add("Paused", "已暫停"); Add("Resume", "繼續"); Add("Statistics", "統計");
+            Add("Waiting for the first probes", "等緊第一批探測"); Add("Waiting for the first probes.", "等緊第一批探測。");
+            Add("paused", "已暫停"); Add("Offline, no answer", "離線，冇回應");
+            Add("No DNS answers in this window.", "呢段時間 DNS 冇回應。");
+            Add("The gateway did not answer.", "閘道冇回應。");
+            Add("1 probe found the connection down.", "有 1 次探測發現連線斷咗。");
+            Add("Paused.", "已暫停。");
+            Add("Response times chart", "回應時間圖表");
+            Add("Use the left and right arrow keys to read each probe, Home and End to jump, and Escape to stop.", "用左右方向鍵逐次讀探測結果，Home 同 End 跳去頭尾，Escape 停止。");
+            Add("Format filters", "格式篩選");
+            Add("expanded", "已展開"); Add("collapsed", "已收埋");
+            Add("Fold the search bar", "收埋搜尋列");
+            Add("Open the search bar", "打開搜尋列");
         }
 
         private static void AddFeaturesPatterns(List<(Regex, Func<Match, string>)> p)
@@ -97,6 +114,20 @@ namespace MonitoringTools.Core
             Add(@"^Release notes for (.+)$", "$1 嘅發佈說明");
             Add(@"^Preview of (.+)$", "$1 嘅預覽");
             Add(@"^(.+), chosen$", "$1，已選");
+            Add(@"^No new probe for (\d+) s$", "已經 $1 秒冇新探測");
+            Add(@"^Up (.+), ([\d,]+) probes, DNS average (\d+) ms$", "已運行 $1，探測 $2 次，DNS 平均 $3 毫秒");
+            Add(@"^Up (.+), ([\d,]+) probes$", "已運行 $1，探測 $2 次");
+            Add(@"^DNS answers in (\d+) ms now, (\d+) ms on average over the last (\d+) minutes, (\d+) ms at most\.$", "DNS 而家 $1 毫秒回應，最近 $3 分鐘平均 $2 毫秒，最慢 $4 毫秒。");
+            Add(@"^The gateway answers in (\d+) ms\.$", "閘道 $1 毫秒回應。");
+            Add(@"^(\d+) probes found the connection down\.$", "有 $1 次探測發現連線斷咗。");
+            Add(@"^([\d.]+) min ago$", "$1 分鐘前");
+            Add(@"^DNS (\d+) ms, gateway (\d+) ms$", "DNS $1 毫秒，閘道 $2 毫秒");
+            Add(@"^DNS (\d+) ms, gateway did not answer$", "DNS $1 毫秒，閘道冇回應");
+            Add(@"^DNS did not answer, gateway (\d+) ms$", "DNS 冇回應，閘道 $1 毫秒");
+            Add(@"^DNS did not answer, gateway did not answer$", "DNS 同閘道都冇回應");
+            Add(@"^1 filter on: (.+)$", "篩選中：$1");
+            Add(@"^Search, filter on: “(.+)”$", "搜尋，篩選中：「$1」");
+            Add(@"^Open the search bar\. A filter is on: (.+)$", "打開搜尋列。篩選中：$1");
         }
     }
 }

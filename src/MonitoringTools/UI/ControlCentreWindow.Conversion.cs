@@ -41,7 +41,8 @@ namespace MonitoringTools.UI
             sp.Children.Add(search);
 
             var chips = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
-            sp.Children.Add(chips);
+            var chipFold = new Collapsible("conversion.kinds", "Format filters", chips, startOpen: true);
+            sp.Children.Add(chipFold);
             var rows = new StackPanel();
             sp.Children.Add(rows);
             sp.Children.Add(Ui.Text("An existing file is never overwritten: the new one gets a (1), (2) suffix.", "T.Body"));
@@ -50,6 +51,7 @@ namespace MonitoringTools.UI
 
             void PaintChips()
             {
+                chipFold.SetBadge(_formatKind == "All" ? null : "1 filter on: " + _formatKind);
                 chips.Children.Clear();
                 foreach (var (label, kind) in kinds)
                 {
