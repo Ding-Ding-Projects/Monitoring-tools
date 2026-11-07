@@ -125,15 +125,17 @@ namespace MonitoringTools.UI
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var fg = danger ? Ui.Res("B.Danger") : Ui.Res("B.TextSoft");
             g.Children.Add(new ContentControl { Content = Ui.Icon(icon, fg, 16), Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center });
-            var t = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center, Foreground = danger ? Ui.Res("B.Danger") : Ui.Res("B.Text"), FontWeight = danger ? FontWeights.SemiBold : FontWeights.Normal };
+            // a long label (bilingual, large text) wraps and the row grows, instead of running under its note
+            var t = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center, Foreground = danger ? Ui.Res("B.Danger") : Ui.Res("B.Text"), FontWeight = danger ? FontWeights.SemiBold : FontWeights.Normal, TextWrapping = TextWrapping.Wrap };
             Grid.SetColumn(t, 1); g.Children.Add(t);
             if (note != null)
             {
                 var n = Ui.Mono(note, Ui.Res("B.TextMute"), 11);
                 n.VerticalAlignment = VerticalAlignment.Center;
+                n.Margin = new Thickness(8, 0, 0, 0);
                 Grid.SetColumn(n, 2); g.Children.Add(n);
             }
-            var b = new Button { Style = Ui.Style("Btn.Row"), Content = g };
+            var b = new Button { Style = Ui.Style("Btn.Row"), Content = g, Height = double.NaN, MinHeight = 40, Padding = new Thickness(16, 6, 16, 6) };
             if (danger) b.Background = Ui.Res("B.DangerWash");
             b.Click += (s, e) => { CloseAnimated(); act(); };
             return b;

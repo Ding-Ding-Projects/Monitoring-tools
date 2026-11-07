@@ -143,6 +143,7 @@ namespace MonitoringTools.UI
             g.Children.Add(main);
             root.Child = g;
             System.Windows.Automation.AutomationProperties.SetName(root, l.Name + " preview");
+            Core.Language.SetLiteral(root, true);   // a drawing of the look, not text to translate
             return root;
         }
 

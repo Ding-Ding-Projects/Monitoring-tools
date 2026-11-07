@@ -305,12 +305,14 @@ namespace MonitoringTools.UI
                     tb.FontSize, Brushes.Black, null, TextOptions.GetTextFormattingMode(tb), VisualTreeHelper.GetDpi(tb).PixelsPerDip);
             }
             catch { return; }
+            // Text that does not fit its slot is drawn cut by WPF's layout clip, which the walk reports from the layout itself.
+            // Measuring again here only tells what an ellipsis hides, and catches wrapped text held to a set height.
             if (tb.TextWrapping == TextWrapping.NoWrap)
             {
-                if (ft.WidthIncludingTrailingWhitespace > avail + 2 && ft.Width > avail + 2)
-                    Add(tb.TextTrimming == TextTrimming.None ? "clipped" : "trimmed", surface, Describe(tb), $"needs {ft.Width:0} px, has {avail:0} px" + Where(tb));
+                if (tb.TextTrimming != TextTrimming.None && ft.WidthIncludingTrailingWhitespace > avail + 2 && ft.Width > avail + 2)
+                    Add("trimmed", surface, Describe(tb), $"needs {ft.Width:0} px, has {avail:0} px" + Where(tb));
             }
-            else
+            else if (!double.IsNaN(tb.Height) || !double.IsPositiveInfinity(tb.MaxHeight))
             {
                 ft.MaxTextWidth = avail + 0.5;
                 if (!double.IsNaN(tb.LineHeight) && tb.LineHeight > 0) ft.LineHeight = tb.LineHeight;

@@ -38,14 +38,10 @@ namespace MonitoringTools.UI
             Appearance.Apply();
         }
 
-        /// <summary>
-        /// The four looks side by side when there is room for them, otherwise two by two, so a row never ends with one
-        /// look on its own.
-        /// </summary>
-        internal static UniformGrid LookGrid()
+        /// <summary>The four looks two by two, so a row never ends with one look on its own.</summary>
+        internal static CardGrid LookGrid()
         {
-            var grid = new UniformGrid { Columns = 2, Margin = new Thickness(0, 4, -12, 0) };
-            grid.SizeChanged += (s, e) => { int n = e.NewSize.Width >= 4 * 196 ? 4 : 2; if (grid.Columns != n) grid.Columns = n; };
+            var grid = new CardGrid { Columns = 2, Margin = new Thickness(0, 4, -12, 0) };
             AutomationProperties.SetName(grid, "Look");
             return grid;
         }

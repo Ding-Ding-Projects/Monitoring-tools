@@ -182,6 +182,20 @@ namespace MonitoringTools.UI
             return root;
         }
 
+        /// <summary>A card's title with its action beside it: the title wraps in the room left, the action never sits on it.</summary>
+        private static Grid TitleWithAction(FrameworkElement title, FrameworkElement action)
+        {
+            var g = new Grid();
+            g.ColumnDefinitions.Add(new ColumnDefinition());
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            g.Children.Add(title);
+            action.HorizontalAlignment = HorizontalAlignment.Right; action.VerticalAlignment = VerticalAlignment.Top;
+            action.Margin = new Thickness(12, 0, 0, 0);
+            Grid.SetColumn(action, 1);
+            g.Children.Add(action);
+            return g;
+        }
+
         private static Border Card(UIElement child, string edge = null, double pad = 18)
         {
             var b = new Border
@@ -223,7 +237,7 @@ namespace MonitoringTools.UI
         private static StackPanel CardTitle(string title, string sub = null)
         {
             var sp = new StackPanel { Margin = new Thickness(0, 0, 0, Appearance.Gap(12)) };
-            sp.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 16 });
+            sp.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 16, TextWrapping = TextWrapping.Wrap });
             if (sub != null) sp.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 3, 0, 0) });
             return sp;
         }
@@ -232,7 +246,7 @@ namespace MonitoringTools.UI
         {
             var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = value, Tag = Ui.Res(accent), Margin = new Thickness(0, Appearance.Gap(4), 0, Appearance.Gap(10)) };
             var text = new StackPanel();
-            text.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
+            text.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
             if (sub != null) text.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
             // The label, an info button explaining the setting and its default, then the text; the button sits inside the switch's content so the row stays one search item.
             // A grid, so the description wraps inside the space left of the switch instead of running under it (Cantonese and bilingual text is longer).
@@ -383,7 +397,7 @@ namespace MonitoringTools.UI
             }
             else
             {
-                var tiles = new UniformGrid { Columns = 3, Margin = new Thickness(0, 0, -14, 0) };
+                var tiles = new CardGrid { Columns = 3, MinColumnWidth = 190, Margin = new Thickness(0, 0, -14, 0) };
                 for (int i = 0; i < status.Length; i++) tiles.Children.Add(Tile(status[i].Label, status[i].Value, status[i].Sub, status[i].Accent, status[i].Edge, i));
                 root.Children.Add(tiles);
             }
@@ -391,7 +405,7 @@ namespace MonitoringTools.UI
             // quick command cheat sheet
             root.Children.Add(LiveCard());
 
-            var lists = new UniformGrid { Columns = 2, Margin = new Thickness(0, 0, -14, 0) };
+            var lists = new CardGrid { Columns = 2, MinColumnWidth = 300, Margin = new Thickness(0, 0, -14, 0) };
             lists.Children.Add(Wrap(OutagesCard(4)));
             lists.Children.Add(Wrap(ActivityCard(5, null, "Latest activity")));
             root.Children.Add(lists);
@@ -631,11 +645,8 @@ namespace MonitoringTools.UI
 
             // list
             var list = new StackPanel();
-            var head = new Grid();
-            head.Children.Add(CardTitle("Your shortcuts", s.Shortcuts.Count == 0 ? "None yet." : null));
             var add = Ui.Button("New shortcut", NewShortcut, "Btn.Accent", Icons.Plus);
-            add.HorizontalAlignment = HorizontalAlignment.Right; add.VerticalAlignment = VerticalAlignment.Top;
-            head.Children.Add(add);
+            var head = TitleWithAction(CardTitle("Your shortcuts", s.Shortcuts.Count == 0 ? "None yet." : null), add);
             list.Children.Add(head);
             _shortcutBulk.Begin();
             _shortcutBulk.Prune(s.Shortcuts);
@@ -875,15 +886,17 @@ namespace MonitoringTools.UI
             foreach (var p in s.DnsProfiles.ToList())
             {
                 var prof = p;
+                // the name over its servers, the buttons beside them: nothing is squeezed on a narrow page
                 var g = new Grid { Margin = new Thickness(0, 0, 0, 8) };
-                g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
                 g.ColumnDefinitions.Add(new ColumnDefinition());
                 g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                var nm = new TextBlock { Text = p.Name, Foreground = p.Name == active ? Ui.Res("B.Mint") : Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, FontWeight = p.Name == active ? FontWeights.SemiBold : FontWeights.Normal };
-                g.Children.Add(nm);
+                var who = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 0) };
+                var nm = new TextBlock { Text = p.Name, Foreground = p.Name == active ? Ui.Res("B.Mint") : Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), FontWeight = p.Name == active ? FontWeights.SemiBold : FontWeights.Normal, TextWrapping = TextWrapping.Wrap };
+                who.Children.Add(nm);
                 var addr = Ui.Mono(p.ToString(), Ui.Res("B.TextSoft"));
-                addr.VerticalAlignment = VerticalAlignment.Center;
-                Grid.SetColumn(addr, 1); g.Children.Add(addr);
+                addr.TextWrapping = TextWrapping.Wrap; addr.Margin = new Thickness(0, 2, 0, 0);
+                who.Children.Add(addr);
+                g.Children.Add(who);
                 var btns = new StackPanel { Orientation = Orientation.Horizontal };
                 var use = Ui.Button(p.Name == active ? "In use" : "Use", () => UseDnsProfile(prof), p.Name == active ? "Btn.Ghost" : "Btn.Accent");
                 use.Margin = new Thickness(0, 0, 8, 0);
@@ -894,7 +907,8 @@ namespace MonitoringTools.UI
                     del.Margin = new Thickness(0);
                     btns.Children.Add(del);
                 }
-                Grid.SetColumn(btns, 2); g.Children.Add(btns);
+                btns.VerticalAlignment = VerticalAlignment.Center;
+                Grid.SetColumn(btns, 1); g.Children.Add(btns);
                 d.Children.Add(g);
             }
             if (_dnsOffer != null) d.Children.Add(DnsSavedOffer());
@@ -1162,7 +1176,7 @@ namespace MonitoringTools.UI
             head.Children.Add(legend);
             sp.Children.Add(head);
 
-            var stats = new UniformGrid { Columns = 5, Margin = new Thickness(0, 0, 0, 14) };
+            var stats = new CardGrid { Columns = 5, MinColumnWidth = 110, Margin = new Thickness(0, 0, 0, 14) };
             stats.Children.Add(Stat("Uptime", up.TotalHours >= 1 ? $"{(int)up.TotalHours} h {up.Minutes} m" : $"{up.Minutes} m {up.Seconds:00} s"));
             stats.Children.Add(Stat("Probes", net.ProbeCount > 0 ? net.ProbeCount.ToString("N0") : samples.Count.ToString("N0")));
             stats.Children.Add(Stat("Copies today", App.History.Today.ToString("N0")));
@@ -1353,13 +1367,10 @@ namespace MonitoringTools.UI
             var s = Settings.Current;
             var h = App.PublicIp.History;
             var sp = new StackPanel();
-            var head = new Grid();
-            head.Children.Add(CardTitle("Public IP", h.Current == null
-                ? (App.PublicIp.LastError != null ? "Not checked yet: " + App.PublicIp.LastError : "Checking shortly…")
-                : $"Last checked {h.LastChecked:HH:mm}. Every change pops a dialog and is committed to the history repository."));
             var check = Ui.Button("Check now", async () => { await App.PublicIp.CheckAsync(); Navigate("network", animate: false); }, "Btn.Ghost", Icons.Restart);
-            check.HorizontalAlignment = HorizontalAlignment.Right; check.VerticalAlignment = VerticalAlignment.Top;
-            head.Children.Add(check);
+            var head = TitleWithAction(CardTitle("Public IP", h.Current == null
+                ? (App.PublicIp.LastError != null ? "Not checked yet: " + App.PublicIp.LastError : "Checking shortly…")
+                : $"Last checked {h.LastChecked:HH:mm}. Every change pops a dialog and is committed to the history repository."), check);
             sp.Children.Add(head);
 
             if (h.Current != null)

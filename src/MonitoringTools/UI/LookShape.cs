@@ -35,6 +35,20 @@ namespace MonitoringTools.UI
             EventManager.RegisterClassHandler(typeof(Border), FrameworkElement.SizeChangedEvent, new SizeChangedEventHandler((o, e) => Shape((Border)o)), true);
         }
 
+        /// <summary>
+        /// Sets a corner written for Graphite on a border that is already on screen, shaped for the look in use. Code that
+        /// changes a corner after the box first appeared (a search bar opening its builder) uses this, because the box's
+        /// size, and so the layout hook, may not change with it.
+        /// </summary>
+        public static void Set(Border b, CornerRadius design)
+        {
+            if ((bool)b.GetValue(KeepProperty) || ElementStyles.HasCustomRadius(b)) { b.CornerRadius = design; return; }
+            b.SetValue(OriginalProperty, design);
+            var shaped = Looks.Corner(design, b.ActualWidth, b.ActualHeight);
+            b.SetValue(ShapedProperty, shaped);
+            b.CornerRadius = shaped;
+        }
+
         /// <summary>The corner a border was drawn with before any look reshaped it.</summary>
         public static CornerRadius OriginalOf(Border b) => b.GetValue(OriginalProperty) is CornerRadius c ? c : b.CornerRadius;
 

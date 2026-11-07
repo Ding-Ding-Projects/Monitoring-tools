@@ -41,6 +41,7 @@ namespace MonitoringTools.Core
             Add("Preview: what gets typed", "預覽：會打出嚟嘅字");
             t["First :push"] = "第一次 :push";
             Add("Look (optional)", "風格（可選）"); Add("DNS (optional)", "DNS（可選）"); Add("Commands (optional)", "指令（可選）");
+            Add("Audio", "音訊");
         }
 
         private static void AddLooksPatterns(List<(Regex, Func<Match, string>)> p)

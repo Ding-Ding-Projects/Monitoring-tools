@@ -43,7 +43,7 @@
                         <ContentControl x:Name="IconHost" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <!-- the title, then the mark and the details on the same line while they fit, under the title when they do not -->
                         <WrapPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock x:Name="TitleText" Style="{StaticResource T.Title}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock x:Name="TitleText" Style="{StaticResource T.Title}" VerticalAlignment="Center" Margin="0,0,10,0" TextWrapping="Wrap"/>
                             <DockPanel Margin="0,0,8,0" VerticalAlignment="Center" LastChildFill="True">
                                 <!-- Cut or Copied, when it can be told: files carry the mark, text goes by the shortcut held. -->
                                 <Border x:Name="GestureChip" DockPanel.Dock="Left" Visibility="Collapsed" CornerRadius="8" Padding="8,2,8,3"

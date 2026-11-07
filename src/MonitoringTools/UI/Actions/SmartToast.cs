@@ -76,6 +76,7 @@ namespace MonitoringTools.UI
             var tile = new Button
             {
                 Content = stack, Style = Ui.Style("Btn.Ghost"), Margin = new Thickness(0, 0, 6, 6), Padding = new Thickness(10, 6, 10, 6),
+                Height = double.NaN, MinHeight = 40,   // two lines, the value and its label: the button grows to hold both
                 HorizontalContentAlignment = HorizontalAlignment.Left, BorderBrush = Ui.Res("B.Line"), BorderThickness = new Thickness(1),
                 ToolTip = "Copy " + (v.Text.Length > 200 ? v.Text.Substring(0, 200) + "…" : v.Text),
             };

@@ -67,7 +67,8 @@ namespace MonitoringTools.UI.Search
             };
             AutomationProperties.SetName(Box, label);
             AutomationProperties.SetHelpText(Box, "Plain text by default. Alt+R switches to regular expressions, Alt+C matches case, Alt+B opens the regex builder.");
-            _hint = new TextBlock { Text = label, Foreground = Ui.Res("B.TextMute"), FontSize = Box.FontSize, VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false, FontFamily = Ui.Font("F.Body") };
+            // a placeholder longer than the field ends in an ellipsis rather than running under the field's buttons
+            _hint = new TextBlock { Text = label, Foreground = Ui.Res("B.TextMute"), FontSize = Box.FontSize, VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false, FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis };
             var boxHost = new Grid { VerticalAlignment = VerticalAlignment.Center };
             boxHost.Children.Add(_hint); boxHost.Children.Add(Box);
 
@@ -184,7 +185,7 @@ namespace MonitoringTools.UI.Search
             _regex.IsChecked = State.IsRegex;
             _build.IsChecked = BuilderOpen;
             Bar.BorderBrush = State.Error != null ? Ui.Res("B.Danger") : Box.IsKeyboardFocusWithin || BuilderOpen ? Ui.Res("B.Mint") : Brushes.Transparent;
-            Bar.CornerRadius = BuilderOpen ? new CornerRadius(Bar.Height / 2, Bar.Height / 2, 16, 16) : new CornerRadius(Bar.Height / 2);
+            LookShape.Set(Bar, BuilderOpen ? new CornerRadius(Bar.Height / 2, Bar.Height / 2, 16, 16) : new CornerRadius(Bar.Height / 2));
         }
 
         private static ToggleButton Toggle(string text, string name, bool compact, string icon = null)

@@ -117,11 +117,8 @@ namespace MonitoringTools.UI
                 var v = m.Value;
                 if (m.Groups["code"].Success)
                 {
-                    tb.Inlines.Add(new InlineUIContainer(new Border
-                    {
-                        Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(4), Padding = new Thickness(5, 0, 5, 1),
-                        Child = new TextBlock { Text = v.Trim('`'), FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text") }
-                    }) { BaselineAlignment = BaselineAlignment.Center });
+                    // a run, not a box, so a long command wraps with the sentence instead of running out of the page
+                    tb.Inlines.Add(new Run("\u2009" + v.Trim('`') + "\u2009") { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text"), Background = Ui.Res("B.Raised") });
                 }
                 else if (m.Groups["bold"].Success) tb.Inlines.Add(new Bold(new Run(v.Substring(2, v.Length - 4))) { Foreground = Ui.Res("B.Text") });
                 else if (m.Groups["strike"].Success) tb.Inlines.Add(new Run(v.Substring(2, v.Length - 4)) { TextDecorations = TextDecorations.Strikethrough });

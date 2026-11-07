@@ -107,7 +107,8 @@ namespace MonitoringTools.UI.Dialogs
             Pick(All.FirstOrDefault());
         }
 
-        private static FrameworkElement Field(string label, TextBox box) { var sp = new StackPanel(); sp.Children.Add(DialogParts.Label(label)); sp.Children.Add(box); return sp; }
+        /// <summary>A label over its box; fields in a row line up on their boxes when one label wraps.</summary>
+        private static FrameworkElement Field(string label, TextBox box) { var sp = new StackPanel { VerticalAlignment = VerticalAlignment.Bottom }; sp.Children.Add(DialogParts.Label(label)); sp.Children.Add(box); return sp; }
 
         private void PaintList()
         {

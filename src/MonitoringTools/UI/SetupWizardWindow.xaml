@@ -32,8 +32,9 @@
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"/>
                             <TextBlock Text="Setup" Style="{StaticResource T.Title}" FontSize="16" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
-                            <StackPanel x:Name="Rail"/>
+                        <!-- the step buttons reach 8 px left of the rail text for their hover shape; the scroller makes room for it -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False" Margin="-8,0,0,0">
+                            <StackPanel x:Name="Rail" Margin="8,0,0,0"/>
                         </ScrollViewer>
                         <StackPanel Grid.Row="2">
                             <TextBlock x:Name="SavedNote" Style="{StaticResource T.Body}" FontSize="12" LineHeight="17" Foreground="{DynamicResource B.TextMute}" TextWrapping="Wrap"
@@ -54,7 +55,7 @@
                             <Border x:Name="ProgressFill" HorizontalAlignment="Left" CornerRadius="4" Background="{DynamicResource B.Mint}" Width="0"/>
                         </Border>
                         <TextBlock x:Name="StepEyebrow" Style="{StaticResource T.Eyebrow}" FontSize="12" Foreground="{DynamicResource B.Mint}"/>
-                        <TextBlock x:Name="StepTitle" Style="{StaticResource T.Title}" FontSize="24" Margin="0,6,0,6"/>
+                        <TextBlock x:Name="StepTitle" Style="{StaticResource T.Title}" FontSize="24" Margin="0,6,0,6" TextWrapping="Wrap"/>
                         <TextBlock x:Name="StepIntro" Style="{StaticResource T.Body}" Foreground="{DynamicResource B.TextMute}" FontSize="14" LineHeight="20"/>
                     </StackPanel>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,18,0,0" Padding="0,6,14,6">

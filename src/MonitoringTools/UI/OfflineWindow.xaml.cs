@@ -54,9 +54,9 @@ namespace MonitoringTools.UI
                     StageResult.Warn => ("B.AmberWash", "B.Amber"),
                     _ => ("B.Sunken", "B.TextMute")
                 };
-                var name = new TextBlock { Text = st.Name, FontSize = 12, FontFamily = Ui.Font("F.Body"), Opacity = 0.85 };
+                var name = new TextBlock { Text = st.Name, FontSize = 12, FontFamily = Ui.Font("F.Body"), Opacity = 0.85, TextWrapping = TextWrapping.Wrap };
                 name.SetResourceReference(TextBlock.ForegroundProperty, on);
-                var value = new TextBlock { Text = st.Value, FontSize = 12, FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 3, 0, 0) };
+                var value = new TextBlock { Text = st.Value, FontSize = 12, FontFamily = Ui.Font("F.Mono"), Margin = new Thickness(0, 3, 0, 0), TextWrapping = TextWrapping.Wrap };
                 value.SetResourceReference(TextBlock.ForegroundProperty, on);
                 var chip = new Border
                 {
@@ -78,7 +78,7 @@ namespace MonitoringTools.UI
                     Margin = new Thickness(0, 0, 12, 10),
                     Children =
                     {
-                        new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body") },
+                        new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap },
                         new TextBlock { Text = value, FontSize = 12, Foreground = Ui.Res(amber ? "B.Amber" : "B.Text"), FontFamily = Ui.Font("F.Mono"),
                                         TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 2, 0, 0), ToolTip = value }
                     }

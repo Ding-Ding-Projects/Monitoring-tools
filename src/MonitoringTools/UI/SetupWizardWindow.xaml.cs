@@ -321,10 +321,10 @@ namespace MonitoringTools.UI
                                  : new TextBlock { Text = (i + 1).ToString(), FontSize = 11, FontFamily = Ui.Font("F.Mono"), Foreground = Ui.Res(now ? "B.Mint" : "B.TextMute"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
                 };
                 g.Children.Add(dot);
-                var t = new TextBlock { Text = _steps[i].Name + (_steps[i].Optional ? " (optional)" : ""), FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res(now ? "B.Text" : done ? "B.TextSoft" : "B.TextMute"), FontWeight = now ? FontWeights.SemiBold : FontWeights.Normal, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                var t = new TextBlock { Text = _steps[i].Name + (_steps[i].Optional ? " (optional)" : ""), FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res(now ? "B.Text" : done ? "B.TextSoft" : "B.TextMute"), FontWeight = now ? FontWeights.SemiBold : FontWeights.Normal, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
                 Grid.SetColumn(t, 1);
                 g.Children.Add(t);
-                var b = new Button { Style = Ui.Style("Btn.Row"), Content = g, Margin = new Thickness(-8, 0, 0, Short ? 1 : 4), Height = Short ? 36 : 40, IsEnabled = i <= Math.Max(_index, Settings.Current.OnboardingStep), HorizontalContentAlignment = HorizontalAlignment.Left };
+                var b = new Button { Style = Ui.Style("Btn.Row"), Content = g, Margin = new Thickness(-8, 0, 0, Short ? 1 : 4), Height = double.NaN, MinHeight = Short ? 36 : 40, Padding = new Thickness(16, 2, 16, 2), IsEnabled = i <= Math.Max(_index, Settings.Current.OnboardingStep), HorizontalContentAlignment = HorizontalAlignment.Left };
                 AutomationProperties.SetName(b, $"Step {i + 1}: {_steps[i].Name}{(done ? ", done" : now ? ", current" : "")}");
                 b.Click += (o, e) => { if (idx != _index) Show(idx, idx > _index ? 1 : -1); };
                 Rail.Children.Add(b);
@@ -392,7 +392,7 @@ namespace MonitoringTools.UI
         {
             var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = value, Tag = Ui.Res(accent), Margin = new Thickness(0, 4, 0, 12) };
             var text = new StackPanel();
-            text.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body") });
+            text.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
             if (sub != null) text.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 2, 0, 0) });
             cb.Content = text;
             AutomationProperties.SetName(cb, label);

@@ -197,7 +197,7 @@ namespace MonitoringTools.UI
         {
             var h = _helpHost;
             h.Children.Add(HelpSectionTitle("What do you want to do?", "Each one opens the article at the right step."));
-            var grid = new UniformGrid { Columns = 2, Margin = new Thickness(0, 0, -14, 0) };
+            var grid = new CardGrid { Columns = 2, Margin = new Thickness(0, 0, -14, 0) };
             foreach (var (title, icon, id, anchor) in HelpTasks)
             {
                 var art = Docs.Find(id);
@@ -219,7 +219,7 @@ namespace MonitoringTools.UI
             h.Children.Add(grid);
 
             h.Children.Add(HelpSectionTitle("Browse by topic", "Every article, grouped by what it is about."));
-            var categories = new UniformGrid { Columns = 2, Margin = new Thickness(0, 0, -14, 0) };
+            var categories = new CardGrid { Columns = 2, Margin = new Thickness(0, 0, -14, 0) };
             foreach (var c in Docs.Categories)
             {
                 var sp = new StackPanel();
@@ -469,11 +469,8 @@ namespace MonitoringTools.UI
                 var v = m.Value;
                 if (m.Groups["code"].Success)
                 {
-                    tb.Inlines.Add(new InlineUIContainer(new Border
-                    {
-                        Background = Ui.Res("B.Raised"), CornerRadius = new CornerRadius(4), Padding = new Thickness(5, 0, 5, 1),
-                        Child = new TextBlock { Text = v.Trim('`'), FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text") }
-                    }) { BaselineAlignment = BaselineAlignment.Center });
+                    // a run, not a box, so a long command wraps with the sentence instead of running out of the page
+                    tb.Inlines.Add(new Run("\u2009" + v.Trim('`') + "\u2009") { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text"), Background = Ui.Res("B.Raised") });
                 }
                 else if (m.Groups["bold"].Success) tb.Inlines.Add(new Bold(new Run(v.Substring(2, v.Length - 4))) { Foreground = Ui.Res("B.Text") });
                 else if (m.Groups["strike"].Success) tb.Inlines.Add(new Run(v.Substring(2, v.Length - 4)) { TextDecorations = TextDecorations.Strikethrough });

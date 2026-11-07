@@ -350,7 +350,7 @@ namespace MonitoringTools.UI
         }
 
         private static TextBlock ToolsLabel(string text) =>
-            new TextBlock { Text = text, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 6, 0, 6) };
+            new TextBlock { Text = text, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), Margin = new Thickness(0, 6, 0, 6), TextWrapping = TextWrapping.Wrap };
 
         private static void ShowPublishProblem(OperationCard card, string text)
         {

@@ -63,7 +63,7 @@ namespace MonitoringTools.UI
                 var n = new TextBlock { Text = "–", FontSize = 28, FontWeight = FontWeights.Medium, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Display") };
                 var sp = new StackPanel();
                 sp.Children.Add(n);
-                sp.Children.Add(new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body") });
+                sp.Children.Add(new TextBlock { Text = label, FontSize = 12, Foreground = Ui.Res("B.TextMute"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
                 tiles.Children.Add(new Border { Background = Ui.Res("B.Window"), CornerRadius = new CornerRadius(20), Padding = new Thickness(16, 12, 16, 14), Margin = new Thickness(0, 0, 10, 0), Child = sp });
                 return n;
             }

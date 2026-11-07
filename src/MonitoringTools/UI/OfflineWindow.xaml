@@ -40,7 +40,7 @@
                             <ContentControl x:Name="BadgeIcon" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
                         <StackPanel Grid.Column="1">
-                            <TextBlock x:Name="Headline" Style="{StaticResource T.Title}" FontSize="22" Text="Internet connection lost"/>
+                            <TextBlock x:Name="Headline" Style="{StaticResource T.Title}" FontSize="22" Text="Internet connection lost" TextWrapping="Wrap"/>
                             <TextBlock x:Name="Explain" Style="{StaticResource T.Body}" FontSize="14" Margin="0,4,0,0" LineHeight="20"/>
                         </StackPanel>
                         <Button Grid.Column="2" Style="{StaticResource Btn.Icon}" VerticalAlignment="Top" Margin="12,0,0,0"
@@ -50,13 +50,8 @@
                         </Button>
                     </Grid>
 
-                    <!-- on a short screen the ladder and details scroll; the fixes stay in view -->
-                    <Grid x:Name="Body" Grid.Row="1">
-                      <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                      </Grid.RowDefinitions>
-                      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                    <!-- on a short screen everything under the headline scrolls -->
+                    <ScrollViewer x:Name="Body" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
                        <StackPanel>
                         <!-- probe ladder -->
                         <TextBlock Text="Probe ladder" Style="{StaticResource T.Eyebrow}" Margin="22,0,22,8"/>
@@ -67,10 +62,6 @@
                                 BorderBrush="{DynamicResource B.Line}" BorderThickness="1">
                             <UniformGrid x:Name="DetailsGrid" Columns="2"/>
                         </Border>
-                       </StackPanel>
-                      </ScrollViewer>
-
-                      <StackPanel Grid.Row="1">
                         <!-- actions -->
                         <WrapPanel x:Name="Actions" Margin="22,16,22,0"/>
                         <Grid Margin="22,4,22,0">
@@ -89,8 +80,8 @@
                             <TextBlock x:Name="Status" Style="{StaticResource T.Body}" FontSize="12" Foreground="{DynamicResource B.TextMute}" TextWrapping="Wrap" Margin="0,0,12,0"/>
                             <TextBlock x:Name="Countdown" Grid.Column="1" Style="{StaticResource T.Mono}" Foreground="{DynamicResource B.TextMute}" VerticalAlignment="Top"/>
                         </Grid>
-                      </StackPanel>
-                    </Grid>
+                       </StackPanel>
+                    </ScrollViewer>
 
                 <!-- time to the next probe: a thin line inside the card, clear of the rounded corners whatever the look -->
                 <Border Grid.Row="2" Height="3" Margin="22,0,22,10" CornerRadius="1.5" Background="{DynamicResource B.Sunken}" ClipToBounds="True">

@@ -19,9 +19,6 @@ namespace MonitoringTools.Core
             Add("Disable", "停用");
             Add("Waiting for its time", "等緊時間到");
             Add("Turn the chosen rules on.", "啟用揀咗嘅規則。");
-            Add("VID", "影片");
-            Add("AUD", "音訊");
-            Add("IMG", "圖片");
             Add("About half the size of H.264 at the same quality", "同樣畫質大約得 H.264 一半大");
             Add("Animations much smaller than GIF", "比 GIF 細好多嘅動畫");
             Add("Broadcast and old radio software", "廣播同舊電台軟件用");

@@ -197,7 +197,7 @@ namespace MonitoringTools.UI.Dialogs
 
     internal static class DialogParts
     {
-        public static TextBlock Label(string text) => new TextBlock { Text = text, FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(0, 14, 0, 6) };
+        public static TextBlock Label(string text) => new TextBlock { Text = text, FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(0, 14, 0, 6), TextWrapping = TextWrapping.Wrap };
 
         public static TextBlock Hint(string text) => new TextBlock { Text = text, FontFamily = Ui.Font("F.Body"), FontSize = 12, Foreground = Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(2, 6, 0, 0) };
 

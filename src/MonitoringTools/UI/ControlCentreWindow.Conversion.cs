@@ -86,42 +86,58 @@ namespace MonitoringTools.UI
 
         private FrameworkElement FormatRow(FormatSpec f)
         {
-            var (wash, ink, badge) = f.Kind switch
+            var (wash, ink, kindIcon, kindName) = f.Kind switch
             {
-                TargetKind.Video => ("B.TertiaryContainer", "B.OnTertiaryContainer", "VID"),
-                TargetKind.Audio => ("B.VioletWash", "B.Violet", "AUD"),
-                _ => ("B.AmberWash", "B.Amber", "IMG"),
+                TargetKind.Video => ("B.TertiaryContainer", "B.OnTertiaryContainer", Icons.Video, "Video"),
+                TargetKind.Audio => ("B.VioletWash", "B.Violet", Icons.Audio, "Audio"),
+                _ => ("B.AmberWash", "B.Amber", Icons.Image, "Image"),
             };
+            // badge, then the name with its :command and what it is for, then the button; on a narrow page the button
+            // moves under the text instead of squeezing it
             var g = new Grid { Margin = new Thickness(0, 0, 0, 2) };
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(78) });
             g.ColumnDefinitions.Add(new ColumnDefinition());
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
             var chip = new Border
             {
-                Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res(wash), Margin = new Thickness(0, 0, 12, 0),
-                Child = new TextBlock { Text = badge, FontSize = 11, FontWeight = FontWeights.Bold, Foreground = Ui.Res(ink), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontFamily = Ui.Font("F.Body") }
+                Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Background = Ui.Res(wash), Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Top,
+                Child = new ContentControl { Content = Ui.Icon(kindIcon, Ui.Res(ink), 18), Focusable = false, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
             };
+            AutomationProperties.SetName(chip, kindName);
+            chip.ToolTip = kindName;
+            Grid.SetRowSpan(chip, 2);
             g.Children.Add(chip);
 
-            var cmd = Ui.Pill(":" + f.Id, Ui.Res("B.MintWash"), Ui.Res("B.Mint"), mono: true, size: 12);
-            cmd.HorizontalAlignment = HorizontalAlignment.Left;
-            Grid.SetColumn(cmd, 1); g.Children.Add(cmd);
-
-            var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 12, 0) };
-            var title = new TextBlock { FontSize = 14, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis };
+            var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 0) };
+            var head = new WrapPanel();
+            var title = new TextBlock { FontSize = 14, Foreground = Ui.Res("B.Text"), FontFamily = Ui.Font("F.Body"), TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
             title.Inlines.Add(new System.Windows.Documents.Run(f.Label));
             title.Inlines.Add(new System.Windows.Documents.Run("  " + f.Extension) { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });
-            text.Children.Add(title);
+            head.Children.Add(title);
+            var cmd = Ui.Pill(":" + f.Id, Ui.Res("B.MintWash"), Ui.Res("B.Mint"), mono: true, size: 12);
+            cmd.VerticalAlignment = VerticalAlignment.Center; cmd.Margin = new Thickness(0, 2, 0, 2);
+            head.Children.Add(cmd);
+            text.Children.Add(head);
             text.Children.Add(new TextBlock { Text = f.Note + " · from " + f.From, FontSize = 12, Foreground = Ui.Res("B.TextSoft"), FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
-            Grid.SetColumn(text, 2); g.Children.Add(text);
+            Grid.SetColumn(text, 1); g.Children.Add(text);
 
             var go = Ui.Button("Convert files…", () => PickAndConvert(f), "Btn.Ghost", Icons.Bolt);
-            go.Height = 36; go.Margin = new Thickness(0);
+            go.Height = 36; go.Margin = new Thickness(0); go.VerticalAlignment = VerticalAlignment.Center;
             go.ToolTip = $"Choose files to convert to {f.Label}. Each one is saved next to its original.";
             AutomationProperties.SetName(go, "Convert files to " + f.Label);
-            Grid.SetColumn(go, 3); g.Children.Add(go);
+            Grid.SetColumn(go, 2); g.Children.Add(go);
+            void Lay(double w)
+            {
+                bool narrow = w < 440;
+                Grid.SetRow(go, narrow ? 1 : 0); Grid.SetColumn(go, narrow ? 1 : 2);
+                go.HorizontalAlignment = narrow ? HorizontalAlignment.Left : HorizontalAlignment.Stretch;
+                go.Margin = new Thickness(0, narrow ? 8 : 0, 0, 0);
+            }
+            Lay(600);
+            g.SizeChanged += (o, e) => { if (e.WidthChanged) Lay(e.NewSize.Width); };
 
             // A row with a soft tonal hover, like the design's list rows.
             var tint = new SolidColorBrush(Colors.Transparent);
