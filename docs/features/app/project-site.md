@@ -33,8 +33,17 @@ published to GitHub Pages on every push to `main`.
   `Alt+K` lock this element, `Alt+P` pin the tab, `Alt+W` close the tab, `Alt+T` light or dark, `Alt+M` reduce
   motion, `Alt+R` regex mode and `Alt+B` the builder. Shift and right-click gives the browser's own menu; the
   Menu key and `Shift+F10` open the site's menu at the focused element.
+- **Live settings in the menu.** The top of the menu changes the theme, text size and language and switches reduce
+  motion at once, and the menu stays open. Left and Right step a choice.
+- **The menu's own regex builder.** `.*` beside the menu's filter switches it to a regular expression (also `Alt+R`
+  while typing), and **Builder** opens tokens, whether the pattern is valid and a piece-by-piece explanation. A
+  pattern that is not valid filters nothing and says why. Each filter remembers its mode.
+- **Folding filters.** The status filters on the delivery status page, and the task and picture filters, fold away
+  under their own header. Each remembers whether it is open, and a closed one says which filter is on.
 - **Panels.** On an article, drag the edge of the contents panel to resize it, or focus it and use the arrow keys.
-  Double-click the edge to put it back. The width is kept.
+  Double-click the edge to put it back. The width is kept. The search's regex builder and the site's dialogs have a
+  corner grip: drag it, or press `Alt+Shift` with the arrow keys inside them; `Alt+Shift+Home` or a double-click on
+  the grip puts them back. Their size is kept.
 
 ## Make it yours
 
@@ -52,8 +61,24 @@ published to GitHub Pages on every push to `main`.
   code is entered. Forgot it? The unlock ladder has the app's rungs: dim sum, ten easy sums, whack-a-mole, then the
   clock, which rests the ladder for 10 minutes.
 - **Toy authenticator.** Add a Base32 secret and see six-digit codes that change every 30 seconds.
-- **Dim sum surprise.** A dish from the release code-name list turns up on the home page now and then. Turn it off
-  in Settings.
+- **Dim sum surprise.** A dish from the release code-name list turns up on one home page visit in ten, drawn fresh
+  each time. Settings shows its switch, which slides off and springs back on with a different line each time,
+  because it cannot be turned off (at once, with no slide, under reduce motion). An "off" kept by an older version
+  of the site is dropped.
+
+## Base64 in the browser
+
+The **Base64** page (in the footer and the palette) turns a file into its Base64 text and back, like the app's
+[Base64 beside the file](../tools/base64-beside-the-file.md). A web page cannot write next to your file, so every
+result is a download you save where you like. Each result counts only when a SHA-256 round trip matches; decoding
+accepts the standard and URL-safe alphabets, line breaks, missing padding and a `data:` prefix, and stops at the
+exact byte that is not Base64. Files up to 64 MB each, because the browser holds the whole file in memory.
+
+## Articles
+
+Articles are rendered at build time from the same Markdown as the app's Help page. `:shortcode:` emoji show as
+emoji with the app's list, relative links go to the right article or to the source on GitHub, and an article with
+nothing under its title says so instead of showing a blank page.
 
 These are toys. The site has no account and no server, so a lock protects nothing and a secret is kept unencrypted.
 Do not put a real account's secret in the authenticator.
@@ -83,7 +108,12 @@ These shared app requirements have no site equivalent, and are left out on purpo
 
 The build fails when a font is missing or altered, when an article, category or anchor is missing, when a page
 loads a remote asset or lacks its social tags, and when a shared feature from its hand-written list is missing
-from the pages that must carry it.
+from the pages that must carry it. The dim sum switch, the menu's live settings and builder, Base64, the folding
+filters and the resizable builder were also driven in a headless browser before release: the switch springs back
+and keeps nothing, an old "off" is dropped, live settings change the page and keep the menu open, a regex filter
+keeps only matching actions and an invalid one filters nothing, a file and its Base64 text make the same bytes both
+ways, a stray character and text after the padding are refused at their byte, a fold remembers being closed, and
+the builder's size is kept and put back. That run is not part of the build.
 
 ## Related
 

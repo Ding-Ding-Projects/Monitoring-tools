@@ -31,7 +31,7 @@ const CATEGORY_META = {
   'appearance-editor': { label: 'Appearance editor', blurb: 'Per-element editors and the colour picker.', icon: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4' },
   clipboard: { label: 'Clipboard', blurb: 'Toasts and the clipboard history.', icon: 'M9 4h6v3H9zM6 6h12v15H6z' },
   commands: { label: 'Quick commands', blurb: 'Convert media, push a repo, run your own scripts.', icon: 'M4 17l6-5-6-5M12 19h8' },
-  files: { label: 'Files and Docker', blurb: 'File tools and Docker actions.', icon: 'M4 6h6l2 2h8v11H4z' },
+  files: { label: 'Files and Docker', blurb: 'File tools, virtual disks and Docker actions.', icon: 'M4 6h6l2 2h8v11H4z' },
   game: { label: 'Game mode', blurb: 'Keep popups away from the game you are playing.', icon: 'M6 9h4M8 7v4M15 10h.01M18 8h.01M5 5h14a3 3 0 0 1 3 3l-1 8a3 3 0 0 1-5 1.5L14 16h-4l-2 1.5A3 3 0 0 1 3 16L2 8a3 3 0 0 1 3-3z' },
   language: { label: 'Language and voice', blurb: 'App language, humour, narrator and voices.', icon: 'M4 5h10M9 3v2M6 5c1 5 4 8 8 9M12 5c-1 5-4 8-8 9M14 20l4-9 4 9M15.5 17h5' },
   minecraft: { label: 'Minecraft servers', blurb: 'Create and manage servers and generate worlds.', icon: 'M5 5h14v14H5zM5 12h14M12 5v14' },
@@ -42,7 +42,7 @@ const CATEGORY_META = {
   safety: { label: 'Safety', blurb: 'Authenticator, element locks, unlock ladder and support tickets.', icon: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z' },
   search: { label: 'Search', blurb: 'Search bars everywhere and the regex builder.', icon: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4' },
   tabs: { label: 'Tabs', blurb: 'The tab strip.', icon: 'M3 8h6l1.5-2H21v12H3z' },
-  tools: { label: 'Tools', blurb: 'Drawing, external editor, progress recovery and publishing.', icon: 'M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5L15 12l-3-3z' },
+  tools: { label: 'Tools', blurb: 'Drawing, Base64 beside a file, external editor, progress recovery and publishing.', icon: 'M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5L15 12l-3-3z' },
 };
 const STATUS_SLUG = 'status';
 
@@ -50,6 +50,7 @@ const STATUS_SLUG = 'status';
 const TASKS = [
   { group: 'files', title: 'Convert a video, picture or audio file', to: 'commands/convert-media' },
   { group: 'files', title: 'Commit and push a repository from the clipboard', to: 'commands/push-a-repo' },
+  { group: 'files', title: 'Pack files and folders into one virtual disk', to: 'files/virtual-disks' },
   { group: 'clipboard', title: 'Get back something I copied earlier', to: 'clipboard/history' },
   { group: 'clipboard', title: 'Understand the toast that appears when I copy', to: 'clipboard/toasts' },
   { group: 'network', title: 'Work out why the internet dropped', to: 'network/internet-watch' },
@@ -335,6 +336,7 @@ function footer(page) {
       <li><a href="${r}docs/${STATUS_SLUG}/required-features.html" data-t="nav.status">Status</a></li>
       <li><a href="${r}screenshots/index.html" data-t="nav.shots">Gallery</a></li>
       <li><a href="${r}settings/index.html" data-t="nav.settings">Settings</a></li>
+      <li><a href="${r}base64/index.html">Base64</a></li>
       <li><a href="${REPO_URL}" rel="noopener noreferrer">Source on GitHub</a></li>
       <li><a href="${REPO_URL}/releases" rel="noopener noreferrer">All releases</a></li>
     </ul>
@@ -353,18 +355,18 @@ function footer(page) {
 </div>
 <div class="overlay" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden><div class="sheet"><h2 id="sheet-title"></h2><div id="sheet-body"></div></div></div>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Screenshot viewer" hidden><button class="icon-btn" id="lightbox-close" type="button" aria-label="Close the screenshot">${icon('M6 6l12 12M18 6L6 18', 22)}</button><img alt=""><p id="lightbox-cap"></p></div>
-<script>window.SITE_DISHES=${JSON.stringify(DISHES)};window.SITE_CATS=${JSON.stringify(Object.fromEntries([...categories.map((c) => [c.slug, c.label]), ['home', 'Home'], ['docs', 'Docs'], ['shots', 'Gallery'], ['settings', 'Settings'], ['diagram', 'How it works']]))};</script>
+<script>window.SITE_DISHES=${JSON.stringify(DISHES)};window.SITE_AREAS=${JSON.stringify(Object.fromEntries([...categories.map((c) => [c.slug, c.label]), ['home', 'Home'], ['docs', 'Docs'], ['shots', 'Gallery'], ['settings', 'Settings'], ['diagram', 'How it works']]))};</script>
 <script src="${r}search-index.js"></script>
 <script src="${r}app.js"></script>`;
 }
 
-function pageHtml({ page, title, description, active, body, type, cat }) {
+function pageHtml({ page, title, description, active, body, type, area }) {
   return `<!doctype html>
 <html lang="en">
 <head>
 ${head({ page, title, description, type })}
 </head>
-<body data-root="${rootOf(page)}" data-page="${esc(page)}" data-title="${esc(title)}" data-cat="${esc(cat || active || '')}">
+<body data-root="${rootOf(page)}" data-page="${esc(page)}" data-title="${esc(title)}" data-area="${esc(area || active || '')}">
 ${header(page, active)}
 <main id="main" tabindex="-1">
 ${body}
@@ -546,6 +548,29 @@ function buildDiagram() {
   writeOut(page, pageHtml({ page, title: 'How it works', description: 'An interactive, step-by-step illustration of what Monitoring Tools does when you copy a file path with a quick command.', active: 'diagram', body }));
 }
 
+// Base64 beside the file, as the browser can do it: every result is a download
+function buildBase64() {
+  const page = 'base64/index.html';
+  const body = `<section class="wrap page b64-page" data-feature="base64">
+  ${crumbs(page, [['Home', 'index.html'], ['Base64', page]])}
+  <div class="section-head"><div><p class="tag">Runs in this browser · nothing is uploaded</p><h1>Base64, <span class="accent">and back.</span></h1>
+  <p class="lead">Drop a file to get its Base64 text as <span class="mono">name.ext.base64.txt</span>. Drop that text file to get the original back, with its extension. The same as the app's <a href="${relUrl(page, byKey.get('tools/base64-beside-the-file').page)}">Base64 beside the file</a>, with one difference: a web page cannot write next to your file, so <strong>every result here is a download</strong> you save where you like.</p></div></div>
+  <div class="panel b64-panel">
+    <div class="b64-zone" id="b64-zone" tabindex="0" role="button" aria-describedby="b64-help">
+      <span class="b64-mark" aria-hidden="true">${icon('M12 3v12M7 10l5 5 5-5M5 21h14', 28)}</span>
+      <span class="b64-zone-t">Drop files here</span>
+      <span class="b64-zone-h" id="b64-help">Or press Enter to choose them. A file ending in .base64.txt turns back into its original; anything else becomes Base64 text.</span>
+      <input type="file" id="b64-files" multiple hidden>
+    </div>
+    <div class="b64-run" id="b64-run" hidden><div class="b64-bar" aria-hidden="true"><i id="b64-fill"></i></div><span class="mono" id="b64-now"></span><button type="button" class="btn tonal" id="b64-cancel">Cancel</button></div>
+    <p class="hint" id="b64-status" role="status" aria-live="polite"></p>
+    <ul class="b64-list" id="b64-list" aria-label="Results"></ul>
+    <p class="hint">Each result counts only when a SHA-256 round trip matches: the bytes decoded from the text must hash the same as the original. Decoding accepts the standard and URL-safe alphabets, line breaks, missing padding and a <span class="mono">data:</span> prefix, and stops at the exact byte that is not Base64. Files up to 64 MB each, because the browser holds the whole file in memory.</p>
+  </div>
+</section>`;
+  writeOut(page, pageHtml({ page, title: 'Base64', description: 'Turn a file into Base64 text and back in your browser, each result checked by a SHA-256 round trip and saved as a download.', active: '', body, area: 'tools' }));
+}
+
 // Settings for this site
 function buildSettings() {
   const page = 'settings/index.html';
@@ -573,7 +598,7 @@ function buildSettings() {
         ${row('Text size', 'Default 100 %.', '<div class="seg" role="group" aria-label="Text size"><button type="button" data-text-set="" aria-pressed="true">100 %</button><button type="button" data-text-set="large" aria-pressed="false">115 %</button><button type="button" data-text-set="xlarge" aria-pressed="false">130 %</button></div>', 'set-text')}
         ${row('Reduce motion', 'Default: follow your system. On stops slides, springs and loops.', '<button type="button" class="switch" role="switch" id="rm" aria-checked="false" aria-label="Reduce motion"><i></i></button>', 'set-motion')}
         ${row('Tab strip', 'Where the open pages sit. Default on top.', '<div class="seg" role="group" aria-label="Dock the tab strip"><button type="button" data-dock="" aria-pressed="true">Top</button><button type="button" data-dock="left" aria-pressed="false">Left</button></div>', 'set-dock')}
-        ${row('Dim sum surprise', 'A dish turns up now and then on the home page. Default on.', '<button type="button" class="switch" role="switch" id="ds" aria-checked="true" aria-label="Dim sum surprise"><i></i></button>', 'set-dimsum')}
+        ${row('Dim sum surprise', 'One home page visit in ten shows a dish. On, and it stays on.<span class="ds-said" id="ds-said" role="status" aria-live="polite"></span>', '<button type="button" class="switch" role="switch" id="ds" aria-checked="true" aria-label="Dim sum surprise" data-feature="dimsum-switch"><i></i></button>', 'set-dimsum')}
         ${row('Edit one element', 'Right-click anything and choose Edit appearance… (Alt+E). Reset them all here.', '<button type="button" class="btn tonal" id="reset-elements">Reset edited elements</button>', 'set-elements')}
       </section>
     </div>
@@ -635,7 +660,7 @@ function buildCategory(c) {
   <h2>Other categories</h2>
   <ul class="pill-list">${categories.filter((x) => x !== c).map((x) => `<li><a class="chip link" href="${relUrl(page, x.page)}">${esc(x.label)}</a></li>`).join('')}</ul>
 </div>`;
-  writeOut(page, pageHtml({ page, title: c.label, description: `${c.label}: ${c.blurb} ${c.articles.length} article${c.articles.length > 1 ? 's' : ''}.`, active: 'docs', body, cat: c.slug }));
+  writeOut(page, pageHtml({ page, title: c.label, description: `${c.label}: ${c.blurb} ${c.articles.length} article${c.articles.length > 1 ? 's' : ''}.`, active: 'docs', body, area: c.slug }));
 }
 
 function buildArticle(c, a) {
@@ -672,7 +697,7 @@ function buildArticle(c, a) {
   </div>
 </div>`;
   const desc = a.excerpt || `${a.title}: documentation for Monitoring Tools.`;
-  writeOut(page, pageHtml({ page, title: a.title, description: desc, active: c.slug === STATUS_SLUG ? 'status' : 'docs', body, type: 'article', cat: c.slug }));
+  writeOut(page, pageHtml({ page, title: a.title, description: desc, active: c.slug === STATUS_SLUG ? 'status' : 'docs', body, type: 'article', area: c.slug }));
 }
 
 function buildShots() {
@@ -716,6 +741,7 @@ function buildSearchIndex() {
   for (const s of shots) add(s.caption, 'Screenshot', `screenshots/index.html#${s.file.replace(/\.png$/, '')}`, s.file);
   add('Download Monitoring Tools for Windows', 'Action', 'index.html#download', 'installer download latest release');
   add('How it works: copying a file path', 'Diagram', 'diagram/index.html', 'interactive workflow diagram clipboard watcher toast ffmpeg conversion');
+  add('Base64, and back, in your browser', 'Action', 'base64/index.html', 'base64 encode decode file text download sha-256 round trip data url');
   for (const [id, t] of [['set-lang', 'Language'], ['set-fun-en', 'English humour'], ['set-fun-yue', 'Cantonese humour'], ['set-theme', 'Theme'], ['set-accent', 'Accent colour'], ['set-text', 'Text size'], ['set-motion', 'Reduce motion'], ['set-dock', 'Tab strip position'], ['set-dimsum', 'Dim sum surprise'], ['set-elements', 'Edited elements'], ['g-presets', 'Presets, export and import'], ['g-safety', 'Toy locks and the authenticator'], ['g-notes', 'Notification centre']]) add(t, 'Setting', `settings/index.html#${id}`, 'site setting ' + t.toLowerCase());
   writeOut('search-index.js', 'window.SITE_INDEX=' + JSON.stringify(items) + ';\n');
   return items.length;
@@ -753,6 +779,8 @@ const SITE_FEATURES = [
   ['toy element locks and unlock ladder', 'settings/index.html', 'data-feature="locks"'],
   ['authenticator', 'settings/index.html', 'data-feature="authenticator"'],
   ['resizable panels', 'docs/clipboard/toasts.html', 'data-feature="resizable-panels"'],
+  ['Base64 in the browser', 'base64/index.html', 'data-feature="base64"'],
+  ['dim sum switch that stays on', 'settings/index.html', 'data-feature="dimsum-switch"'],
 ];
 
 // ---------------------------------------------------------------- run
@@ -772,6 +800,7 @@ for (const c of categories) { buildCategory(c); for (const a of c.articles) buil
 buildShots();
 buildDiagram();
 buildSettings();
+buildBase64();
 build404();
 const nIndex = buildSearchIndex();
 
@@ -801,7 +830,7 @@ const nIndex = buildSearchIndex();
     for (const t of targets) if (!fs.existsSync(t) || !read(t).includes(marker)) problems.push(`${path.relative(outDir, t)}: missing site feature "${name}"`);
   }
   const js = read(path.join(outDir, 'app.js'));
-  for (const fn of ['initTabs', 'initPalette', 'initContextMenu', 'initLocks', 'initLadder', 'initAuthenticator', 'initAppearanceEditor', 'initLanguage', 'notify']) if (!js.includes('function ' + fn)) problems.push(`app.js: missing ${fn}`);
+  for (const fn of ['initTabs', 'initPalette', 'initContextMenu', 'initLocks', 'initLadder', 'initAuthenticator', 'initAppearanceEditor', 'initLanguage', 'notify', 'initBase64', 'initFolds', 'sizer', 'miniBuilder', 'dimSumNo']) if (!js.includes('function ' + fn)) problems.push(`app.js: missing ${fn}`);
   if (problems.length) fail('site check failed:\n  ' + problems.join('\n  '));
   const list = pages.map((p) => path.relative(outDir, p).replace(/\\/g, '/')).sort();
   writeOut('pages.txt', list.join('\n') + '\n');

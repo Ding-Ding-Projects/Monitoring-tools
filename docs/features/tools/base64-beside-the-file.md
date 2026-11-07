@@ -14,6 +14,10 @@ A card on the Tools page writes a file's Base64 text next to it, and turns that 
 
 The standard and the URL-safe alphabets, line breaks and other white space, missing padding, and a `data:` URL prefix. Anything else stops with the exact byte where the text stops being Base64.
 
+## In a browser
+
+The project site has a [Base64 page](https://ding-ding-projects.github.io/Monitoring-tools/base64/index.html) that does the same in a browser. A web page cannot write beside your file, so there each result is a download.
+
 ## Records
 
 Every file written and every undo is added to the Records page under [Actions and discarded changes](../records/recorded-actions.md).

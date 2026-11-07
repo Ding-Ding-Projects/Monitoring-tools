@@ -1,6 +1,25 @@
 // A small, dependency-free Markdown renderer for the project documentation.
 // Supports: headings with ids, paragraphs, bullet and numbered lists (nested by indent), tables, fenced code,
-// block quotes, rules, inline code, bold, italic, links and images. Everything else is escaped as text.
+// block quotes, rules, inline code, bold, italic, links and images, and :shortcode: emoji (the same list as the app).
+// Everything else is escaped as text. A document with nothing under its title says so.
+
+// The app's emoji shortcodes (src/MonitoringTools/Core/MarkdownText.cs). An unknown one, and a time such as 12:30:45,
+// stays as it was written; code is never touched.
+export const EMOJI = {
+  rocket: '\u{1F680}', tada: '\u{1F389}', sparkles: '\u2728', bug: '\u{1F41B}', fire: '\u{1F525}', star: '\u2B50', star2: '\u{1F31F}',
+  white_check_mark: '\u2705', heavy_check_mark: '\u2714\uFE0F', check: '\u2714\uFE0F', x: '\u274C', warning: '\u26A0\uFE0F', no_entry: '\u26D4',
+  construction: '\u{1F6A7}', lock: '\u{1F512}', unlock: '\u{1F513}', memo: '\u{1F4DD}', pencil: '\u{1F4DD}', pencil2: '\u270F\uFE0F',
+  book: '\u{1F4D6}', books: '\u{1F4DA}', package: '\u{1F4E6}', wrench: '\u{1F527}', hammer: '\u{1F528}', gear: '\u2699\uFE0F', zap: '\u26A1',
+  art: '\u{1F3A8}', recycle: '\u267B\uFE0F', arrow_up: '\u2B06\uFE0F', arrow_down: '\u2B07\uFE0F', arrow_right: '\u27A1\uFE0F', arrow_left: '\u2B05\uFE0F',
+  heart: '\u2764\uFE0F', green_heart: '\u{1F49A}', thumbsup: '\u{1F44D}', '+1': '\u{1F44D}', thumbsdown: '\u{1F44E}', '-1': '\u{1F44E}', eyes: '\u{1F440}',
+  bulb: '\u{1F4A1}', mag: '\u{1F50D}', link: '\u{1F517}', calendar: '\u{1F4C5}', clock: '\u{1F552}', hourglass: '\u231B',
+  chart_with_upwards_trend: '\u{1F4C8}', bar_chart: '\u{1F4CA}', computer: '\u{1F4BB}', bell: '\u{1F514}', camera: '\u{1F4F7}',
+  floppy_disk: '\u{1F4BE}', cd: '\u{1F4BF}', dvd: '\u{1F4C0}', file_folder: '\u{1F4C1}', open_file_folder: '\u{1F4C2}', page_facing_up: '\u{1F4C4}',
+  clipboard: '\u{1F4CB}', pushpin: '\u{1F4CC}', shield: '\u{1F6E1}\uFE0F', test_tube: '\u{1F9EA}', boom: '\u{1F4A5}', clap: '\u{1F44F}', wave: '\u{1F44B}',
+  smile: '\u{1F604}', thinking: '\u{1F914}', dumpling: '\u{1F95F}', tea: '\u{1F375}', information_source: '\u2139\uFE0F', new: '\u{1F195}',
+  globe: '\u{1F310}', earth_asia: '\u{1F30F}', moon: '\u{1F319}', sunny: '\u2600\uFE0F',
+};
+export const withEmoji = (text) => text.replace(/:([a-z0-9_+\-]{1,40}):/gi, (m, k) => EMOJI[k.toLowerCase()] || m);
 
 export const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -23,7 +42,7 @@ export function plainText(md) {
 export function inline(src, ctx) {
   const codes = [];
   let s = src.replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return `\u0000${codes.length - 1}\u0000`; });
-  s = esc(s);
+  s = esc(withEmoji(s));
   s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_, alt, url) =>
     `<img src="${esc(ctx.resolveImage(url.replace(/&amp;/g, '&')))}" alt="${alt}" loading="lazy">`);
   s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_, text, url) => {
@@ -145,5 +164,7 @@ export function render(md, ctx) {
       && !(lines[i].includes('|') && i + 1 < lines.length && isTableSep(lines[i + 1]))) buf.push(lines[i++].trim());
     out.push(`<p>${inline(buf.join(' '), ctx)}</p>`);
   }
+  // nothing under the title: say so instead of a blank page
+  if (!out.some((h) => !/^<h1[\s>]/.test(h))) out.push('<p class="empty-doc">Nothing is written here yet.</p>');
   return { html: out.join('\n'), headings, title };
 }

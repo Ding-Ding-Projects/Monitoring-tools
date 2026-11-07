@@ -1,6 +1,7 @@
 /* Monitoring Tools site: preferences, language modes, search with a regex builder, command palette, tabs, right-click
-   menus with working shortcuts, per-element appearance, toy locks with the unlock ladder, a toy authenticator,
-   notifications, the dim sum surprise, the interactive diagram and the page's small motions.
+   menus with working shortcuts, live settings and their own regex builder, per-element appearance, toy locks with the
+   unlock ladder, a toy authenticator, notifications, the dim sum surprise and its switch that stays on, Base64 in the
+   browser, folding filters, resizable panels, the interactive diagram and the page's small motions.
    Everything a visitor changes is kept in this browser's local storage and never sent anywhere. */
 (function () {
   'use strict';
@@ -17,8 +18,14 @@
   var typing = function (t) { var tag = (t.tagName || '').toLowerCase(); return tag === 'input' || tag === 'textarea' || tag === 'select' || t.isContentEditable; };
 
   /* ---------- preferences ---------- */
-  var DEFAULTS = { theme: '', motion: '', text: '', lang: 'en', funEn: 2, funYue: 2, accent: '', dock: '', dimsum: true };
+  var DEFAULTS = { theme: '', motion: '', text: '', lang: 'en', funEn: 2, funYue: 2, accent: '', dock: '' };
   var prefs = Object.assign({}, DEFAULTS, load('mt-site-prefs', {}));
+  // The dim sum surprise has no off switch any more. An "off" stored by an older version of this site is dropped, and so
+  // is the old visit counter that drew one visit in four.
+  if ('dimsum' in prefs) { delete prefs.dimsum; save('mt-site-prefs', prefs); }
+  try { localStorage.removeItem('mt-site-visits'); } catch (e) { /* storage may be blocked */ }
+  // A line in the language mode the visitor chose: English, Cantonese, or both.
+  function tr(en, yue) { var l = prefs.lang || 'en'; return l === 'yue' ? yue : l === 'both' ? en + ' ' + yue : en; }
   function hexToRgb(h) { var n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
   function lum(h) { return hexToRgb(h).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }).reduce(function (a, v, i) { return a + v * [0.2126, 0.7152, 0.0722][i]; }, 0); }
   function contrast(a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
@@ -94,7 +101,6 @@
     $all('[data-dock]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-dock') === (prefs.dock || '') ? 'true' : 'false'); });
     $all('[data-accent]').forEach(function (b) { b.setAttribute('aria-pressed', (prefs.accent || '#6FDBB4').toUpperCase() === b.getAttribute('data-accent').toUpperCase() ? 'true' : 'false'); });
     var rm = $('#rm'); if (rm) rm.setAttribute('aria-checked', prefs.motion === 'reduce' ? 'true' : 'false');
-    var ds = $('#ds'); if (ds) ds.setAttribute('aria-checked', prefs.dimsum ? 'true' : 'false');
     var fe = $('#fun-en'), fy = $('#fun-yue');
     if (fe) { fe.value = prefs.funEn; $('#fun-en-v').textContent = prefs.funEn; }
     if (fy) { fy.value = prefs.funYue; $('#fun-yue-v').textContent = prefs.funYue; }
@@ -112,7 +118,7 @@
     else if ((b = e.target.closest('[data-dock]'))) setPref('dock', b.getAttribute('data-dock'));
     else if ((b = e.target.closest('[data-accent]'))) setPref('accent', b.getAttribute('data-accent'));
     else if (e.target.closest('#rm')) setPref('motion', prefs.motion === 'reduce' ? '' : 'reduce');
-    else if (e.target.closest('#ds')) setPref('dimsum', !prefs.dimsum);
+    else if (e.target.closest('#ds')) dimSumNo();
   });
   ['fun-en', 'fun-yue'].forEach(function (id) { var r = $('#' + id); if (r) r.addEventListener('input', function () { prefs[id === 'fun-en' ? 'funEn' : 'funYue'] = Number(r.value); applyPrefs(); initLanguage(); }); });
   var anyc = $('#accent-any'); if (anyc) anyc.addEventListener('input', function () { setPref('accent', anyc.value.toUpperCase()); });
@@ -321,12 +327,62 @@
   function highlight(text, matcher) { var m = matcher(text); if (!m) return esc(text); return esc(text.slice(0, m.index)) + '<mark>' + esc(m[0]) + '</mark>' + esc(text.slice(m.index + m[0].length)); }
   function closeList() { list.hidden = true; q.setAttribute('aria-expanded', 'false'); q.removeAttribute('aria-activedescendant'); sel = -1; }
   function mark() { $all('a', list).forEach(function (a, i) { a.setAttribute('aria-selected', i === sel ? 'true' : 'false'); if (i === sel) { a.scrollIntoView({ block: 'nearest' }); q.setAttribute('aria-activedescendant', a.id); } }); }
-  function explainPattern(p) {
-    if (!explain) return;
+  function explainHtml(p) {
     var parts = [], names = { '^': 'start of the text (or line with m)', '$': 'end of the text (or line with m)', '\\b': 'a word edge', '\\d': 'one digit', '\\w': 'one word character', '\\s': 'one space character', '.': 'any one character', '|': 'or', '*': 'repeat any number of times', '+': 'repeat one or more times', '?': 'optional' };
     var re = /\\[bdwsBDWS.]|\[[^\]]*\]|\((?:\?:)?|\)|[|^$.*+?]|\\.|[^\\[\]()|^$.*+?]+/g, m;
     while ((m = re.exec(p)) && parts.length < 30) { var t = m[0]; parts.push('<li><code>' + esc(t) + '</code> ' + esc(names[t] || (t.charAt(0) === '[' ? 'one character from the set' : t.charAt(0) === '(' ? 'start a group' : t === ')' ? 'end the group' : 'the text "' + t + '"')) + '</li>'); }
-    explain.innerHTML = parts.join('') || '<li>Type a pattern to see it explained, piece by piece.</li>';
+    return parts.join('') || '<li>Type a pattern to see it explained, piece by piece.</li>';
+  }
+  function explainPattern(p) { if (explain) explain.innerHTML = explainHtml(p); }
+
+  /* A small regex builder anchored under any filter field: a .* switch, tokens to insert, whether the pattern is valid,
+     and the pattern explained piece by piece. test(text) answers with the same rule the filter uses. */
+  function miniBuilder(input, host, onChange, key) {
+    var st = load('mt-site-minirx', {}), on = !!st[key];
+    var bar = el('div', { 'class': 'mini-rx' });
+    var sw = el('button', { type: 'button', 'class': 'chip-btn mono', 'aria-pressed': on ? 'true' : 'false', title: 'Regular expression (Alt+R)' }, '.*');
+    sw.appendChild(el('span', { 'class': 'sr-only' }, ' Regular expression mode'));
+    var open = el('button', { type: 'button', 'class': 'chip-btn', 'aria-expanded': 'false', title: 'Regex builder' }, 'Builder');
+    bar.appendChild(sw); bar.appendChild(open);
+    input.parentNode.insertBefore(bar, input.nextSibling);
+    var panel = el('div', { 'class': 'mini-rx-panel', role: 'group', 'aria-label': 'Regex builder' }); panel.hidden = true;
+    var toks = el('div', { 'class': 'tokens', 'aria-label': 'Insert a token' });
+    [['^', 'start'], ['$', 'end'], ['\\b', 'word edge'], ['\\d+', 'digits'], ['\\w+', 'word'], ['.*', 'anything'], ['(a|b)', 'either'], ['[abc]', 'one of']].forEach(function (t) {
+      var b = el('button', { type: 'button', 'class': 'tok mono', title: t[1] }, t[0]);
+      b.addEventListener('click', function () { var s = input.selectionStart != null ? input.selectionStart : input.value.length; input.value = input.value.slice(0, s) + t[0] + input.value.slice(s); if (!on) set(true); input.focus(); changed(); });
+      toks.appendChild(b);
+    });
+    var status = el('p', { 'class': 'builder-status', role: 'status', 'aria-live': 'polite' }), ol = el('ol', { 'class': 'explain mono' });
+    panel.appendChild(toks); panel.appendChild(status); panel.appendChild(ol);
+    host.appendChild(panel);
+    function compileIt() { try { return { rx: new RegExp(input.value, 'i') }; } catch (e) { return { error: e.message }; } }
+    function changed() {
+      ol.innerHTML = explainHtml(input.value);
+      var c = on && input.value ? compileIt() : null;
+      input.classList.toggle('invalid', !!(c && c.error));
+      status.textContent = !on ? 'Plain text: every word must appear. Switch .* on for a pattern.' : !input.value ? 'Type a pattern.' : c.error ? 'The pattern is not valid, so nothing is filtered: ' + c.error : 'The pattern is valid.';
+      status.classList.toggle('bad', !!(c && c.error));
+      onChange();
+    }
+    function set(v) { on = v; sw.setAttribute('aria-pressed', on ? 'true' : 'false'); st = load('mt-site-minirx', {}); st[key] = on; save('mt-site-minirx', st); }
+    sw.addEventListener('click', function () { set(!on); input.focus(); changed(); });
+    open.addEventListener('click', function () { panel.hidden = !panel.hidden; open.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true'); if (!panel.hidden) changed(); input.focus(); });
+    input.addEventListener('keydown', function (e) { if (e.altKey && (e.key || '').toLowerCase() === 'r') { e.preventDefault(); e.stopPropagation(); set(!on); changed(); } });
+    input.addEventListener('input', changed);
+    return {
+      test: function (text) {
+        var v = input.value.trim(); if (!v) return true;
+        if (on) { var c = compileIt(); return c.error ? true : c.rx.test(text); }
+        var t = text.toLowerCase(); return v.toLowerCase().split(/\s+/).every(function (w) { return t.indexOf(w) >= 0; });
+      },
+      mark: function (text) {
+        var v = input.value.trim(); if (!v) return esc(text);
+        var m = null; if (on) { var c = compileIt(); if (!c.error) m = c.rx.exec(text); } else { var w = v.toLowerCase().split(/\s+/)[0], k = text.toLowerCase().indexOf(w); if (k >= 0) m = { index: k, 0: text.substr(k, w.length) }; }
+        if (!m || !m[0]) return esc(text);
+        return esc(text.slice(0, m.index)) + '<mark>' + esc(m[0]) + '</mark>' + esc(text.slice(m.index + m[0].length));
+      },
+      changed: changed
+    };
   }
   function run() {
     var value = q.value.trim(); q.parentNode.classList.remove('invalid'); explainPattern(q.value);
@@ -434,12 +490,12 @@
   function initTabs() {
     var strip = $('#tabstrip'); if (!strip) return;
     var st = load('mt-site-tabs', { tabs: [], closed: [], collapsed: {} });
-    var title = document.body.getAttribute('data-title') || document.title, cat = document.body.getAttribute('data-cat') || '';
+    var title = document.body.getAttribute('data-title') || document.title, area = document.body.getAttribute('data-area') || '';
     if (!st.tabs.some(function (t) { return t.p === here; })) {
-      var at = -1; st.tabs.forEach(function (t, i) { if (cat && t.g === cat && !t.pin) at = i; });
-      if (at >= 0) st.tabs.splice(at + 1, 0, { p: here, t: title, g: cat }); else st.tabs.push({ p: here, t: title, g: cat });
+      var at = -1; st.tabs.forEach(function (t, i) { if (area && t.g === area && !t.pin) at = i; });
+      if (at >= 0) st.tabs.splice(at + 1, 0, { p: here, t: title, g: area }); else st.tabs.push({ p: here, t: title, g: area });
     }
-    st.tabs.forEach(function (t) { if (t.p === here) { t.t = title; t.g = cat; } });
+    st.tabs.forEach(function (t) { if (t.p === here) { t.t = title; t.g = area; } });
     if (st.tabs.length > 30) st.tabs = st.tabs.filter(function (t, i) { return t.pin || t.p === here || i >= st.tabs.length - 30; });
     save('mt-site-tabs', st);
     function persist() { save('mt-site-tabs', st); }
@@ -453,7 +509,7 @@
       ordered.forEach(function (t) {
         if (!t.pin && t.g && t.g !== lastG && ordered.filter(function (x) { return !x.pin && x.g === t.g; }).length > 1) {
           var gb = el('button', { type: 'button', 'class': 'tgroup', 'aria-expanded': st.collapsed[t.g] ? 'false' : 'true', style: '--g:' + (GROUP_COLOURS[t.g] || 'var(--sky)') });
-          gb.textContent = ((window.SITE_CATS || {})[t.g] || t.g) + ' · ' + ordered.filter(function (x) { return !x.pin && x.g === t.g; }).length;
+          gb.textContent = ((window.SITE_AREAS || {})[t.g] || t.g) + ' · ' + ordered.filter(function (x) { return !x.pin && x.g === t.g; }).length;
           gb.addEventListener('click', function () { st.collapsed[t.g] = !st.collapsed[t.g]; persist(); draw(); });
           strip.appendChild(gb);
         }
@@ -483,7 +539,7 @@
         function src() {
           if (w === 'open') return st.tabs.map(function (t) { return { t: t.t, u: root + t.p, c: t.pin ? 'pinned' : t.g }; });
           if (w === 'closed') return st.closed.map(function (t) { return { t: t.t, u: root + t.p, c: 'closed' }; });
-          if (w === 'groups') { var g = {}; st.tabs.forEach(function (t) { if (t.g) (g[t.g] = g[t.g] || []).push(t); }); return Object.keys(g).map(function (k) { return { t: ((window.SITE_CATS || {})[k] || k) + ' (' + g[k].length + ')', u: root + g[k][0].p, c: 'group' }; }); }
+          if (w === 'groups') { var g = {}; st.tabs.forEach(function (t) { if (t.g) (g[t.g] = g[t.g] || []).push(t); }); return Object.keys(g).map(function (k) { return { t: ((window.SITE_AREAS || {})[k] || k) + ' (' + g[k].length + ')', u: root + g[k][0].p, c: 'group' }; }); }
           return index.filter(function (e) { return e.u.indexOf('#') < 0; }).map(function (e) { return { t: e.t, u: root + e.u, c: e.c }; });
         }
         function d() { var v = fq.value, m = null; try { m = v ? new RegExp(v, 'i') : null; } catch (e) { m = null; } var l = src().filter(function (o) { return !v || (m ? m.test(o.t) : o.t.toLowerCase().indexOf(v.toLowerCase()) >= 0); }).slice(0, 60); fl.innerHTML = l.length ? l.map(function (o) { return '<li><a href="' + esc(o.u) + '">' + esc(o.t) + '<span class="mono">' + esc(o.c || '') + '</span></a></li>'; }).join('') : '<li class="hint">Nothing here.</li>'; }
@@ -513,17 +569,55 @@
     ];
     ACTIONS = ITEMS.map(function (it) { return { t: it[0], key: it[1], run: it[2] }; });
     function close() { menu.hidden = true; }
+    // Live settings at the top of the menu: each one changes the page at once and leaves the menu open.
+    // Left and Right step a choice; Space flips the switch.
+    var LIVE = [
+      { t: 'Theme', k: 'theme', opts: [['', 'System'], ['dark', 'Dark'], ['light', 'Light']] },
+      { t: 'Text size', k: 'text', opts: [['', '100 %'], ['large', '115 %'], ['xlarge', '130 %']] },
+      { t: 'Language', k: 'lang', opts: [['en', 'English'], ['yue', '廣東話'], ['both', 'Both']] },
+      { t: 'Reduce motion', k: 'motion', sw: true }
+    ];
+    function liveRow(it) {
+      var row = el('div', { 'class': 'ctx-live-row', 'data-t-name': it.t });
+      row.appendChild(el('span', { 'class': 'ctx-live-name' }, it.t));
+      if (it.sw) {
+        var b = el('button', { type: 'button', 'class': 'switch small', role: 'switch', 'aria-checked': prefs.motion === 'reduce' ? 'true' : 'false', 'aria-label': it.t });
+        b.appendChild(el('i'));
+        b.addEventListener('click', function (e) { e.stopPropagation(); setPref('motion', prefs.motion === 'reduce' ? '' : 'reduce'); b.setAttribute('aria-checked', prefs.motion === 'reduce' ? 'true' : 'false'); });
+        b.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); b.click(); } });
+        row.appendChild(b);
+      } else {
+        var seg = el('div', { 'class': 'seg small', role: 'radiogroup', 'aria-label': it.t });
+        it.opts.forEach(function (o, i) {
+          var cur = (prefs[it.k] || '') === o[0];
+          var b = el('button', { type: 'button', role: 'radio', 'aria-checked': cur ? 'true' : 'false', tabindex: cur ? '0' : '-1' }, o[1]);
+          if (o[0] === 'yue') b.setAttribute('lang', 'yue');
+          function pick() { setPref(it.k, o[0]); $all('button', seg).forEach(function (x, j) { var on = j === i; x.setAttribute('aria-checked', on ? 'true' : 'false'); x.setAttribute('tabindex', on ? '0' : '-1'); }); }
+          b.addEventListener('click', function (e) { e.stopPropagation(); pick(); });
+          b.addEventListener('keydown', function (e) {
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            e.preventDefault(); var all = $all('button', seg), j = (i + (e.key === 'ArrowRight' ? 1 : all.length - 1)) % all.length; all[j].click(); all[j].focus();
+          });
+          seg.appendChild(b);
+        });
+        row.appendChild(seg);
+      }
+      return row;
+    }
     function open(x, y) {
-      menu.innerHTML = '<div class="ctx-filter"><label class="sr-only" for="ctx-q">Filter actions</label><input id="ctx-q" placeholder="Filter actions" autocomplete="off"></div><div class="ctx-items"></div><p class="ctx-hint mono">Shift+right-click for the browser\'s own menu</p>';
-      var box = $('.ctx-items', menu), f = $('#ctx-q', menu), cur = 0;
+      menu.innerHTML = '<div class="ctx-filter"><label class="sr-only" for="ctx-q">Filter actions and settings</label><input id="ctx-q" placeholder="Filter actions and settings" autocomplete="off" spellcheck="false"></div><div class="ctx-live" role="group" aria-label="Quick settings"></div><div class="ctx-items"></div><p class="ctx-hint mono">Shift+right-click for the browser\'s own menu</p>';
+      var box = $('.ctx-items', menu), live = $('.ctx-live', menu), f = $('#ctx-q', menu), cur = 0;
+      var rx = miniBuilder(f, $('.ctx-filter', menu), function () { cur = 0; draw(); }, 'ctx');
+      LIVE.forEach(function (it) { live.appendChild(liveRow(it)); });
       function draw() {
-        var v = f.value.toLowerCase(), list = ITEMS.filter(function (it) { return it[0].toLowerCase().indexOf(v) >= 0; });
+        var list = ITEMS.filter(function (it) { return rx.test(it[0]); });
+        $all('.ctx-live-row', live).forEach(function (r) { r.hidden = !rx.test(r.getAttribute('data-t-name')); });
+        live.hidden = !$all('.ctx-live-row', live).some(function (r) { return !r.hidden; });
         box.innerHTML = ''; cur = Math.min(cur, list.length - 1);
-        list.forEach(function (it, i) { var b = el('button', { type: 'button', role: 'menuitem', 'class': 'ctx-item' + (i === cur ? ' on' : '') }); b.innerHTML = '<span>' + esc(it[0]).replace(new RegExp('(' + v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i'), v ? '<mark>$1</mark>' : '$1') + '</span><span class="kbd">' + esc(it[1]) + '</span>'; b.addEventListener('click', function () { close(); it[2](); }); box.appendChild(b); });
+        list.forEach(function (it, i) { var b = el('button', { type: 'button', role: 'menuitem', 'class': 'ctx-item' + (i === cur ? ' on' : '') }); b.innerHTML = '<span>' + rx.mark(it[0]) + '</span><span class="kbd">' + esc(it[1]) + '</span>'; b.addEventListener('click', function () { close(); it[2](); }); box.appendChild(b); });
         if (!list.length) box.appendChild(el('p', { 'class': 'hint' }, 'No action matches.'));
         menu._list = list; menu._cur = cur;
       }
-      f.addEventListener('input', function () { cur = 0; draw(); });
       f.addEventListener('keydown', function (e) { var l = menu._list || []; if (e.key === 'ArrowDown') { e.preventDefault(); cur = Math.min(cur + 1, l.length - 1); draw(); } else if (e.key === 'ArrowUp') { e.preventDefault(); cur = Math.max(cur - 1, 0); draw(); } else if (e.key === 'Enter' && l[cur]) { e.preventDefault(); close(); l[cur][2](); } else if (e.key === 'Escape') close(); });
       draw(); menu.hidden = false;
       var w = menu.offsetWidth, h = menu.offsetHeight, vw = innerWidth, vh = innerHeight;
@@ -532,7 +626,7 @@
     }
     document.addEventListener('contextmenu', function (e) { if (e.shiftKey || typing(e.target)) return; e.preventDefault(); ctxTarget = e.target.closest('section, .panel, .card, li, p, h1, h2, h3, figure, a, button, img') || e.target; open(e.clientX, e.clientY); });
     document.addEventListener('click', function (e) { if (!menu.hidden && !e.target.closest('#ctxmenu')) close(); });
-    document.addEventListener('scroll', close, { passive: true });
+    document.addEventListener('scroll', function (e) { if (!(e.target && e.target.closest && e.target.closest('#ctxmenu'))) close(); }, { passive: true, capture: true });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) { e.preventDefault(); ctxTarget = document.activeElement; var r = ctxTarget.getBoundingClientRect(); open(r.left + 8, r.bottom + 4); } });
     // the shortcuts themselves
     document.addEventListener('keydown', function (e) {
@@ -600,14 +694,173 @@
     show(); tick();
   }
 
-  /* ---------- dim sum surprise ---------- */
+  /* ---------- dim sum surprise: one home page visit in ten, and a switch that springs back on ---------- */
+  var dsTries = 0;
+  function dimSumNo() {
+    var sw = $('#ds'), said = $('#ds-said'); if (!sw) return;
+    dsTries++;
+    var lines = [['Nice try.', '諗都唔好諗。'], ['Still no.', '都係唔得。'], ['It really does stay on.', '真係會一直開住㗎。'], ['Have a har gow instead.', '不如食粒蝦餃啦。']][Math.min(dsTries, 4) - 1];
+    var line = tr(lines[0] + ' The dim sum surprise cannot be turned off.', lines[1] + '點心驚喜係關唔到㗎。');
+    function back() { sw.setAttribute('aria-checked', 'true'); sw.classList.remove('nope'); if (said) said.textContent = line; }
+    if (reduceMotion()) { back(); return; }   // no slide: it stays on and says so at once
+    sw.setAttribute('aria-checked', 'false'); sw.classList.add('nope');
+    setTimeout(back, 650);
+  }
   function initDimSum() {
-    var d = $('#dimsum'), list = window.SITE_DISHES || []; if (!d || !prefs.dimsum || !list.length) return;
-    var n = load('mt-site-visits', 0) + 1; save('mt-site-visits', n);
-    if (n % 4 !== 1) return;
+    var d = $('#dimsum'), list = window.SITE_DISHES || []; if (!d || !list.length) return;
+    if (Math.random() >= 0.1) return;   // drawn fresh on every visit, like the app's draw on every launch
     var dish = list[Math.floor(Math.random() * list.length)];
     d.innerHTML = '<span class="bao" aria-hidden="true"><i></i><i></i><b></b></span><span><span class="tag amber">Dim sum surprise</span><span class="ds-name">' + esc(dish[0]) + ' · <span lang="yue">' + esc(dish[1]) + '</span></span></span><button type="button" class="toast-x" aria-label="Put the dim sum away">×</button>';
     d.hidden = false; $('.toast-x', d).addEventListener('click', function () { d.classList.add('out'); setTimeout(function () { d.hidden = true; }, 300); });
+  }
+
+  /* ---------- Base64 and back, in this browser: every result is a download, checked by a SHA-256 round trip ---------- */
+  var B64_LIMIT = 64 * 1024 * 1024;
+  function bytesText(n) { return n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(1) + ' MB'; }
+  function hex(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); }
+  function sha256(bytes) { return crypto.subtle.digest('SHA-256', bytes).then(hex); }
+  function toBase64(bytes) { var out = [], CH = 3 * 8192; for (var i = 0; i < bytes.length; i += CH) out.push(btoa(String.fromCharCode.apply(null, bytes.subarray(i, i + CH)))); return out.join(''); }
+  function fromBase64(text) { var CH = 4 * 8192, parts = [], n = 0; for (var i = 0; i < text.length; i += CH) { var bin = atob(text.slice(i, i + CH)), a = new Uint8Array(bin.length); for (var j = 0; j < bin.length; j++) a[j] = bin.charCodeAt(j); parts.push(a); n += a.length; } var all = new Uint8Array(n), at = 0; parts.forEach(function (p) { all.set(p, at); at += p.length; }); return all; }
+  /* The same leniency as the app: a data: prefix, white space, the URL-safe alphabet and missing padding. Anything else
+     stops with the byte where the text stops being Base64. Returns { text } in standard form, or { error }. */
+  function cleanBase64(raw) {
+    var start = 0, m = /^\s*data:[^,]*;base64,/i.exec(raw); if (m) start = m[0].length;
+    var out = [], pad = 0, padAt = -1;
+    for (var i = start; i < raw.length; i++) {
+      var c = raw.charAt(i);
+      if (c === ' ' || c === '\n' || c === '\r' || c === '\t' || c === '\f') continue;
+      if (c === '=') { if (padAt < 0) padAt = i; pad++; if (pad > 2) return { error: 'Byte ' + (i + 1).toLocaleString('en-US') + ' is not Base64 text.' }; continue; }
+      if (padAt >= 0) return { error: 'There is Base64 text after the padding, at byte ' + (i + 1).toLocaleString('en-US') + '.' };
+      if (c === '-') c = '+'; else if (c === '_') c = '/';
+      if (!/[A-Za-z0-9+\/]/.test(c)) return { error: 'Byte ' + (i + 1).toLocaleString('en-US') + ' is not Base64 text.' };
+      out.push(c);
+    }
+    var t = out.join('');
+    if (t.length % 4 === 1) return { error: 'The text ends one character short of a whole byte, so it is not complete Base64.' };
+    while (t.length % 4) t += '=';
+    return { text: t };
+  }
+  function sniffExt(b) {
+    function at(sig) { for (var i = 0; i < sig.length; i++) if (b[i] !== sig[i]) return false; return b.length >= sig.length; }
+    if (at([0x25, 0x50, 0x44, 0x46])) return '.pdf'; if (at([0x89, 0x50, 0x4E, 0x47])) return '.png'; if (at([0xFF, 0xD8, 0xFF])) return '.jpg';
+    if (at([0x47, 0x49, 0x46, 0x38])) return '.gif'; if (at([0x50, 0x4B, 0x03, 0x04])) return '.zip'; return '';
+  }
+  function initBase64() {
+    var zone = $('#b64-zone'); if (!zone) return;
+    var input = $('#b64-files'), list = $('#b64-list'), status = $('#b64-status'), run = $('#b64-run'), fill = $('#b64-fill'), now = $('#b64-now'), cancelBtn = $('#b64-cancel');
+    var busy = false, cancelled = false;
+    if (!(window.crypto && crypto.subtle)) { status.textContent = 'This browser cannot work out SHA-256 here (it needs a secure https page), so nothing can be checked and nothing is converted.'; return; }
+    function say(t, bad) { status.textContent = t; status.classList.toggle('bad', !!bad); }
+    function result(name, how, blob, size, ok, why) {
+      var li = el('li', { 'class': ok ? 'ok' : 'bad' });
+      li.appendChild(el('span', { 'class': 'b64-name mono' }, name));
+      li.appendChild(el('span', { 'class': 'b64-how' }, how));
+      if (ok) {
+        var a = el('a', { 'class': 'btn tonal', download: name, href: URL.createObjectURL(blob) }, 'Download ' + bytesText(size));
+        li.appendChild(a);
+      } else li.appendChild(el('span', { 'class': 'b64-why' }, why));
+      list.insertBefore(li, list.firstChild);
+      return li;
+    }
+    function one(file) {
+      if (file.size > B64_LIMIT) return Promise.resolve(result(file.name, 'Too big for a browser', null, 0, false, 'This page takes files up to 64 MB; the app has no limit.'));
+      var decode = /\.base64\.txt$/i.test(file.name);
+      return (decode ? file.text() : file.arrayBuffer()).then(function (data) {
+        if (cancelled) throw new Error('cancelled');
+        if (!decode) {
+          var bytes = new Uint8Array(data), text = toBase64(bytes), name = file.name + '.base64.txt';
+          return Promise.all([sha256(bytes), sha256(fromBase64(text))]).then(function (h) {
+            if (h[0] !== h[1]) return result(name, 'Not written', null, 0, false, 'The SHA-256 round trip did not match, so nothing was made.');
+            notify('Wrote ' + name + ' as a download. SHA-256 round trip matches.');
+            return result(name, 'Base64 text, SHA-256 round trip matches', new Blob([text], { type: 'text/plain' }), text.length, true);
+          });
+        }
+        var c = cleanBase64(data);
+        if (c.error) return result(file.name, 'Not decoded', null, 0, false, c.error);
+        var out = fromBase64(c.text), base = file.name.replace(/\.base64\.txt$/i, '');
+        if (!/\.[A-Za-z0-9]{1,8}$/.test(base)) base += sniffExt(out);
+        return Promise.all([sha256(out), sha256(new TextEncoder().encode(toBase64(out))), sha256(new TextEncoder().encode(c.text))]).then(function (h) {
+          if (h[1] !== h[2]) return result(base, 'Not written', null, 0, false, 'The SHA-256 round trip did not match, so nothing was made.');
+          notify('Decoded ' + file.name + ' to ' + base + ' as a download. SHA-256 round trip matches.');
+          return result(base, 'The original file, SHA-256 ' + h[0].slice(0, 12) + '…', new Blob([out]), out.length, true);
+        });
+      });
+    }
+    function go(files) {
+      files = Array.prototype.slice.call(files || []).filter(function (f) { return f && f.size >= 0; });
+      if (!files.length) return;
+      if (busy) { say('A conversion is still running. Wait for it, or cancel it first.', true); return; }
+      busy = true; cancelled = false; run.hidden = false; var done = 0, made = 0;
+      (function next(i) {
+        if (i >= files.length || cancelled) {
+          busy = false; run.hidden = true;
+          say(cancelled ? 'Cancelled. Nothing more was made, and your files were only ever read.' : made + ' of ' + files.length + ' ready to download. Each one is checked; the downloads are yours to save.', cancelled);
+          return;
+        }
+        now.textContent = files[i].name; fill.style.width = (100 * i / files.length).toFixed(0) + '%';
+        one(files[i]).then(function (li) { if (li && li.className === 'ok') made++; }, function () { /* cancelled */ }).then(function () { done++; next(i + 1); });
+      })(0);
+    }
+    zone.addEventListener('click', function () { input.click(); });
+    zone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+    input.addEventListener('change', function () { go(input.files); input.value = ''; });
+    zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.classList.add('over'); });
+    zone.addEventListener('dragleave', function () { zone.classList.remove('over'); });
+    zone.addEventListener('drop', function (e) { e.preventDefault(); zone.classList.remove('over'); go(e.dataTransfer && e.dataTransfer.files); });
+    cancelBtn.addEventListener('click', function () { cancelled = true; });
+    say('Nothing yet. Drop a file, or a .base64.txt file to turn it back.');
+  }
+
+  /* ---------- filters and statistics that fold away, remembered per panel, with a badge when a hidden filter is on ---------- */
+  function fold(node, key, label, startOpen) {
+    if (!node || node.closest('details.fold')) return null;
+    var folds = load('mt-site-folds', {}), d = el('details', { 'class': 'fold' }), sum = el('summary');
+    sum.appendChild(el('span', { 'class': 'fold-label' }, label));
+    var badge = el('span', { 'class': 'fold-badge', 'aria-live': 'polite' }); sum.appendChild(badge);
+    d.appendChild(sum);
+    d.open = key in folds ? !!folds[key] : startOpen !== false;
+    node.parentNode.insertBefore(d, node); d.appendChild(node);
+    d.addEventListener('toggle', function () { var f = load('mt-site-folds', {}); f[key] = d.open; save('mt-site-folds', f); });
+    d.setBadge = function (t) { badge.textContent = t || ''; badge.hidden = !t; };
+    d.setBadge('');
+    return d;
+  }
+  function initFolds() {
+    var tf = $('#task-filter'); if (tf) { var fd = fold(tf, here + '|tasks', 'Filter tasks'); if (fd) tf.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) fd.setBadge(b.getAttribute('data-group') === 'all' ? '' : '1 filter on: ' + b.textContent.trim()); }); }
+    var gf = $('#gallery-filter'); if (gf) { var gd = fold(gf, here + '|gallery', 'Filter pictures'); if (gd) gf.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) gd.setBadge(!b.getAttribute('data-k') ? '' : '1 filter on: ' + b.textContent.trim()); }); }
+  }
+
+  /* ---------- resizable panels: edges and a corner grip, Alt+Shift with the arrows, kept per panel, Alt+Shift+Home resets ---------- */
+  function sizer(panel, key, minW, minH) {
+    if (!panel || panel._sized) return; panel._sized = true;
+    panel.classList.add('sizable');
+    var grip = el('button', { type: 'button', 'class': 'grip', 'aria-label': 'Resize. Alt+Shift with the arrow keys resizes, Alt+Shift+Home puts it back.', title: 'Drag to resize. Double-click to put it back.' });
+    panel.appendChild(grip);
+    function kept() { return load('mt-site-panels', {})[key]; }
+    function apply(w, h, keep) {
+      var maxW = Math.max(minW, innerWidth - 32), maxH = Math.max(minH, innerHeight - 120);
+      if (w != null) panel.style.width = Math.round(Math.max(minW, Math.min(maxW, w))) + 'px';
+      if (h != null) panel.style.height = Math.round(Math.max(minH, Math.min(maxH, h))) + 'px';
+      if (keep) { var all = load('mt-site-panels', {}); all[key] = [panel.offsetWidth, panel.offsetHeight]; save('mt-site-panels', all); }
+    }
+    function reset() { panel.style.width = ''; panel.style.height = ''; var all = load('mt-site-panels', {}); delete all[key]; save('mt-site-panels', all); notify('Panel back to its first size.'); }
+    var k = kept(); if (k) apply(k[0], k[1], false);
+    grip.addEventListener('pointerdown', function (e) {
+      e.preventDefault(); grip.setPointerCapture(e.pointerId);
+      var x0 = e.clientX, y0 = e.clientY, w0 = panel.offsetWidth, h0 = panel.offsetHeight;
+      function mv(ev) { apply(w0 + ev.clientX - x0, h0 + ev.clientY - y0, false); }
+      function up() { grip.removeEventListener('pointermove', mv); grip.removeEventListener('pointerup', up); apply(null, null, true); }
+      grip.addEventListener('pointermove', mv); grip.addEventListener('pointerup', up);
+    });
+    grip.addEventListener('dblclick', reset);
+    panel.addEventListener('keydown', function (e) {
+      if (!e.altKey || !e.shiftKey || e.ctrlKey) return;
+      var step = 24, w = panel.offsetWidth, h = panel.offsetHeight;
+      if (e.key === 'ArrowRight') apply(w + step, null, true); else if (e.key === 'ArrowLeft') apply(w - step, null, true);
+      else if (e.key === 'ArrowDown') apply(null, h + step, true); else if (e.key === 'ArrowUp') apply(null, h - step, true);
+      else if (e.key === 'Home') reset(); else return;
+      e.preventDefault(); e.stopPropagation();
+    });
   }
 
   /* ---------- notification centre and storage report on the settings page ---------- */
@@ -650,6 +903,9 @@
     var mk = function (key, label) { var b = el('button', { type: 'button', 'class': 'chip', 'aria-pressed': key === 'all' ? 'true' : 'false' }, label); b.addEventListener('click', function () { $all('button', bar).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); var n = 0; rows.forEach(function (r) { var on = key === 'all' || r.getAttribute('data-status') === key; r.classList.toggle('dim', !on); if (on) n++; }); note.textContent = n + ' of ' + rows.length + ' rows shown.'; }); bar.appendChild(b); };
     mk('all', 'All (' + rows.length + ')'); keys.sort().forEach(function (k) { mk(k, k + ' (' + words[k] + ')'); });
     var wrap = t.closest('.table-wrap'); wrap.parentNode.insertBefore(bar, wrap); wrap.parentNode.insertBefore(note, wrap);
+    var holder = el('div', { 'class': 'fold-body' }); bar.parentNode.insertBefore(holder, bar); holder.appendChild(bar); holder.appendChild(note);
+    var fd = fold(holder, here + '|status|' + $all('.table-wrap table').indexOf(t), 'Filter by status');
+    if (fd) bar.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) fd.setBadge(/^all /i.test(b.textContent) ? '' : '1 filter on: ' + b.textContent.replace(/\s*\(\d+\)$/, '')); });
   });
   var lb = $('#lightbox');
   if (lb) {
@@ -666,4 +922,6 @@
   /* ---------- start ---------- */
   applyPrefs(); initLanguage(); applyLooks(); renderPresets();
   initPalette(); initTabs(); initContextMenu(); initLocks(); initAuthenticator(); initMotion(); initPanels(); initDiagram(); initDimSum(); initSettingsReports();
+  initBase64(); initFolds();
+  sizer($('#builder'), 'builder', 320, 200); sizer($('#sheet .sheet'), 'sheet', 300, 160);
 })();

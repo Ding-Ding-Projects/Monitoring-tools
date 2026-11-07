@@ -1,6 +1,8 @@
 /* Monitoring Tools site, "Night shift monitor": the app's Mint seed roles on a deep ink ground, oversized display
    type over monospaced readouts, and motion with a cause. Colour roles come from tokens.css (generated). */
 :root{--a:var(--accent-pick,var(--accent));--r-xl:32px;--r-l:24px;--r-m:16px;--spring:cubic-bezier(.3,1.4,.5,1);--ease:cubic-bezier(.2,.8,.2,1);--wrap:1280px;--fs:1}
+/* the hidden attribute always wins over a component's own display, so nothing that is hidden shows by accident */
+[hidden]{display:none!important}
 html[data-text="large"]{--fs:1.15}html[data-text="xlarge"]{--fs:1.3}
 *,*::before,*::after{box-sizing:border-box}
 html{font-size:calc(16px * var(--fs));-webkit-text-size-adjust:100%;scroll-padding-top:150px}
@@ -203,6 +205,7 @@ a.panel:hover,.panel.reveal:hover{transform:translateY(-4px);box-shadow:inset 0 
 
 /* ---------- dim sum surprise ---------- */
 .dimsum{position:fixed;left:20px;bottom:20px;z-index:45;display:flex;align-items:center;gap:14px;padding:12px 12px 12px 16px;border-radius:24px;background:var(--s2);box-shadow:0 0 0 1px var(--line),0 24px 60px rgba(0,0,0,.5);animation:rise .6s var(--spring) 1.5s both;max-width:calc(100vw - 40px)}
+.dimsum[hidden]{display:none}
 .dimsum.out{opacity:0;transform:translateY(12px);transition:all .3s}
 .dimsum .tag{display:block;margin:0}
 .ds-name{font-size:.9rem;font-weight:500}
@@ -386,6 +389,7 @@ a.panel:hover,.panel.reveal:hover{transform:translateY(-4px);box-shadow:inset 0 
 .ring{width:36px;height:36px;transform:rotate(-90deg)}
 .ring circle{fill:none;stroke:var(--s3);stroke-width:4}.ring .arc{stroke:var(--a);stroke-linecap:round;stroke-dasharray:94;transition:stroke-dashoffset 1s linear}
 .auth .code{font-size:1.3rem;letter-spacing:.08em}
+.auth li.hint{display:block}
 .store{display:grid;grid-template-columns:1fr auto;gap:8px 16px;margin:0;font-size:.82rem}.store dd{margin:0;color:var(--on-2)}
 
 /* ---------- interactive diagram ---------- */
@@ -494,3 +498,68 @@ html[data-motion="reduce"] .scan{display:none}
   .dimsum{left:12px;right:12px;bottom:12px}
   .toasts{right:12px;left:12px;width:auto;bottom:12px}
 }
+
+/* ---------- the dim sum switch that springs back on ---------- */
+.set-lbl .ds-said{display:block;margin-top:4px;color:var(--amber);font-weight:500}
+.ds-said:empty{display:none}
+.switch.nope i{animation:nope .6s var(--ease)}
+@keyframes nope{40%{transform:translateX(-3px)}70%{transform:translateX(2px)}}
+
+/* ---------- a filter's own regex builder, and live settings in the right-click menu ---------- */
+.mini-rx{display:flex;gap:6px;margin-top:6px}
+.ctx-filter .mini-rx .chip-btn{min-height:30px;font-size:.74rem}
+.mini-rx-panel{margin-top:8px;padding:10px;border-radius:14px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);display:grid;gap:8px}
+.mini-rx-panel .tok{min-height:30px;font-size:.76rem}
+.mini-rx-panel .explain{margin:0;padding-left:28px;font-size:.74rem;color:var(--on-2);max-height:140px;overflow:auto}
+.ctx-filter input.invalid,.tf-q.invalid{box-shadow:inset 0 0 0 2px var(--error)}
+.ctx-live{display:grid;gap:4px;padding:6px 4px 8px;margin:0 2px 6px;border-bottom:1px solid var(--line)}
+.ctx-live[hidden]{display:none}
+.ctx-live-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px;padding:0 6px 0 10px;border-radius:12px}
+.ctx-live-row[hidden]{display:none}
+.ctx-live-row:focus-within{background:var(--s3)}
+.ctx-live-name{font:500 .85rem Roboto,sans-serif;color:var(--on)}
+.seg.small{padding:2px}.seg.small button{min-height:30px;min-width:0;padding:0 9px;font-size:.76rem}
+.seg button[aria-checked="true"]{background:var(--a);color:var(--on-accent)}
+.switch.small{width:44px;height:26px}.switch.small i{top:3px;left:3px;width:20px;height:20px}.switch.small[aria-checked="true"] i{left:21px}
+
+/* ---------- Base64 in the browser ---------- */
+.b64-panel{padding:32px;display:grid;gap:16px}
+.b64-zone{display:grid;justify-items:center;gap:8px;padding:44px 24px;border-radius:var(--r-l);border:2px dashed var(--line);background:color-mix(in srgb,var(--a) 6%,var(--s1));text-align:center;cursor:pointer;transition:border-color .25s,background .25s,border-radius .4s var(--spring)}
+.b64-zone:hover,.b64-zone.over,.b64-zone:focus-visible{border-color:var(--a);background:color-mix(in srgb,var(--a) 14%,var(--s1));border-radius:var(--r-xl)}
+.b64-mark{display:grid;place-items:center;width:56px;height:56px;border-radius:18px;background:var(--a);color:var(--on-accent)}
+.b64-zone-t{font:600 1.2rem Roboto,sans-serif;color:var(--on)}
+.b64-zone-h{max-width:52ch;color:var(--on-2);font-size:.9rem}
+.b64-run{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.b64-run[hidden]{display:none}
+.b64-bar{flex:1 1 200px;height:8px;border-radius:999px;background:var(--s3);overflow:hidden}
+.b64-bar i{display:block;height:100%;width:0;background:var(--a);border-radius:inherit;transition:width .3s var(--ease)}
+.b64-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.b64-list li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:center;padding:12px 16px;border-radius:var(--r-m);background:var(--s2)}
+.b64-list li.bad{box-shadow:inset 3px 0 0 var(--error)}
+.b64-list li.ok{box-shadow:inset 3px 0 0 var(--a)}
+.b64-name{overflow-wrap:anywhere;color:var(--on)}
+.b64-how,.b64-why{grid-column:1;font-size:.85rem;color:var(--on-2)}
+.b64-list li .btn{grid-column:2;grid-row:1 / span 2;min-height:40px}
+.b64-why{color:var(--error)}
+#b64-status.bad{color:var(--error)}
+
+/* ---------- filters and statistics that fold away ---------- */
+details.fold{margin:0 0 12px}
+details.fold>summary{display:inline-flex;align-items:center;gap:10px;min-height:40px;padding:0 14px;border-radius:999px;cursor:pointer;list-style:none;color:var(--on);font:600 .88rem Roboto,sans-serif;box-shadow:inset 0 0 0 1px var(--line);transition:background .25s}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::before{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .3s var(--spring)}
+details.fold[open]>summary::before{transform:rotate(45deg)}
+details.fold>summary:hover{background:var(--s2)}
+details.fold[open]>summary{margin-bottom:10px}
+.fold-badge{padding:2px 10px;border-radius:999px;background:var(--a);color:var(--on-accent);font-size:.76rem}
+.fold-badge[hidden]{display:none}
+
+/* ---------- resizable panels ---------- */
+.sizable{position:relative;resize:none}
+.builder.sizable{max-height:none}
+.grip{position:absolute;right:4px;bottom:4px;width:22px;height:22px;padding:0;border:0;border-radius:6px;background:transparent;cursor:nwse-resize;opacity:.55}
+.grip::before{content:"";position:absolute;inset:6px;border-right:2px solid var(--on-2);border-bottom:2px solid var(--on-2);border-radius:0 0 4px 0}
+.grip:hover,.grip:focus-visible{opacity:1;background:var(--s3)}
+
+/* ---------- an article with nothing written under its title ---------- */
+.empty-doc{color:var(--on-2);font-style:italic}
