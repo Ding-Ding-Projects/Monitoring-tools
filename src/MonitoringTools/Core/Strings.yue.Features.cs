@@ -88,6 +88,12 @@ namespace MonitoringTools.Core
             Add("expanded", "已展開"); Add("collapsed", "已收埋");
             Add("Fold the search bar", "收埋搜尋列");
             Add("Open the search bar", "打開搜尋列");
+
+            // resizable panels
+            Add("Drag to resize. Double-click to put it back.", "拖動嚟改大細。撳兩下還原。");
+            Add("Resize", "改大細");
+            Add("Alt with the arrow keys moves it, Alt+Shift with the arrow keys resizes it, and Alt+Shift+Home puts it back.", "Alt 加方向鍵移動佢，Alt+Shift 加方向鍵改大細，Alt+Shift+Home 還原。");
+            Add("Alt+Shift with the arrow keys resizes it, and Alt+Shift+Home puts it back.", "Alt+Shift 加方向鍵改大細，Alt+Shift+Home 還原。");
         }
 
         private static void AddFeaturesPatterns(List<(Regex, Func<Match, string>)> p)

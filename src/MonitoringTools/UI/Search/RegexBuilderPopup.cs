@@ -155,6 +155,7 @@ namespace MonitoringTools.UI.Search
                 Child = _scroll
             };
             AutomationProperties.SetName(_card, "Regex builder for " + field.Label);
+            PanelSizer.Attach(_card, _scroll, "regex-builder", 420, 240);
             _card.PreviewKeyDown += (o, e) => { if (e.Key == Key.Escape) { e.Handled = true; Close(); } };
 
             _popup = new Popup

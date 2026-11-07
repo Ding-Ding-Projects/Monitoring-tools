@@ -48,6 +48,8 @@ namespace MonitoringTools.Core
         public List<string> RecentFolders { get; set; } = new List<string>();
         /// <summary>Which folding panels are open (search bars, filter rows, statistics), by panel.</summary>
         public Dictionary<string, bool> Folds { get; set; } = new Dictionary<string, bool>();
+        /// <summary>The size (and, for a floating panel, the place) of each kind of resizable panel: width, height, x, y.</summary>
+        public Dictionary<string, double[]> PanelSizes { get; set; } = new Dictionary<string, double[]>();
 
         // DNS profiles
         public List<DnsProfile> DnsProfiles { get; set; } = DnsProfile.Defaults();

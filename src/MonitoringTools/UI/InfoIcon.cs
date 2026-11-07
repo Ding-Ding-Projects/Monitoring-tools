@@ -142,7 +142,7 @@ namespace MonitoringTools.UI
 
         private static Popup Panel(Button anchor, string target, string explanation, string current, string defaultText, Func<FrameworkElement> sample)
         {
-            var sp = new StackPanel { MaxWidth = 340 };
+            var sp = new StackPanel();
             var head = new Grid();
             head.ColumnDefinitions.Add(new ColumnDefinition()); head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             head.Children.Add(new TextBlock { Text = target, Style = Ui.Style("T.Title"), FontSize = 14, TextWrapping = TextWrapping.Wrap });
@@ -169,7 +169,10 @@ namespace MonitoringTools.UI
                 Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"]
             };
             AutomationProperties.SetName(card, "About " + target);
+            var scroller = new ScrollViewer { Content = sp, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, MaxHeight = 420 };
+            card.Child = scroller;
             var pop = new Popup { Child = card, StaysOpen = false, AllowsTransparency = true, PlacementTarget = anchor, Placement = PlacementMode.Bottom, Focusable = true };
+            PanelSizer.Attach(card, scroller, "explanation", 260, 120, defaultWidth: 372);
             close.Click += (s, e) => pop.IsOpen = false;
             pop.Opened += (s, e) => close.Focus();
             card.PreviewKeyDown += (s, e) => { if (e.Key == Key.Escape) { e.Handled = true; pop.IsOpen = false; } };
