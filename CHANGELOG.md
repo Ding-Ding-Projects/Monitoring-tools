@@ -6,8 +6,16 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.66, up to `8472d69`.
+Commits after v1.0.67, up to `2247f94`.
 
+- Refresh screenshots for v1.0.67 ([`2247f94`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/2247f94a437cd83e61da483d0f534366b2dc087c))
+
+## 1.0.67 (2026-11-07)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.67)
+
+- Open every page by default, say cut or copied, keep updates quiet ([`4ec291b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/4ec291b9d0093ee6e9605e3ab5197766725666b7))
+- Record v1.0.66 figures and changelog ([`c987416`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c9874165a8afe5753b27ae794a2fc53cee8f610c))
 - Refresh screenshots for v1.0.66 ([`8472d69`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8472d698c5ef1a7b05ac078a15fe79c8cb34ffe5))
 
 ## 1.0.66 (2026-11-06)
