@@ -62,6 +62,11 @@ namespace MonitoringTools.Core
             Add("Reverted to the text that was copied.", "已經還原做當初複製嘅文字。");
             Add("The text was not kept, because the protected history is locked.", "受保護嘅紀錄鎖住咗，所以冇保留文字。");
             Add("1 unsaved change.", "1 項未儲存嘅改動。");
+
+            // Markdown renderer
+            Add("No notes were provided.", "冇提供任何說明。");
+            Add("Formatted text", "格式化文字");
+            Add("Copied text, formatted", "複製咗嘅文字（已格式化）");
         }
 
         private static void AddFeaturesPatterns(List<(Regex, Func<Match, string>)> p)
@@ -85,6 +90,8 @@ namespace MonitoringTools.Core
             Add(@"^Undid (.+): moved it to the Recycle Bin$", "復原咗 $1：已經放入資源回收筒");
             Add(@"^SHA-256 round trip matches\.$", "SHA-256 來回核對一致。");
             Add(@"^(\d+) unsaved changes\.$", "$1 項未儲存嘅改動。");
+            Add(@"^Release notes for (.+)$", "$1 嘅發佈說明");
+            Add(@"^Preview of (.+)$", "$1 嘅預覽");
         }
     }
 }

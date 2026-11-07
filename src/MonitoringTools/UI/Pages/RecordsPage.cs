@@ -429,9 +429,10 @@ namespace MonitoringTools.UI
                     if (running) head.Children.Add(new TextBlock { Text = "  ·  RUNNING NOW", Foreground = Ui.Res("B.Mint"), FontSize = 11, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
                     inner.Children.Add(head);
                     if (r.Published != null) inner.Children.Add(Ui.Mono(r.Published.Value.ToString("yyyy-MM-dd HH:mm"), Ui.Res("B.TextMute")));
+                    // the one renderer: relative links in the notes point into the repository, and empty notes say so
                     inner.Children.Add(string.IsNullOrWhiteSpace(r.Body)
-                        ? new TextBlock { Text = "No notes were written for this release.", Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextMute"), Margin = new Thickness(0, 8, 0, 0) }
-                        : (UIElement)LiteralText(new ContentControl { Content = Markdown.Render(r.Body, 40), Margin = new Thickness(0, 8, 0, 0) }));
+                        ? (UIElement)new ContentControl { Content = Markdown.Render(r.Body, 40, region: "Release notes for " + r.Tag), Margin = new Thickness(0, 8, 0, 0) }
+                        : LiteralText(new ContentControl { Content = Markdown.Render(r.Body, 40, "https://github.com/Ding-Ding-Projects/Monitoring-tools/blob/main/", "Release notes for " + r.Tag), Margin = new Thickness(0, 8, 0, 0) }));
                     var card = Card(inner, running ? Ui.C("C.Mint").ToString() : null, 14);
                     card.Background = Ui.Res("B.Raised");
                     SearchScope.SetItem(card, "release " + r.Tag);

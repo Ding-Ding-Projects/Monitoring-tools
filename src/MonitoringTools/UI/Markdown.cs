@@ -9,18 +9,41 @@ using System.Windows.Media;
 namespace MonitoringTools.UI
 {
     /// <summary>
-    /// A small Markdown renderer for toast previews: headings, bold, italic, strike, inline code,
-    /// fenced code, bullet and numbered lists, task lists, quotes, links and bare URLs.
+    /// The one Markdown renderer for toasts, release notes and file previews: headings, bold, italic, strike, inline
+    /// code, fenced code, bullet and numbered lists, task lists, quotes, links and bare URLs, and :shortcode: emoji.
+    /// It only builds text elements and runs nothing; a link opens through the shell only for web and mail addresses,
+    /// and a relative link is resolved against the base address the caller gives, such as a repository on GitHub.
+    /// The result is a named region for screen readers, and an empty source says so instead of showing nothing.
     /// </summary>
     public static class Markdown
     {
+        /// <summary>The base address relative links resolve against while a render runs.</summary>
+        [ThreadStatic] private static Uri _base;
         private static readonly Regex Inline = new Regex(
             @"(?<code>`[^`]+`)|(?<bold>\*\*[^*]+\*\*|__[^_]+__)|(?<strike>~~[^~]+~~)|(?<ital>\*[^*\s][^*]*\*|_[^_\s][^_]*_)|(?<link>\[[^\]]+\]\([^)\s]+\))|(?<url>https?://[^\s)]+)",
             RegexOptions.Compiled);
 
-        public static StackPanel Render(string md, int maxLines = 14)
+        /// <param name="baseUri">Where relative links point, such as https://github.com/owner/repo/blob/main/. Null leaves them as plain text.</param>
+        /// <param name="region">What screen readers call this block, such as "Release notes".</param>
+        public static StackPanel Render(string md, int maxLines = 14, string baseUri = null, string region = null)
         {
             var root = new StackPanel();
+            System.Windows.Automation.AutomationProperties.SetName(root, region ?? "Formatted text");
+            System.Windows.Automation.AutomationProperties.SetItemType(root, "region");
+            if (string.IsNullOrWhiteSpace(md))
+            {
+                var none = Para("No notes were provided.", Ui.Res("B.TextMute"));
+                none.FontStyle = FontStyles.Italic;
+                root.Children.Add(none);
+                return root;
+            }
+            _base = baseUri != null && Uri.TryCreate(baseUri.EndsWith("/") ? baseUri : baseUri + "/", UriKind.Absolute, out var b) && (b.Scheme == "https" || b.Scheme == "http") ? b : null;
+            try { return RenderLines(root, md, maxLines); }
+            finally { _base = null; }
+        }
+
+        private static StackPanel RenderLines(StackPanel root, string md, int maxLines)
+        {
             var lines = md.Replace("\r\n", "\n").Split('\n');
             bool inCode = false;
             TextBlock code = null;
@@ -113,26 +136,31 @@ namespace MonitoringTools.UI
             int last = 0;
             foreach (Match m in Inline.Matches(text))
             {
-                if (m.Index > last) tb.Inlines.Add(new Run(text.Substring(last, m.Index - last)));
+                if (m.Index > last) tb.Inlines.Add(new Run(Core.MarkdownText.WithEmoji(text.Substring(last, m.Index - last))));
                 var v = m.Value;
                 if (m.Groups["code"].Success)
                 {
                     // a run, not a box, so a long command wraps with the sentence instead of running out of the page
                     tb.Inlines.Add(new Run("\u2009" + v.Trim('`') + "\u2009") { FontFamily = Ui.Font("F.Mono"), FontSize = 12, Foreground = Ui.Res("B.Text"), Background = Ui.Res("B.Raised") });
                 }
-                else if (m.Groups["bold"].Success) tb.Inlines.Add(new Bold(new Run(v.Substring(2, v.Length - 4))) { Foreground = Ui.Res("B.Text") });
-                else if (m.Groups["strike"].Success) tb.Inlines.Add(new Run(v.Substring(2, v.Length - 4)) { TextDecorations = TextDecorations.Strikethrough });
-                else if (m.Groups["ital"].Success) tb.Inlines.Add(new Italic(new Run(v.Substring(1, v.Length - 2))));
+                else if (m.Groups["bold"].Success) tb.Inlines.Add(new Bold(new Run(Core.MarkdownText.WithEmoji(v.Substring(2, v.Length - 4)))) { Foreground = Ui.Res("B.Text") });
+                else if (m.Groups["strike"].Success) tb.Inlines.Add(new Run(Core.MarkdownText.WithEmoji(v.Substring(2, v.Length - 4))) { TextDecorations = TextDecorations.Strikethrough });
+                else if (m.Groups["ital"].Success) tb.Inlines.Add(new Italic(new Run(Core.MarkdownText.WithEmoji(v.Substring(1, v.Length - 2)))));
                 else if (m.Groups["link"].Success)
                 {
                     var lm = Regex.Match(v, @"^\[([^\]]+)\]\(([^)\s]+)\)$");
-                    tb.Inlines.Add(MakeLink(lm.Groups[1].Value, lm.Groups[2].Value));
+                    var target = Resolve(lm.Groups[2].Value);
+                    if (target != null) tb.Inlines.Add(MakeLink(Core.MarkdownText.WithEmoji(lm.Groups[1].Value), target));
+                    else tb.Inlines.Add(new Run(Core.MarkdownText.WithEmoji(lm.Groups[1].Value)));
                 }
                 else if (m.Groups["url"].Success) tb.Inlines.Add(MakeLink(v, v));
                 last = m.Index + m.Length;
             }
-            if (last < text.Length) tb.Inlines.Add(new Run(text.Substring(last)));
+            if (last < text.Length) tb.Inlines.Add(new Run(Core.MarkdownText.WithEmoji(text.Substring(last))));
         }
+
+        /// <summary>An absolute link as it is, a relative one against the base address of this render, or null.</summary>
+        public static string Resolve(string href) => Core.MarkdownText.Resolve(href, _base);
 
         public static Hyperlink MakeLink(string label, string url)
         {

@@ -73,7 +73,7 @@ namespace MonitoringTools.UI
             UIElement view;
             if ((ext == ".md" || ext == ".markdown") && Core.Settings.Current.RenderMarkdown)
             {
-                view = Markdown.Render(head, 10);
+                view = Markdown.Render(head, 10, region: "Preview of " + System.IO.Path.GetFileName(path));
             }
             else if (ext == ".csv")
             {

@@ -33,6 +33,7 @@ namespace SmartTests
             Defaults();
             AppStartChecks();
             Base64Checks();
+            MarkdownChecks();
             Console.WriteLine($"{passed} passed, {failed} failed");
             return failed == 0 ? 0 : 1;
         }

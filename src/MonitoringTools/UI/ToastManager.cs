@@ -115,7 +115,7 @@ namespace MonitoringTools.UI
                 case ClipKind.Json: Json(w, item); break;
                 case ClipKind.Markdown:
                     w.SetHeader(Icons.Text, "Markdown", Counts(item.Text));
-                    w.SetBody(Settings.Current.RenderMarkdown ? (UIElement)Literal(Markdown.Render(item.Text)) : PlainText(item.Text));
+                    w.SetBody(Settings.Current.RenderMarkdown ? (UIElement)Literal(Markdown.Render(item.Text, region: "Copied text, formatted")) : PlainText(item.Text));
                     break;
                 case ClipKind.Files: Files(w, item); break;
                 case ClipKind.Image: Bitmap(w, item); break;
