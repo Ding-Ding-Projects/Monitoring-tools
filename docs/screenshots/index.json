@@ -48,6 +48,18 @@
     "height": 806
   },
   {
+    "file": "toast-cut-files.png",
+    "caption": "Files that were cut: pasting moves them",
+    "width": 872,
+    "height": 750
+  },
+  {
+    "file": "toast-cut-text.png",
+    "caption": "Text that was cut with Ctrl\u002BX",
+    "width": 872,
+    "height": 622
+  },
+  {
     "file": "toast-bitmap.png",
     "caption": "Screenshot on the clipboard",
     "width": 872,
@@ -296,8 +308,8 @@
   {
     "file": "welcome.png",
     "caption": "Welcome tour",
-    "width": 2080,
-    "height": 1576
+    "width": 2048,
+    "height": 1440
   },
   {
     "file": "control-overview.png",
