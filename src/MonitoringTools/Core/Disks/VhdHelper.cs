@@ -133,10 +133,84 @@ namespace MonitoringTools.Core.Disks
                     return 0;
                 }
                 if (cmd == "release") { Status("ready", "Left mounted", mount: TestMountPath ?? VhdEngine.MountRoot(r)); return 0; }
+                if (cmd != null && cmd.StartsWith("grow ") && long.TryParse(cmd.Substring(5), out var growMb))
+                {
+                    try { File.Delete(r.CommandFile); } catch { }
+                    var g = GrowMounted(r, growMb, log);
+                    if (g != null) Status("grow-failed", "The disk could not grow.", g, 0, TestMountPath ?? VhdEngine.MountRoot(r));
+                    else { r.SizeMb = growMb; Status("grown", $"Grew to {VhdEngine.Bytes(growMb * 1048576L)}", mount: TestMountPath ?? VhdEngine.MountRoot(r)); }
+                    continue;
+                }
                 if (!ParentAlive(r.ParentPid)) return 0;
                 Thread.Sleep(250);
             }
             return 0;
+        }
+
+        /// <summary>Tests replace the growth so no real disk is touched; it returns null when it grew, or why it could not.</summary>
+        public static Func<VhdRequest, long, string> TestGrow;
+
+        /// <summary>
+        /// Grows the mounted disk for a Quick pack that ran short: detach, grow the file, attach, extend the volume to the new
+        /// end and put it back at the same drive letter or folder. The host drive must have the room; the size stays within
+        /// the format's limit.
+        /// </summary>
+        private static string GrowMounted(VhdRequest r, long newMb, StringBuilder log)
+        {
+            if (TestGrow != null) return TestGrow(r, newMb);
+            if (newMb <= r.SizeMb) return "The new size is not bigger than the disk.";
+            if (r.Vhdx ? newMb > VhdEngine.MaxVhdxMb : newMb > VhdEngine.MaxVhdMb) return "The disk is at the largest size its format allows.";
+            try
+            {
+                var drive = new DriveInfo(Path.GetPathRoot(r.File));
+                long need = (newMb - r.SizeMb) * 1048576L;
+                if (!r.Fixed) need = Math.Min(need, 64L * 1048576);   // a dynamic disk grows its file only as it fills
+                if (drive.AvailableFreeSpace < need) return $"{drive.Name.TrimEnd('\\')} is {VhdEngine.Bytes(need - drive.AvailableFreeSpace)} short of the room the disk needs to grow.";
+            }
+            catch { }
+            try
+            {
+                VirtDisk.Detach(r.File);
+                log.AppendLine("> detached to grow");
+                VirtDisk.Grow(r.File, (ulong)newMb * 1048576UL);
+                log.AppendLine("> grew the file to " + newMb + " MB");
+                VirtDisk.Attach(r.File, readOnly: false, noDriveLetters: true);
+                log.AppendLine("> attached again");
+            }
+            catch (Exception ex) { return ex.Message; }
+            string file = r.File.Replace("'", "''");
+            string where = r.MountMode == "folder"
+                ? $"Add-PartitionAccessPath -DiskNumber $d.Number -PartitionNumber $p.PartitionNumber -AccessPath '{r.Folder.Replace("'", "''")}'"
+                : $"if ($p.DriveLetter -ne '{r.Letter.ToUpperInvariant()}') {{ Set-Partition -DiskNumber $d.Number -PartitionNumber $p.PartitionNumber -NewDriveLetter {r.Letter.ToUpperInvariant()} }}";
+            var ps = string.Join("\n", new[]
+            {
+                "$ErrorActionPreference = 'Stop'",
+                $"$d = Get-DiskImage -ImagePath '{file}' | Get-Disk",
+                "$p = Get-Partition -DiskNumber $d.Number | Where-Object { $_.Type -ne 'Reserved' } | Sort-Object Size -Descending | Select-Object -First 1",
+                "$max = (Get-PartitionSupportedSize -DiskNumber $d.Number -PartitionNumber $p.PartitionNumber).SizeMax",
+                "if ($max -gt $p.Size) { Resize-Partition -DiskNumber $d.Number -PartitionNumber $p.PartitionNumber -Size $max }",
+                "$p = Get-Partition -DiskNumber $d.Number -PartitionNumber $p.PartitionNumber",
+                where,
+            });
+            var (code, output) = PowerShell(ps);
+            log.AppendLine("> extend the volume").AppendLine(output.Trim());
+            if (code != 0) return "The disk grew, but its volume could not be extended: " + FirstLines(output);
+            var root = VhdEngine.MountRoot(r);
+            var until = DateTime.UtcNow.AddSeconds(15);
+            while (!MountReady(root) && DateTime.UtcNow < until) Thread.Sleep(250);
+            return MountReady(root) ? null : "The disk grew, but its volume did not come back at " + root + ".";
+        }
+
+        /// <summary>Runs a short PowerShell script with the Storage commands, as this elevated helper.</summary>
+        public static (int Code, string Output) PowerShell(string script)
+        {
+            var psi = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe")) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            psi.ArgumentList.Add("-NoProfile"); psi.ArgumentList.Add("-NonInteractive"); psi.ArgumentList.Add("-ExecutionPolicy"); psi.ArgumentList.Add("Bypass");
+            psi.ArgumentList.Add("-EncodedCommand"); psi.ArgumentList.Add(Convert.ToBase64String(Encoding.Unicode.GetBytes(script)));
+            using var p = Process.Start(psi);
+            var o = p.StandardOutput.ReadToEndAsync(); var e = p.StandardError.ReadToEndAsync();
+            if (!p.WaitForExit(10 * 60 * 1000)) { try { p.Kill(true); } catch { } return (-1, "PowerShell did not finish in 10 minutes."); }
+            return (p.ExitCode, o.Result + e.Result);
         }
 
         private static bool ParentAlive(int pid)

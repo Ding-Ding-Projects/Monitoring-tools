@@ -34,6 +34,8 @@ namespace SmartTests
             AppStartChecks();
             Base64Checks();
             MarkdownChecks();
+            QuickPackChecks();
+            DiskJobChecks();
             Console.WriteLine($"{passed} passed, {failed} failed");
             return failed == 0 ? 0 : 1;
         }

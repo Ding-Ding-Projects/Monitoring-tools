@@ -9,6 +9,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\src\MonitoringTools\Clip\Smart\*.cs" Link="Smart\%(Filename)%(Extension)" />
-    <Compile Include="..\..\src\MonitoringTools\Core\TabDefaults.cs;..\..\src\MonitoringTools\Core\InstallNote.cs;..\..\src\MonitoringTools\Core\Base64Files.cs;..\..\src\MonitoringTools\Core\MarkdownText.cs" Link="Core\%(Filename)%(Extension)" />
+    <Compile Include="..\..\src\MonitoringTools\Core\TabDefaults.cs;..\..\src\MonitoringTools\Core\InstallNote.cs;..\..\src\MonitoringTools\Core\Base64Files.cs;..\..\src\MonitoringTools\Core\MarkdownText.cs;..\..\src\MonitoringTools\Core\Disks\QuickPackPlan.cs;..\..\src\MonitoringTools\Core\Disks\DiskJobRules.cs" Link="Core\%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

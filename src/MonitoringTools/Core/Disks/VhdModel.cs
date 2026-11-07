@@ -46,11 +46,11 @@ namespace MonitoringTools.Core.Disks
         public const long MinMb = 32;
         public const long Fat32FileLimit = 4294967295L;
 
-        public static readonly string[] FileSystems = { "NTFS", "exFAT", "FAT32" };
+        public static readonly string[] FileSystems = { "NTFS", "exFAT", "FAT32", "ReFS" };
 
         public static long ToMb(double value, string unit) => unit switch { "TB" => (long)(value * 1024 * 1024), "GB" => (long)(value * 1024), _ => (long)value };
 
-        public static int MaxLabel(string fs) => fs == "NTFS" ? 32 : 11;
+        public static int MaxLabel(string fs) => fs == "NTFS" || fs == "ReFS" ? 32 : 11;
 
         private static readonly Regex LabelChars = new Regex(@"^[\p{L}\p{N} _.()-]*$", RegexOptions.Compiled);
         private static readonly Regex SidChars = new Regex(@"^S-1-[0-9]+(-[0-9]+)*$", RegexOptions.Compiled);
@@ -116,7 +116,7 @@ namespace MonitoringTools.Core.Disks
             if (string.IsNullOrWhiteSpace(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return "Give the disk a name without \\ / : * ? \" < > or |.";
             var ext = Path.GetExtension(r.File);
             if (!ext.Equals(".vhd", StringComparison.OrdinalIgnoreCase) && !ext.Equals(".vhdx", StringComparison.OrdinalIgnoreCase)) return "The disk file must end in .vhd or .vhdx.";
-            if (!FileSystems.Contains(r.FileSystem)) return "The file system must be NTFS, exFAT or FAT32.";
+            if (!FileSystems.Contains(r.FileSystem)) return "The file system must be NTFS, exFAT, FAT32 or ReFS.";
             var unreadable = ScriptUnreadable(r.File) ?? ScriptUnreadable(r.Label) ?? (r.MountMode == "folder" ? ScriptUnreadable(r.Folder) : null);
             if (unreadable != null) return $"Windows disk tools cannot read the character {unreadable} on this computer. Use a name, folder and label without it.";
             if (r.SizeMb < MinMb) return $"The disk must be at least {MinMb} MB.";
