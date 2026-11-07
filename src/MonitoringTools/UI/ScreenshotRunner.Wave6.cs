@@ -55,9 +55,13 @@ namespace MonitoringTools.UI
             var form = SelfTest.Descend<GuidedForm>(cc).FirstOrDefault();
             if (form != null)
             {
+                SelfTest.Press(form, "Next");   // the look step comes first: keep the look that is on
                 SelfTest.Press(form, "Dark"); SelfTest.Press(form, "Next");
                 SelfTest.Press(form, "Violet"); SelfTest.Press(form, "Next");
-                SelfTest.Press(form, "Compact"); Drive.Type(SelfTest.Descend<NumberField>(form).First(f => f.Label == "Text size").Box, "120", true); SelfTest.Press(form, "Next");
+                SelfTest.Press(form, "Compact");
+                var size = SelfTest.Descend<NumberField>(form).FirstOrDefault(f => f.Label == "Text size")
+                    ?? throw new InvalidOperationException("Make a look: the contrast and density step has no Text size field; the steps changed, so this capture needs updating.");
+                Drive.Type(size.Box, "120", true); SelfTest.Press(form, "Next");
                 await Task.Delay(300);
                 form.BringIntoView();
             }
