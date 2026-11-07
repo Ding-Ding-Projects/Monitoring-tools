@@ -130,7 +130,17 @@ namespace MonitoringTools.UI.Tabs
             {
                 var label = new TextBlock { Text = info.Label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 14, FontFamily = Ui.Font("F.Body"), FontWeight = info.Active ? FontWeights.SemiBold : FontWeights.Medium, IsHitTestVisible = false };
                 label.SetResourceReference(TextBlock.ForegroundProperty, fg);
-                if (vertical) { Core.Language.SetStacked(label, true); label.Margin = new Thickness(0, 4, 0, 4); }
+                if (vertical)
+                {
+                    // a bilingual page name in the rail shows its Cantonese on a second line, so neither language is cut off
+                    label.Margin = new Thickness(0, 4, 0, 4);
+                    int dot = info.Label.IndexOf(" · ", StringComparison.Ordinal);
+                    if (Core.Language.Mode == Core.LanguageMode.Bilingual && dot > 0 && Core.Language.HasCjk(info.Label.Substring(dot + 3)))
+                    {
+                        label.Text = info.Label.Substring(0, dot) + "\n" + info.Label.Substring(dot + 3);
+                        Core.Language.SetLiteral(label, true);   // already in its final wording; the strip is rebuilt when the language changes
+                    }
+                }
                 if (info.Active && look.Nav == "sticker") label.FontWeight = FontWeights.Bold;
                 LabelBlock = label;
                 Grid.SetColumn(label, c0 + 1);

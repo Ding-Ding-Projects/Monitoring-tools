@@ -396,25 +396,6 @@ namespace MonitoringTools.Core
         public static void SetLiteral(DependencyObject d, bool value) => d.SetValue(LiteralProperty, value);
         public static bool GetLiteral(DependencyObject d) => (bool)d.GetValue(LiteralProperty);
 
-        /// <summary>
-        /// Marks a short label in a narrow place, such as the side rail, that shows its Cantonese on a second line in
-        /// bilingual mode instead of after a dot on the same line, so neither language is cut off.
-        /// </summary>
-        public static readonly DependencyProperty StackedProperty =
-            DependencyProperty.RegisterAttached("Stacked", typeof(bool), typeof(Language), new PropertyMetadata(false));
-        public static void SetStacked(DependencyObject d, bool value) => d.SetValue(StackedProperty, value);
-        public static bool GetStacked(DependencyObject d) => (bool)d.GetValue(StackedProperty);
-
-        /// <summary>The text in the current language mode, with a bilingual short label split over two lines.</summary>
-        public static string StackedT(string english)
-        {
-            var t = T(english);
-            if (Mode != LanguageMode.Bilingual || string.IsNullOrEmpty(t)) return t;
-            var core = english.Trim();
-            int at = t.IndexOf(core + " · ", StringComparison.Ordinal);
-            return at < 0 ? t : t.Substring(0, at + core.Length) + "\n" + t.Substring(at + core.Length + 3);
-        }
-
         internal static string OriginalText(Run r) => (string)r.GetValue(EnProp);
         internal static string OriginalTip(FrameworkElement fe) => (string)fe.GetValue(TipEnProp);
         internal static string OriginalName(DependencyObject d) => (string)d.GetValue(NameEnProp);
@@ -450,7 +431,7 @@ namespace MonitoringTools.Core
                     en = run.GetValue(EnProp) == null && theirs != null ? theirs : cur;
                 }
                 if (string.IsNullOrWhiteSpace(en)) continue;
-                var baseNext = GetStacked(tb) ? StackedT(en) : T(en);
+                var baseNext = T(en);
                 if (WordingOriginal != null) run.SetValue(WordingOriginal, baseNext);
                 var next = WordingOut(baseNext);
                 run.SetValue(EnProp, en);
