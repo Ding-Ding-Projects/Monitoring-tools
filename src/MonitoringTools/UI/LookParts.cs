@@ -139,7 +139,9 @@ namespace MonitoringTools.UI
             // marked before it gets its text: the language layer can reach a new text block before the preview is in a window
             Core.Language.SetLiteral(figure, true);
             figure.Text = "16 ms";
-            cg.Children.Add(numBg == null ? (UIElement)figure : LookShape.Keep(new Border { Background = B(numBg), CornerRadius = new CornerRadius(3), Padding = new Thickness(5, 1, 5, 2), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top, Child = figure }));
+            var shown = numBg == null ? (UIElement)figure : LookShape.Keep(new Border { Background = B(numBg), CornerRadius = new CornerRadius(3), Padding = new Thickness(5, 1, 5, 2), Child = figure });
+            // a drawing, so on a narrow card at a large text size the figure scales down rather than losing its edges
+            cg.Children.Add(new Viewbox { Child = shown, Stretch = Stretch.Uniform, StretchDirection = StretchDirection.DownOnly, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top });
             cg.Children.Add(LookShape.Keep(new Border { Width = 36, Height = 13, CornerRadius = new CornerRadius(rBtn), Background = B(btn), BorderBrush = btnEdge == null ? null : B(btnEdge), BorderThickness = new Thickness(btnEdge == null ? 0 : 1.2), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom }));
             c.Child = cg;
             main.Children.Add(c);

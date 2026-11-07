@@ -43,7 +43,9 @@ namespace MonitoringTools.UI.Tabs
         public StripTab(TabStrip owner, TabInfo info, bool vertical, bool compact, string accentKey, int position, int size)
         {
             _o = owner; TabId = info.Id; IsActive = info.Active; _vertical = vertical;
-            Height = Appearance.Row(40); CornerRadius = new CornerRadius(20);
+            // a rail tab grows to two lines for a bilingual label; a tab across the top keeps one line
+            if (vertical && !compact) MinHeight = Appearance.Row(40); else Height = Appearance.Row(40);
+            CornerRadius = new CornerRadius(20);
             System.Windows.Documents.TextElement.SetFontSize(this, 14); System.Windows.Documents.TextElement.SetFontFamily(this, Ui.Font("F.Body"));
             Focusable = true; KeyboardNavigation.SetIsTabStop(this, false); FocusVisualStyle = null; Cursor = Cursors.Hand; AllowDrop = true;
             Margin = vertical ? new Thickness(0, 0, 0, Appearance.Gap(2)) : new Thickness(0, 0, 4, 0);
@@ -128,6 +130,7 @@ namespace MonitoringTools.UI.Tabs
             {
                 var label = new TextBlock { Text = info.Label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 14, FontFamily = Ui.Font("F.Body"), FontWeight = info.Active ? FontWeights.SemiBold : FontWeights.Medium, IsHitTestVisible = false };
                 label.SetResourceReference(TextBlock.ForegroundProperty, fg);
+                if (vertical) { Core.Language.SetStacked(label, true); label.Margin = new Thickness(0, 4, 0, 4); }
                 if (info.Active && look.Nav == "sticker") label.FontWeight = FontWeights.Bold;
                 LabelBlock = label;
                 Grid.SetColumn(label, c0 + 1);
