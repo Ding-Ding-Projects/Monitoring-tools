@@ -19,12 +19,13 @@ namespace MonitoringTools.UI
         private string _forgeFolder;
         private ForgeKind _forgeKind = ForgeKind.GitHub;
 
-        // The tools page: drawing and annotation, publishing a folder to GitHub, and the external editor.
+        // The tools page: drawing and annotation, Base64 beside a file, publishing a folder to GitHub, and the external editor.
         private FrameworkElement ToolsPage()
         {
             var root = PageRoot("Tools", "Draw, publish and edit",
-                "Annotate pictures, publish a folder to GitHub and choose which editor opens your files. Each control says what it does and what it starts as.");
+                "Annotate pictures, write Base64 beside a file, publish a folder to GitHub and choose which editor opens your files. Each control says what it does and what it starts as.");
             root.Children.Add(ToolsDrawCard());
+            root.Children.Add(ToolsBase64Card());
             root.Children.Add(ToolsPublishCard());
             root.Children.Add(ToolsCloneCard());
             root.Children.Add(ToolsEditorCard());

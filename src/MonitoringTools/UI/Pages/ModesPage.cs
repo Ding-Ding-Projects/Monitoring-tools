@@ -196,7 +196,8 @@ namespace MonitoringTools.UI
         private FrameworkElement ModesDimSumCard()
         {
             var sp = new StackPanel();
-            sp.Children.Add(CardTitle("Dim sum surprise", "Each time the app starts there is a 10% chance it shows one dim sum dish for a few seconds, with its English and Cantonese names and a picture. It never takes focus, never delays startup, and skips first-run setup and quiet moments such as game mode. There is no switch for it by design."));
+            sp.Children.Add(CardTitle("Dim sum surprise", "Each time the app starts there is a 10% chance it shows one dim sum dish for a few seconds, with its English and Cantonese names and a picture. It never takes focus, never delays startup, and skips first-run setup and quiet moments such as game mode."));
+            sp.Children.Add(DimSumSwitch());
             sp.Children.Add(ModesNote("This launch: " + Modes.DimSumLaunchStatus));
             sp.Children.Add(ModesNote("Pictures and names come from the public catalogue " + Modes.DimSumSource + " on GitHub, fetched over HTTPS only when a dish is shown, then cached in this app's data folder. Nothing is bundled with the app. If the catalogue or a picture cannot be reached, nothing is shown."));
             var cache = ModesNote(Modes.DimSumCacheInfo);
@@ -215,6 +216,48 @@ namespace MonitoringTools.UI
             sp.Children.Add(row);
             sp.Children.Add(status);
             return SearchScope.SetItem(Card(sp), "dim sum dish surprise random photo catalogue");
+        }
+
+        /// <summary>
+        /// The switch that looks like it turns the surprise off. It does not: it slides off, springs back on and says
+        /// so, with a different line each time. Nothing is saved, because there is nothing to turn off.
+        /// </summary>
+        internal static FrameworkElement DimSumSwitch()
+        {
+            var said = ModesNote("");
+            said.Visibility = Visibility.Collapsed;
+            AutomationProperties.SetLiveSetting(said, AutomationLiveSetting.Polite);
+            CheckBox sw = null;
+            int tries = 0;
+            sw = new CheckBox { Style = Ui.Style("Switch"), IsChecked = true, Tag = Ui.Res("B.Mint"), Margin = new Thickness(0, Appearance.Gap(4), 0, Appearance.Gap(6)) };
+            var text = new StackPanel();
+            text.Children.Add(new TextBlock { Text = "Dim sum surprise", Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
+            text.Children.Add(new TextBlock { Text = "On, and it stays on. School mode is the one thing that holds it back.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
+            sw.Content = text;
+            AutomationProperties.SetName(sw, "Dim sum surprise");
+            sw.Unchecked += (s, e) =>
+            {
+                tries++;
+                string line = tries switch { 1 => "Nice try.", 2 => "Still no.", 3 => "It really does stay on.", _ => "Have a har gow instead." };
+                void Back()
+                {
+                    sw.IsChecked = true;
+                    said.Text = line + " The dim sum surprise cannot be turned off.";
+                    said.Foreground = Ui.Res("B.Amber");
+                    said.Visibility = Visibility.Visible;
+                    Lang.Refresh(said);
+                    AutomationProperties.SetHelpText(sw, said.Text);
+                    try { System.Windows.Automation.Peers.UIElementAutomationPeer.CreatePeerForElement(said)?.RaiseAutomationEvent(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged); } catch { }
+                }
+                if (Ui.Reduced) { sw.Dispatcher.BeginInvoke(new Action(Back), System.Windows.Threading.DispatcherPriority.Input); return; }
+                var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(650) };
+                t.Tick += (a, b) => { t.Stop(); Back(); };
+                t.Start();
+            };
+            var box = new StackPanel();
+            box.Children.Add(sw);
+            box.Children.Add(said);
+            return SearchScope.SetItem(box, "dim sum surprise switch off on");
         }
 
         // -------------------------------------------------------------- Scheduled settings

@@ -466,6 +466,7 @@ namespace MonitoringTools.Core
             AddDataSec(t);
             AddMedia(t);
             AddSmart(t);
+            AddFeatures(t);
             return t;
         }
 
@@ -492,6 +493,7 @@ namespace MonitoringTools.Core
             AddArchiveDiskPatterns(p);
             AddDataSecPatterns(p);
             AddMediaPatterns(p);
+            AddFeaturesPatterns(p);
             AddMorePatterns(p);
             void Add(string rx, string yue) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), fn));

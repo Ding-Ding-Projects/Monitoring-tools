@@ -216,14 +216,14 @@ namespace MonitoringTools.UI
         {
             var sp = new StackPanel();
             var files = _files.Where(File.Exists).ToArray();
-            var b64 = files.Where(f => f.EndsWith(".b64", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".base64", StringComparison.OrdinalIgnoreCase)).ToArray();
+            var b64 = files.Where(Base64Files.IsEncoded).ToArray();
             var grid = new UniformGridPanel(2);
-            grid.Add(Tile("Encode", "Writes name.ext.b64 next to each file.", files.Length == 0 ? "Encode" : $"Encode {files.Length}", files.Length > 0, async () =>
+            grid.Add(Tile("Encode", "Writes name.ext.base64.txt next to each file and checks it decodes back.", files.Length == 0 ? "Encode" : $"Encode {files.Length}", files.Length > 0, async () =>
             {
                 Status.Text = "Encoding…";
                 Report("Encoded", await FileOps.Base64EncodeFilesAsync(files), Status);
             }, primary: b64.Length == 0));
-            grid.Add(Tile("Decode", "Turns .b64 files back into the originals.", $"Decode {b64.Length}", b64.Length > 0, async () =>
+            grid.Add(Tile("Decode", "Turns .base64.txt files back into the originals, beside them.", $"Decode {b64.Length}", b64.Length > 0, async () =>
             {
                 Status.Text = "Decoding…";
                 Report("Decoded", await FileOps.Base64DecodeFilesAsync(b64), Status);

@@ -164,46 +164,24 @@ namespace MonitoringTools.Core
             try { return s.GetString(b); } catch { return null; } // not text: caller saves as a file instead
         }
 
+        /// <summary>Writes name.ext.base64.txt beside each file, checked by a SHA-256 round trip, never overwriting.</summary>
         public static Task<List<OpResult>> Base64EncodeFilesAsync(IEnumerable<string> files)
         {
             var list = files.Where(File.Exists).ToList();
-            return Task.Run(() => list.Select(src =>
-            {
-                var r = new OpResult { Source = src };
-                try
-                {
-                    var outPath = Unique(src + ".b64");
-                    using (var input = File.OpenRead(src))
-                    using (var output = File.Create(outPath))
-                    using (var cs = new CryptoStream(output, new ToBase64Transform(), CryptoStreamMode.Write))
-                        input.CopyTo(cs);
-                    r.Output = outPath; r.Ok = true;
-                }
-                catch (Exception ex) { r.Error = ex.Message; }
-                return r;
-            }).ToList());
+            return Task.Run(() => list.Select(src => Base64Op(Base64Files.Encode(src))).ToList());
         }
 
+        /// <summary>Writes each .base64.txt file's original back beside it, checked by a SHA-256 round trip, never overwriting.</summary>
         public static Task<List<OpResult>> Base64DecodeFilesAsync(IEnumerable<string> files)
         {
             var list = files.Where(File.Exists).ToList();
-            return Task.Run(() => list.Select(src =>
-            {
-                var r = new OpResult { Source = src };
-                try
-                {
-                    var target = src.EndsWith(".b64", StringComparison.OrdinalIgnoreCase) || src.EndsWith(".base64", StringComparison.OrdinalIgnoreCase)
-                        ? src[..src.LastIndexOf('.')]
-                        : src + ".bin";
-                    var outPath = Unique(target);
-                    var text = File.ReadAllText(src);
-                    if (!TryDecode(text, out var bytes)) throw new InvalidDataException("Not valid base64.");
-                    File.WriteAllBytes(outPath, bytes);
-                    r.Output = outPath; r.Ok = true;
-                }
-                catch (Exception ex) { r.Error = ex.Message; }
-                return r;
-            }).ToList());
+            return Task.Run(() => list.Select(src => Base64Op(Base64Files.Decode(src))).ToList());
+        }
+
+        private static OpResult Base64Op(Base64Files.Result r)
+        {
+            if (r.Ok) LocalHistory.Append("base64", (Base64Files.IsEncoded(r.Source) ? "Decoded " : "Encoded ") + Path.GetFileName(r.Source) + " to " + Path.GetFileName(r.Output), "SHA-256 round trip matches.", r.Output, r.WrittenSha256);
+            return new OpResult { Source = r.Source, Output = r.Output, Ok = r.Ok, Error = r.Error };
         }
 
         // -------------------------------------------------------------- encryption
