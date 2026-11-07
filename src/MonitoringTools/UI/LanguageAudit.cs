@@ -61,6 +61,29 @@ namespace MonitoringTools.UI
         internal static int Examined;
 
         internal static void Reset() { Found.Clear(); Seen.Clear(); Examined = 0; }
+
+        private static LanguageMode _savedMode;
+
+        /// <summary>
+        /// Starts a scan of states that need setting up first, such as a page with a disk chosen and an action open: switches to the
+        /// language and clears earlier findings. Call <see cref="Scan"/> for each state, read <see cref="Findings"/>, then <see cref="End"/>.
+        /// </summary>
+        internal static void Begin(LanguageMode mode)
+        {
+            Reset();
+            Bilingual = mode == LanguageMode.Bilingual;
+            _savedMode = Settings.Current.LanguageMode;
+            Settings.Current.LanguageMode = mode;
+            Language.Refresh();
+        }
+
+        /// <summary>Puts the language back after <see cref="Begin"/>.</summary>
+        internal static void End()
+        {
+            Bilingual = false;
+            Settings.Current.LanguageMode = _savedMode;
+            Language.Refresh();
+        }
         internal static IReadOnlyCollection<Finding> Findings => Found.Values;
 
         /// <summary>True when the text still holds an English word that is not a name, unit or code.</summary>

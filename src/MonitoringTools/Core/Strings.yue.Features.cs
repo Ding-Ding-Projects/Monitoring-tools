@@ -131,7 +131,7 @@ namespace MonitoringTools.Core
             Add(@"^DNS (\d+) ms, gateway did not answer$", "DNS $1 毫秒，閘道冇回應");
             Add(@"^DNS did not answer, gateway (\d+) ms$", "DNS 冇回應，閘道 $1 毫秒");
             Add(@"^DNS did not answer, gateway did not answer$", "DNS 同閘道都冇回應");
-            Add(@"^1 filter on: (.+)$", "篩選中：$1");
+            p.Add((new Regex(@"^1 filter on: (.+)$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), m => "篩選中：" + (Language.Yue(m.Groups[1].Value) ?? m.Groups[1].Value)));
             Add(@"^Search, filter on: “(.+)”$", "搜尋，篩選中：「$1」");
             Add(@"^Open the search bar\. A filter is on: (.+)$", "打開搜尋列。篩選中：$1");
         }

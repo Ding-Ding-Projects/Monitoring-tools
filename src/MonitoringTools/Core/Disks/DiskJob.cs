@@ -50,7 +50,7 @@ namespace MonitoringTools.Core.Disks
             {
                 var (code, output) = VhdHelper.PowerShell("$ErrorActionPreference = 'Stop'\n" + script);
                 log.AppendLine("> " + what).AppendLine(output.Trim());
-                return code == 0 ? null : what + " failed: " + string.Join(" ", output.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).Take(3));
+                return code == 0 ? null : "Could not " + what + ": " + string.Join(" ", output.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).Take(3));
             }
             string DiskVar = $"$d = Get-DiskImage -ImagePath {Q(j.File)} | Get-Disk\n$p = Get-Partition -DiskNumber $d.Number | Where-Object {{ $_.Type -ne 'Reserved' }} | Sort-Object Offset | Select-Object -Last 1\n";
             try
@@ -106,7 +106,7 @@ namespace MonitoringTools.Core.Disks
                         {
                             // attached read-only, Windows can ask the file system which blocks are free; that is the full compact
                             VirtDisk.Attach(j.File, readOnly: true, noDriveLetters: true);
-                            try { VirtDisk.Compact(j.File, j.Quick); mode = j.Quick ? "Quick" : "Full"; }
+                            try { VirtDisk.Compact(j.File, j.Quick); mode = j.Quick ? "Quick" : "Full scan"; }
                             finally { try { VirtDisk.Detach(j.File); } catch { } }
                         }
                         catch (VDiskException)

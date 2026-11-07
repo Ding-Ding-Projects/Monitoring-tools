@@ -35,6 +35,7 @@ namespace MonitoringTools.UI
             ("minecraft", "Minecraft servers", Icons.Box),
             ("ollama", "Local AI models", Icons.Chip),
             ("tools", "Tools", Icons.Wand),
+            ("vdisks", "Virtual disks", Dialogs.DialogParts.DiskIcon),
             ("safety", "Safety and locks", Icons.Shield),
             ("service", "Service", Icons.Gear),
             ("appearance", "Appearance", Icons.Palette),
@@ -65,6 +66,20 @@ namespace MonitoringTools.UI
             FooterVersion.Text = "v" + (typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0") + (ServiceHost.IsElevated ? ", admin" : "")
                 + Environment.NewLine + BuildInfo.UpdatedLabel.Replace(" (UTC", Environment.NewLine + "(UTC");
             _tabs = new Tabs.TabStrip(this, _sections.Select(x => new Tabs.PageEntry(x.Id, x.Label, x.Icon)).ToList());
+            // a .vhd, .vhdx, .vhds, .avhd, .avhdx or .iso dropped anywhere on the window joins the virtual disk library
+            AllowDrop = true;
+            string[] DiskFiles(DragEventArgs e) => e.Data.GetData(DataFormats.FileDrop) is string[] f && f.Length > 0 && f.All(Core.Disks.DiskJobs.IsDiskFile) ? f : null;
+            DragOver += (s, e) => { if (e.Handled || DiskFiles(e) == null) return; e.Effects = DragDropEffects.Link; e.Handled = true; };
+            Drop += (s, e) =>
+            {
+                if (e.Handled) return;
+                var disks = DiskFiles(e);
+                if (disks == null) return;
+                e.Handled = true;
+                VdAdd(disks);
+                VdSay(disks.Length == 1 ? "Added " + System.IO.Path.GetFileName(disks[0]) + " to the disk library." : $"Added {disks.Length} virtual disks to the disk library.", "B.Mint");
+                Navigate("vdisks");
+            };
             App.History.Updated += () => { if ((_current == "history" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
             Activity.Changed += () => { if ((_current == "activity" || _current == "overview") && !SearchField.AnyActive) Navigate(_current, animate: false); };
             App.Net.Sampled += () =>
@@ -145,6 +160,7 @@ namespace MonitoringTools.UI
                 "minecraft" => MinecraftPage(),
                 "ollama" => OllamaPage(),
                 "tools" => ToolsPage(),
+                "vdisks" => VirtualDisksPage(),
                 "safety" => SafetyPage(),
                 "appearance" => AppearancePage(),
                 "language" => LanguagePage(),

@@ -133,6 +133,16 @@ namespace MonitoringTools.Core.Disks
                     return 0;
                 }
                 if (cmd == "release") { Status("ready", "Left mounted", mount: TestMountPath ?? VhdEngine.MountRoot(r)); return 0; }
+                if (cmd == "fit")
+                {
+                    try { File.Delete(r.CommandFile); } catch { }
+                    var fitted = FitTightly(r, log);
+                    if (fitted.Error != null) { Status("fit-failed", "The disk keeps its size.", fitted.Error, 0, TestMountPath ?? VhdEngine.MountRoot(r)); continue; }
+                    attached = false;
+                    Status("fitted", fitted.Message);
+                    Status("detached", "Detached");
+                    return 0;
+                }
                 if (cmd != null && cmd.StartsWith("grow ") && long.TryParse(cmd.Substring(5), out var growMb))
                 {
                     try { File.Delete(r.CommandFile); } catch { }
@@ -199,6 +209,36 @@ namespace MonitoringTools.Core.Disks
             var until = DateTime.UtcNow.AddSeconds(15);
             while (!MountReady(root) && DateTime.UtcNow < until) Thread.Sleep(250);
             return MountReady(root) ? null : "The disk grew, but its volume did not come back at " + root + ".";
+        }
+
+        /// <summary>
+        /// Fits a packed disk tightly: shrink its volume to what it holds plus 64 MB, detach, and shrink the VHDX to its smallest
+        /// safe size. Leaves the disk detached. A VHD cannot shrink, so it keeps its size.
+        /// </summary>
+        private static (string Message, string Error) FitTightly(VhdRequest r, StringBuilder log)
+        {
+            if (!r.Vhdx) return (null, "Only a VHDX can shrink.");
+            string file = r.File.Replace("'", "''");
+            var (code, output) = PowerShell(string.Join("\n", new[]
+            {
+                "$ErrorActionPreference = 'Stop'",
+                $"$d = Get-DiskImage -ImagePath '{file}' | Get-Disk",
+                "$p = Get-Partition -DiskNumber $d.Number | Where-Object { $_.Type -ne 'Reserved' } | Sort-Object Size -Descending | Select-Object -First 1",
+                "$min = (Get-PartitionSupportedSize -DiskNumber $d.Number -PartitionNumber $p.PartitionNumber).SizeMin",
+                "$to = [math]::Ceiling($min / 1MB + 64) * 1MB",
+                "if ($to -lt $p.Size) { Resize-Partition -DiskNumber $d.Number -PartitionNumber $p.PartitionNumber -Size $to }",
+            }));
+            log.AppendLine("> shrink the volume").AppendLine(output.Trim());
+            if (code != 0) return (null, "Its volume could not shrink: " + FirstLines(output));
+            try
+            {
+                var before = VirtDisk.Read(r.File).VirtualSize;
+                VirtDisk.Detach(r.File);
+                VirtDisk.Resize(r.File, 0, toSmallestSafe: true);
+                var after = VirtDisk.Read(r.File).VirtualSize;
+                return ($"Fitted tightly: {VhdEngine.Bytes((long)before)} down to {VhdEngine.Bytes((long)after)}.", null);
+            }
+            catch (Exception ex) { return (null, ex.Message); }
         }
 
         /// <summary>Runs a short PowerShell script with the Storage commands, as this elevated helper.</summary>

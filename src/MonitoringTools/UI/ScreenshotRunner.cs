@@ -200,6 +200,7 @@ namespace MonitoringTools.UI
                 await MediaDialogScenes();
                 await Wave6Scenes(cc);
                 await InstallCardSceneAsync(cc);
+                await VirtualDiskScenes(cc);
                 cc.Close();
 
                 var gate = new ConfirmWindow("Uninstall Monitoring Tools?", "This stops the background service, removes it from start-up and deletes the program.", "Uninstall", danger: true);

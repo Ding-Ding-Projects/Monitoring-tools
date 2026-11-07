@@ -130,6 +130,29 @@ jobs:
           path: sweep
           if-no-files-found: warn
 
+      # Real virtual disks on the build machine, which runs as an administrator: create, attach, grow, shrink, compact,
+      # convert, merge, a new identifier and a Quick pack that has to grow by itself, with a name clash and a cancel. Then
+      # every state of the Virtual disks page is read in Cantonese and in both languages. Any failed check fails the build.
+      - name: Check virtual disks
+        id: vdisk
+        shell: pwsh
+        run: |
+          $env:MT_ONLY = 'vdisk'
+          $p = Start-Process -FilePath out/MonitoringTools.exe -ArgumentList '--selftest', "$PWD/vdisk" -PassThru
+          if (-not $p.WaitForExit(1200000)) { $p.Kill(); throw "The virtual disk checks timed out" }
+          if (-not (Test-Path vdisk/selftest.json)) { throw "The virtual disk checks wrote no results" }
+          $r = Get-Content vdisk/selftest.json -Raw | ConvertFrom-Json
+          foreach ($c in $r.results) { Write-Host ("{0}  {1}: {2}" -f $(if ($c.Pass) { 'pass' } else { 'FAIL' }), $c.Name, $c.Detail) }
+          Write-Host "Passed: $($r.passed). Failed: $($r.failed)."
+          if ($r.failed -gt 0 -or $r.passed -lt 10) { throw "Virtual disk checks failed: $($r.failed) of $($r.passed + $r.failed); see selftest.json in the vdisk artifact." }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vdisk
+          path: vdisk
+          if-no-files-found: warn
+
       - name: Commit refreshed screenshots
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh

@@ -50,6 +50,8 @@ namespace MonitoringTools.Core
         public Dictionary<string, bool> Folds { get; set; } = new Dictionary<string, bool>();
         /// <summary>The size (and, for a floating panel, the place) of each kind of resizable panel: width, height, x, y.</summary>
         public Dictionary<string, double[]> PanelSizes { get; set; } = new Dictionary<string, double[]>();
+        /// <summary>Virtual disk files added to the library by browsing, dropping, scanning or packing, newest first.</summary>
+        public List<string> DiskLibrary { get; set; } = new List<string>();
 
         // DNS profiles
         public List<DnsProfile> DnsProfiles { get; set; } = DnsProfile.Defaults();

@@ -467,6 +467,7 @@ namespace MonitoringTools.Core
             AddMedia(t);
             AddSmart(t);
             AddFeatures(t);
+            AddVirtualDisks(t);
             return t;
         }
 
@@ -477,6 +478,7 @@ namespace MonitoringTools.Core
         private static List<(Regex, Func<Match, string>)> BuildPatterns()
         {
             var p = new List<(Regex, Func<Match, string>)>();
+            AddVirtualDisksPatterns(p);   // first: its disk-specific patterns must win over the general ones below
             AddDocSysPatterns(p);
             AddDocSysMorePatterns(p);
             AddRegexExplainPatterns(p);

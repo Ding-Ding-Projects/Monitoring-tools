@@ -84,6 +84,7 @@ namespace MonitoringTools.UI
                 Finish(dir); return;
             }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "datasec") { await DataSecChecksAsync(dir); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "vdisk") { await VirtualDiskChecksAsync(dir); Finish(dir); return; }   // real disks: needs administrator rights
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "media") { await MediaDialogChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_MC_ONLY") == "1")   // quick loop for the server manager checks, the settings walk and the language audit
             {
