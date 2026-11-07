@@ -33,7 +33,7 @@ namespace MonitoringTools.UI.Tabs
                 WindowStartupLocation = WindowStartupLocation.CenterOwner, Width = width, Height = height, BorderThickness = new Thickness(1),
                 UseLayoutRounding = true, Title = title,
             };
-            w.MaxHeight = Math.Max(320, SystemParameters.WorkArea.Height - 40);
+            w.MaxHeight = Math.Max(320, Ui.WorkArea.Height - 40);
             w.SetResourceReference(Control.BackgroundProperty, "B.Window");
             w.SetResourceReference(Control.BorderBrushProperty, "B.LineStrong");
             AutomationProperties.SetName(w, title);

@@ -121,7 +121,7 @@ namespace MonitoringTools.UI
 
         private void Place()
         {
-            var area = SystemParameters.WorkArea;
+            var area = Ui.WorkArea;
             double x = area.Left + (area.Width - ActualWidth) / 2, y = area.Top + (area.Height - ActualHeight) / 3;
             try
             {
@@ -165,7 +165,7 @@ namespace MonitoringTools.UI
             AutomationProperties.SetName(_code, "Authenticator code");
 
             var body = new StackPanel();
-            body.Children.Add(new TextBlock { Text = "UNLOCK", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
+            body.Children.Add(new TextBlock { Text = "Unlock", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
             var label = entry.Label.Length > 70 ? entry.Label.Substring(0, 70) + "…" : entry.Label;
             body.Children.Add(new TextBlock { Text = label, Style = Ui.Style("T.Title"), FontSize = 16, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
             body.Children.Add(SafetyUi.Text(Locks.Describe(entry.Policy) + " lock", 12, "B.TextMute", null, 2));
@@ -310,7 +310,7 @@ namespace MonitoringTools.UI
         {
             _e = entry; _changed = changed;
             var body = new StackPanel();
-            body.Children.Add(new TextBlock { Text = "UNLOCK LADDER", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
+            body.Children.Add(new TextBlock { Text = "Unlock ladder", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
             body.Children.Add(_title);
             body.Children.Add(_clock);
             body.Children.Add(_stage);

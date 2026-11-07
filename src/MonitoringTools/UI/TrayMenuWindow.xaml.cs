@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -18,6 +19,7 @@ namespace MonitoringTools.UI
         public TrayMenuWindow()
         {
             InitializeComponent();
+            Appearance.SetDesignSize(this, 372, double.NaN);
             SourceInitialized += (s, e) => Native.MakeToolWindow(this, noActivate: false);
             Deactivated += (s, e) => { if (_search?.BuilderOpen != true) CloseAnimated(); };
             KeyDown += (s, e) => { if (e.Key == System.Windows.Input.Key.Escape && _search?.BuilderOpen != true) CloseAnimated(); };
@@ -139,16 +141,13 @@ namespace MonitoringTools.UI
 
         private FrameworkElement Toggle(string label, string note, bool value, Action<bool> set, string accent = "B.Mint")
         {
-            var g = new Grid { Height = 38, Margin = new Thickness(10, 0, 10, 0) };
+            var g = new Grid { MinHeight = 38, Margin = new Thickness(10, 0, 10, 0) };
             var cb = new CheckBox { Style = Ui.Style("Switch"), IsChecked = value, Tag = Ui.Res(accent), HorizontalAlignment = HorizontalAlignment.Stretch };
-            var content = new StackPanel { Orientation = Orientation.Horizontal };
-            content.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
+            // the note sits under the label so a long one never runs into the switch
+            var content = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 3, 8, 3) };
+            content.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 12, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap });
             if (note != null)
-            {
-                var n = Ui.Mono(note, Ui.Res(accent), 11);
-                n.Margin = new Thickness(8, 0, 0, 0); n.VerticalAlignment = VerticalAlignment.Center;
-                content.Children.Add(n);
-            }
+                content.Children.Add(new TextBlock { Text = note, Foreground = Ui.Res("B.TextMute"), FontSize = 11, FontFamily = Ui.Font("F.Body"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 1, 0, 0) });
             cb.Content = content;
             cb.Checked += (s, e) => set(true);
             cb.Unchecked += (s, e) => set(false);
@@ -168,7 +167,9 @@ namespace MonitoringTools.UI
             {
                 var b = Ui.Button(l, a, "Btn.Chip");
                 b.Height = 26; b.Margin = new Thickness(0, 0, 6, 6);
-                if (!l.StartsWith("●")) { b.Background = Ui.Res("B.Raised"); b.BorderBrush = Ui.Res("B.LineStrong"); b.Foreground = Ui.Res("B.TextSoft"); }
+                // the one in use is filled with the accent wash in every look; the others keep a plain outline
+                if (l.StartsWith("●")) { b.Background = Ui.Res("B.MintWash"); b.BorderBrush = Ui.Res("B.Mint"); b.Foreground = Ui.Res("B.Text"); AutomationProperties.SetItemStatus(b, "in use"); }
+                else { b.Background = Ui.Res("B.Raised"); b.BorderBrush = Ui.Res("B.LineStrong"); b.Foreground = Ui.Res("B.TextSoft"); }
                 wrap.Children.Add(b);
             }
             sp.Children.Add(wrap);
@@ -229,7 +230,7 @@ namespace MonitoringTools.UI
             Show();
             UpdateLayout();
             var cur = Native.CursorDip(this);
-            var area = SystemParameters.WorkArea;
+            var area = Ui.WorkArea;
             var left = Math.Min(cur.X - Width + 24, area.Right - Width);
             var top = Math.Min(cur.Y - ActualHeight + 16, area.Bottom - ActualHeight);
             Left = Math.Max(area.Left, left);

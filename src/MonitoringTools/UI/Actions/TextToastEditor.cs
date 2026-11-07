@@ -45,7 +45,8 @@ namespace MonitoringTools.UI
         public static string Counts(string t)
         {
             t ??= "";
-            return $"{t.Length:N0} chars · {(t.Length == 0 ? 0 : t.Split('\n').Length):N0} lines";
+            int lines = t.Length == 0 ? 0 : t.Split('\n').Length;
+            return $"{t.Length:N0} chars · {lines:N0} {(lines == 1 ? "line" : "lines")}";
         }
 
         public TextToastEditor(ToastWindow w, ClipItem item)

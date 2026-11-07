@@ -44,9 +44,10 @@ namespace MonitoringTools.UI.Dialogs
         {
             _host = host;
             var grid = new Grid { Height = 440 };
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(280) });
+            // the list keeps 280 px while there is room and gives way first when there is not
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MaxWidth = 280, MinWidth = 160 });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
             var listCard = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(22), Padding = new Thickness(8), Child = new ScrollViewer { Content = _list, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = false } };
             grid.Children.Add(listCard);
             var detailScroll = new ScrollViewer { Content = _detail, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = false };
@@ -66,6 +67,7 @@ namespace MonitoringTools.UI.Dialogs
             body.Children.Add(_banner);
             body.Children.Add(SmartDialogParts.ActionBar(more, "Changes save straight away.", new[] { folder }, add, "Ctrl+N"));
             ShowView("form", body, 900, "Extensions", "", Icons.Wand, Ui.Res("B.Violet"), Ui.Res("B.VioletWash"));
+            Flex(grid, 220);
 
             PreviewKeyDown += (s, e) =>
             {
@@ -150,13 +152,13 @@ namespace MonitoringTools.UI.Dialogs
                 var b = DialogParts.Banner(DialogParts.Info, "This extension is new or asks for something new, so it stays off until you allow it.", "amber");
                 b.Margin = new Thickness(0, 12, 0, 0); sp.Children.Add(b);
             }
-            sp.Children.Add(Chips("NOTICES THESE COPIES", it.Manifest.Detect.Select(d => d.Label ?? d.Kind), true));
-            sp.Children.Add(Chips("ADDS THESE BUTTONS", it.Manifest.Actions.Select(a => a.Label), false));
-            sp.Children.Add(Chips("ALLOWED TO", it.Manifest.Permissions.Select(ExtensionPermission.Describe), false));
+            sp.Children.Add(Chips("Notices these copies", it.Manifest.Detect.Select(d => d.Label ?? d.Kind), true));
+            sp.Children.Add(Chips("Adds these buttons", it.Manifest.Actions.Select(a => a.Label), false));
+            sp.Children.Add(Chips("Allowed to", it.Manifest.Permissions.Select(ExtensionPermission.Describe), false));
             var log = it.Log.Count == 0 ? "Not run yet." : string.Join(Environment.NewLine, it.Log);
             var logBox = new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(16), Padding = new Thickness(14, 10, 14, 12), Margin = new Thickness(0, 16, 0, 0) };
             var lsp = new StackPanel();
-            lsp.Children.Add(Eyebrow("LAST RUNS"));
+            lsp.Children.Add(Eyebrow("Last runs"));
             var lt = Ui.Mono(log, Ui.Res("B.TextSoft"), 12); Core.Language.SetLiteral(lt, true); lsp.Children.Add(lt);
             logBox.Child = lsp; sp.Children.Add(logBox);
             sp.Children.Add(DialogParts.Hint("Program: " + it.Manifest.Run + " in " + it.Folder));

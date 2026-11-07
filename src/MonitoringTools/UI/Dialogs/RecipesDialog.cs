@@ -44,9 +44,10 @@ namespace MonitoringTools.UI.Dialogs
             _name.TextChanged += (s, e) => { if (!_loading && _cur != null) { _cur.Name = _name.Text; Settings.Save(); PaintList(); } };
 
             var grid = new Grid { Height = 450 };
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(250) });
+            // the list keeps 250 px while there is room and gives way first when there is not
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MaxWidth = 250, MinWidth = 150 });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(18) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
             grid.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(22), Padding = new Thickness(8), Child = new ScrollViewer { Content = _list, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = false } });
 
             var ed = new StackPanel();
@@ -87,6 +88,7 @@ namespace MonitoringTools.UI.Dialogs
             body.Children.Add(grid);
             body.Children.Add(SmartDialogParts.ActionBar(more, "Saved as you change it.", new[] { newBtn }, runBtn, "Ctrl+Enter", out _status));
             ShowView("form", body, 960, "Transform recipes", "Chains of text changes you can run in one press.", Icons.Wand, Ui.Res("B.Violet"), Ui.Res("B.VioletWash"));
+            Flex(grid, 220);
             PreviewKeyDown += (s, e) => { if (e.Key == System.Windows.Input.Key.N && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = true; New(); } };
             Pick(All.FirstOrDefault());
         }

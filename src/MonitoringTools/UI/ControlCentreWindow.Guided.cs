@@ -21,7 +21,7 @@ namespace MonitoringTools.UI
         {
             AutomationProperties.SetName(box, name);
             var sp = new StackPanel { Margin = new Thickness(0, 0, 0, 4) };
-            sp.Children.Add(Ui.Mono(caption.ToUpperInvariant(), Ui.Res("B.TextMute"), 11));
+            sp.Children.Add(Ui.Mono(caption, Ui.Res("B.TextMute"), 11));
             sp.Children.Add(box);
             return sp;
         }

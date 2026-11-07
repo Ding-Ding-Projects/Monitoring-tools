@@ -49,7 +49,7 @@ namespace MonitoringTools.UI
             var servers = ServerManager.Servers.Where(s => s.Target == Target.LocalProcess || s.Target == Target.LocalDocker).ToList();
             var versionBox = Input(o.Version ?? "", 200, "A Java edition version id such as 1.21.4. Default: the newest release.");
             AutomationProperties.SetName(versionBox, "World version");
-            sp.Children.Add(Ui.Mono("WHICH SERVER", Ui.Res("B.TextMute"), 11));
+            sp.Children.Add(Ui.Mono("Which server", Ui.Res("B.TextMute"), 11));
             var serverChips = new WrapPanel { Margin = new Thickness(0, 4, 0, 8) };
             void PaintServers()
             {
@@ -77,7 +77,7 @@ namespace MonitoringTools.UI
             if (_wgServerId != null && servers.All(s => s.Id != _wgServerId)) _wgServerId = null;
             versionBox.IsEnabled = _wgServerId == null;
             versionBox.LostFocus += (a, b) => { o.Version = versionBox.Text.Trim(); _ = RefreshSupport(); };
-            sp.Children.Add(Ui.Mono("VERSION", Ui.Res("B.TextMute"), 11));
+            sp.Children.Add(Ui.Mono("Version", Ui.Res("B.TextMute"), 11));
             sp.Children.Add(versionBox);
 
             // ---- seed
@@ -437,7 +437,7 @@ namespace MonitoringTools.UI
             sp.Children.Add(areaNote);
             sp.Children.Add(picker);
             var areaRow = new WrapPanel();
-            foreach (var (label, field) in new[] { ("RADIUS (CHUNKS)", radius), ("CENTRE CHUNK X", centreX), ("CENTRE CHUNK Z", centreZ) })
+            foreach (var (label, field) in new[] { ("RADIUS (CHUNKS)", radius), ("Centre chunk X", centreX), ("Centre chunk Z", centreZ) })
             {
                 var cell = new StackPanel { Margin = new Thickness(0, 0, 8, 0) };
                 cell.Children.Add(Ui.Mono(label, Ui.Res("B.TextMute"), 11)); cell.Children.Add(field);
@@ -475,7 +475,7 @@ namespace MonitoringTools.UI
             }, "Btn.Ghost", Icons.Folder);
             browse.ToolTip = "Choose the destination folder.";
             var destRow = new WrapPanel(); destRow.Children.Add(dest); destRow.Children.Add(browse);
-            sp.Children.Add(Ui.Mono("DESTINATION", Ui.Res("B.TextMute"), 11));
+            sp.Children.Add(Ui.Mono("Destination", Ui.Res("B.TextMute"), 11));
             sp.Children.Add(destRow);
 
             // ---- EULA and actions

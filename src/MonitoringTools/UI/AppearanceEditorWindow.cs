@@ -69,7 +69,7 @@ namespace MonitoringTools.UI
 
             WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
             ShowInTaskbar = false; ResizeMode = ResizeMode.NoResize; SizeToContent = SizeToContent.Height; Width = 420;
-            MaxHeight = Math.Max(360, SystemParameters.WorkArea.Height - 24);
+            MaxHeight = Math.Max(360, Ui.WorkArea.Height - 24);
             if (owner != null && owner.IsLoaded) Owner = owner;
             AutomationProperties.SetName(this, "Edit appearance");
             ElementMenu.Attach(this, null, ElementMenu.Options.Copy);   // editing the editor's own look from inside it would replace it mid-edit

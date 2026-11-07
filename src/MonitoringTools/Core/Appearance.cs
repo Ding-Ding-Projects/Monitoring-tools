@@ -218,7 +218,8 @@ namespace MonitoringTools.Core
             if (!_densityHooked)
             {
                 _densityHooked = true;
-                EventManager.RegisterClassHandler(typeof(Button), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, a) => FitButton((Button)o)));
+                // the first layout, not Loaded: Loaded never reaches a class handler on buttons without a Loaded handler of their own
+                EventManager.RegisterClassHandler(typeof(Button), FrameworkElement.SizeChangedEvent, new SizeChangedEventHandler((o, a) => FitButton((Button)o)));
             }
             Apply();
         }
@@ -377,6 +378,36 @@ namespace MonitoringTools.Core
                 double s = TextScale;
                 root.LayoutTransform = Math.Abs(s - 1) < 0.001 ? Transform.Identity : new ScaleTransform(s, s);
             }
+            if (w?.GetValue(DesignSizeProperty) is DesignSize) FitWindow(w);
+        }
+
+        private sealed class DesignSize { public double Width, Height; }
+        private static readonly DependencyProperty DesignSizeProperty =
+            DependencyProperty.RegisterAttached("DesignSize", typeof(DesignSize), typeof(Appearance), new PropertyMetadata(null));
+
+        /// <summary>
+        /// Records the size a window of a set size was designed at and sizes it for the text size in force: the window grows
+        /// with the text, so its content keeps the room it was laid out for, and never grows past the screen, where its own
+        /// scrolling parts take over. NaN leaves that side to the window (sized to its content), still kept on the screen.
+        /// </summary>
+        public static void SetDesignSize(Window w, double width, double height)
+        {
+            w.SetValue(DesignSizeProperty, new DesignSize { Width = width, Height = height });
+            FitWindow(w);
+        }
+
+        /// <summary>The width a window designed at <paramref name="width"/> gets at the text size in force, on this screen.</summary>
+        public static double ScaledWidth(double width) => Math.Min(width * TextScale, MonitoringTools.UI.Ui.WorkArea.Width);
+
+        private static void FitWindow(Window w)
+        {
+            var d = (DesignSize)w.GetValue(DesignSizeProperty);
+            var wa = MonitoringTools.UI.Ui.WorkArea;
+            double s = TextScale;
+            if (!double.IsNaN(d.Width) && (w.SizeToContent & SizeToContent.Width) == 0) w.Width = Math.Min(d.Width * s, wa.Width);
+            if (!double.IsNaN(d.Height) && (w.SizeToContent & SizeToContent.Height) == 0) w.Height = Math.Min(d.Height * s, wa.Height);
+            w.MaxWidth = wa.Width;
+            w.MaxHeight = wa.Height;
         }
 
         /// <summary>Puts every appearance choice back to its default and applies it.</summary>

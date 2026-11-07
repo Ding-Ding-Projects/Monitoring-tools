@@ -37,11 +37,11 @@ namespace MonitoringTools.UI
                     Title = "Look", Help = "The whole style: type, shapes, outlines and depth. Picking one also picks the colour it was drawn with.",
                     Build = () =>
                     {
-                        var wrap = new WrapPanel();
+                        var wrap = LookGrid();
                         void Paint()
                         {
                             wrap.Children.Clear();
-                            foreach (var l in Looks.All) wrap.Children.Add(LookChoice(l, look.Style == l.Id, p => { look.Style = p.Id; look.Seed = p.DefaultSeed; Paint(); }));
+                            foreach (var l in Looks.All) wrap.Children.Add(LookChoice(l, look.Style == l.Id, p => { look.Style = p.Id; look.Seed = p.DefaultSeed; Paint(); }, double.NaN));
                         }
                         Paint();
                         return wrap;

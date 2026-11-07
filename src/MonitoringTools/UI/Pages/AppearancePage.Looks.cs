@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using MonitoringTools.Core;
 using MonitoringTools.UI.Search;
 
@@ -14,10 +15,9 @@ namespace MonitoringTools.UI
         {
             var sp = new StackPanel();
             sp.Children.Add(CardTitle("Look", "Changes type, shapes, colour and depth everywhere at once. Your text size, motion and language choices stay as they are."));
-            var wrap = new WrapPanel { Margin = new Thickness(0, 4, -12, 0) };
-            foreach (var l in Looks.All) wrap.Children.Add(LookChoice(l, Looks.Current == l, ChooseLook));
-            AutomationProperties.SetName(wrap, "Look");
-            sp.Children.Add(wrap);
+            var grid = LookGrid();
+            foreach (var l in Looks.All) grid.Children.Add(LookChoice(l, Looks.Current == l, ChooseLook, double.NaN));
+            sp.Children.Add(grid);
             sp.Children.Add(new TextBlock
             {
                 Text = "Picking a look also picks the colour it was drawn with. Change the colour under Theme and colour whenever you like. Default: Graphite.",
@@ -38,8 +38,20 @@ namespace MonitoringTools.UI
             Appearance.Apply();
         }
 
+        /// <summary>
+        /// The four looks side by side when there is room for them, otherwise two by two, so a row never ends with one
+        /// look on its own.
+        /// </summary>
+        internal static UniformGrid LookGrid()
+        {
+            var grid = new UniformGrid { Columns = 2, Margin = new Thickness(0, 4, -12, 0) };
+            grid.SizeChanged += (s, e) => { int n = e.NewSize.Width >= 4 * 196 ? 4 : 2; if (grid.Columns != n) grid.Columns = n; };
+            AutomationProperties.SetName(grid, "Look");
+            return grid;
+        }
+
         /// <summary>One choice in a look picker: the look's preview, its name and what it is like. Used here and in setup.</summary>
-        internal static FrameworkElement LookChoice(LookSpec l, bool chosen, Action<LookSpec> pick)
+        internal static FrameworkElement LookChoice(LookSpec l, bool chosen, Action<LookSpec> pick, double width = 214)
         {
             var body = new StackPanel();
             body.Children.Add(LookParts.LookPreview(l));
@@ -53,7 +65,7 @@ namespace MonitoringTools.UI
             nameRow.Children.Add(new TextBlock { Text = l.Name, Style = Ui.Style("T.Title"), FontSize = 16, VerticalAlignment = VerticalAlignment.Center });
             body.Children.Add(nameRow);
             body.Children.Add(new TextBlock { Text = l.Description, Style = Ui.Style("T.Body"), FontSize = 12.5, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(4, 0, 4, 2) });
-            var b = new Button { Content = body, Style = Ui.Style("Btn.Row"), Height = double.NaN, Width = 214, Padding = new Thickness(8, 8, 8, 10), HorizontalContentAlignment = HorizontalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Top };
+            var b = new Button { Content = body, Style = Ui.Style("Btn.Row"), Height = double.NaN, Width = width, Padding = new Thickness(8, 8, 8, 10), HorizontalContentAlignment = HorizontalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Top };
             var frame = new Border { BorderThickness = new Thickness(2), CornerRadius = new CornerRadius(22), Margin = new Thickness(0, 0, 12, 12), Child = b };
             frame.SetResourceReference(Border.BorderBrushProperty, chosen ? "B.Mint" : "B.Line");
             frame.SetResourceReference(Border.BackgroundProperty, chosen ? "B.Raised" : "B.Surface");

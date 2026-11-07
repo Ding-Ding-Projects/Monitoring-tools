@@ -44,7 +44,7 @@ namespace MonitoringTools.UI.Dialogs
             var s = Settings.Current;
             _search.Filter += Apply;
 
-            Section("AUTOMATIC LOOKUPS");
+            Section("Automatic lookups");
             Switch("Look things up on the internet automatically", "Adds rates, book titles, package versions and address owners to toasts. Off means nothing you copy leaves this PC.", s.AutoLookups, v => s.AutoLookups = v, "lookup internet privacy online");
             Switch("Money amounts", "Sends the currency code to Frankfurter (European Central Bank rates).", s.LookupMoney, v => s.LookupMoney = v, "lookup currency rates");
             Switch("Book numbers and package names", "Sends the ISBN to Open Library, or the package name to npm, NuGet or PyPI.", s.LookupBooksAndPackages, v => s.LookupBooksAndPackages = v, "lookup isbn npm nuget pypi");
@@ -54,15 +54,15 @@ namespace MonitoringTools.UI.Dialogs
             cur.Changed += id => { s.HomeCurrency = id; SmartDetect.HomeCurrency = id; Saved("Home currency " + id + "."); };
             Row(Labelled("Home currency", "Money is shown in this currency first.", cur), "home currency money");
 
-            Section("KINDS OF COPIES");
+            Section("Kinds of copies");
             Group("developer", "Developer kinds", "Stack traces, hashes, GUIDs, IP addresses, SQL, regular expressions, XML, packages, paths, error codes, cron");
             Group("everyday", "Everyday kinds", "Phone numbers, addresses, parcels, flights, times and zones, books, characters, languages");
             Group("numbers", "Numbers and tables", "Quick conversions, money, sums, tables from spreadsheets");
 
-            Section("SECRETS");
+            Section("Secrets");
             Switch("Secret guard", "Keys, tokens and bank numbers stay out of history and leave the clipboard after " + s.SecretClearSeconds + " seconds.", s.SecretGuard, v => s.SecretGuard = v, "secret password token key iban privacy");
 
-            Section("EXTENSIONS");
+            Section("Extensions");
             Switch("Extensions", "Let turned-on extensions add kinds of copies and buttons.", s.ExtensionsEnabled, v => s.ExtensionsEnabled = v, "extensions plugins add-ons");
             Row(Buttons(("Manage extensions", () => ExtensionsDialog.Open())), "extensions manage");
 
@@ -70,7 +70,7 @@ namespace MonitoringTools.UI.Dialogs
             Switch("Snippets", "Typing a snippet's trigger in any app replaces it with the snippet.", s.SnippetsOn, v => { s.SnippetsOn = v; ClipPower.UpdateHook(); }, "snippets triggers text expansion");
             Row(Buttons(("Snippets", () => SnippetsDialog.Open()), ("Recipes", () => RecipesDialog.Open()), ("Per-app rules", () => RulesDialog.Open())), "snippets recipes rules per-app");
 
-            Section("SHORTCUTS");
+            Section("Shortcuts");
             Switch("Clipboard shortcuts", "Turn every clipboard shortcut on or off.", s.ClipboardHotkeysOn, v => { s.ClipboardHotkeysOn = v; ClipPower.RegisterAll(); }, "shortcuts hotkeys keys");
             Key("Clipboard history", () => s.HotkeyHistory, v => s.HotkeyHistory = v);
             Key("Paste as plain text", () => s.HotkeyPlainPaste, v => s.HotkeyPlainPaste = v);
@@ -94,6 +94,7 @@ namespace MonitoringTools.UI.Dialogs
             root.Children.Add(_search); root.Children.Add(scroll);
             root.Children.Add(SmartDialogParts.ActionBar(more, "Changes save straight away.", null, done, "Enter", out _status));
             ShowView("form", root, 820, "Clipboard settings", "What the clipboard recognises, looks up, guards and the keys it uses.", Icons.Clipboard);
+            Flex(scroll, 160);
             PreviewKeyDown += (o, e) => { if (e.Key == System.Windows.Input.Key.Enter && !(Keyboard.FocusedElement is TextBox)) { e.Handled = true; Close(); } };
         }
 

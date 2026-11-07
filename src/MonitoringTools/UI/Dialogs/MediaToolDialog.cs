@@ -52,7 +52,7 @@ namespace MonitoringTools.UI
             ToolName = toolName; PrimaryLabel = primaryLabel;
             WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
             ResizeMode = ResizeMode.NoResize; Width = width + 32; SizeToContent = SizeToContent.Height;
-            MaxHeight = Math.Max(420, SystemParameters.WorkArea.Height);
+            MaxHeight = Ui.WorkArea.Height;
             WindowStartupLocation = WindowStartupLocation.CenterScreen; Topmost = true; ShowInTaskbar = true;
             Title = toolName;
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);

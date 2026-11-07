@@ -95,7 +95,7 @@ namespace MonitoringTools.UI
             // Rename
             var nameBox = Input(n, 260, "The name every surface will show. Defaults to \"" + Modes.DefaultSchoolName + "\".");
             AutomationProperties.SetName(nameBox, "Mode name");
-            var nameRow = new StackPanel { Orientation = Orientation.Horizontal };
+            var nameRow = new WrapPanel();
             nameRow.Children.Add(nameBox);
             nameRow.Children.Add(Ui.Button("Rename", () =>
             {
@@ -114,14 +114,14 @@ namespace MonitoringTools.UI
                         sp.Children.Add(ModesNote("Choose a way to turn the mode off: a PIN of 4 to 12 digits, a password of at least 8 characters, or both. Either one works later. They are stored only as salted PBKDF2-SHA256 hashes (200,000 rounds)."));
                     if (!Modes.PinIsSet)
                     {
-                        var row = new StackPanel { Orientation = Orientation.Horizontal };
+                        var row = new WrapPanel();
                         pin = ModesPin("New PIN"); again = ModesPin("Repeat PIN");
                         row.Children.Add(pin); row.Children.Add(again);
                         sp.Children.Add(row);
                     }
                     if (!Modes.PasswordIsSet)
                     {
-                        var row = new StackPanel { Orientation = Orientation.Horizontal };
+                        var row = new WrapPanel();
                         pw = ModesPin("New password (8 or more characters)", Modes.PasswordMaxLength); pwAgain = ModesPin("Repeat password", Modes.PasswordMaxLength);
                         row.Children.Add(pw); row.Children.Add(pwAgain);
                         sp.Children.Add(row);
@@ -136,7 +136,7 @@ namespace MonitoringTools.UI
                 {
                     var word = Modes.CredentialWord;
                     var secret = ModesPin(word == "PIN" ? "PIN to turn off" : word == "password" ? "Password to turn off" : "PIN or password to turn off", Modes.PasswordMaxLength);
-                    var row = new StackPanel { Orientation = Orientation.Horizontal };
+                    var row = new WrapPanel();
                     row.Children.Add(secret);
                     var off = Ui.Button("Turn off", () =>
                     {
@@ -202,7 +202,7 @@ namespace MonitoringTools.UI
             var cache = ModesNote(Modes.DimSumCacheInfo);
             sp.Children.Add(cache);
             var status = ModesNote("");
-            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            var row = new WrapPanel();
             row.Children.Add(Ui.Button("Show one now (preview)", async () =>
             {
                 status.Text = "Fetching a dish..."; status.Foreground = Ui.Res("B.TextMute");
@@ -310,7 +310,7 @@ namespace MonitoringTools.UI
             dayBox.Children.Add(dayBar);
             sp.Children.Add(dayBox);
 
-            var timeRow = new StackPanel { Orientation = Orientation.Horizontal };
+            var timeRow = new WrapPanel();
             timeRow.Children.Add(new TextBlock { Text = "From", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 8), Foreground = Ui.Res("B.TextSoft") });
             timeRow.Children.Add(start);
             timeRow.Children.Add(new TextBlock { Text = "to", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 8), Foreground = Ui.Res("B.TextSoft") });
@@ -318,7 +318,7 @@ namespace MonitoringTools.UI
             timeRow.Children.Add(label);
             sp.Children.Add(timeRow);
 
-            var dateRow = new StackPanel { Orientation = Orientation.Horizontal };
+            var dateRow = new WrapPanel();
             dateRow.Children.Add(new TextBlock { Text = "Only between dates (optional)", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 8), Foreground = Ui.Res("B.TextSoft") });
             dateRow.Children.Add(fromDate);
             dateRow.Children.Add(new TextBlock { Text = "and", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 8), Foreground = Ui.Res("B.TextSoft") });
@@ -453,7 +453,7 @@ namespace MonitoringTools.UI
             sp.Children.Add(CardTitle("Settings file", "Follow a JSON file you choose. It is read again whenever it changes and applied on top of your saved settings, below any scheduled rule. Off by default."));
             var path = Input(s.ExternalSettingsPath, 460, "Full path to a .json file");
             AutomationProperties.SetName(path, "Settings file path");
-            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            var row = new WrapPanel();
             row.Children.Add(path);
             row.Children.Add(Ui.Button("Browse", () =>
             {
@@ -462,7 +462,7 @@ namespace MonitoringTools.UI
             }));
             sp.Children.Add(row);
 
-            var follow = new StackPanel { Orientation = Orientation.Horizontal };
+            var follow = new WrapPanel();
             follow.Children.Add(Ui.Button("Follow this file", () =>
             {
                 var p = path.Text.Trim().Trim('"');

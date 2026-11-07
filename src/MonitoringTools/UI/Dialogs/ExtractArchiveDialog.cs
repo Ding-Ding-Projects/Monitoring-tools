@@ -212,7 +212,7 @@ namespace MonitoringTools.UI.Dialogs
             SetSummary("could not read");
             var copy = Ui.Button("Copy details", () => { try { Clipboard.SetText(reason); } catch { } }, "Btn.Ghost", DocIcons.Copy);
             SetBody(Banner(BannerKind.Bad, "This archive cannot be opened here", reason),
-                    Card(new StackPanel { Children = { Text("WHAT WAS NOT CHANGED", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("Nothing was extracted and the archive was not changed.", 13) } }));
+                    Card(new StackPanel { Children = { Text("What was not changed", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("Nothing was extracted and the archive was not changed.", 13) } }));
             SetFooterClose(ArchiveTools.RarAvailable ? "Zip, 7z, RAR, tar, gz, xz and bz2 archives open here." : "Zip, 7z, tar, gz, xz and bz2 archives open here.", copy);
         }
 

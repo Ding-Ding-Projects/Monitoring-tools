@@ -227,7 +227,7 @@ namespace MonitoringTools.UI.Dialogs
             DockPanel.SetDock(note, Dock.Top); note.Margin = new Thickness(0, 0, 0, 4);
             DockPanel.SetDock(foot, Dock.Bottom); DockPanel.SetDock(summary, Dock.Bottom);
             root.Children.Add(note); root.Children.Add(foot); root.Children.Add(summary);
-            root.Children.Add(new ScrollViewer { Content = cols, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Padding = new Thickness(0, 0, 8, 0), MaxHeight = Math.Max(300, SystemParameters.WorkArea.Height - 360) });
+            root.Children.Add(new ScrollViewer { Content = cols, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Padding = new Thickness(0, 0, 8, 0), MaxHeight = Math.Max(140, Ui.WorkArea.Height - 360) });
 
             FolderBox.TextChanged += (s, e) => { if (!_building) { ApplyRules(); Recalc(); } };
             NameBox.TextChanged += (s, e) => { if (!_building) Recalc(); };

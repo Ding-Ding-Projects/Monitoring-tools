@@ -1097,7 +1097,7 @@ namespace MonitoringTools.UI.Search
         // ---------------------------------------------------------------- bits
 
         private static TextBlock Eyebrow(string text) =>
-            new TextBlock { Text = text.ToUpperInvariant(), Style = Ui.Style("T.Eyebrow"), FontSize = 11, Margin = new Thickness(0, 6, 0, 2) };
+            new TextBlock { Text = text, Style = Ui.Style("T.Eyebrow"), FontSize = 11, Margin = new Thickness(0, 6, 0, 2) };
 
         private static Button Chip(string label, string help, Action click)
         {

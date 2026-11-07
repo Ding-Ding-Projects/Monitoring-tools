@@ -39,7 +39,7 @@ namespace MonitoringTools.UI
             _item = item;
             Title = "Pinned copy"; WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
             Topmost = true; ShowInTaskbar = false; SizeToContent = SizeToContent.WidthAndHeight; ResizeMode = ResizeMode.NoResize;
-            var area = SystemParameters.WorkArea; Left = area.Left + 40 + Open.Count * 24; Top = area.Top + 60 + Open.Count * 24;
+            var area = Ui.WorkArea; Left = area.Left + 40 + Open.Count * 24; Top = area.Top + 60 + Open.Count * 24;
             MaxWidth = 640; MaxHeight = area.Height * 0.8;
             PreviewKeyDown += (s, e) =>
             {

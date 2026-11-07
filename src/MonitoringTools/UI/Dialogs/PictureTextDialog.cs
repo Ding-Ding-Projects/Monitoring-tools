@@ -129,7 +129,7 @@ namespace MonitoringTools.UI.Dialogs
             _qrText = text;
             var sp = new StackPanel();
             var wifi = Regex.Match(text, @"^WIFI:(?:.*?;)?S:(?<s>(?:\\.|[^;])*);", RegexOptions.IgnoreCase);
-            sp.Children.Add(Ui.Mono(wifi.Success ? "QR CODE · WI-FI NETWORK" : "QR CODE", Ui.Res("B.TextSoft"), 11));
+            sp.Children.Add(Ui.Mono(wifi.Success ? "QR CODE · WI-FI NETWORK" : "QR code", Ui.Res("B.TextSoft"), 11));
             sp.Children.Add(new TextBlock { Text = wifi.Success ? wifi.Groups["s"].Value.Replace("\\", "") : text, FontSize = 17, Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 8) });
             var row = new WrapPanel();
             var copy = Ui.Button("Copy what it says", () => { ClipboardWatcher.SetText(_qrText); _status.Text = "Copied the QR code's text."; }, "Btn.Ghost", Icons.Clipboard);

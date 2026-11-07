@@ -22,7 +22,8 @@ namespace MonitoringTools.UI
             var sp = new StackPanel { Tag = "logo-custom" };
             sp.Children.Add(CardTitle("Logo glyph and image", "Choose a glyph from the app's icon set, or your own PNG or ICO picture, for the drawer logo and the tray icon. The tint above still colours a glyph. Starts as the Pulse glyph."));
 
-            var preview = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
+            // the two previews sit side by side, and the second moves under the first when the card is narrow
+            var preview = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
             var status = ModesNote(_logoNote ?? "", _logoProblem ? "B.Amber" : "B.TextMute");
             void Say(string text, bool problem = false) { _logoNote = text; _logoProblem = problem; status.Text = text; status.Foreground = Ui.Res(problem ? "B.Amber" : "B.TextMute"); }
             AutomationProperties.SetLiveSetting(status, AutomationLiveSetting.Polite);
@@ -31,7 +32,7 @@ namespace MonitoringTools.UI
             void Paint()
             {
                 preview.Children.Clear();
-                var drawer = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 24, 0) };
+                var drawer = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 24, 8) };
                 var src = LogoKit.LoadImage();
                 FrameworkElement big;
                 if (src != null) big = new Image { Source = src, Width = 32, Height = 32, Stretch = Stretch.Uniform };

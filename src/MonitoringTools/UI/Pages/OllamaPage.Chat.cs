@@ -58,7 +58,7 @@ namespace MonitoringTools.UI
             string CurrentModel() => Settings.Current.OllamaLastModel;
 
             // ---------------------------------------------------------------- model and capability badge
-            box.Children.Add(Ui.Mono("MODEL", Ui.Res("B.TextMute"), 11));
+            box.Children.Add(Ui.Mono("Model", Ui.Res("B.TextMute"), 11));
             box.Children.Add(modelChips);
             var capRow = new WrapPanel { Margin = new Thickness(0, 4, 0, 2) };
             var capNote = Ui.Mono("", Ui.Res("B.TextMute"), 11);
@@ -145,7 +145,7 @@ namespace MonitoringTools.UI
             AutomationProperties.SetName(numCtx, "Context length in tokens"); AutomationProperties.SetName(keep, "Keep-alive for this chat");
             var paramRow = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
             StackPanel Labelled(string label, TextBox tb) { var sp = new StackPanel { Margin = new Thickness(0, 0, 8, 0) }; sp.Children.Add(Ui.Mono(label, Ui.Res("B.TextMute"), 11)); sp.Children.Add(tb); return sp; }
-            paramRow.Children.Add(Labelled("TEMPERATURE", temp)); paramRow.Children.Add(Labelled("TOP-P", topP));
+            paramRow.Children.Add(Labelled("Temperature", temp)); paramRow.Children.Add(Labelled("TOP-P", topP));
             paramRow.Children.Add(Labelled("CONTEXT (TOKENS)", numCtx)); paramRow.Children.Add(Labelled("KEEP-ALIVE", keep));
             box.Children.Add(paramRow);
             var paramNote = Ui.Mono("Empty fields use the model's own defaults. These apply to this chat only and are saved with it.", Ui.Res("B.TextMute"), 11);
@@ -436,7 +436,7 @@ namespace MonitoringTools.UI
             box.Children.Add(Switch("Save chats automatically", "Writes the chat to disk after every reply. Default off, so nothing is stored unless you press Save chat.", Settings.Current.OllamaAutoSaveChats, v => Settings.Current.OllamaAutoSaveChats = v));
 
             // ---------------------------------------------------------------- saved chats
-            box.Children.Add(Ui.Mono("SAVED CHATS", Ui.Res("B.TextMute"), 11));
+            box.Children.Add(Ui.Mono("Saved chats", Ui.Res("B.TextMute"), 11));
             var savedFilter = new SearchField("ollama:chats", "Search saved chats", compact: true) { MaxWidth = 420, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 4, 0, 6) };
             var savedHost = new StackPanel();
             box.Children.Add(savedFilter);

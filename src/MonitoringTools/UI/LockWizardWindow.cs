@@ -31,7 +31,7 @@ namespace MonitoringTools.UI
             _pageId = pageId; _key = key; _label = label; _created = created;
             _minutes = Math.Max(0, Settings.Current.LockUnlockMinutes);
             var body = new StackPanel();
-            body.Children.Add(new TextBlock { Text = "LOCK THIS ELEMENT", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
+            body.Children.Add(new TextBlock { Text = "Lock this element", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
             var shown = label.Length > 70 ? label.Substring(0, 70) + "…" : label;
             body.Children.Add(new TextBlock { Text = shown, Style = Ui.Style("T.Title"), FontSize = 16, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 8) });
             body.Children.Add(SafetyUi.Text("Choose what it takes to unlock. This lock has its own credentials, separate from every other lock. Default: PIN.", 12, "B.TextMute"));
@@ -70,7 +70,7 @@ namespace MonitoringTools.UI
             row.Children.Add(Ui.Button("Cancel", Close, "Btn.Ghost"));
             body.Children.Add(row);
 
-            var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Content = body, MaxHeight = Math.Max(300, SystemParameters.WorkArea.Height - 140) };
+            var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Content = body, MaxHeight = Math.Max(300, Ui.WorkArea.Height - 140) };
             SetBody(scroll);
             BuildFields();
         }

@@ -30,12 +30,15 @@ namespace MonitoringTools.UI
             {
                 Background = Ui.Res("B.AmberWash"), CornerRadius = new CornerRadius(12), Padding = new Thickness(14, 12, 14, 12), Margin = new Thickness(0, 0, 0, Appearance.Gap(12))
             };
-            var warnRow = new StackPanel { Orientation = Orientation.Horizontal };
-            warnRow.Children.Add(new ContentControl { Content = Ui.Icon(Icons.Shield, Ui.Res("B.Amber"), 16, 2), Margin = new Thickness(0, 1, 10, 0), VerticalAlignment = VerticalAlignment.Top });
+            // a dock, not a horizontal stack, so the warning wraps to the width it is given
+            var warnRow = new DockPanel { LastChildFill = true };
+            var warnIcon = new ContentControl { Content = Ui.Icon(Icons.Shield, Ui.Res("B.Amber"), 16, 2), Margin = new Thickness(0, 1, 10, 0), VerticalAlignment = VerticalAlignment.Top, Focusable = false };
+            DockPanel.SetDock(warnIcon, Dock.Left);
+            warnRow.Children.Add(warnIcon);
             warnRow.Children.Add(new TextBlock
             {
                 Text = "Turn this on only if you trust everything you copy. Anything on the clipboard that matches the rules below will install software.",
-                Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap, MaxWidth = 560
+                Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap, MaxWidth = 560, HorizontalAlignment = HorizontalAlignment.Left
             });
             warn.Child = warnRow;
             card.Children.Add(warn);

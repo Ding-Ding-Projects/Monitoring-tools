@@ -32,9 +32,11 @@
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"/>
                             <TextBlock Text="Setup" Style="{StaticResource T.Title}" FontSize="16" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <StackPanel x:Name="Rail" Grid.Row="1"/>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                            <StackPanel x:Name="Rail"/>
+                        </ScrollViewer>
                         <StackPanel Grid.Row="2">
-                            <TextBlock x:Name="SavedNote" Style="{StaticResource T.Mono}" FontSize="11" Foreground="{DynamicResource B.TextMute}" TextWrapping="Wrap"
+                            <TextBlock x:Name="SavedNote" Style="{StaticResource T.Body}" FontSize="12" LineHeight="17" Foreground="{DynamicResource B.TextMute}" TextWrapping="Wrap"
                                        Text="Progress saves as you go. Close any time and pick up from the tray."/>
                         </StackPanel>
                     </Grid>

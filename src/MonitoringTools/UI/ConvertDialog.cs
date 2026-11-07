@@ -61,7 +61,7 @@ namespace MonitoringTools.UI
             _targets = TargetsFor(files);
             WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
             ResizeMode = ResizeMode.NoResize; Width = 640; SizeToContent = SizeToContent.Height;
-            MaxHeight = Math.Max(420, SystemParameters.WorkArea.Height - 48);
+            MaxHeight = Math.Max(420, Ui.WorkArea.Height - 48);
             WindowStartupLocation = WindowStartupLocation.CenterScreen; Topmost = true; ShowInTaskbar = true;
             Title = "Convert to…";
             AutomationProperties.SetName(this, "Convert to");

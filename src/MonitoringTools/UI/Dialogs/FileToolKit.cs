@@ -23,7 +23,7 @@ namespace MonitoringTools.UI
             new TextBlock { Text = text, FontSize = TypeScale.Snap(size), FontFamily = Ui.Font("F.Body"), Foreground = fg ?? Ui.Res("B.TextSoft"), FontWeight = weight ?? FontWeights.Medium, TextWrapping = TextWrapping.Wrap, Margin = margin ?? new Thickness(0, 0, 0, 5) };
 
         public static TextBlock Eyebrow(string text, Thickness? margin = null) =>
-            new TextBlock { Text = text.ToUpperInvariant(), FontSize = 12, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.Mint"), Margin = margin ?? new Thickness(0, 0, 0, 8) };
+            new TextBlock { Text = text, FontSize = 12, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res("B.Mint"), Margin = margin ?? new Thickness(0, 0, 0, 8) };
 
         public static TextBlock Body(string text, double size = 12, Brush fg = null, Thickness? margin = null) =>
             new TextBlock { Text = text, FontSize = TypeScale.Snap(size), FontFamily = Ui.Font("F.Body"), Foreground = fg ?? Ui.Res("B.TextSoft"), TextWrapping = TextWrapping.Wrap, Margin = margin ?? new Thickness(0) };

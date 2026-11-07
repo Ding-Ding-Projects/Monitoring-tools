@@ -13,7 +13,9 @@
         </Grid.RenderTransform>
         <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
                 Effect="{DynamicResource Fx.Shadow}" Padding="8">
-            <StackPanel x:Name="Rows"/>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                <StackPanel x:Name="Rows"/>
+            </ScrollViewer>
         </Border>
     </Grid>
 </Window>

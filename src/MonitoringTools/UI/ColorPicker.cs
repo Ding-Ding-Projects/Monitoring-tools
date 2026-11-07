@@ -265,7 +265,7 @@ namespace MonitoringTools.UI
             cmp.Children.Add(_oldSwatch); cmp.Children.Add(_newSwatch);
             AutomationProperties.SetName(cmp, "Original colour on the left, new colour on the right");
             Children.Add(cmp);
-            Children.Add(Ui.Mono("ORIGINAL  ·  NEW", Ui.Res("B.TextMute"), 11).WithMargin(0, 2, 0, 0));
+            Children.Add(Ui.Mono("Original and new", Ui.Res("B.TextMute"), 11).WithMargin(0, 2, 0, 0));
             Children.Add(_contrast);
 
             // translator fields
@@ -303,7 +303,7 @@ namespace MonitoringTools.UI
             Children.Add(tools);
 
             // theme roles
-            Children.Add(Ui.Mono("THEME COLOURS", Ui.Res("B.TextMute"), 11).WithMargin(0, 6, 0, 4));
+            Children.Add(Ui.Mono("Theme colours", Ui.Res("B.TextMute"), 11).WithMargin(0, 6, 0, 4));
             var roles = new WrapPanel();
             for (int i = 0; i < 17; i++)
             {
@@ -312,7 +312,7 @@ namespace MonitoringTools.UI
             }
             Children.Add(roles);
 
-            Children.Add(Ui.Mono("RECENT", Ui.Res("B.TextMute"), 11).WithMargin(0, 8, 0, 4));
+            Children.Add(Ui.Mono("Recent", Ui.Res("B.TextMute"), 11).WithMargin(0, 8, 0, 4));
             Children.Add(_recent);
             RebuildRecent();
 

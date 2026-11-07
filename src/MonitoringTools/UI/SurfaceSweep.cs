@@ -187,8 +187,8 @@ namespace MonitoringTools.UI
                 Add("window-too-big", surface, "window", $"{w.ActualWidth:0} x {w.ActualHeight:0} on a {_area.Width:0} x {_area.Height:0} screen");
             var texts = new List<(TextBlock Tb, Rect R)>();
             var client = new Rect(0, 0, w.ActualWidth, w.ActualHeight);
-            Visit(w, w, client, true, true, 1.0, surface, texts);
-            // overlapping text: two labels drawn on top of each other
+            Visit(w, w, client, true, true, 1.0, "the window", surface, texts);
+            // overlapping text: two labels drawn on top of each other, compared by the part of each that is visible
             for (int i = 0; i < texts.Count; i++)
                 for (int j = i + 1; j < texts.Count; j++)
                 {
@@ -202,28 +202,50 @@ namespace MonitoringTools.UI
 
         private static bool Contains(Rect outer, Rect inner) => outer.Left <= inner.Left + 0.5 && outer.Top <= inner.Top + 0.5 && outer.Right >= inner.Right - 0.5 && outer.Bottom >= inner.Bottom - 0.5;
 
-        /// <summary>Walks the visual tree carrying the clip rectangle and whether each axis may scroll past it.</summary>
-        private static void Visit(Window w, DependencyObject d, Rect clip, bool scrollX, bool scrollY, double opacity, string surface, List<(TextBlock, Rect)> texts)
+        /// <summary>
+        /// Walks the visual tree carrying the visible box, what draws it and whether each axis may scroll past it. Three things
+        /// clip in WPF: a box that clips to its bounds, the viewport of a scroll viewer, and the layout slot of an element that
+        /// was given less room than it needs (drawn cut, with no ellipsis).
+        /// </summary>
+        private static void Visit(Window w, DependencyObject d, Rect clip, bool scrollX, bool scrollY, double opacity, string clipBy, string surface, List<(TextBlock, Rect)> texts)
         {
             if (d is UIElement ue && (!ue.IsVisible || ue.Opacity * opacity < 0.05)) return;
             if (d is UIElement u2) opacity *= u2.Opacity;
-            Rect r = Rect.Empty;
             if (d is FrameworkElement fe && fe.ActualWidth > 0 && fe.ActualHeight > 0 && !(d is Window))
             {
-                try { r = fe.TransformToAncestor(w).TransformBounds(new Rect(0, 0, fe.ActualWidth, fe.ActualHeight)); } catch (InvalidOperationException) { return; }
+                Rect r;
+                GeneralTransform toWindow;
+                try { toWindow = fe.TransformToAncestor(w); r = toWindow.TransformBounds(new Rect(0, 0, fe.ActualWidth, fe.ActualHeight)); } catch (InvalidOperationException) { return; }
+                bool textual = fe is TextBlock tbc && !string.IsNullOrWhiteSpace(tbc.Text) || fe is ButtonBase || fe is TextBox;
                 // fully outside the visible part of a box that scrolls: not on screen right now, but still checked below
                 bool outX = r.Right < clip.Left - 1 || r.Left > clip.Right + 1, outY = r.Bottom < clip.Top - 1 || r.Top > clip.Bottom + 1;
                 bool hidden = (outX && !scrollX) || (outY && !scrollY);
                 if (!hidden)
                 {
-                    bool cutX = !scrollX && (r.Left < clip.Left - 1.5 || r.Right > clip.Right + 1.5);
-                    bool cutY = !scrollY && (r.Top < clip.Top - 1.5 || r.Bottom > clip.Bottom + 1.5);
-                    if ((cutX || cutY) && (fe is TextBlock tbc && !string.IsNullOrWhiteSpace(tbc.Text) || fe is ButtonBase || fe is TextBox))
+                    double cx = Math.Max(clip.Left - r.Left, r.Right - clip.Right), cy = Math.Max(clip.Top - r.Top, r.Bottom - clip.Bottom);
+                    bool cutX = !scrollX && cx > 1.5, cutY = !scrollY && cy > 1.5;
+                    if ((cutX || cutY) && textual)
                         Add(clip.Width >= w.ActualWidth - 1 && clip.Height >= w.ActualHeight - 1 ? "outside-window" : "clipped", surface, Describe(fe),
-                            $"{(cutX ? "sides" : "")}{(cutX && cutY ? " and " : "")}{(cutY ? "top or bottom" : "")} cut by {Math.Max(Math.Max(clip.Left - r.Left, r.Right - clip.Right), Math.Max(clip.Top - r.Top, r.Bottom - clip.Bottom)):0} px");
-                    if (fe is TextBlock tb) CheckText(tb, r, surface, texts);
-                    if (fe is Control c) CheckControl(c, surface);
+                            Cut(cutX ? cx : 0, cutY ? cy : 0) + " by " + clipBy + Where(fe));
                 }
+                // the element's own layout slot, when it is smaller than the element
+                Rect slot = Rect.Empty;
+                var lg = LayoutInformation.GetLayoutClip(fe);
+                if (lg != null && !(fe is ScrollContentPresenter))
+                {
+                    var lb = lg.Bounds;
+                    if (!lb.IsEmpty)
+                    {
+                        double sx = Math.Max(-lb.Left, fe.ActualWidth - lb.Right), sy = Math.Max(-lb.Top, fe.ActualHeight - lb.Bottom);
+                        if (!hidden && textual && !fe.ClipToBounds && (sx > 1.5 || sy > 1.5))
+                            Add("clipped", surface, Describe(fe), Cut(sx > 1.5 ? sx : 0, sy > 1.5 ? sy : 0) + " by its own slot" + Where(fe));
+                        slot = toWindow.TransformBounds(lb);
+                    }
+                }
+                var visible = Rect.Intersect(r, clip);
+                if (!slot.IsEmpty) visible = Rect.Intersect(visible, slot);
+                if (!hidden && fe is TextBlock tb) CheckText(tb, visible, surface, texts);
+                if (!hidden && fe is Control c) CheckControl(c, surface);
                 if (fe is ScrollViewer sv)
                 {
                     if (sv.HorizontalScrollBarVisibility == ScrollBarVisibility.Disabled && sv.ExtentWidth > sv.ViewportWidth + 1.5)
@@ -236,45 +258,65 @@ namespace MonitoringTools.UI
                     clip = Rect.Intersect(clip, r);
                     scrollX = owner.HorizontalScrollBarVisibility != ScrollBarVisibility.Disabled;
                     scrollY = owner.VerticalScrollBarVisibility != ScrollBarVisibility.Disabled;
+                    clipBy = "the scrolling area " + Describe(owner);
                     if (clip.IsEmpty) return;
                 }
-                else if (fe.ClipToBounds)
+                else if (fe.ClipToBounds || !slot.IsEmpty)
                 {
-                    clip = Rect.Intersect(clip, r);
+                    clip = Rect.Intersect(clip, slot.IsEmpty ? r : slot);
                     scrollX = scrollY = false;
+                    clipBy = Describe(fe);
                     if (clip.IsEmpty) return;
                 }
             }
             int n = d is Visual || d is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetChildrenCount(d) : 0;
-            for (int i = 0; i < n; i++) Visit(w, VisualTreeHelper.GetChild(d, i), clip, scrollX, scrollY, opacity, surface, texts);
+            for (int i = 0; i < n; i++) Visit(w, VisualTreeHelper.GetChild(d, i), clip, scrollX, scrollY, opacity, clipBy, surface, texts);
         }
 
-        private static void CheckText(TextBlock tb, Rect r, string surface, List<(TextBlock, Rect)> texts)
+        private static string Cut(double x, double y) =>
+            x > 0 && y > 0 ? $"sides cut by {x:0} px and top or bottom by {y:0} px" : x > 0 ? $"sides cut by {x:0} px" : $"top or bottom cut by {y:0} px";
+
+        /// <summary>The element's nearest named or typed ancestors, so a finding can be traced to the code that builds it.</summary>
+        private static string Where(FrameworkElement fe)
+        {
+            var parts = new List<string>();
+            for (var p = VisualTreeHelper.GetParent(fe); p != null && parts.Count < 4; p = VisualTreeHelper.GetParent(p))
+            {
+                if (!(p is FrameworkElement pf)) continue;
+                if (pf is ContentPresenter || pf is System.Windows.Documents.AdornerDecorator || pf is System.Windows.Documents.AdornerLayer) continue;
+                var name = AutomationProperties.GetName(pf);
+                parts.Add(pf.GetType().Name + (string.IsNullOrEmpty(pf.Name) ? "" : "#" + pf.Name) + (string.IsNullOrWhiteSpace(name) ? "" : " \"" + (name.Length > 30 ? name.Substring(0, 27) + "..." : name) + "\"") + $" {pf.ActualWidth:0}w");
+            }
+            return parts.Count == 0 ? "" : "; inside " + string.Join(" < ", parts);
+        }
+
+        private static void CheckText(TextBlock tb, Rect visible, string surface, List<(TextBlock, Rect)> texts)
         {
             var text = tb.Text;
             if (string.IsNullOrWhiteSpace(text)) return;
-            texts.Add((tb, r));
+            if (!visible.IsEmpty && visible.Width >= 1 && visible.Height >= 1) texts.Add((tb, visible));
             double avail = tb.ActualWidth - tb.Padding.Left - tb.Padding.Right;
             if (avail <= 0) return;
             FormattedText ft;
             try
             {
+                // measured the way the text block lays itself out: the same formatting mode (Display snaps glyphs to pixels)
                 ft = new FormattedText(text, CultureInfo.CurrentUICulture, tb.FlowDirection, new Typeface(tb.FontFamily, tb.FontStyle, tb.FontWeight, tb.FontStretch),
-                    tb.FontSize, Brushes.Black, VisualTreeHelper.GetDpi(tb).PixelsPerDip);
+                    tb.FontSize, Brushes.Black, null, TextOptions.GetTextFormattingMode(tb), VisualTreeHelper.GetDpi(tb).PixelsPerDip);
             }
             catch { return; }
             if (tb.TextWrapping == TextWrapping.NoWrap)
             {
                 if (ft.WidthIncludingTrailingWhitespace > avail + 2 && ft.Width > avail + 2)
-                    Add(tb.TextTrimming == TextTrimming.None ? "clipped" : "trimmed", surface, Describe(tb), $"needs {ft.Width:0} px, has {avail:0} px");
+                    Add(tb.TextTrimming == TextTrimming.None ? "clipped" : "trimmed", surface, Describe(tb), $"needs {ft.Width:0} px, has {avail:0} px" + Where(tb));
             }
             else
             {
-                ft.MaxTextWidth = avail;
+                ft.MaxTextWidth = avail + 0.5;
                 if (!double.IsNaN(tb.LineHeight) && tb.LineHeight > 0) ft.LineHeight = tb.LineHeight;
                 double availH = tb.ActualHeight - tb.Padding.Top - tb.Padding.Bottom;
                 if (ft.Height > availH + 3)
-                    Add(tb.TextTrimming == TextTrimming.None ? "text-area-overflow" : "trimmed", surface, Describe(tb), $"needs {ft.Height:0} px tall, has {availH:0} px");
+                    Add(tb.TextTrimming == TextTrimming.None ? "text-area-overflow" : "trimmed", surface, Describe(tb), $"needs {ft.Height:0} px tall, has {availH:0} px" + Where(tb));
             }
         }
 

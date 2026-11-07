@@ -59,7 +59,7 @@ namespace MonitoringTools.UI
         private FrameworkElement HelpPage()
         {
             var root = PageRoot("Help", "Help and docs", "Every feature explained, offline. Pick a task, browse a topic, or search.");
-            _helpSearch = new SearchField("help:articles", "Search the docs") { MinWidth = 640 };
+            _helpSearch = new SearchField("help:articles", "Search the docs") { MinWidth = 360 };
             _helpSearch.SampleSource = () => Docs.All.Select(a => a.Title + ". " + a.Summary);
             _helpHost = new StackPanel { MaxWidth = 780, HorizontalAlignment = HorizontalAlignment.Left };
             root.Children.Add(_helpSearch);
@@ -180,6 +180,19 @@ namespace MonitoringTools.UI
 
         // -------------------------------------------------------------- landing
 
+        /// <summary>A tile's icon and title; a long title wraps beside the icon instead of running out of the tile.</summary>
+        private static FrameworkElement HelpTileTop(FrameworkElement icon, string title)
+        {
+            var top = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+            top.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            top.ColumnDefinitions.Add(new ColumnDefinition());
+            top.Children.Add(icon);
+            var t = new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 14, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
+            Grid.SetColumn(t, 1);
+            top.Children.Add(t);
+            return top;
+        }
+
         private void HelpBuildLanding()
         {
             var h = _helpHost;
@@ -190,13 +203,12 @@ namespace MonitoringTools.UI
                 var art = Docs.Find(id);
                 if (art == null) continue;
                 var sp = new StackPanel();
-                var top = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
-                top.Children.Add(Ui.IconChip(icon, Ui.Res("B.Mint"), Ui.Res("B.MintWash")));
-                top.Children.Add(new TextBlock { Text = title, Style = Ui.Style("T.Title"), FontSize = 14, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
-                sp.Children.Add(top);
+                sp.Children.Add(HelpTileTop(Ui.IconChip(icon, Ui.Res("B.Mint"), Ui.Res("B.MintWash")), title));
                 sp.Children.Add(new TextBlock { Text = art.Summary, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), MaxHeight = 52, TextTrimming = TextTrimming.CharacterEllipsis });
-                sp.Children.Add(Ui.Mono("Opens: " + art.Title, Ui.Res("B.TextMute"), 11));
-                ((TextBlock)sp.Children[2]).Margin = new Thickness(0, 8, 0, 0);
+                var opens = Ui.Mono("Opens: " + art.Title, Ui.Res("B.TextMute"), 11);
+                opens.TextWrapping = TextWrapping.Wrap;
+                opens.Margin = new Thickness(0, 8, 0, 0);
+                sp.Children.Add(opens);
                 var card = Card(sp, null, 16);
                 card.Margin = new Thickness(0, 0, 14, 14);
                 var aid = art.Id; var aan = anchor;
@@ -211,10 +223,7 @@ namespace MonitoringTools.UI
             foreach (var c in Docs.Categories)
             {
                 var sp = new StackPanel();
-                var top = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
-                top.Children.Add(Ui.IconChip(HelpCategoryIcon(c.Id), Ui.Res("B.Violet"), Ui.Res("B.VioletWash")));
-                top.Children.Add(new TextBlock { Text = c.Title, Style = Ui.Style("T.Title"), FontSize = 14, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
-                sp.Children.Add(top);
+                sp.Children.Add(HelpTileTop(Ui.IconChip(HelpCategoryIcon(c.Id), Ui.Res("B.Violet"), Ui.Res("B.VioletWash")), c.Title));
                 sp.Children.Add(new TextBlock { Text = c.Intro, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), MaxHeight = 52, TextTrimming = TextTrimming.CharacterEllipsis });
                 var count = c.Articles.Count;
                 var cnt = Ui.Mono(count + (count == 1 ? " article" : " articles"), Ui.Res("B.TextMute"), 11);
@@ -401,7 +410,7 @@ namespace MonitoringTools.UI
             h.Children.Add(bar);
 
             var crumb = a.Id == "readme" ? "Project overview" : a.IsIndex ? "Topic" : (category?.Title ?? "Docs");
-            h.Children.Add(new TextBlock { Text = crumb.ToUpperInvariant(), Style = Ui.Style("T.Eyebrow"), FontSize = 12 });
+            h.Children.Add(new TextBlock { Text = crumb, Style = Ui.Style("T.Eyebrow"), FontSize = 12 });
             h.Children.Add(new TextBlock { Text = a.Title, Style = Ui.Style("T.Title"), FontSize = 28, Margin = new Thickness(0, 4, 0, 14), TextWrapping = TextWrapping.Wrap });
 
             var body = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };

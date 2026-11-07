@@ -12,17 +12,22 @@
             <Border.BorderBrush>
                 <SolidColorBrush x:Name="Edge" Color="{DynamicResource C.Line}"/>
             </Border.BorderBrush>
-            <StackPanel x:Name="Body">
-                <ContentControl x:Name="IconHost" HorizontalAlignment="Left" Margin="0,0,0,14"/>
-                <TextBlock x:Name="TitleText" Style="{StaticResource T.Title}" FontSize="22"/>
-                <TextBlock x:Name="BodyText" Style="{StaticResource T.Body}" Margin="0,8,0,0" LineHeight="20"/>
-                <CheckBox x:Name="Extra" Style="{StaticResource Switch}" Margin="0,16,0,0"/>
-                <StackPanel x:Name="Gate" Visibility="Collapsed" Margin="0,18,0,0"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <!-- the buttons stay in view; on a short screen the rest scrolls -->
+            <DockPanel x:Name="Body">
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
                     <Button x:Name="CancelBtn" Content="Keep it" Style="{StaticResource Btn.Ghost}" Margin="0,0,8,0" Click="OnCancel" IsCancel="True"/>
                     <Button x:Name="OkBtn" Style="{StaticResource Btn.Danger}" Click="OnOk"/>
                 </StackPanel>
-            </StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                    <StackPanel>
+                        <ContentControl x:Name="IconHost" HorizontalAlignment="Left" Margin="0,0,0,14"/>
+                        <TextBlock x:Name="TitleText" Style="{StaticResource T.Title}" FontSize="22" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="BodyText" Style="{StaticResource T.Body}" Margin="0,8,0,0" LineHeight="20"/>
+                        <CheckBox x:Name="Extra" Style="{StaticResource Switch}" Margin="0,16,0,0"/>
+                        <StackPanel x:Name="Gate" Visibility="Collapsed" Margin="0,18,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
         </Border>
     </Grid>
 </Window>

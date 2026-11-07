@@ -791,7 +791,7 @@ namespace MonitoringTools.UI
                     Drive.Press(d, "Mount as a drive");
                     if (!await UntilDocState(() => d.State == DiscState.CouldNotMount, 70000)) return "ended in " + d.State;
                     var text = Drive.TextOf(d);
-                    if (!text.Contains("Windows could not mount this image") || !text.Contains("WHAT WAS NOT CHANGED")) return "card: " + text;
+                    if (!text.Contains("Windows could not mount this image") || !text.Contains("What was not changed")) return "card: " + text;
                     if (DiscImageTools.AttachedDrive(junk) != null) { DiscImageTools.Dismount(junk); return "a failed mount left the image attached"; }
                     return null;
                 }

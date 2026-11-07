@@ -118,7 +118,8 @@ namespace MonitoringTools.UI
             var g = new Grid();
             if (grid)
             {
-                var pen = new Pen(B("#1F7EA6D8"), 1); pen.Freeze();
+                var lineBrush = new SolidColorBrush(Color.FromArgb(0x24, 0x7E, 0xA6, 0xD8)); lineBrush.Freeze();
+                var pen = new Pen(lineBrush, 1); pen.Freeze();
                 var tile = new DrawingBrush(new GeometryDrawing { Pen = pen, Geometry = Geometry.Parse("M0,0 L12,0 M0,0 L0,12") }) { TileMode = TileMode.Tile, Viewport = new Rect(0, 0, 12, 12), ViewportUnits = BrushMappingMode.Absolute, Viewbox = new Rect(0, 0, 12, 12), ViewboxUnits = BrushMappingMode.Absolute };
                 g.Background = tile;
             }

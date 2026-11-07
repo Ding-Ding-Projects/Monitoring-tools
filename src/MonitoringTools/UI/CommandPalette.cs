@@ -257,8 +257,12 @@ namespace MonitoringTools.UI
                 ElementMenu.Attach(this, _ => PaletteMenu(), new ElementMenu.Options { OnMenu = open => _menuOpen = open });
                 Loaded += (s, e) =>
                 {
-                    ((ScaleTransform)_card.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Spring });
-                    ((ScaleTransform)_card.RenderTransform).BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Spring });
+                    if (Ui.Reduced) _card.RenderTransform = Transform.Identity;
+                    else
+                    {
+                        ((ScaleTransform)_card.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Spring });
+                        ((ScaleTransform)_card.RenderTransform).BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(260)) { EasingFunction = Ui.Spring });
+                    }
                     _card.Opacity = 0; Ui.Fade(_card, 1, 160);
                     Activate(); _query.Focus();
                 };
@@ -279,15 +283,18 @@ namespace MonitoringTools.UI
 
             private void ApplySize()
             {
-                var area = SystemParameters.WorkArea;
+                var area = Ui.WorkArea;
                 if (Settings.Current.PaletteFullWindow)
                 {
+                    Core.Appearance.SetDesignSize(this, area.Width, area.Height);
                     Left = area.Left; Top = area.Top; Width = area.Width; Height = area.Height;
                 }
                 else
                 {
-                    Width = 680; Height = 560;
-                    Left = area.Left + (area.Width - Width) / 2; Top = area.Top + area.Height * 0.12;
+                    // grows with the text size, never past the screen; on a short screen the list gives way
+                    Core.Appearance.SetDesignSize(this, 680, 560);
+                    Left = area.Left + (area.Width - Width) / 2;
+                    Top = area.Top + Math.Min(area.Height * 0.12, Math.Max(0, area.Height - Height));
                 }
             }
 
@@ -317,7 +324,7 @@ namespace MonitoringTools.UI
                     if (it.Group != group)
                     {
                         group = it.Group;
-                        _list.Children.Add(new TextBlock { Text = group.ToUpperInvariant(), Style = Ui.Style("T.Eyebrow"), Margin = new Thickness(8, i == 0 ? 0 : 12, 0, 6) });
+                        _list.Children.Add(new TextBlock { Text = group, Style = Ui.Style("T.Eyebrow"), Margin = new Thickness(8, i == 0 ? 0 : 12, 0, 6) });
                     }
                     _list.Children.Add(Row(it, i == _sel, i));
                 }

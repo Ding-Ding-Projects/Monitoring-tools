@@ -86,7 +86,7 @@ namespace MonitoringTools.UI
             {
                 WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
                 ShowInTaskbar = false; Topmost = true; ShowActivated = false; IsHitTestVisible = false; Focusable = false;
-                var area = SystemParameters.WorkArea;
+                var area = Ui.WorkArea;
                 Left = area.Left; Top = area.Top; Width = area.Width; Height = area.Height;
 
                 var reduced = !SystemParameters.ClientAreaAnimation;

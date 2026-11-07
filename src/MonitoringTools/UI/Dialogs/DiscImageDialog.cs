@@ -218,7 +218,7 @@ namespace MonitoringTools.UI.Dialogs
             browse.IsEnabled = true;
             var copy = Ui.Button("Copy details", () => { try { Clipboard.SetText(reason); } catch { } }, "Btn.Ghost", DocIcons.Copy);
             var card = new StackPanel();
-            card.Children.Add(Text("WHAT WAS NOT CHANGED", 12, Ui.Res("B.Mint"), FontWeights.Medium));
+            card.Children.Add(Text("What was not changed", 12, Ui.Res("B.Mint"), FontWeights.Medium));
             card.Children.Add(Text("Nothing was changed. You can still browse and extract the contents without mounting, or copy the file to a local disk first.", 13));
             var row = new StackPanel { Orientation = Orientation.Horizontal }; row.Children.Add(browse); row.Children.Add(copy);
             SetBody(Banner(BannerKind.Bad, "Windows could not mount this image", reason + " The file may be on a network share that does not allow mounting, or it may not be a valid disc image."), Card(card), row);

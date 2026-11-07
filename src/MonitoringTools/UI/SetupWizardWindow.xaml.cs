@@ -36,6 +36,7 @@ namespace MonitoringTools.UI
         public SetupWizardWindow()
         {
             InitializeComponent();
+            FitToScreen();
             Define();
             _index = Math.Clamp(Settings.Current.OnboardingStep, 0, _steps.Count - 1);
             SourceInitialized += (s, e) => Native.ApplyDarkChrome(this);
@@ -43,6 +44,15 @@ namespace MonitoringTools.UI
             Loaded += (s, e) => { Enter(); Show(_index, 0); };
             PreviewKeyDown += OnKeys;
         }
+
+        /// <summary>
+        /// Grows with the text size and never past the screen: on a short screen the step body scrolls, the buttons stay in
+        /// view and the rail tightens.
+        /// </summary>
+        private void FitToScreen() => Core.Appearance.SetDesignSize(this, 780, 640);
+
+        /// <summary>Less than the designed height to work with, in the window's own units.</summary>
+        private bool Short => Height / Core.Appearance.TextScale < 600;
 
         // -------------------------------------------------------------- steps
 
@@ -74,12 +84,12 @@ namespace MonitoringTools.UI
                 Intro = "Four complete styles for every window, each with its own type, shapes and depth. Switch any time on the Appearance page.",
                 Build = () =>
                 {
-                    var wrap = new WrapPanel();
+                    var wrap = ControlCentreWindow.LookGrid();
                     void Paint()
                     {
                         wrap.Children.Clear();
                         foreach (var l in Core.Looks.All)
-                            wrap.Children.Add(ControlCentreWindow.LookChoice(l, Core.Looks.Current == l, p => { ControlCentreWindow.ChooseLook(p); Paint(); }));
+                            wrap.Children.Add(ControlCentreWindow.LookChoice(l, Core.Looks.Current == l, p => { ControlCentreWindow.ChooseLook(p); Paint(); }, double.NaN));
                     }
                     Paint();
                     return wrap;
@@ -264,7 +274,7 @@ namespace MonitoringTools.UI
             Settings.Current.OnboardingStep = idx;
             Settings.Save();
             var st = _steps[idx];
-            StepEyebrow.Text = $"STEP {idx + 1} OF {_steps.Count}{(st.Optional ? " · OPTIONAL" : "")}";
+            StepEyebrow.Text = $"Step {idx + 1} of {_steps.Count}{(st.Optional ? ", optional" : "")}";
             StepTitle.Text = st.Title;
             StepIntro.Text = st.Intro;
             var body = st.Build();
@@ -278,7 +288,8 @@ namespace MonitoringTools.UI
             else ProgressFill.BeginAnimation(WidthProperty, new DoubleAnimation(width * (idx + 1) / _steps.Count, TimeSpan.FromMilliseconds(420)) { EasingFunction = Ui.Out });
             BuildRail();
 
-            if (direction != 0)
+            if (direction != 0 && Ui.Reduced) { body.RenderTransform = Transform.Identity; body.Opacity = 1; }
+            else if (direction != 0)
             {
                 var shift = new TranslateTransform(direction * 30, 0);
                 body.RenderTransform = shift;
@@ -310,10 +321,10 @@ namespace MonitoringTools.UI
                                  : new TextBlock { Text = (i + 1).ToString(), FontSize = 11, FontFamily = Ui.Font("F.Mono"), Foreground = Ui.Res(now ? "B.Mint" : "B.TextMute"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
                 };
                 g.Children.Add(dot);
-                var t = new TextBlock { Text = _steps[i].Name + (_steps[i].Optional ? " · optional" : ""), FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res(now ? "B.Text" : done ? "B.TextSoft" : "B.TextMute"), FontWeight = now ? FontWeights.SemiBold : FontWeights.Normal, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                var t = new TextBlock { Text = _steps[i].Name + (_steps[i].Optional ? " (optional)" : ""), FontSize = 12, FontFamily = Ui.Font("F.Body"), Foreground = Ui.Res(now ? "B.Text" : done ? "B.TextSoft" : "B.TextMute"), FontWeight = now ? FontWeights.SemiBold : FontWeights.Normal, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
                 Grid.SetColumn(t, 1);
                 g.Children.Add(t);
-                var b = new Button { Style = Ui.Style("Btn.Row"), Content = g, Margin = new Thickness(-8, 0, 0, 4), IsEnabled = i <= Math.Max(_index, Settings.Current.OnboardingStep), HorizontalContentAlignment = HorizontalAlignment.Left };
+                var b = new Button { Style = Ui.Style("Btn.Row"), Content = g, Margin = new Thickness(-8, 0, 0, Short ? 1 : 4), Height = Short ? 36 : 40, IsEnabled = i <= Math.Max(_index, Settings.Current.OnboardingStep), HorizontalContentAlignment = HorizontalAlignment.Left };
                 AutomationProperties.SetName(b, $"Step {i + 1}: {_steps[i].Name}{(done ? ", done" : now ? ", current" : "")}");
                 b.Click += (o, e) => { if (idx != _index) Show(idx, idx > _index ? 1 : -1); };
                 Rail.Children.Add(b);

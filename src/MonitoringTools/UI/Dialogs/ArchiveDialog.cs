@@ -309,7 +309,7 @@ namespace MonitoringTools.UI.Dialogs
             DockPanel.SetDock(chipHost, Dock.Top);
             DockPanel.SetDock(foot, Dock.Bottom); DockPanel.SetDock(summary, Dock.Bottom);
             root.Children.Add(chipHost); root.Children.Add(foot); root.Children.Add(summary);
-            root.Children.Add(new ScrollViewer { Content = scroll, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Padding = new Thickness(0, 0, 8, 0), MaxHeight = Math.Max(300, SystemParameters.WorkArea.Height - 330) });
+            root.Children.Add(new ScrollViewer { Content = scroll, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Padding = new Thickness(0, 0, 8, 0), MaxHeight = Math.Max(140, Ui.WorkArea.Height - 330) });
 
             // wiring
             NameBox.TextChanged += (s, e) => { if (!_building) Recalc(); };

@@ -78,7 +78,7 @@ namespace MonitoringTools.UI
                         bar.Children.Add(Ui.Button("Every day", () => { days.Clear(); Paint(); }, "Btn.Ghost"));
                         Paint();
                         sp.Children.Add(bar);
-                        var row = new StackPanel { Orientation = Orientation.Horizontal };
+                        var row = new WrapPanel();
                         row.Children.Add(Labeled("From", start, "Start time"));
                         row.Children.Add(new Border { Width = 12 });
                         row.Children.Add(Labeled("To", end, "End time"));
@@ -93,7 +93,7 @@ namespace MonitoringTools.UI
                     Title = "Only between certain dates?", Help = "Optional. Leave both empty for no date limit, or fill only one for an open-ended range. Both ends are included.",
                     Build = () =>
                     {
-                        var row = new StackPanel { Orientation = Orientation.Horizontal };
+                        var row = new WrapPanel();
                         row.Children.Add(Labeled("First date", fromDate, "Start date (optional)"));
                         row.Children.Add(new Border { Width = 12 });
                         row.Children.Add(Labeled("Last date", toDate, "End date (optional)"));

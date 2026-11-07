@@ -342,7 +342,7 @@ namespace MonitoringTools.UI.Dialogs
             catch (Exception ex)
             {
                 SetSummary("could not save");
-                SetBody(Banner(BannerKind.Bad, "The file could not be saved", ex.Message), Card(new StackPanel { Children = { Text("WHAT WAS NOT CHANGED", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("The original file was not changed and no partial file was left.", 13) } }));
+                SetBody(Banner(BannerKind.Bad, "The file could not be saved", ex.Message), Card(new StackPanel { Children = { Text("What was not changed", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("The original file was not changed and no partial file was left.", 13) } }));
                 SetFooterClose("Check the folder is writable, or pick another name.");
             }
         }
@@ -352,7 +352,7 @@ namespace MonitoringTools.UI.Dialogs
             SetSummary("could not read");
             var copy = Ui.Button("Copy details", () => { try { Clipboard.SetText(reason); } catch { } }, "Btn.Ghost", DocIcons.Copy);
             SetBody(Banner(BannerKind.Bad, "This is not a readable subtitle file", reason),
-                    Card(new StackPanel { Children = { Text("WHAT WAS NOT CHANGED", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("Nothing was changed.", 13) } }));
+                    Card(new StackPanel { Children = { Text("What was not changed", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("Nothing was changed.", 13) } }));
             SetFooterClose("SRT and WebVTT files open here.", copy);
         }
 

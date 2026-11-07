@@ -112,7 +112,7 @@ namespace MonitoringTools.UI.Dialogs
             FileLabel = filePath == null ? "" : System.IO.Path.GetFileName(filePath.TrimEnd('\\'));
             WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
             ResizeMode = ResizeMode.NoResize; Width = width; SizeToContent = SizeToContent.Height;
-            MaxHeight = Math.Max(420, SystemParameters.WorkArea.Height - 48);
+            MaxHeight = Ui.WorkArea.Height;
             WindowStartupLocation = WindowStartupLocation.CenterScreen; Topmost = true; ShowInTaskbar = true;
             Title = tool;
             AutomationProperties.SetName(this, FileLabel.Length > 0 ? tool + ": " + FileLabel : tool);
@@ -248,7 +248,7 @@ namespace MonitoringTools.UI.Dialogs
         {
             var t = new TextBlock
             {
-                Text = section ? text.ToUpperInvariant() : text, FontSize = section ? 12 : 12, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"),
+                Text = text, FontSize = section ? 12 : 12, FontWeight = FontWeights.Medium, FontFamily = Ui.Font("F.Body"),
                 Foreground = section ? Ui.Res("B.Mint") : Ui.Res("B.Text"), TextWrapping = TextWrapping.Wrap, Margin = margin ?? new Thickness(0, 4, 0, 6),
             };
             return t;

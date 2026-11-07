@@ -35,6 +35,12 @@ namespace MonitoringTools.Core
                 "套用呢個外觀只會改上面六個選擇。喺呢頁撳「回復預設」就可以還原。");
             Add("The whole style of every window: type, shapes, outlines and depth. Graphite, Instrument, Blueprint or Pop.",
                 "每個視窗嘅整體風格：字體、形狀、框線同層次。石墨、儀器、藍圖或者波普。");
+
+            // labels that were written in capitals and are now in sentence case
+            Add("Original and new", "原本同新");
+            Add("Preview: what gets typed", "預覽：會打出嚟嘅字");
+            t["First :push"] = "第一次 :push";
+            Add("Look (optional)", "風格（可選）"); Add("DNS (optional)", "DNS（可選）"); Add("Commands (optional)", "指令（可選）");
         }
 
         private static void AddLooksPatterns(List<(Regex, Func<Match, string>)> p)

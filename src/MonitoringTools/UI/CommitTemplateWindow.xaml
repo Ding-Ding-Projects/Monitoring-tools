@@ -14,7 +14,7 @@
         <Border CornerRadius="28" Background="{DynamicResource B.Raised}" BorderBrush="{DynamicResource B.Line}" BorderThickness="1"
                 Effect="{DynamicResource Fx.Shadow}" Padding="24,22,24,20" MouseLeftButtonDown="OnDrag">
             <StackPanel>
-                <TextBlock Text="FIRST :PUSH" Style="{StaticResource T.Eyebrow}" Foreground="{DynamicResource B.Mint}"/>
+                <TextBlock Text="First :push" Style="{StaticResource T.Eyebrow}" Foreground="{DynamicResource B.Mint}"/>
                 <TextBlock Text="Set a default commit message" Style="{StaticResource T.Title}" FontSize="22" Margin="0,6,0,6"/>
                 <TextBlock Style="{StaticResource T.Body}" Text="Every :push uses this message. Click a snippet to drop it in; it fills in at push time."/>
 
@@ -23,7 +23,7 @@
 
                 <Border Background="{DynamicResource B.Sunken}" CornerRadius="16" Padding="12,10" Margin="0,8,0,0" BorderBrush="{DynamicResource B.Line}" BorderThickness="1">
                     <StackPanel>
-                        <TextBlock Text="PREVIEW" Style="{StaticResource T.Eyebrow}"/>
+                        <TextBlock Text="Preview" Style="{StaticResource T.Eyebrow}"/>
                         <TextBlock x:Name="Preview" Style="{StaticResource T.Mono}" Foreground="{DynamicResource B.Text}" FontSize="12" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>

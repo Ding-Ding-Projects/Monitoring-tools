@@ -517,7 +517,7 @@ namespace MonitoringTools.Core
             Add(@"^(\d+) text$", "$1 段文字"); Add(@"^(\d+) links?$", "$1 條連結"); Add(@"^(\d+) files?$", "$1 個檔案"); Add(@"^(\d+) media$", "$1 個媒體");
             Add(@"^gateway (\d+ ms)$", "閘道 $1"); Add(@"^dns (\d+ ms|\?)$", "DNS $1");
             Add(@"^(\d+) games watched$", "監察緊 $1 隻遊戲"); Add(@"^fullscreen on$", "全螢幕：開"); Add(@"^fullscreen off$", "全螢幕：關");
-            Add(@"^(\d[\d,]*) chars$", "$1 個字元"); Add(@"^(\d[\d,]*) words$", "$1 個字"); Add(@"^(\d+) lines$", "$1 行"); Add(@"^(\d+) items$", "$1 個項目");
+            Add(@"^(\d[\d,]*) chars$", "$1 個字元"); Add(@"^(\d[\d,]*) words$", "$1 個字"); Add(@"^(\d+) lines?$", "$1 行"); Add(@"^(\d+) items$", "$1 個項目");
             Add(@"^valid$", "有效"); Add(@"^(\d+) top-level (?:keys|items)$", "$1 個頂層項目");
             Add(@"^Converting to (.+)$", "轉換緊做 $1"); Add(@"^Saved as (.+)$", "已儲存為 $1");
             Add(@"^seen (\d+) times before$", "之前見過 $1 次");
@@ -527,13 +527,14 @@ namespace MonitoringTools.Core
             Add(@"^DNS is now (.+)$", "DNS 而家係 $1"); Add(@"^DNS set to (.+)$", "DNS 已設為 $1"); Add(@"^Switch DNS to (.+)$", "轉 DNS 去 $1");
             Add(@"^Switching to (.+)…$", "轉換緊去 $1…"); Add(@"^Approve the prompt to switch DNS to (.+)…$", "請喺提示按批准，將 DNS 轉去 $1…");
             Add(@"^Toasts on, (\d+) s$", "通知已開，$1 秒");
+            Add(@"^STEP (\d+) OF (\d+), optional$", "第 $1 步，共 $2 步，可選");
             Add(@"^STEP (\d+) OF (\d+)(.*)$", "第 $1 步，共 $2 步$3");
             Add(@"^Delete (\d+)\?$", "刪除 $1 個項目？"); Add(@"^Delete (\d+)$", "刪除 $1 個"); Add(@"^Remove (.+)\?$", "移除 $1？");
             Add(@"^Edit :(.+)$", "編輯 :$1"); Add(@"^Active now: (.+)$", "而家：$1"); Add(@"^Chosen: (.+)$", "已揀：$1");
             Add(@"^Minecraft server started: (.+)$", "Minecraft 伺服器已啟動：$1"); Add(@"^Minecraft server stopped: (.+)$", "Minecraft 伺服器已停止：$1");
             Add(@"^Convert (\d+) files?$", "轉換 $1 個檔案"); Add(@"^Convert (\d+) of these to (.+)$", "將其中 $1 個轉換做 $2");
             Add(@"^Encrypt (\d+)$", "加密 $1 個"); Add(@"^Decrypt (\d+)$", "解密 $1 個"); Add(@"^Encode (\d+)$", "編碼 $1 個"); Add(@"^Decode (\d+)$", "解碼 $1 個");
-            Add(@"^Snoozed to (.+)$", "已暫停到 $1"); Add(@"^More · (\d+)$", "更多 · $1");
+            Add(@"^Snoozed to (.+)$", "已暫停到 $1"); Add(@"^More · (\d+)$", "更多 · $1"); Add(@"^(\d+) more$", "仲有 $1 個");
             Add(@"^(\d+) of (\d+)$", "$1／$2");
             Add(@"^Installed at (.+)$", "已安裝喺 $1");
             Add(@"^Offline: (.+)\.$", "離線：$1。");

@@ -60,7 +60,7 @@ namespace MonitoringTools.UI.Dialogs
             ToolName = toolName; FilePath = filePath;
             WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
             ResizeMode = ResizeMode.NoResize; Width = width; SizeToContent = SizeToContent.Height;
-            MaxHeight = Math.Max(420, SystemParameters.WorkArea.Height - 48);
+            MaxHeight = Ui.WorkArea.Height;
             WindowStartupLocation = WindowStartupLocation.CenterScreen; Topmost = true; ShowInTaskbar = true;
             var name = System.IO.Path.GetFileName(filePath ?? "");
             Title = toolName;

@@ -63,7 +63,7 @@ namespace MonitoringTools.UI
         {
             Title = "Paste queue"; WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
             Topmost = true; ShowInTaskbar = false; ShowActivated = false; SizeToContent = SizeToContent.Height; Width = 380; ResizeMode = ResizeMode.NoResize;
-            var area = SystemParameters.WorkArea; Left = area.Right - Width - 24; Top = area.Top + 80;
+            var area = Ui.WorkArea; Left = area.Right - Width - 24; Top = area.Top + 80;
             MouseLeftButtonDown += (s, e) => { if (e.OriginalSource is Border || e.OriginalSource is TextBlock) try { DragMove(); } catch { } };
             PreviewKeyDown += (s, e) => { if (e.Key == Key.Escape) Close(); };
             _title.Foreground = Ui.Res("B.Text");

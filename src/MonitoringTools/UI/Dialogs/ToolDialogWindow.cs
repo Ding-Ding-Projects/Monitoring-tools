@@ -28,8 +28,9 @@ namespace MonitoringTools.UI.Dialogs
         {
             WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
             ResizeMode = ResizeMode.NoResize; SizeToContent = SizeToContent.Height;
-            MaxHeight = Math.Max(480, SystemParameters.WorkArea.Height);
+            MaxHeight = Ui.WorkArea.Height; MaxWidth = Ui.WorkArea.Width;
             WindowStartupLocation = WindowStartupLocation.CenterScreen; ShowInTaskbar = true;
+            Loaded += (s, e) => FitToScreen();
             Title = windowTitle;
             AutomationProperties.SetName(this, windowTitle);
             SourceInitialized += (s, e) => Core.Native.ApplyDarkChrome(this);
@@ -65,7 +66,7 @@ namespace MonitoringTools.UI.Dialogs
                 Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"]
             };
             Content = new Grid { Margin = new Thickness(16), Children = { _card } };
-            Width = _cardWidth + 32;
+            Core.Appearance.SetDesignSize(this, _cardWidth + 32, double.NaN);
         }
 
         protected virtual void OnEscape() => Close();
@@ -80,17 +81,54 @@ namespace MonitoringTools.UI.Dialogs
             Body.Content = content;
             if (Math.Abs(cardWidth - _cardWidth) > 0.5)
             {
-                if (IsLoaded) Left += (_cardWidth - cardWidth) / 2;
-                _cardWidth = cardWidth; Width = cardWidth + 32;
+                // the width grows with the text size and stays on the screen; the window keeps its centre
+                double before = Width;
+                _cardWidth = cardWidth;
+                Core.Appearance.SetDesignSize(this, cardWidth + 32, double.NaN);
+                if (IsLoaded) Left += (before - Width) / 2;
             }
             AutomationProperties.SetLiveSetting(SubText, AutomationLiveSetting.Polite);
+            if (IsLoaded) FitToScreen();
         }
+
+        private FrameworkElement _flex;
+        private double _flexPreferred, _flexMin;
+        private bool _flexByMax;
+
+        /// <summary>
+        /// Marks the part of a form that scrolls (a list, an editor) as the part that gives way on a short screen. It keeps the
+        /// height it was given when the window fits, and shrinks, never below <paramref name="min"/>, until the whole window does.
+        /// A part sized by its maximum height keeps that behaviour.
+        /// </summary>
+        protected void Flex(FrameworkElement part, double min = 180)
+        {
+            _flex = part; _flexMin = min;
+            _flexByMax = double.IsNaN(part.Height);
+            _flexPreferred = _flexByMax ? part.MaxHeight : part.Height;
+            if (IsLoaded) FitToScreen();
+        }
+
+        /// <summary>Keeps the window inside the screen: never wider or taller than the work area, the flexible part giving way first.</summary>
+        private void FitToScreen()
+        {
+            var wa = Ui.WorkArea;
+            MaxHeight = wa.Height; MaxWidth = wa.Width;
+            if (_flex == null || double.IsInfinity(_flexPreferred) || double.IsNaN(_flexPreferred)) return;
+            SetFlex(_flexPreferred);
+            if (!(Content is FrameworkElement root)) return;
+            root.Measure(new Size(Width, double.PositiveInfinity));
+            double over = root.DesiredSize.Height - wa.Height;
+            if (over > 0) SetFlex(Math.Max(_flexMin, _flexPreferred - over));
+        }
+
+        private void SetFlex(double h) { if (_flexByMax) _flex.MaxHeight = h; else _flex.Height = h; }
 
         /// <summary>For captures only: lifts the height limits so a tall form is photographed whole instead of scrolled.</summary>
         internal void ExpandForCapture()
         {
             MaxHeight = double.PositiveInfinity;
             foreach (var sv in Drive.All<ScrollViewer>(this)) sv.MaxHeight = double.PositiveInfinity;
+            if (_flex != null) SetFlex(_flexPreferred);
             UpdateLayout();
         }
 

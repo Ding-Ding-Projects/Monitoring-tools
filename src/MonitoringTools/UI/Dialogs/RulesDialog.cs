@@ -38,10 +38,11 @@ namespace MonitoringTools.UI.Dialogs
         {
             var head = new Grid { Margin = new Thickness(14, 0, 14, 6) };
             Columns(head);
-            AddHead(head, "APP", 0); AddHead(head, "TOAST AND HISTORY", 1); AddHead(head, "DO AUTOMATICALLY", 2);
+            AddHead(head, "App", 0); AddHead(head, "Toast and history", 1); AddHead(head, "Do automatically", 2);
             var body = new StackPanel();
             body.Children.Add(head);
-            body.Children.Add(new ScrollViewer { Content = _rows, Height = 330, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = false });
+            var rowsScroll = new ScrollViewer { Content = _rows, Height = 330, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = false };
+            body.Children.Add(rowsScroll);
             body.Children.Add(_picker);
             body.Children.Add(DialogParts.Banner(DialogParts.Info, "Already built in: password managers that mark copies as private (KeePass, 1Password, Bitwarden and others) are never kept, whatever these rules say.", "info"));
             var pick = Ui.Button("Pick a running app", Pick, "Btn.Ghost", Icons.Search);
@@ -52,6 +53,7 @@ namespace MonitoringTools.UI.Dialogs
             };
             body.Children.Add(SmartDialogParts.ActionBar(more, "Saved as you change it.", new[] { pick }, add, "Ctrl+N", out _status));
             ShowView("form", body, 900, "Per-app rules", "", Icons.Shield);
+            Flex(rowsScroll, 140);
             PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == System.Windows.Input.Key.N && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = true; AddRule("", ""); }
@@ -65,9 +67,10 @@ namespace MonitoringTools.UI.Dialogs
 
         private static void Columns(Grid g)
         {
-            g.ColumnDefinitions.Add(new ColumnDefinition());
-            g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(220) });
-            g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(240) });
+            // the two choices keep 220 and 240 px while there is room; on a narrow window all three share it
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 120 });
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MaxWidth = 220 });
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MaxWidth = 240 });
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         }
 

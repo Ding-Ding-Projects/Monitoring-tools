@@ -42,9 +42,10 @@ namespace MonitoringTools.UI.Dialogs
             foreach (var t in new[] { _name, _trigger, _hotkey, _body }) t.TextChanged += (s, e) => Changed();
 
             var grid = new Grid { Height = 440 };
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(260) });
+            // the list keeps 260 px while there is room and gives way first when there is not
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MaxWidth = 260, MinWidth = 150 });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(18) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
             grid.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(22), Padding = new Thickness(8), Child = new ScrollViewer { Content = _list, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = false } });
 
             var ed = new StackPanel();
@@ -52,8 +53,20 @@ namespace MonitoringTools.UI.Dialogs
             fields.ColumnDefinitions.Add(new ColumnDefinition()); fields.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
             fields.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) }); fields.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
             fields.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(160) });
+            fields.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); fields.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             fields.Children.Add(Field("Name", _name)); var tr = Field("Trigger", _trigger); Grid.SetColumn(tr, 2); fields.Children.Add(tr);
-            var hk = Field("Shortcut (optional)", _hotkey); Grid.SetColumn(hk, 4); fields.Children.Add(hk);
+            var hk = Field("Shortcut (optional)", _hotkey); fields.Children.Add(hk);
+            // three across while they fit; on a narrow window the shortcut moves under the name and the trigger
+            void Lay(double w)
+            {
+                bool narrow = w < 470;
+                fields.ColumnDefinitions[4].Width = new GridLength(narrow ? 0 : 160);
+                fields.ColumnDefinitions[3].Width = new GridLength(narrow ? 0 : 12);
+                Grid.SetRow(hk, narrow ? 1 : 0); Grid.SetColumn(hk, narrow ? 0 : 4); Grid.SetColumnSpan(hk, narrow ? 3 : 1);
+                hk.Margin = new Thickness(0, narrow ? 4 : 0, 0, 0);
+            }
+            Lay(470);
+            fields.SizeChanged += (s, e) => { if (e.WidthChanged) Lay(e.NewSize.Width); };
             ed.Children.Add(fields);
             ed.Children.Add(DialogParts.Label("Text"));
             ed.Children.Add(_body);
@@ -68,7 +81,7 @@ namespace MonitoringTools.UI.Dialogs
             }
             ed.Children.Add(fills);
             var pv = new StackPanel();
-            pv.Children.Add(new TextBlock { Text = "PREVIEW · WHAT GETS TYPED", FontFamily = Ui.Font("F.Mono"), FontSize = 11, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(0, 0, 0, 6) });
+            pv.Children.Add(new TextBlock { Text = "Preview: what gets typed", FontFamily = Ui.Font("F.Mono"), FontSize = 11, Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(0, 0, 0, 6) });
             pv.Children.Add(_preview);
             ed.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(18), Padding = new Thickness(16, 12, 16, 14), Margin = new Thickness(0, 10, 0, 0), Child = pv });
             ed.Children.Add(DialogParts.Hint("Start triggers with ; so normal typing never fires one. Typing is only compared with your triggers; nothing you type is kept."));
@@ -85,6 +98,7 @@ namespace MonitoringTools.UI.Dialogs
             body.Children.Add(grid);
             body.Children.Add(SmartDialogParts.ActionBar(more, "Saved as you type.", null, add, "Ctrl+N", out _status));
             ShowView("form", body, 960, "Snippets", "Type a trigger in any app and it becomes the text.", Icons.Code, Ui.Res("B.Mint"), Ui.Res("B.MintWash"));
+            Flex(grid, 220);
             PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == System.Windows.Input.Key.N && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = true; New(); }

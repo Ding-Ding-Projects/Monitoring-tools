@@ -92,7 +92,12 @@ namespace MonitoringTools.UI
             slider.Margin = new Thickness(0, 0, 14, 0);
             // A typed box beside the slider; each one moves the other.
             var typed = new NumberField(label, null, get(), 1, 5, 1, v => slider.Value = v, null, 0, false, true) { VerticalAlignment = VerticalAlignment.Center };
-            var sliderRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 6) };
+            // the slider keeps 360 px while there is room and narrows first, so the typed box beside it stays in view
+            var sliderRow = new Grid { Margin = new Thickness(0, 8, 0, 6) };
+            sliderRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MaxWidth = 374 });
+            sliderRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            slider.Width = double.NaN; slider.HorizontalAlignment = HorizontalAlignment.Stretch;
+            Grid.SetColumn(typed, 1);
             sliderRow.Children.Add(slider); sliderRow.Children.Add(typed);
             row.Children.Add(sliderRow);
             row.Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap });
@@ -226,7 +231,11 @@ namespace MonitoringTools.UI
             var slider = MakeSlider(0.5, 2.0, 0.1, s.NarratorRate, "Speaking rate");
             slider.Margin = new Thickness(0, 0, 14, 0);
             var typedRate = new NumberField("Speaking rate", null, s.NarratorRate, 0.5, 2.0, 0.1, v => slider.Value = v, "×", 1, false, true) { VerticalAlignment = VerticalAlignment.Center };
-            var rateRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 6) };
+            var rateRow = new Grid { Margin = new Thickness(0, 8, 0, 6) };
+            rateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MaxWidth = 374 });
+            rateRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            slider.Width = double.NaN; slider.HorizontalAlignment = HorizontalAlignment.Stretch;
+            Grid.SetColumn(typedRate, 1);
             rateRow.Children.Add(slider); rateRow.Children.Add(typedRate);
             rate.Children.Add(rateRow);
             rate.Children.Add(new TextBlock { Text = "Default: 1.0×. Slower is 0.5×, faster is 2.0×.", Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute") });

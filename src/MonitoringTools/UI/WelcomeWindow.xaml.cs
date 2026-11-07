@@ -35,10 +35,8 @@ namespace MonitoringTools.UI
         /// and a narrow screen gets two columns.</summary>
         private void FitToScreen()
         {
-            var wa = Ui.WorkArea;
-            Width = Math.Min(1040, wa.Width);
-            MaxHeight = wa.Height;
-            Cards.Columns = Width < 880 ? 2 : 3;
+            Appearance.SetDesignSize(this, 1040, double.NaN);
+            Cards.Columns = Width / Appearance.TextScale < 880 ? 2 : 3;
         }
 
         private void Card(string title, string body, string icon, string button, Action act, bool primary = false, string tint = null)

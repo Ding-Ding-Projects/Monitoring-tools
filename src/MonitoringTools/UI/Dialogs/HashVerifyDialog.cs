@@ -118,7 +118,7 @@ namespace MonitoringTools.UI.Dialogs
             _ready = new TaskCompletionSource<bool>();
             var algo = _algorithm;
             long total = 0; try { total = new FileInfo(_path).Length; } catch { }
-            _hashLabel.Text = (algo + " of this file").ToUpperInvariant();
+            _hashLabel.Text = algo + " of this file";
             _banner.Visibility = Visibility.Collapsed;
             ShowProgress(0, total);
             Status("Cancel stops reading; nothing is changed.");
@@ -186,14 +186,14 @@ namespace MonitoringTools.UI.Dialogs
                 _progressCard = new Border { CornerRadius = new CornerRadius(16), Background = Ui.Res("B.Sunken"), Padding = new Thickness(16, 12, 16, 12), Child = sp };
             }
             _hashHost.Content = _progressCard;
-            _hashLabel.Text = (_algorithm + " of this file").ToUpperInvariant();
+            _hashLabel.Text = _algorithm + " of this file";
             _copyRow.Visibility = Visibility.Collapsed;
         }
 
         private void ShowHash()
         {
             var h = Current_Hash();
-            _hashLabel.Text = (_algorithm + " of this file").ToUpperInvariant();
+            _hashLabel.Text = _algorithm + " of this file";
             if (h == null) return;
             _hashHost.Content = HashBlock(Highlight(h, null, false, false));
             _copyRow.Visibility = Visibility.Visible;

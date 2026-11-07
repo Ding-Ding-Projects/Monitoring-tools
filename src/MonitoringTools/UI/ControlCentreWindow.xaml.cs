@@ -147,7 +147,7 @@ namespace MonitoringTools.UI
             if (page is StackPanel sp && sp.Children.Count > 0)
             {
                 var label = _sections[idx].Label;
-                _pageSearch = new SearchField("page:" + id, "Search " + label.ToLowerInvariant()) { MinWidth = 640 };
+                _pageSearch = new SearchField("page:" + id, "Search " + label.ToLowerInvariant()) { MinWidth = 360 };
                 _pageSearch.SearchEverywhere = st => CommandPalette.OpenWith(st, this);
                 sp.Children.Insert(1, _pageSearch);
                 SearchScope.Attach(sp, _pageSearch, id switch { "history" => "copies", "activity" => "entries", "shortcuts" => "shortcuts", _ => "settings and sections" });
@@ -335,8 +335,8 @@ namespace MonitoringTools.UI
 
         private static TextBox Input(string text, double width = double.NaN, string hint = null)
         {
-            var t = new TextBox { Style = Ui.Style("Input"), Text = text ?? "", Margin = new Thickness(0, 0, 8, 8), ToolTip = hint };
-            if (!double.IsNaN(width)) { t.Width = width; t.HorizontalAlignment = HorizontalAlignment.Left; }
+            var t = new FieldBox { Style = Ui.Style("Input"), Text = text ?? "", Margin = new Thickness(0, 0, 8, 8), ToolTip = hint };
+            if (!double.IsNaN(width)) { t.PreferredWidth = width; t.HorizontalAlignment = HorizontalAlignment.Left; }
             return t;
         }
 
@@ -595,7 +595,7 @@ namespace MonitoringTools.UI
 
             var m = new StackPanel();
             m.Children.Add(CardTitle("Media folder", "Saved clipboard images, audio and text go here."));
-            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            var row = new WrapPanel();
             var box = Input(s.ResolvedMediaFolder, 460);
             row.Children.Add(box);
             row.Children.Add(Ui.Button("Save", () => { s.MediaSaveFolder = box.Text.Trim(); Settings.Save(); }, "Btn.Accent"));
@@ -616,9 +616,10 @@ namespace MonitoringTools.UI
             // commit message for :push
             var push = new StackPanel();
             push.Children.Add(CardTitle(":push message", "Built in. Stages everything, commits with this message and pushes the current branch."));
-            var pr = new StackPanel { Orientation = Orientation.Horizontal };
-            pr.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 0, 10, 8),
-                Child = Ui.Mono(string.IsNullOrWhiteSpace(s.CommitTemplate) ? "not set yet: the first :push will ask" : s.CommitTemplate, Ui.Res(string.IsNullOrWhiteSpace(s.CommitTemplate) ? "B.Amber" : "B.Text"), 12) });
+            var pr = new WrapPanel();
+            var template = Ui.Mono(string.IsNullOrWhiteSpace(s.CommitTemplate) ? "not set yet: the first :push will ask" : s.CommitTemplate, Ui.Res(string.IsNullOrWhiteSpace(s.CommitTemplate) ? "B.Amber" : "B.Text"), 12);
+            template.TextWrapping = TextWrapping.Wrap;
+            pr.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 0, 10, 8), Child = template });
             pr.Children.Add(Ui.Button("Edit", () =>
             {
                 var d = new CommitTemplateWindow(continueAfter: false);
@@ -718,8 +719,8 @@ namespace MonitoringTools.UI
             var top = new WrapPanel();
             var nameBox = Input(sc.Name, 180, "Name: letters, digits, - and _");
             var descBox = Input(sc.Description, 340, "What it does (shows as the chip tooltip)");
-            top.Children.Add(new StackPanel { Children = { Ui.Mono("NAME", Ui.Res("B.TextMute"), 11), nameBox } });
-            top.Children.Add(new StackPanel { Children = { Ui.Mono("DESCRIPTION", Ui.Res("B.TextMute"), 11), descBox } });
+            top.Children.Add(new StackPanel { Children = { Ui.Mono("Name", Ui.Res("B.TextMute"), 11), nameBox } });
+            top.Children.Add(new StackPanel { Children = { Ui.Mono("Description", Ui.Res("B.TextMute"), 11), descBox } });
             root.Children.Add(top);
 
             var shell = sc.Shell;
@@ -759,7 +760,7 @@ namespace MonitoringTools.UI
 
             // snippet inserts
             var snippets = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
-            snippets.Children.Add(Ui.Mono("INSERT", Ui.Res("B.TextMute"), 11));
+            snippets.Children.Add(Ui.Mono("Insert", Ui.Res("B.TextMute"), 11));
             void Snip(string label, string ps, string bat)
             {
                 var b = Ui.Button(label, () =>
@@ -959,7 +960,7 @@ namespace MonitoringTools.UI
                 wrap.Children.Add(chip);
             }
             g.Children.Add(wrap);
-            var add = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
+            var add = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };
             var box = Input("", 260, "e.g. Valheim or javaw:Minecraft");
             add.Children.Add(box);
             add.Children.Add(Ui.Button("Add game", () =>
@@ -1398,7 +1399,7 @@ namespace MonitoringTools.UI
             sp.Children.Add(Switch("Watch the public IP", "Looks up your public IP address every few minutes and right after the network changes, and records every change. On by default.", s.PublicIpEnabled, v => s.PublicIpEnabled = v, "B.Violet"));
             sp.Children.Add(Number("Check every", "How often the public IP address is looked up. Default: 5 min.", s.PublicIpIntervalMinutes, 1, 1440, 1, v => s.PublicIpIntervalMinutes = (int)v, "min"));
 
-            sp.Children.Add(Ui.Mono("HISTORY REPOSITORY", Ui.Res("B.TextMute"), 11));
+            sp.Children.Add(Ui.Mono("History repository", Ui.Res("B.TextMute"), 11));
             var repo = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
             repo.Children.Add(Ui.Mono(Net.PublicIpMonitor.RepoDir, Ui.Res("B.TextSoft")));
             sp.Children.Add(repo);

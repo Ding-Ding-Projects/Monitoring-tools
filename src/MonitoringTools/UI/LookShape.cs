@@ -7,14 +7,17 @@ namespace MonitoringTools.UI
 {
     /// <summary>
     /// Gives every rounded corner the shape of the current look. Corners are written once, for Graphite, in code and in XAML;
-    /// when a border first loads its corner is remembered and replaced with the look's version (square for Blueprint,
-    /// molded for Instrument, round for Pop). Changing the look reshapes every open window from the remembered corners.
+    /// when a border is first laid out its corner is remembered and replaced with the look's version (square for Blueprint,
+    /// molded for Instrument, round for Pop). Changing the look reshapes every open window from the remembered corners, and
+    /// a corner that code changes later (a search bar opening its builder) becomes the new remembered corner.
     /// Circles stay circles, and a corner the person set themselves in the appearance editor is left alone.
     /// </summary>
     internal static class LookShape
     {
         private static readonly DependencyProperty OriginalProperty =
             DependencyProperty.RegisterAttached("OriginalCorner", typeof(CornerRadius?), typeof(LookShape), new PropertyMetadata(null));
+        private static readonly DependencyProperty ShapedProperty =
+            DependencyProperty.RegisterAttached("ShapedCorner", typeof(CornerRadius?), typeof(LookShape), new PropertyMetadata(null));
         private static readonly DependencyProperty KeepProperty =
             DependencyProperty.RegisterAttached("KeepCorner", typeof(bool), typeof(LookShape), new PropertyMetadata(false));
 
@@ -27,7 +30,9 @@ namespace MonitoringTools.UI
         {
             if (_installed) return;
             _installed = true;
-            EventManager.RegisterClassHandler(typeof(Border), FrameworkElement.LoadedEvent, new RoutedEventHandler((o, e) => Shape((Border)o)), true);
+            // Loaded is only delivered to elements that have their own Loaded handler, so most borders never see a class
+            // handler for it. Every border is laid out, and its first layout changes its size, so that is the hook.
+            EventManager.RegisterClassHandler(typeof(Border), FrameworkElement.SizeChangedEvent, new SizeChangedEventHandler((o, e) => Shape((Border)o)), true);
         }
 
         /// <summary>The corner a border was drawn with before any look reshaped it.</summary>
@@ -36,14 +41,22 @@ namespace MonitoringTools.UI
         private static void Shape(Border b)
         {
             if ((bool)b.GetValue(KeepProperty) || ElementStyles.HasCustomRadius(b)) return;
-            if (!(b.GetValue(OriginalProperty) is CornerRadius original))
+            var now = b.CornerRadius;
+            var original = b.GetValue(OriginalProperty) as CornerRadius?;
+            // first sight, or something changed the corner since it was last shaped: what is there now is the corner to keep
+            if (original == null || !(b.GetValue(ShapedProperty) is CornerRadius last) || last != now)
             {
-                original = b.CornerRadius;
-                if (original.TopLeft == 0 && original.TopRight == 0 && original.BottomRight == 0 && original.BottomLeft == 0) return;
+                if (now.TopLeft == 0 && now.TopRight == 0 && now.BottomRight == 0 && now.BottomLeft == 0)
+                {
+                    if (original != null) { b.ClearValue(OriginalProperty); b.ClearValue(ShapedProperty); }
+                    return;
+                }
+                original = now;
                 b.SetValue(OriginalProperty, original);
             }
-            var shaped = Looks.Corner(original, b.ActualWidth, b.ActualHeight);
-            if (shaped != b.CornerRadius) b.CornerRadius = shaped;
+            var shaped = Looks.Corner(original.Value, b.ActualWidth, b.ActualHeight);
+            b.SetValue(ShapedProperty, shaped);
+            if (shaped != now) b.CornerRadius = shaped;
         }
 
         /// <summary>Reshapes every border in every open window for the look now in use.</summary>

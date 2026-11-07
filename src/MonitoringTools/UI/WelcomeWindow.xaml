@@ -26,7 +26,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel x:Name="Hero" Margin="0,0,16,0">
-                        <TextBlock Text="WELCOME" Style="{StaticResource T.Eyebrow}" FontSize="12" Foreground="{DynamicResource B.Mint}"/>
+                        <TextBlock Text="Welcome" Style="{StaticResource T.Eyebrow}" FontSize="12" Foreground="{DynamicResource B.Mint}"/>
                         <TextBlock Text="It lives in your tray now." Style="{StaticResource T.Title}" FontSize="36" Margin="0,8,0,8" TextWrapping="Wrap"/>
                         <TextBlock Style="{StaticResource T.Body}" FontSize="14" Foreground="{DynamicResource B.TextMute}" MaxWidth="540" HorizontalAlignment="Left"
                                    TextWrapping="Wrap" Text="Everything below works on its own. Press Try it to see each one right now instead of waiting for it to happen."/>

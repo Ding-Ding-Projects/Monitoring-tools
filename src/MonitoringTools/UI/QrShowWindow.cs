@@ -23,7 +23,7 @@ namespace MonitoringTools.UI
         public QrShowWindow(AuthAccount account, FrameworkElement origin) : base(origin, "QR code for " + account.Title)
         {
             var body = new StackPanel();
-            body.Children.Add(new TextBlock { Text = "AUTHENTICATOR SECRET", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
+            body.Children.Add(new TextBlock { Text = "Authenticator secret", Style = Ui.Style("T.Eyebrow"), FontSize = 11 });
             body.Children.Add(new TextBlock { Text = account.Title, Style = Ui.Style("T.Title"), FontSize = 16, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
             body.Children.Add(SafetyUi.Text("Scan this with the authenticator app on your phone. The picture holds this account's secret: anyone who sees it can generate its codes. Close it when you are done.", 12, "B.Amber", null, 6));
 

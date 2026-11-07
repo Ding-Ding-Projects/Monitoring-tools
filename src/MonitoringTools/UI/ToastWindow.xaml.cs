@@ -45,6 +45,7 @@ namespace MonitoringTools.UI
         public ToastWindow()
         {
             InitializeComponent();
+            Appearance.SetDesignSize(this, 436, double.NaN);
             _accent = Ui.C("C.Mint");
             SourceInitialized += (s, e) => Native.MakeToolWindow(this, noActivate: true);
             PreviewKeyDown += OnToastKey;
@@ -179,13 +180,13 @@ namespace MonitoringTools.UI
 
             if (rest.Count > 0)
             {
-                var more = Ui.Button($"More · {rest.Count}", null, "Btn.Ghost");
+                var more = Ui.Button($"{rest.Count} more", null, "Btn.Ghost");
                 more.Foreground = Ui.Res("B.TextSoft");
                 more.Click += (s, e) =>
                 {
                     bool open = overflow.Visibility != Visibility.Visible;
                     overflow.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
-                    more.Content = open ? "Less" : $"More · {rest.Count}";
+                    more.Content = open ? "Less" : $"{rest.Count} more";
                     if (open) { int i = 0; foreach (FrameworkElement c in overflow.Children) Ui.Rise(c, i++ * 22, 8, 280); }
                 };
                 ActionsPanel.Children.Add(more);

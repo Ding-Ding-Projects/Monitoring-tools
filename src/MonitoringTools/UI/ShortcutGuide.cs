@@ -124,7 +124,7 @@ Write-Output 'Copied to the clipboard.'
         public static FrameworkElement Chips(ScriptShell shell, Action<ScriptPreset> insert)
         {
             var wrap = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
-            wrap.Children.Add(Ui.Mono("START FROM A PRESET", Ui.Res("B.TextMute"), 11));
+            wrap.Children.Add(Ui.Mono("Start from a preset", Ui.Res("B.TextMute"), 11));
             foreach (var p in All.Where(p => p.Shell == shell && p.Group != "Blank"))
             {
                 var preset = p;
@@ -229,7 +229,7 @@ Write-Output 'Copied to the clipboard.'
             {
                 var sp = new StackPanel();
                 sp.Children.Add(review);
-                sp.Children.Add(Ui.Mono("SCRIPT PREVIEW", Ui.Res("B.TextMute"), 11).WithTopMargin(10));
+                sp.Children.Add(Ui.Mono("Script preview", Ui.Res("B.TextMute"), 11).WithTopMargin(10));
                 sp.Children.Add(new Border { Background = Ui.Res("B.Sunken"), CornerRadius = new CornerRadius(12), Padding = new Thickness(12), Margin = new Thickness(0, 4, 0, 0), Child = new ScrollViewer { MaxHeight = 200, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Content = preview } }); Core.Language.SetLiteral(preview, true);   // the script itself
                 return sp;
             }

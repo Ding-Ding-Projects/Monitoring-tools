@@ -23,6 +23,7 @@ namespace MonitoringTools.UI
         public OfflineWindow(NetworkState state)
         {
             InitializeComponent();
+            Appearance.SetDesignSize(this, 524, double.NaN);
             _state = state;
             SourceInitialized += (s, e) => Native.MakeToolWindow(this, noActivate: true);
             ElementMenu.Attach(this, null, new ElementMenu.Options { NoActivate = true });
@@ -203,7 +204,7 @@ namespace MonitoringTools.UI
 
         private void Place()
         {
-            var area = SystemParameters.WorkArea;
+            var area = Ui.WorkArea;
             Left = area.Right - Width;
             Top = area.Bottom - ActualHeight;
             App.Toasts.ReservedBottom = Math.Max(0, ActualHeight - 24);

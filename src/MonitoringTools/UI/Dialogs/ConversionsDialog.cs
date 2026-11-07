@@ -84,6 +84,7 @@ namespace MonitoringTools.UI.Dialogs
             body.Children.Add(bar);
             ShowView("form", body, 860, "Quick conversions", "Type or paste anything with a number and a unit.", Icons.Lines,
                 Ui.Res("B.Amber"), Ui.Res("B.AmberWash"));
+            Flex(scroll, 140);
 
             PreviewKeyDown += (s, e) =>
             {

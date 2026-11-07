@@ -12,6 +12,33 @@ checked; anything unchecked is labelled.
   publishes the next normal release and deploys the site (`.github/workflows/build.yml`).
 - Latest release at the time of writing: v1.0.36 (see [CHANGELOG.md](CHANGELOG.md)).
 
+## Looks, every tab open and the every-surface sweep (2026-11-07)
+
+- **Every tab open:** `Core/TabDefaults.cs` opens each page the strip has not offered before (`KnownTabs`), so a fresh
+  install shows all nineteen and an update adds only new pages; a closed tab stays closed. Close buttons show only on
+  the open tab and on hover (`UI/Tabs/StripTab.cs`). Checked by `tests/SmartTests/AppStartChecks.cs`.
+- **Updates no longer show the welcome:** `Core/InstallNote.cs` decides what a hand-started copy leaves behind: the
+  welcome on a genuine first install, the quiet "Updated from X to Y." toast on an upgrade by hand, and just the control
+  centre when the same version is started again. Checked by unit checks in `AppStartChecks.cs`; not yet
+  watched on a real install.
+- **Cut or copied:** `Clip/Smart/CopyOrigin.cs`; files use Explorer's Preferred DropEffect, everything else the shortcut
+  held at the moment of the change. Toast chip in `UI/ToastWindow.xaml(.cs)`, history line in `UI/HistoryPopup.cs`.
+- **Looks:** designs in [design/looks](design/looks/HANDOFF.md). `Core/Looks.cs` (definitions), `Core/Appearance.cs`
+  (`ApplyLook`: fonts, title weight, shadows, card outlines), `UI/LookShape.cs` (corner mapping on each border's first
+  layout and a reshape of open windows on change), `UI/LookParts.cs` (page label, card outline, readout window, grid,
+  picker previews), the picker in `UI/Pages/AppearancePage.Looks.cs`, a setup step, the Make a look guide and palette
+  entries. WPF only delivers `Loaded` to elements with a Loaded handler of their own, so class handlers that must see
+  every element hook `SizeChanged` (the first layout) instead; corner mapping and the compact density for buttons both
+  do.
+  Typefaces come from the npm registry, pinned with sha256 in `deps/manifest.json` (`download-dependencies.ps1` now
+  reads npm tarballs); their OFL texts are embedded under `licenses/fonts/`.
+- **Sweep:** `UI/SurfaceSweep.cs`, run with `MT_ONLY=sweep` through the screenshot entry point; the build step "Sweep
+  every surface" fails the build on any finding except trimmed text, which `sweep.md` lists for review. The sweep fakes
+  the screen through `Ui.WorkArea`, so every window sizes and places itself from `Ui.WorkArea`, never from
+  `SystemParameters.WorkArea`. Dialogs built on `ToolDialogWindow` mark their scrolling part with `Flex(...)`, which
+  shrinks on a short screen so the window and its buttons fit.
+- **Labels:** section and field labels are in sentence case everywhere; helpers no longer turn them into capitals.
+
 ## Smart clipboard (2026-11-06)
 
 - **Design:** [design/clipboard-ideas](design/clipboard-ideas/HANDOFF.md), every idea picked, plus boards for each dialog,

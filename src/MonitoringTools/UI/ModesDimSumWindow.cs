@@ -50,7 +50,7 @@ namespace MonitoringTools.UI
 
             Loaded += (s, e) =>
             {
-                var area = SystemParameters.WorkArea;
+                var area = Ui.WorkArea;
                 Left = area.Left + 12; Top = area.Bottom - ActualHeight - 12;
                 if (!Modes.ReduceMotion) Ui.Fade(card, 1, 260); else card.Opacity = 1;
             };

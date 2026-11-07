@@ -188,7 +188,7 @@ namespace MonitoringTools.UI
                     await Task.Delay(300);
                     if (d.State != ToolState.Error) return "state " + d.State;
                     var t = d.AllText();
-                    if (!t.Contains("could not be read") || !t.Contains("What was not changed".ToUpperInvariant()) && !t.Contains("WHAT WAS NOT CHANGED")) return "the error view is incomplete: " + t;
+                    if (!t.Contains("could not be read") || !t.Contains("What was not changed")) return "the error view is incomplete: " + t;
                     return Directory.GetFiles(Path.GetDirectoryName(f.BadMp4), "broken-trim*").Length == 0 ? null : "an output file exists";
                 }
                 finally { d.Close(); }
@@ -391,7 +391,7 @@ namespace MonitoringTools.UI
                 {
                     await Task.Delay(300);
                     var t = d.AllText();
-                    return d.State == ToolState.Error && t.Contains("This audio could not be decoded") && t.Contains("WHAT WAS NOT CHANGED") ? null : "state " + d.State + " " + t;
+                    return d.State == ToolState.Error && t.Contains("This audio could not be decoded") && t.Contains("What was not changed") ? null : "state " + d.State + " " + t;
                 }
                 finally { d.Close(); }
             });

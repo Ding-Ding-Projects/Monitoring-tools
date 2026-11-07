@@ -15,6 +15,7 @@ namespace MonitoringTools.UI
         public ConfirmWindow(string title, string body, string ok, string extra = null, bool danger = false)
         {
             InitializeComponent();
+            Core.Appearance.SetDesignSize(this, 480, double.NaN);
             TitleText.Text = title;
             BodyText.Text = body;
             OkBtn.Content = ok;

@@ -11,7 +11,7 @@ A small Windows background service with a tray icon and a modern, animated UI. I
 
 **Contents** (each section below opens and closes, so you choose what to read):
 
-- Features: clipboard toasts, quick commands, shortcuts, search and regex builder, Material 3 design, language, modes, records, tabs and safety, internet watch, game mode, service and tray
+- Features: clipboard toasts, quick commands, shortcuts, search and regex builder, Material 3 design, four looks, language, modes, records, tabs and safety, internet watch, game mode, service and tray
 - Install, Control centre, Self-test, Screenshots, Build, Public IP history
 - Release figures and how long a human would have taken
 - Project records: [ROADMAP](ROADMAP.md), [HANDOFF](HANDOFF.md), [CHANGELOG](CHANGELOG.md), [CLOSEOUT_PROMPT](CLOSEOUT_PROMPT.md), [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md)
@@ -170,7 +170,25 @@ On by default. Popups are held back while Roblox, Minecraft, League of Legends, 
 <details>
 <summary><b>Control centre</b></summary>
 
-Overview with live latency, uptime and outage history; an activity feed of conversions, pushes, shortcuts and file jobs; clipboard history; a command playground that explains what `path:format` will do before it runs; settings for every feature; and an about page that shows what the background updater is doing, with **Check now**. A welcome tour with **Try it** buttons opens on first run and from the tray menu.
+Overview with live latency, uptime and outage history; an activity feed of conversions, pushes, shortcuts and file jobs; clipboard history; a command playground that explains what `path:format` will do before it runs; settings for every feature; and an about page that shows what the background updater is doing, with **Check now**. Every page is open in the side rail from the start, so nothing hides behind **New tab**. A welcome tour with **Try it** buttons opens on a first install (never after an update) and from the tray menu.
+
+</details>
+
+<details>
+<summary><b>Four looks</b></summary>
+
+Pick the whole style of every window on the Appearance page, in setup or from the command palette: typefaces, corners, outlines, shadows, the side rail and the colours all change together. See [Looks](docs/features/appearance/looks.md).
+
+| Graphite | Instrument |
+| --- | --- |
+| ![Graphite](docs/screenshots/look-graphite-dark.png) | ![Instrument](docs/screenshots/look-instrument-dark.png) |
+| **Blueprint** | **Pop** |
+| ![Blueprint](docs/screenshots/look-blueprint-dark.png) | ![Pop](docs/screenshots/look-pop-light.png) |
+
+- **Graphite**: soft tonal layers and rounded shapes, the look the app has always had.
+- **Instrument**: like test gear on a bench, with lit indicators and amber readouts.
+- **Blueprint**: fine ink on a grid, square corners and no shadows.
+- **Pop**: bold outlines, sticker colours and hard shadows.
 
 </details>
 

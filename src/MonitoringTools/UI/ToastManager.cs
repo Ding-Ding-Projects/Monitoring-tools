@@ -58,7 +58,7 @@ namespace MonitoringTools.UI
             w.Logged = true;
             w.Gone += () => { _live.Remove(w); Restack(); ShowNextWaiting(); };
             w.SizeChanged += (s, e) => Restack();
-            var area = SystemParameters.WorkArea;
+            var area = Ui.WorkArea;
             w.Left = area.Right - w.Width;
             w.Top = area.Bottom - 200 - ReservedBottom;
             w.Show();
@@ -78,7 +78,7 @@ namespace MonitoringTools.UI
 
         public void Restack()
         {
-            var area = SystemParameters.WorkArea;
+            var area = Ui.WorkArea;
             double bottom = area.Bottom - ReservedBottom;
             for (int i = _live.Count - 1; i >= 0; i--)
             {

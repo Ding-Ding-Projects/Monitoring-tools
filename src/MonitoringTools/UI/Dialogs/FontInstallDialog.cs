@@ -206,7 +206,7 @@ namespace MonitoringTools.UI.Dialogs
             var reason = _facts.Error;
             var copy = Ui.Button("Copy details", () => { try { Clipboard.SetText(reason); } catch { } }, "Btn.Ghost", DocIcons.Copy);
             SetBody(Banner(BannerKind.Bad, "This is not a usable font file", reason),
-                    Card(new StackPanel { Children = { Text("WHAT WAS NOT CHANGED", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("Nothing was installed and the file was not changed.", 13) } }));
+                    Card(new StackPanel { Children = { Text("What was not changed", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("Nothing was installed and the file was not changed.", 13) } }));
             SetFooterClose("Fonts open here as TTF, OTF or TTC.", copy);
         }
 
@@ -222,7 +222,7 @@ namespace MonitoringTools.UI.Dialogs
                 var copy = Ui.Button("Copy details", () => { try { Clipboard.SetText(err); } catch { } }, "Btn.Ghost", DocIcons.Copy);
                 State = FontState.Unreadable; SetSummary("could not install");
                 SetBody(Banner(BannerKind.Bad, "The font could not be installed", err),
-                        Card(new StackPanel { Children = { Text("WHAT WAS NOT CHANGED", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("Nothing was installed and the file was not changed.", 13) } }));
+                        Card(new StackPanel { Children = { Text("What was not changed", 12, Ui.Res("B.Mint"), FontWeights.Medium), Text("Nothing was installed and the file was not changed.", 13) } }));
                 SetFooterClose("Windows refused the install.", copy);
                 return;
             }
