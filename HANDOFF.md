@@ -37,6 +37,16 @@ checked; anything unchecked is labelled.
   the screen through `Ui.WorkArea`, so every window sizes and places itself from `Ui.WorkArea`, never from
   `SystemParameters.WorkArea`. Dialogs built on `ToolDialogWindow` mark their scrolling part with `Flex(...)`, which
   shrinks on a short screen so the window and its buttons fit.
+- **Layout building blocks:** `UI/CardGrid.cs` lays cards in equal columns with each row as tall as its tallest card,
+  always at the full width it is offered (so it is arranged at the width it was measured at) and with fewer columns
+  when `MinColumnWidth` would be broken; use it instead of `UniformGrid` for cards with wrapping text. `UI/FieldBox.cs`
+  is a text box with a preferred width that narrows when there is no room; put it, and the buttons beside it, in a
+  `WrapPanel`, not a horizontal `StackPanel`, which gives its children unlimited width and so never wraps or narrows.
+  Code that changes a corner after a box appeared calls `LookShape.Set`.
+- **How the sweep reads a cut:** WPF arranges an element that got less room than it asked for at its full size and
+  clips it to its slot (a layout clip); the sweep reads `LayoutInformation.GetLayoutClip` for that, plus `ClipToBounds`
+  and scroll viewports. It measures text again only to list trimmed text and text held to a set height, because a
+  second measurement can disagree with the window by a pixel or two.
 - **Labels:** section and field labels are in sentence case everywhere; helpers no longer turn them into capitals.
 
 ## Smart clipboard (2026-11-06)

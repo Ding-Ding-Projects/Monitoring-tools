@@ -700,7 +700,7 @@ namespace MonitoringTools.UI.Tabs
                 default: Grid.SetRow(host, 1); Grid.SetColumn(host, 0); break;
             }
             _w.ContentCaptionRow.Height = d == "top" ? new GridLength(0) : new GridLength(44);
-            host.Width = v ? (_compact ? 76 : 244) : double.NaN;
+            host.Width = v ? (_compact ? 76 : 264) : double.NaN;   // wide enough for the longest page name beside the open tab's buttons
             sg.RowDefinitions.Clear();
             sg.ColumnDefinitions.Clear();
             var brand = _w.BrandPanel; var scroll = _w.TabScroll; var actions = _w.ActionBar; var foot = _w.FooterPanel;

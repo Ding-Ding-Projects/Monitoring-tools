@@ -20,7 +20,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- tab strip: docked left by default, moved to another edge from code (see UI/Tabs/TabStrip.cs) -->
-        <Border x:Name="TabHost" Grid.Row="1" Grid.Column="0" Width="244" Background="{DynamicResource B.Window}">
+        <Border x:Name="TabHost" Grid.Row="1" Grid.Column="0" Width="264" Background="{DynamicResource B.Window}">
             <Grid x:Name="StripGrid" Margin="14,14,14,16">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
