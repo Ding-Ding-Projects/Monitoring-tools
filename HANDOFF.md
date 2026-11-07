@@ -46,7 +46,10 @@ checked; anything unchecked is labelled.
 - **How the sweep reads a cut:** WPF arranges an element that got less room than it asked for at its full size and
   clips it to its slot (a layout clip); the sweep reads `LayoutInformation.GetLayoutClip` for that, plus `ClipToBounds`
   and scroll viewports. It measures text again only to list trimmed text and text held to a set height, because a
-  second measurement can disagree with the window by a pixel or two.
+  second measurement can disagree with the window by a pixel or two. Each element is checked against two boxes: what
+  is visible, and what boxes that cannot scroll allow. A scroll viewer resets the second box on the axes it scrolls, so
+  text scrolled out of view is still checked, and only a box that cannot scroll can cut it. An early version stopped at
+  the first box that was empty and so skipped everything scrolled out of view; fixing that found ten more cuts.
 - **Labels:** section and field labels are in sentence case everywhere; helpers no longer turn them into capitals.
 
 ## Smart clipboard (2026-11-06)
