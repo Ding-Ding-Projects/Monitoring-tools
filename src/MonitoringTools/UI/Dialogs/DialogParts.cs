@@ -26,6 +26,8 @@ namespace MonitoringTools.UI.Dialogs
         private readonly List<Border> _segments = new List<Border>();
         private readonly string _name;
         public string SelectedId { get; private set; }
+        /// <summary>The choices, for a menu that shows them as live controls.</summary>
+        public IReadOnlyList<Choice> Choices => _choices;
         public event Action<string> Changed;
 
         public Segmented(string name, IEnumerable<Choice> choices, string selected)
@@ -101,14 +103,21 @@ namespace MonitoringTools.UI.Dialogs
         }
     }
 
-    /// <summary>A closed field that opens a list. Up and Down change the value without opening it; Enter or Space opens the list.</summary>
+    /// <summary>
+    /// A closed field that opens a list. Up and Down change the value without opening it; Enter or Space opens the list.
+    /// The open list starts with a filter field that has its own regex builder, however short the list: focus lands in
+    /// it, Down moves into the list, Enter picks the first match, and Escape clears the filter and then closes.
+    /// </summary>
     public sealed class Dropdown : Border
     {
         private readonly List<Choice> _choices;
+        private readonly MonitoringTools.UI.Search.SearchField _filter;
         private readonly TextBlock _text = new TextBlock { VerticalAlignment = VerticalAlignment.Center, FontFamily = Ui.Font("F.Body"), FontSize = 14, Foreground = Ui.Res("B.Text"), TextTrimming = TextTrimming.CharacterEllipsis };
         private readonly Popup _popup;
         private readonly StackPanel _list = new StackPanel();
         public string SelectedId { get; private set; }
+        /// <summary>The choices, for a menu that shows them as live controls.</summary>
+        public IReadOnlyList<Choice> Choices => _choices;
         public event Action<string> Changed;
         public bool IsOpen => _popup.IsOpen;
 
@@ -125,10 +134,40 @@ namespace MonitoringTools.UI.Dialogs
             Child = g;
             AutomationProperties.SetName(this, name);
             KeyboardNavigation.SetDirectionalNavigation(_list, KeyboardNavigationMode.Cycle);
-            var card = new Border { Background = Ui.Res("B.Raised"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(16), Padding = new Thickness(6), Margin = new Thickness(0, 6, 12, 12), Child = new ScrollViewer { Content = _list, MaxHeight = 280, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }, Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"] };
+            _filter = new MonitoringTools.UI.Search.SearchField("dropdown:" + name, "Filter choices", compact: true) { Margin = new Thickness(0, 0, 0, 6) };
+            _filter.SampleSource = () => _choices.Select(c => c.Label);
+            _filter.Filter += () => { if (_popup != null && _popup.IsOpen) BuildList(false); };
+            var inner = new StackPanel();
+            inner.Children.Add(_filter);
+            inner.Children.Add(new ScrollViewer { Content = _list, MaxHeight = 280, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+            var card = new Border { Background = Ui.Res("B.Raised"), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(16), Padding = new Thickness(6), Margin = new Thickness(0, 6, 12, 12), Child = inner, MinWidth = 260, Effect = (System.Windows.Media.Effects.Effect)Application.Current.Resources["Fx.Shadow"] };
             _popup = new Popup { Child = card, PlacementTarget = this, Placement = PlacementMode.Bottom, StaysOpen = false, AllowsTransparency = true, PopupAnimation = PopupAnimation.Fade };
-            _popup.Opened += (s, e) => { card.MinWidth = Math.Max(0, ActualWidth - 12); BuildList(); };
+            _popup.Opened += (s, e) =>
+            {
+                card.MinWidth = Math.Max(260, ActualWidth - 12);
+                _filter.State.SetQuery("");
+                BuildList(false);
+                Dispatcher.BeginInvoke(new Action(() => _filter.Box.Focus()), System.Windows.Threading.DispatcherPriority.Input);
+            };
             _popup.Closed += (s, e) => Paint();
+            card.PreviewKeyDown += (s, e) =>
+            {
+                if (_filter.BuilderOpen) return;
+                bool inFilter = _filter.Box.IsKeyboardFocusWithin;
+                if (e.Key == Key.Escape)
+                {
+                    e.Handled = true;
+                    if (_filter.State.Query.Length > 0) { _filter.State.SetQuery(""); _filter.Box.Focus(); }
+                    else { _popup.IsOpen = false; Focus(); }
+                }
+                else if (inFilter && e.Key == Key.Down) { e.Handled = true; _list.Children.OfType<Button>().FirstOrDefault(b => b.IsEnabled)?.Focus(); }
+                else if (inFilter && e.Key == Key.Enter)
+                {
+                    e.Handled = true;
+                    var first = _choices.FirstOrDefault(c => c.Enabled && _filter.State.Matches(c.Label));
+                    if (first != null) { _popup.IsOpen = false; Select(first.Id); Focus(); }
+                }
+            };
             MouseLeftButtonUp += (s, e) => { Focus(); Toggle(); };
             PreviewKeyDown += (s, e) =>
             {
@@ -152,11 +191,13 @@ namespace MonitoringTools.UI.Dialogs
             }
         }
 
-        private void BuildList()
+        private void BuildList(bool focusList = true)
         {
             _list.Children.Clear();
             Button focus = null;
-            foreach (var c in _choices)
+            var shown = _choices.Where(c => _filter.State.Matches(c.Label)).ToList();
+            _filter.SetCount(shown.Count, _choices.Count, "choices");
+            foreach (var c in shown)
             {
                 var b = new Button { Style = Ui.Style("Btn.Row"), HorizontalContentAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 8, 12, 8), Height = double.NaN, IsEnabled = c.Enabled };
                 var row = new StackPanel { Orientation = Orientation.Horizontal };
@@ -169,7 +210,7 @@ namespace MonitoringTools.UI.Dialogs
                 b.Click += (s, e) => { _popup.IsOpen = false; Select(id); Focus(); };
                 _list.Children.Add(b);
             }
-            Dispatcher.BeginInvoke(new Action(() => (focus ?? _list.Children.OfType<Button>().FirstOrDefault())?.Focus()), System.Windows.Threading.DispatcherPriority.Input);
+            if (focusList) Dispatcher.BeginInvoke(new Action(() => (focus ?? _list.Children.OfType<Button>().FirstOrDefault())?.Focus()), System.Windows.Threading.DispatcherPriority.Input);
         }
 
         public void Select(string id, bool raise = true)

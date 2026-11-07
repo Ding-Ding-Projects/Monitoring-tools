@@ -22,7 +22,18 @@ namespace MonitoringTools.UI
     /// </summary>
     public static class ElementMenu
     {
-        public sealed record Item(string Label, string Icon, string Keys, Action Run, bool Danger = false);
+        public sealed record Item(string Label, string Icon, string Keys, Action Run, bool Danger = false)
+        {
+            /// <summary>
+            /// For an item that is a value or a state: the live control drawn beside the label (a switch, a stepper or the
+            /// choices), given a callback that redraws the menu after it changes something.
+            /// </summary>
+            public Func<Action, FrameworkElement> Live { get; init; }
+            /// <summary>What the left and right arrow keys do on this item: -1 or +1.</summary>
+            public Action<int> Step { get; init; }
+            /// <summary>Choosing the item changes it in place, and the menu stays open.</summary>
+            public bool KeepsOpen { get; init; }
+        }
 
         /// <summary>How the menu behaves in one window.</summary>
         public sealed class Options
@@ -313,7 +324,9 @@ namespace MonitoringTools.UI
             var entry = key == null ? null : FindLock(w, target, key);
             bool locked = entry != null && !Locks.IsOpen(entry);
             var items = new List<Item>();
-            if (!locked && target is ButtonBase bb && bb.IsEnabled)
+            // a switch, a number, a slider or a set of choices is shown as its live control, changed in place
+            if (!locked) items.AddRange(StateItems(target));
+            if (!locked && target is ButtonBase bb && bb.IsEnabled && !(target is ToggleButton))
                 items.Add(new Item("Press", Icons.Play, "Enter", () => bb.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent))));
             if (text.Length > 0)
                 items.Add(new Item("Copy text", Icons.Clipboard, "Ctrl+C", () => ClipboardWatcher.SetText(text)));
@@ -345,6 +358,155 @@ namespace MonitoringTools.UI
                 opts?.OnMenu?.Invoke(false);
             }) { LockPage = MenuPageOf(w), LockOrigin = key ?? KeyOfText(text) };
             menu.Show(w, at);
+        }
+
+        // -------------------------------------------------------------- live controls
+
+        private static T Up<T>(DependencyObject d, int depth = 8) where T : DependencyObject
+        {
+            for (int i = 0; d != null && i < depth; i++, d = Parent(d)) if (d is T t) return t;
+            return null;
+        }
+
+        /// <summary>The English name of a control, for a menu label the language layer can translate once.</summary>
+        private static string NameOf(FrameworkElement fe, string fallback)
+        {
+            var name = Core.Language.OriginalName(fe) ?? AutomationProperties.GetName(fe);
+            if (!string.IsNullOrWhiteSpace(name)) return name;
+            var first = FindFirst<TextBlock>(fe);
+            if (first != null)
+            {
+                var run = first.Inlines.OfType<System.Windows.Documents.Run>().FirstOrDefault();
+                var text = (run != null ? Core.Language.OriginalText(run) : null) ?? first.Text;
+                if (!string.IsNullOrWhiteSpace(text) && text.Length <= 60) return text.Trim();
+            }
+            return fallback;
+        }
+
+        private static T FindFirst<T>(DependencyObject d) where T : DependencyObject
+        {
+            if (d == null) return null;
+            int n = d is Visual ? VisualTreeHelper.GetChildrenCount(d) : 0;
+            for (int i = 0; i < n; i++)
+            {
+                var c = VisualTreeHelper.GetChild(d, i);
+                if (c is T t) return t;
+                var deeper = FindFirst<T>(c);
+                if (deeper != null) return deeper;
+            }
+            return null;
+        }
+
+        /// <summary>The item for the state the element shows, with its live control, or nothing.</summary>
+        internal static IEnumerable<Item> StateItems(FrameworkElement target)
+        {
+            if (target == null || !target.IsEnabled) yield break;
+            if (target is ToggleButton tg && !(tg is RadioButton) && !tg.IsThreeState)
+            {
+                yield return new Item(NameOf(tg, "On"), Icons.Check, null, () => tg.IsChecked = tg.IsChecked != true)
+                { KeepsOpen = true, Live = _ => MiniSwitch(tg.IsChecked == true), Step = d => tg.IsChecked = d > 0 };
+                yield break;
+            }
+            var nf = Up<NumberField>(target);
+            if (nf != null && nf.IsEnabled)
+            {
+                yield return new Item(nf.Label ?? "Value", Icons.Plus, null, null)
+                { KeepsOpen = true, Live = redraw => MiniStepper(nf.Box.Text, nf.Label, () => nf.StepBy(-1), () => nf.StepBy(+1), redraw), Step = d => nf.StepBy(d) };
+                yield break;
+            }
+            var sl = Up<Slider>(target);
+            if (sl != null && sl.IsEnabled)
+            {
+                double step = sl.SmallChange > 0 ? sl.SmallChange : Math.Max((sl.Maximum - sl.Minimum) / 20, 0.01);
+                void By(int d) => sl.Value = Math.Max(sl.Minimum, Math.Min(sl.Maximum, sl.Value + d * step));
+                yield return new Item(NameOf(sl, "Value"), Icons.Plus, null, null)
+                { KeepsOpen = true, Live = redraw => MiniStepper(sl.Value.ToString(step >= 1 ? "0" : "0.##"), NameOf(sl, "Value"), () => By(-1), () => By(+1), redraw), Step = By };
+                yield break;
+            }
+            var seg = Up<Dialogs.Segmented>(target);
+            if (seg != null && seg.IsEnabled)
+            {
+                yield return ChoiceItem(NameOf(seg, "Choice"), seg.Choices, () => seg.SelectedId, id => seg.Select(id));
+                yield break;
+            }
+            var dd = Up<Dialogs.Dropdown>(target);
+            if (dd != null && dd.IsEnabled)
+            {
+                yield return ChoiceItem(NameOf(dd, "Choice"), dd.Choices, () => dd.SelectedId, id => dd.Select(id));
+                yield break;
+            }
+            if (target is ComboBox cb && cb.IsEnabled && cb.Items.Count > 0)
+            {
+                var choices = Enumerable.Range(0, cb.Items.Count).Select(i => new Dialogs.Choice(i.ToString(), cb.Items[i] is ComboBoxItem ci ? ci.Content?.ToString() : cb.Items[i]?.ToString())).ToList();
+                yield return ChoiceItem(NameOf(cb, "Choice"), choices, () => cb.SelectedIndex.ToString(), id => cb.SelectedIndex = int.Parse(id));
+            }
+        }
+
+        private static Item ChoiceItem(string label, IReadOnlyList<Dialogs.Choice> all, Func<string> current, Action<string> pick)
+        {
+            var choices = all.Where(c => c.Enabled).ToList();
+            void Cycle(int d)
+            {
+                int i = choices.FindIndex(c => c.Id == current());
+                if (choices.Count > 0) pick(choices[((i + d) % choices.Count + choices.Count) % choices.Count].Id);
+            }
+            return new Item(label, Icons.Lines, null, () => Cycle(+1))
+            {
+                KeepsOpen = true, Step = Cycle,
+                Live = redraw => choices.Count <= 4 && choices.Sum(c => (c.Label ?? "").Length) <= 28
+                    ? MiniChoices(choices, current(), id => { pick(id); redraw(); })
+                    : MiniStepper(choices.FirstOrDefault(c => c.Id == current())?.Label ?? "", label, () => Cycle(-1), () => Cycle(+1), redraw),
+            };
+        }
+
+        /// <summary>A small switch drawn in the menu row; the row itself toggles it.</summary>
+        private static FrameworkElement MiniSwitch(bool on)
+        {
+            var track = new Border { Width = 36, Height = 20, CornerRadius = new CornerRadius(10), BorderThickness = new Thickness(2), VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false, Margin = new Thickness(12, 0, 0, 0) };
+            track.SetResourceReference(Border.BackgroundProperty, on ? "B.Mint" : "B.Sunken");
+            track.SetResourceReference(Border.BorderBrushProperty, on ? "B.Mint" : "B.LineStrong");
+            var thumb = new Border { Width = on ? 12 : 8, Height = on ? 12 : 8, CornerRadius = new CornerRadius(6), HorizontalAlignment = on ? HorizontalAlignment.Right : HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(on ? 0 : 3, 0, on ? 1 : 0, 0) };
+            thumb.SetResourceReference(Border.BackgroundProperty, on ? "B.MintInk" : "B.LineStrong");
+            track.Child = thumb;
+            AutomationProperties.SetName(track, on ? "On" : "Off");
+            return track;
+        }
+
+        /// <summary>Minus, the value and plus, changed in place.</summary>
+        private static FrameworkElement MiniStepper(string value, string name, Action down, Action up, Action redraw)
+        {
+            var sp = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
+            Button Glyph(string g, string label, Action act)
+            {
+                var b = new Button { Style = Ui.Style("Btn.Row"), Content = new TextBlock { Text = g, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center }, Width = 28, Height = 28, Padding = new Thickness(0) };
+                AutomationProperties.SetName(b, label + " " + name);
+                b.Click += (s, e) => { e.Handled = true; try { act(); } catch (Exception ex) { Log.Warn("Menu control failed: " + ex.Message); } redraw(); };
+                return b;
+            }
+            sp.Children.Add(Glyph("−", "Decrease", down));
+            var v = Ui.Mono(value, Ui.Res("B.Text"), 12);
+            v.MinWidth = 44; v.TextAlignment = TextAlignment.Center; v.VerticalAlignment = VerticalAlignment.Center;
+            Core.Language.SetLiteral(v, true);
+            sp.Children.Add(v);
+            sp.Children.Add(Glyph("+", "Increase", up));
+            return sp;
+        }
+
+        /// <summary>The choices side by side, the current one marked; a click picks one in place.</summary>
+        private static FrameworkElement MiniChoices(IReadOnlyList<Dialogs.Choice> choices, string current, Action<string> pick)
+        {
+            var wrap = new WrapPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0), MaxWidth = 230 };
+            foreach (var c in choices)
+            {
+                bool on = c.Id == current;
+                var b = new Button { Style = Ui.Style("Btn.Row"), Content = new TextBlock { Text = (on ? "✓ " : "") + c.Label, FontSize = 12 }, Height = 28, Padding = new Thickness(9, 0, 9, 0), Margin = new Thickness(0, 1, 4, 1) };
+                if (on) b.SetResourceReference(Control.BackgroundProperty, "B.SecondaryContainer");
+                AutomationProperties.SetName(b, c.Label + (on ? ", chosen" : ""));
+                var id = c.Id;
+                b.Click += (s, e) => { e.Handled = true; pick(id); };
+                wrap.Children.Add(b);
+            }
+            return wrap;
         }
 
         // -------------------------------------------------------------- toy locks
@@ -771,13 +933,20 @@ namespace MonitoringTools.UI
                 g.Children.Add(new ContentControl { Content = Ui.Icon(it.Icon ?? Icons.Bolt, it.Danger ? ink : Ui.Res("B.TextSoft"), 16), Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center, Focusable = false });
                 var label = new TextBlock { Text = it.Label, Foreground = ink, FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center };
                 Grid.SetColumn(label, 1); g.Children.Add(label);
-                if (!string.IsNullOrEmpty(it.Keys))
+                if (it.Live != null)
+                {
+                    FrameworkElement live = null;
+                    try { live = it.Live(Render); } catch (Exception ex) { Log.Warn("Menu control not drawn: " + ex.Message); }
+                    if (live != null) { Grid.SetColumn(live, 2); g.Children.Add(live); }
+                    label.TextWrapping = TextWrapping.Wrap;
+                }
+                else if (!string.IsNullOrEmpty(it.Keys))
                 {
                     var k = Ui.Mono(it.Keys, Ui.Res("B.TextMute"), 11);
                     k.VerticalAlignment = VerticalAlignment.Center; k.Margin = new Thickness(16, 0, 0, 0);
                     Grid.SetColumn(k, 2); g.Children.Add(k);
                 }
-                var b = new Button { Style = Ui.Style("Btn.Row"), Content = g, Height = 44, Margin = new Thickness(0, 1, 0, 1) };
+                var b = new Button { Style = Ui.Style("Btn.Row"), Content = g, Height = it.Live != null ? double.NaN : 44, MinHeight = 44, Margin = new Thickness(0, 1, 0, 1) };
                 if (index == _sel) b.Background = Ui.Res("B.SecondaryContainer");
                 AutomationProperties.SetName(b, it.Label + (string.IsNullOrEmpty(it.Keys) ? "" : ", " + it.Keys));
                 _rowItems[b] = it;
@@ -799,6 +968,15 @@ namespace MonitoringTools.UI
                 // every way of choosing an item (a click, Enter, Space, an assistive invoke) ends here, so a locked item is stopped here too
                 var entry = ClosedLockOf(it);
                 if (entry != null) { PromptItem(entry); return; }
+                if (it.KeepsOpen)
+                {
+                    // a value changed in place: the menu stays, redrawn with the new state
+                    try { it.Run?.Invoke(); } catch (Exception ex) { Log.Warn("Menu action failed: " + ex.Message); }
+                    int keep = _shown.IndexOf(it);
+                    Render();
+                    if (keep >= 0) { _sel = Math.Min(keep, Math.Max(0, _shown.Count - 1)); Render(); }
+                    return;
+                }
                 _popup.IsOpen = false;
                 try { it.Run?.Invoke(); } catch (Exception ex) { Log.Warn("Menu action failed: " + ex.Message); }
             }
@@ -815,6 +993,13 @@ namespace MonitoringTools.UI
                 else if (e.Key == Key.Down && _shown.Count > 0) { e.Handled = true; _sel = (_sel + 1) % _shown.Count; Render(); }
                 else if (e.Key == Key.Up && _shown.Count > 0) { e.Handled = true; _sel = (_sel - 1 + _shown.Count) % _shown.Count; Render(); }
                 else if (e.Key == Key.Enter && _shown.Count > 0) { e.Handled = true; Run(_shown[_sel]); }
+                else if ((e.Key == Key.Left || e.Key == Key.Right) && _shown.Count > 0 && _shown[_sel].Step != null && _filter.State.Query.Length == 0 && ClosedLockOf(_shown[_sel]) == null)
+                {
+                    // the arrow keys work the live control of the chosen item, in place
+                    e.Handled = true;
+                    try { _shown[_sel].Step(e.Key == Key.Right ? +1 : -1); } catch (Exception ex) { Log.Warn("Menu control failed: " + ex.Message); }
+                    Render();
+                }
                 else if (LockPage != null && _shown.Count > 0 && (e.Key == Key.Apps || (Keyboard.Modifiers == ModifierKeys.Shift && (e.Key == Key.F10 || (e.Key == Key.System && e.SystemKey == Key.F10)))))
                 {
                     // the menu key on an item offers to lock it, as a right-click on it does

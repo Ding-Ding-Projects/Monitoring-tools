@@ -67,6 +67,10 @@ namespace MonitoringTools.Core
             Add("No notes were provided.", "冇提供任何說明。");
             Add("Formatted text", "格式化文字");
             Add("Copied text, formatted", "複製咗嘅文字（已格式化）");
+
+            // live controls in menus and the dropdown filter
+            Add("Filter choices", "篩選選項");
+            Add("On", "開");
         }
 
         private static void AddFeaturesPatterns(List<(Regex, Func<Match, string>)> p)
@@ -92,6 +96,7 @@ namespace MonitoringTools.Core
             Add(@"^(\d+) unsaved changes\.$", "$1 項未儲存嘅改動。");
             Add(@"^Release notes for (.+)$", "$1 嘅發佈說明");
             Add(@"^Preview of (.+)$", "$1 嘅預覽");
+            Add(@"^(.+), chosen$", "$1，已選");
         }
     }
 }
