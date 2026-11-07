@@ -57,12 +57,20 @@ namespace SmartTests
                 var facts = m.Match(s.Sample).ToList();
                 Check("built-in " + id + " notices its sample", facts.Count > 0);
                 foreach (var o in Ordinary) Check("built-in " + id + " ignores \"" + o + "\"", !m.Match(o).Any());
+                Check("built-in " + id + " script is plain ASCII", File.ReadAllBytes(m.RunPath).All(c => c < 128), "Windows PowerShell reads scripts without a byte order mark as ANSI");
                 Check("built-in " + id + " asks only for what it uses", !m.Permissions.Contains(ExtensionPermission.ReadAllText) && !m.Permissions.Contains(ExtensionPermission.Internet));
                 if (!ps || facts.Count == 0) continue;
                 var kind = facts[0].Get("kind");
                 var r = ExtensionHost.RunProgramAsync(m, s.Action, kind, s.Sample).GetAwaiter().GetResult();
                 var all = (r.Copy ?? "") + "|" + (r.Open ?? "") + "|" + (r.Toast ?? "") + "|" + string.Join("|", r.Values.Select(v => v.Text));
                 Check("built-in " + id + " runs", r.Ok && all.Contains(s.Expect), (r.Error ?? all) + " · " + r.Ms + " ms");
+            }
+
+            if (ps)
+            {
+                var coords = ExtensionManifest.Parse(File.ReadAllText(Path.Combine(dir, "coordinates", "extension.json")), Path.Combine(dir, "coordinates"), out _);
+                var dms = ExtensionHost.RunProgramAsync(coords, "formats", "coords", "43\u00B039\u203211.5\u2033N 79\u00B022\u203259.5\u2033W").GetAwaiter().GetResult();
+                Check("coordinates reads degrees, minutes, seconds", dms.Ok && dms.Values.Any(v => v.Text.StartsWith("43.65")), dms.Error ?? string.Join("|", dms.Values.Select(v => v.Text)));
             }
 
             // keeping built-ins current without touching your edits
