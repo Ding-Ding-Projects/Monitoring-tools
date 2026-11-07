@@ -50,16 +50,17 @@ namespace MonitoringTools.UI
 
             if (!compact)
             {
+                // the label wraps: a long one at a large text size goes onto a second line instead of being cut
                 Children.Add(new StackPanel
                 {
-                    Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, string.IsNullOrWhiteSpace(sub) ? 8 : 2),
-                    Children = { new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center } }
+                    Margin = new Thickness(0, 0, 0, string.IsNullOrWhiteSpace(sub) ? 8 : 2),
+                    Children = { new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap } }
                 });
                 if (!string.IsNullOrWhiteSpace(sub))
                     Children.Add(new TextBlock { Text = sub, Style = Ui.Style("T.Body"), FontSize = 12, Foreground = Ui.Res("B.TextMute"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8) });
             }
 
-            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            var row = new WrapPanel();
             _minus = Stepper("−", "Decrease " + label, -1);
             Box = new TextBox { Style = Ui.Style("Input"), Text = Format(value), Width = compact ? 64 : 96, Margin = new Thickness(0, 0, 8, 0), HorizontalAlignment = HorizontalAlignment.Left, MaxLength = 16 };
             AutomationProperties.SetName(Box, label);

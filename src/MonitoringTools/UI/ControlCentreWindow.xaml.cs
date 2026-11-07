@@ -268,9 +268,14 @@ namespace MonitoringTools.UI
         {
             var sp = new StackPanel { Margin = new Thickness(0, Appearance.Gap(4), 0, Appearance.Gap(10)) };
             var opts = options.ToList();
-            var labelRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
-            labelRow.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center });
-            labelRow.Children.Add(InfoIcon.ForChoice(label, opts, () => current));
+            // a grid, so a long label wraps beside its info button instead of pushing it out of the card
+            var labelRow = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+            labelRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            labelRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            labelRow.Children.Add(new TextBlock { Text = label, Foreground = Ui.Res("B.Text"), FontSize = 14, FontFamily = Ui.Font("F.Body"), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap });
+            var labelInfo = InfoIcon.ForChoice(label, opts, () => current);
+            Grid.SetColumn(labelInfo, 1);
+            labelRow.Children.Add(labelInfo);
             sp.Children.Add(labelRow);
             if (!string.IsNullOrWhiteSpace(sub))
             {
@@ -419,9 +424,12 @@ namespace MonitoringTools.UI
                 (":webp", "image to WebP"), (":png", "image or first frame to PNG"), (":push", "commit and push the repo"),
             }.Concat(s.Shortcuts.Select(x => (":" + x.Name, string.IsNullOrWhiteSpace(x.Description) ? "your shortcut" : x.Description))))
             {
-                var item = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 18, 10) };
-                item.Children.Add(new Border { Background = Ui.Res("B.MintWash"), CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 3, 8, 4), Child = Ui.Mono(cmd, Ui.Res("B.Mint")) });
-                var whatText = new TextBlock { Text = what, Style = Ui.Style("T.Body"), Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                // a dock panel, so a long description wraps beside its command instead of running out of the card
+                var item = new DockPanel { Margin = new Thickness(0, 0, 18, 10) };
+                var cmdChip = new Border { Background = Ui.Res("B.MintWash"), CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 3, 8, 4), Child = Ui.Mono(cmd, Ui.Res("B.Mint")), VerticalAlignment = VerticalAlignment.Top };
+                DockPanel.SetDock(cmdChip, Dock.Left);
+                item.Children.Add(cmdChip);
+                var whatText = new TextBlock { Text = what, Style = Ui.Style("T.Body"), Margin = new Thickness(8, 2, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
                 if (s.Shortcuts.Any(x => ":" + x.Name == cmd && !string.IsNullOrWhiteSpace(x.Description) && x.Description == what)) Core.Language.SetLiteral(whatText, true);   // a shortcut description is the person's own
                 item.Children.Add(whatText);
                 g.Children.Add(item);
@@ -795,7 +803,7 @@ namespace MonitoringTools.UI
             root.Children.Add(snippets);
 
             // test run
-            var test = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
+            var test = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
             var input = Input("", 380, "Test input (a path or any text)");
             var output = new TextBlock { Style = Ui.Style("T.Mono"), Foreground = Ui.Res("B.TextSoft"), Margin = new Thickness(0, 6, 0, 0) };
             var status = Ui.Mono("", Ui.Res("B.TextMute"), 11);
@@ -826,7 +834,7 @@ namespace MonitoringTools.UI
             }, "Btn.Ghost", Icons.Play));
             root.Children.Add(test);
 
-            var bar = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
+            var bar = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };
             bar.Children.Add(Ui.Button("Save", () => { if (Commit() != null) Navigate("shortcuts", animate: false); }, "Btn.Accent"));
             bar.Children.Add(Ui.Button("Open in editor", () => { Commit(); ExternalEditor.OpenAndTell(sc.ScriptPath); }));
             bar.Children.Add(Ui.Button("Open scripts folder", () => ActionProvider.Shell(Shortcuts.Folder)));
