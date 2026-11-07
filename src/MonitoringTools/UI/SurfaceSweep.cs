@@ -187,7 +187,7 @@ namespace MonitoringTools.UI
                 Add("window-too-big", surface, "window", $"{w.ActualWidth:0} x {w.ActualHeight:0} on a {_area.Width:0} x {_area.Height:0} screen");
             var texts = new List<(TextBlock Tb, Rect R)>();
             var client = new Rect(0, 0, w.ActualWidth, w.ActualHeight);
-            Visit(w, w, client, true, true, 1.0, "the window", surface, texts);
+            Visit(w, w, client, client, 1.0, "the window", surface, texts);
             // overlapping text: two labels drawn on top of each other, compared by the part of each that is visible
             for (int i = 0; i < texts.Count; i++)
                 for (int j = i + 1; j < texts.Count; j++)
@@ -203,11 +203,13 @@ namespace MonitoringTools.UI
         private static bool Contains(Rect outer, Rect inner) => outer.Left <= inner.Left + 0.5 && outer.Top <= inner.Top + 0.5 && outer.Right >= inner.Right - 0.5 && outer.Bottom >= inner.Bottom - 0.5;
 
         /// <summary>
-        /// Walks the visual tree carrying the visible box, what draws it and whether each axis may scroll past it. Three things
-        /// clip in WPF: a box that clips to its bounds, the viewport of a scroll viewer, and the layout slot of an element that
-        /// was given less room than it needs (drawn cut, with no ellipsis).
+        /// Walks the visual tree carrying two boxes. The visible box is what is on screen right now; the hard box is what
+        /// can ever be on screen, made only by boxes that clip and do not scroll: a box that clips to its bounds, the layout
+        /// slot of an element given less room than it needs (drawn cut, with no ellipsis), and a scroll viewer's viewport on
+        /// an axis it cannot scroll. Text past the hard box is cut for good; text past only the visible box is scrolled out
+        /// of view, which is not a cut, even when the box that clips it is itself partly scrolled out.
         /// </summary>
-        private static void Visit(Window w, DependencyObject d, Rect clip, bool scrollX, bool scrollY, double opacity, string clipBy, string surface, List<(TextBlock, Rect)> texts)
+        private static void Visit(Window w, DependencyObject d, Rect clip, Rect hard, double opacity, string clipBy, string surface, List<(TextBlock, Rect)> texts)
         {
             if (d is UIElement ue && (!ue.IsVisible || ue.Opacity * opacity < 0.05)) return;
             if (d is UIElement u2) opacity *= u2.Opacity;
@@ -217,15 +219,14 @@ namespace MonitoringTools.UI
                 GeneralTransform toWindow;
                 try { toWindow = fe.TransformToAncestor(w); r = toWindow.TransformBounds(new Rect(0, 0, fe.ActualWidth, fe.ActualHeight)); } catch (InvalidOperationException) { return; }
                 bool textual = fe is TextBlock tbc && !string.IsNullOrWhiteSpace(tbc.Text) || fe is ButtonBase || fe is TextBox;
-                // fully outside the visible part of a box that scrolls: not on screen right now, but still checked below
-                bool outX = r.Right < clip.Left - 1 || r.Left > clip.Right + 1, outY = r.Bottom < clip.Top - 1 || r.Top > clip.Bottom + 1;
-                bool hidden = (outX && !scrollX) || (outY && !scrollY);
+                // wholly outside what can ever be shown: never on screen, so nothing to check
+                bool hidden = r.Right < hard.Left - 1 || r.Left > hard.Right + 1 || r.Bottom < hard.Top - 1 || r.Top > hard.Bottom + 1;
                 if (!hidden)
                 {
-                    double cx = Math.Max(clip.Left - r.Left, r.Right - clip.Right), cy = Math.Max(clip.Top - r.Top, r.Bottom - clip.Bottom);
-                    bool cutX = !scrollX && cx > 1.5, cutY = !scrollY && cy > 1.5;
+                    double cx = Math.Max(hard.Left - r.Left, r.Right - hard.Right), cy = Math.Max(hard.Top - r.Top, r.Bottom - hard.Bottom);
+                    bool cutX = cx > 1.5, cutY = cy > 1.5;
                     if ((cutX || cutY) && textual)
-                        Add(clip.Width >= w.ActualWidth - 1 && clip.Height >= w.ActualHeight - 1 ? "outside-window" : "clipped", surface, Describe(fe),
+                        Add(hard.Width >= w.ActualWidth - 1 && hard.Height >= w.ActualHeight - 1 ? "outside-window" : "clipped", surface, Describe(fe),
                             Cut(cutX ? cx : 0, cutY ? cy : 0) + " by " + clipBy + Where(fe));
                 }
                 // the element's own layout slot, when it is smaller than the element
@@ -256,21 +257,26 @@ namespace MonitoringTools.UI
                 if (fe is ScrollContentPresenter scp && scp.TemplatedParent is ScrollViewer owner)
                 {
                     clip = Rect.Intersect(clip, r);
-                    scrollX = owner.HorizontalScrollBarVisibility != ScrollBarVisibility.Disabled;
-                    scrollY = owner.VerticalScrollBarVisibility != ScrollBarVisibility.Disabled;
-                    clipBy = "the scrolling area " + Describe(owner);
-                    if (clip.IsEmpty) return;
+                    if (clip.IsEmpty) clip = new Rect(r.Left, r.Top, 0, 0);   // scrolled out: the content is still checked against the hard box
+                    bool sxOk = owner.HorizontalScrollBarVisibility != ScrollBarVisibility.Disabled, syOk = owner.VerticalScrollBarVisibility != ScrollBarVisibility.Disabled;
+                    // on an axis that scrolls, the content may run past the viewport and every box around it: that is scrolling, not a cut
+                    double hl = sxOk ? -1e7 : Math.Max(hard.Left, r.Left), hr = sxOk ? 1e7 : Math.Min(hard.Right, r.Right);
+                    double ht = syOk ? -1e7 : Math.Max(hard.Top, r.Top), hb = syOk ? 1e7 : Math.Min(hard.Bottom, r.Bottom);
+                    hard = new Rect(new Point(hl, ht), new Point(Math.Max(hl, hr), Math.Max(ht, hb)));
+                    if (!sxOk || !syOk) clipBy = "the scrolling area " + Describe(owner);
                 }
                 else if (fe.ClipToBounds || !slot.IsEmpty)
                 {
-                    clip = Rect.Intersect(clip, slot.IsEmpty ? r : slot);
-                    scrollX = scrollY = false;
+                    var box = slot.IsEmpty ? r : slot;
+                    clip = Rect.Intersect(clip, box);
+                    if (clip.IsEmpty) clip = new Rect(box.Left, box.Top, 0, 0);
+                    hard = Rect.Intersect(hard, box);
                     clipBy = Describe(fe);
-                    if (clip.IsEmpty) return;
+                    if (hard.IsEmpty) return;
                 }
             }
             int n = d is Visual || d is System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetChildrenCount(d) : 0;
-            for (int i = 0; i < n; i++) Visit(w, VisualTreeHelper.GetChild(d, i), clip, scrollX, scrollY, opacity, clipBy, surface, texts);
+            for (int i = 0; i < n; i++) Visit(w, VisualTreeHelper.GetChild(d, i), clip, hard, opacity, clipBy, surface, texts);
         }
 
         private static string Cut(double x, double y) =>
