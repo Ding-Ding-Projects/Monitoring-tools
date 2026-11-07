@@ -106,9 +106,9 @@ namespace MonitoringTools.Core.Disks
                 var until = DateTime.UtcNow.AddSeconds(15);
                 while (!MountReady(root) && DateTime.UtcNow < until) Thread.Sleep(250);
                 if (!MountReady(root)) return Fail("The volume did not come up at " + root + ".");
-                if (r.FileSystem == "NTFS" && !string.IsNullOrEmpty(r.UserSid))
+                if ((r.FileSystem == "NTFS" || r.FileSystem == "ReFS") && !string.IsNullOrEmpty(r.UserSid))
                 {
-                    // A new NTFS volume belongs to the administrators; hand the person who asked full control of what they put on it.
+                    // A new NTFS or ReFS volume belongs to the administrators; hand the person who asked full control of what they put on it.
                     var (gc, go) = Grant(root, r.UserSid);
                     log.AppendLine("> grant write access").AppendLine(go.Trim());
                     if (gc != 0) return Fail("The new volume could not be opened up for your account: " + FirstLines(go));

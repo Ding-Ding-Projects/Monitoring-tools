@@ -11,7 +11,7 @@ A small Windows background service with a tray icon and a modern, animated UI. I
 
 **Contents** (each section below opens and closes, so you choose what to read):
 
-- Features: clipboard toasts, quick commands, shortcuts, search and regex builder, Material 3 design, four looks, language, modes, records, tabs and safety, internet watch, game mode, service and tray
+- Features: clipboard toasts, quick commands, shortcuts, search and regex builder, Material 3 design, four looks, language, modes, records, tabs and safety, virtual disks, internet watch, game mode, service and tray
 - Install, Control centre, Self-test, Screenshots, Build, Public IP history
 - Release figures and how long a human would have taken
 - Project records: [ROADMAP](ROADMAP.md), [HANDOFF](HANDOFF.md), [CHANGELOG](CHANGELOG.md), [CLOSEOUT_PROMPT](CLOSEOUT_PROMPT.md), [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md)
@@ -108,7 +108,7 @@ Create your own `:name` commands in the control centre. Each one is a batch or P
 <details>
 <summary><b>Modes</b></summary>
 
-- School mode (renamable, PIN-protected), five ADHD helpers, an occasional dim sum surprise, and scheduled settings that change language, theme, sounds, toasts or game mode by weekday and time, or follow a settings file.
+- School mode (renamable, PIN-protected), five ADHD helpers, an occasional dim sum surprise (its switch springs back on, because it cannot be turned off), and scheduled settings that change language, theme, sounds, toasts or game mode by weekday and time, or follow a settings file.
 
 </details>
 
@@ -117,7 +117,9 @@ Create your own `:name` commands in the control centre. Each one is a batch or P
 
 - A notification centre, settings history with restore, exports in JSON, CSV, Markdown, HTML and text, a changelog viewer and an offline Help and docs page led by real tasks.
 - Clipboard history has a Select mode for copying, saving or removing several copies at once.
-- Every element has a right-click menu (also Shift+F10) with its own filter, and destructive actions need two keys and a full slide.
+- Every element has a right-click menu (also Shift+F10) with its own filter, and live controls for switches, numbers and choices right in the menu. Destructive actions need two keys and a full slide.
+- Actions and discarded changes: unsaved work you discarded can be copied back, and Base64 files and virtual disk actions are recorded, from an append-only local history.
+- Release notes, toasts and file previews share one Markdown renderer with emoji shortcodes and links that resolve against the repository.
 
 ![Two-key confirmation](docs/screenshots/super-confirm-armed.png)
 
@@ -136,8 +138,21 @@ Create your own `:name` commands in the control centre. Each one is a batch or P
 ![Bulk player actions](docs/screenshots/mc-players-bulk.png)
 - Safety and locks: playful element locks with an unlock ladder, a Support Tickets desk and a built-in authenticator for one-time codes. Copy a picture of a site's two-factor setup QR code and the clipboard toast offers **Register for codes**, which adds it to the authenticator (encrypted for your Windows account, the secret never shown).
 - Publishing a folder works with GitHub, GitLab and Gitea or Forgejo, using `gh`, `glab` or `tea` when they are signed in and a one-time token otherwise (each route checked live).
+- Base64 beside the file: drop a file to write `name.ext.base64.txt` next to it, or drop that text to get the file back, each checked by a SHA-256 round trip and undoable.
+- Page searches, filters and statistics fold away and remember it; the regex builder and explanations resize and move, by mouse or keyboard.
 
 What is finished and what is not: [docs/features/required-features.md](docs/features/required-features.md).
+
+</details>
+
+<details>
+<summary><b>Virtual disks</b></summary>
+
+A control-centre page for VHD, VHDX and VHD Set files and ISO images, through the Windows virtual disk service, so it works on Windows Home without Hyper-V: a disk library, everything about one disk and what is inside it, attach, detach, grow, shrink, compact, convert, merge, reconnect a parent and a new identifier, each with the same steps as a PowerShell and a DiskPart script. **Quick pack** turns dropped files and folders into one VHDX beside them that grows by itself when it runs short and checks every file by SHA-256. Every action is tried on real disks by the build. Details and what is not built yet: [Virtual disks](docs/features/files/virtual-disks.md).
+
+![Virtual disks](docs/screenshots/vdisks-library.png)
+
+![Quick pack](docs/screenshots/vdisks-quickpack-plan.png)
 
 </details>
 

@@ -12,6 +12,41 @@ checked; anything unchecked is labelled.
   publishes the next normal release and deploys the site (`.github/workflows/build.yml`).
 - Latest release at the time of writing: v1.0.36 (see [CHANGELOG.md](CHANGELOG.md)).
 
+## Virtual disks, Quick pack and the smaller features beside them (2026-11-07)
+
+- **Virtual disks page:** `UI/Pages/VirtualDisksPage.cs` (routes row, library, one disk, action panels, New virtual
+  disk) and `VirtualDisksPage.QuickPack.cs`. The page is a section of the control centre (`"vdisks"`), and a disk file
+  dropped anywhere on the control centre joins the library (`Settings.DiskLibrary`).
+- **Engine:** `Core/Disks/VirtDisk.cs` calls `virtdisk.dll` directly, writing each parameter block at byte offsets.
+  It opens with the version 2 parameters and no access mask, and falls back to version 1 with an access mask when
+  Windows answers 87, 5 or 50. `Core/Disks/DiskJobRules.cs` holds the checks before anything is written and the
+  PowerShell and DiskPart scripts (window-free, unit-checked); `Core/Disks/DiskJob.cs` runs one job (`Execute`) and
+  the elevated route (`RunElevatedAsync`, `--vdisk-job <request> <sha256>`, one job per run, exit 1223 means the
+  prompt was declined).
+- **Quick pack:** `Core/Disks/QuickPackPlan.cs` (name, clash numbering, sizing, growth sizes) and
+  `Core/Disks/PackCopy.cs` (copy, streams, times, attributes, optional permissions, SHA-256 read back, the grow
+  callback). The disk is made by the existing elevated helper (`VhdHelper`, `--vhd-create`), which now also takes
+  `grow <MB>` (detach, grow, attach, extend, same letter) and `fit` (shrink the volume and the VHDX, then detach)
+  while it stays running, so a pack asks for permission once. New NTFS and ReFS volumes are opened up for the
+  account that asked.
+- **Checks:** `UI/SelfTest.VirtualDisks.cs`, run with `MT_ONLY=vdisk` by the build step "Check virtual disks" on
+  every push, makes and changes real disks in a scratch folder and reads every state of the page in Cantonese and
+  in both languages through `LanguageAudit.Begin`/`End`. The page has test hooks (`VdTestShow`, `VdTestPackAsync`,
+  `VdTestNew`) that the captures in `UI/ScreenshotRunner.VirtualDisks.cs` use too.
+- **Cantonese:** `Core/Strings.yue.VirtualDisks.cs`. Its patterns are registered first, because some general
+  patterns elsewhere would otherwise take whole disk messages; a pattern that joins two sentences translates each
+  part with `Language.Yue`.
+- **Not built yet:** listed at the end of [the article](docs/features/files/virtual-disks.md#not-built-yet).
+- **Beside it on the same branch:** the dim sum switch that springs back (`ModesPage.DimSumSwitch`), Base64 beside
+  the file (`Core/Base64Files.cs`, `UI/Pages/ToolsPage.Base64.cs`), the append-only record of actions and discarded
+  changes (`Core/LocalHistory.cs`, `UI/Pages/RecordsPage.Actions.cs`), one Markdown renderer (`UI/Markdown.cs`,
+  `Core/MarkdownText.cs`), live controls in the element menu and a filter in every dropdown (`UI/ElementMenu.cs`,
+  `UI/Dialogs/DialogParts.cs`), the live response-time chart (`UI/LiveChart.cs`), folding panels
+  (`UI/Collapsible.cs`) and resizable panels (`UI/PanelSizer.cs`). Their docs say what is checked and what is not.
+- **Capture fix:** the guided Make a look flow starts with the look step since the four looks; its capture in
+  `ScreenshotRunner.Wave6.cs` now steps past it. Before the fix the screenshot run stopped there, wrote no index, and
+  the release then failed in the site build on pictures that were never made.
+
 ## Looks, every tab open and the every-surface sweep (2026-11-07)
 
 - **Every tab open:** `Core/TabDefaults.cs` opens each page the strip has not offered before (`KnownTabs`), so a fresh

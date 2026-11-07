@@ -8,7 +8,13 @@ At startup there is a 10% chance, drawn fresh on each launch and at most once pe
 - Waits about 10 seconds after startup and is skipped (with the reason shown on the Modes page) during first-run setup, while game mode or snooze is holding popups, and while School mode is on.
 - Motion follows `Modes.ReduceMotion`: no fade when reduced.
 - Names follow the scheduled language when one is set (English, Cantonese or both); the default is both.
-- There is deliberately no switch to turn it off. The Modes page offers a clearly labelled preview button that does not count as the launch draw.
+- There is deliberately no way to turn it off. The Modes page offers a clearly labelled preview button that does not count as the launch draw.
+
+## The switch that stays on
+
+The Modes page shows a switch labelled **Dim sum surprise**. It looks like it turns the surprise off; it does not. Pressing it (or Space while it has focus) slides it off, and it springs back on with a different line each time: "Nice try.", "Still no.", "It really does stay on." and then "Have a har gow instead.", each followed by "The dim sum surprise cannot be turned off." The line is announced politely to screen readers and becomes the switch's help text, and the switch stays on. With Reduce motion or Low stimulation it springs back at once instead of after a short pause. Nothing is saved, because there is nothing to turn off.
+
+School mode is still the one thing that holds the surprise back, as before.
 
 ## Where pictures and names come from
 

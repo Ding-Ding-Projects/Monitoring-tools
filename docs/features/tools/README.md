@@ -8,5 +8,6 @@ The Tools page in the control centre holds three things that work on your files:
 - [External editor](external-editor.md)
 - [Progress and recovery](progress-recovery.md)
 - [Local history for scripts and the commit message](local-history.md)
+- [Base64 beside the file](base64-beside-the-file.md)
 
 Nothing on this page stores a password or token. A token pasted to create a repository on GitLab or Gitea is used once and cleared. Drawings stay on this computer.

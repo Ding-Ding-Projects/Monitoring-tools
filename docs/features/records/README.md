@@ -6,5 +6,6 @@ The Records page in the control centre keeps four things together: a log of ever
 - [Settings history](settings-history.md)
 - [Exports](exports.md)
 - [Changelog](changelog.md)
+- [Actions and discarded changes](recorded-actions.md)
 
 Each list has its own search bar with an anchored regex builder, so a search on one list never changes another.

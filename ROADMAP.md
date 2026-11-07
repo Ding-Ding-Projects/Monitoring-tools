@@ -35,8 +35,12 @@ finished (a dropped item would be struck through or moved to the last section wi
 - [x] Browser-style tabs, a per-element appearance editor and colour picker, info icons and a guided new-shortcut form
 - [x] Element locks, an unlock ladder, Support Tickets and a TOTP authenticator
 - [x] A local AI models (Ollama) manager, a Minecraft world generator, drawing, publishing to GitHub and editor hand-off
+- [x] A Virtual disks page and Quick pack, proved on real disks by the build on every push
+- [x] Base64 beside the file, an append-only record of actions and discarded changes, a live response-time chart, folding search bars, filters and statistics, live controls in right-click menus and a filter in every dropdown, and one Markdown renderer with emoji and relative links
 
 ## In progress
+
+- [ ] Virtual disk manager: VHD Set checkpoints, attach at sign-in, physical disk copy, metadata, mirror, change tracking ranges, Dev Drive trust and filters, native boot (the library, every action on one disk, New virtual disk and Quick pack are built; see [Virtual disks](docs/features/files/virtual-disks.md))
 
 - [ ] Minecraft servers: Bedrock edition, a world generator with seed preview, and a recorded acceptance check per target on real hardware
 - [x] Register a TOTP account when a copied image holds an `otpauth://` QR code: "Register for codes" on the image toast adds it to the built-in authenticator (encrypted for this Windows account, codes on the Safety page); checked by the self-test
@@ -48,7 +52,7 @@ finished (a dropped item would be struck through or moved to the last section wi
 - [ ] Settings matches from other pages listed inline under a page search (today: Search every page opens the palette)
 - [ ] Deeper Ollama, world generator and drawing features (see their docs), QR pairing, a passkey route
 - [ ] A native-speaker review of the Cantonese copy
-- [ ] Resizable, draggable panels with persisted size and position
+- [x] Resizable, draggable panels with persisted size and position (the regex builder and explanations, by mouse or keyboard)
 - [ ] Right-click menus that show working keyboard shortcuts
 
 ## Release pipeline and repository records (written, first workflow run pending)
