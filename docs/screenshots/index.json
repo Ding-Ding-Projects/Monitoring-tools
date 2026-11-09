@@ -384,6 +384,12 @@
     "height": 1576
   },
   {
+    "file": "control-vdisks.png",
+    "caption": "Control centre: vdisks",
+    "width": 2088,
+    "height": 1576
+  },
+  {
     "file": "control-safety.png",
     "caption": "Control centre: safety",
     "width": 2088,
@@ -1340,6 +1346,48 @@
   {
     "file": "settings-install-auto.png",
     "caption": "Settings, Clipboard: install copied commands automatically",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "vdisks-library.png",
+    "caption": "Virtual disks: the library with an attached VHDX chosen, its figures and what is inside it",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "vdisks-grow.png",
+    "caption": "Virtual disks: Grow, with the new size, the volume switch and the same steps as a PowerShell script",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "vdisks-merge.png",
+    "caption": "Virtual disks: a differencing child with its parent chain and the Merge panel",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "vdisks-quickpack-plan.png",
+    "caption": "Quick pack: the plan for a dropped folder, with the name, the size worked out line by line and the free space",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "vdisks-quickpack-progress.png",
+    "caption": "Quick pack progress (preview with fixed numbers): the disk grew by itself once and carried on",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "vdisks-quickpack-done.png",
+    "caption": "Quick pack done (preview with fixed numbers): every file checked by SHA-256, the disk detached beside the originals",
+    "width": 2088,
+    "height": 1576
+  },
+  {
+    "file": "vdisks-new.png",
+    "caption": "Virtual disks: New virtual disk from the Dev Drive preset, the checks before anything is written and the script",
     "width": 2088,
     "height": 1576
   },
