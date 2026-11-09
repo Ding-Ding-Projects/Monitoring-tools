@@ -315,6 +315,15 @@ namespace MonitoringTools
             if (section != null) _centre.Navigate(section);
         }
 
+        /// <summary>Opens the Virtual disks page, adding disk files to its library or planning a Quick pack of the items.</summary>
+        public void OpenVirtualDisks(string[] disks = null, string[] pack = null)
+        {
+            OpenControlCentre(null);
+            if (disks != null && disks.Length > 0) _centre.VdAdd(disks);
+            _centre.Navigate("vdisks");
+            if (pack != null && pack.Length > 0) _centre.VdStartPack(pack);
+        }
+
         public void ShowWelcome() => new WelcomeWindow().Show();
 
         public static new App Current => (App)Application.Current;

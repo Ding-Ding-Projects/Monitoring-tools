@@ -152,6 +152,9 @@ namespace MonitoringTools.UI
             return zone;
         }
 
+        /// <summary>Plans a Quick pack of these items on the page, as a drop on the Quick pack card does.</summary>
+        internal void VdStartPack(string[] items) => StartPack(items);
+
         private void StartPack(string[] items)
         {
             items = items.Where(i => File.Exists(i) || Directory.Exists(i.TrimEnd('\\'))).ToArray();

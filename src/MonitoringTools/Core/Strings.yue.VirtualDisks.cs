@@ -184,6 +184,16 @@ namespace MonitoringTools.Core
 
             // Quick pack
             Add("Quick pack", "快速打包");
+            Add("Quick pack…", "快速打包…");
+            Add("Open in Virtual disks", "喺虛擬磁碟頁打開");
+            Add("Pack this into one new VHDX beside it, which grows by itself and checks every file by SHA-256. Windows asks for permission once.",
+                "將呢個打包入佢旁邊一個新 VHDX，唔夠位會自己擴大，每個檔案都用 SHA-256 核對。Windows 只會問一次權限。");
+            Add("Pack these into one new VHDX beside them, which grows by itself and checks every file by SHA-256. Windows asks for permission once.",
+                "將呢啲打包入佢哋旁邊一個新 VHDX，唔夠位會自己擴大，每個檔案都用 SHA-256 核對。Windows 只會問一次權限。");
+            Add("Adds this disk to the disk library and shows everything about it: attach, grow, shrink, compact, convert and more.",
+                "將呢個磁碟加入磁碟庫，顯示佢嘅所有資料：掛載、擴大、縮細、壓縮、轉換等等。");
+            Add("Adds these disks to the disk library and shows everything about them: attach, grow, shrink, compact, convert and more.",
+                "將呢啲磁碟加入磁碟庫，顯示佢哋嘅所有資料：掛載、擴大、縮細、壓縮、轉換等等。");
             Add("Drop files and folders here, or choose them. One new VHDX is made in the folder they came from and filled with everything you dropped. It grows by itself if it runs short, every file is checked against its original by SHA-256, and your originals are never moved or changed.",
                 "將檔案同資料夾拖落嚟，或者揀佢哋。程式會喺佢哋原本嘅資料夾整一個新 VHDX，將你拖落嚟嘅嘢全部放入去。唔夠位會自己擴大，每個檔案都會用 SHA-256 同原檔核對，你嘅原檔絕對唔會被搬走或者改動。");
             Add("Counting what you dropped…", "點算緊你拖落嚟嘅嘢…");
