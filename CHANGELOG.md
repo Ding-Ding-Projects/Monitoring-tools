@@ -6,8 +6,16 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.69, up to `9b1eed2`.
+Commits after v1.0.70, up to `ee72d8c`.
 
+- Refresh screenshots for v1.0.70 ([`ee72d8c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ee72d8cba8843bf8c13cfe5daa1028c780e97406))
+
+## 1.0.70 (2026-11-09)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.70)
+
+- Refresh the closeout prompt for the 2026-11-09 session ([`cbec4d5`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/cbec4d5c28358633afeff56a2a6fbbdecbcc969e))
+- Record v1.0.69 figures and changelog ([`0f08dc2`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0f08dc2943dee9612485a18661550dc8b801f5ad))
 - Refresh screenshots for v1.0.69 ([`9b1eed2`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9b1eed28f3b30ecaf492c887b40d02065e69e094))
 
 ## 1.0.69 (2026-11-09)
