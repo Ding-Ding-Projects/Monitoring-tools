@@ -40,7 +40,7 @@ namespace MonitoringTools.UI
             "Hyper", "WSL", "Linux", "Ubuntu", "Edge", "Chrome", "Firefox", "Python", "JavaScript", "Java", "Node", "Visual", "Studio", "Code", "VS", "Sublime", "Text", "Regex", "RegexBuddy",
             "Base", "AES", "Argon", "bcrypt", "x", "px", "pt", "em", "pm", "am", "vs", "etc", "eg", "ie", "Adapter", "Gateway", "Wi-Fi", "WiFi", "Ethernet",
             "Intel", "AMD", "NVIDIA", "Realtek", "Qualcomm", "Atheros", "Broadcom", "Home", "Offline", "Cantonese", "English", "Mint", "Violet", "Amber", "Rose", "Sky", "Coral", "Lime",
-            "Aa", "ABC", "NG", "OK", "Alpha", "Beta", "AVIF", "Matroska", "Ogg", "Vorbis", "Opus", "QuickTime", "GitLab", "Gitea", "Forgejo", "Valheim", "winget", "primary", "outline", "surface", "Drawesome", "Ink", "ECMAScript", "true", "false", "Qwen", "Llama", "Gemma", "Mistral", "DeepSeek", "Phi", "LLaVA", "Nomic", "TinyLlama", "Footage", "my", "repo", "Insiders", "en", "Hong", "Kong", "Toronto", "Canada", "CA", "US", "UK", "HK", "AS", "Fibre", "Example", "Org", "WebVTT", "SubRip", "SRT", "VTT", "TTF", "OTF", "TTC", "ISO", "TAR", "TGZ", "GZ", "7Z", "NTFS", "exFAT", "FAT", "DVD", "VHD", "VHDX", "Deflate", "Deflate64"
+            "Aa", "ABC", "NG", "OK", "Alpha", "Beta", "AVIF", "Matroska", "Ogg", "Vorbis", "Opus", "QuickTime", "GitLab", "Gitea", "Forgejo", "Valheim", "winget", "primary", "outline", "surface", "Drawesome", "Ink", "ECMAScript", "true", "false", "Qwen", "Llama", "Gemma", "Mistral", "DeepSeek", "Phi", "LLaVA", "Nomic", "TinyLlama", "Footage", "my", "repo", "Insiders", "en", "Hong", "Kong", "Toronto", "Canada", "CA", "US", "UK", "HK", "AS", "Fibre", "Example", "Org", "WebVTT", "SubRip", "SRT", "VTT", "TTF", "OTF", "TTC", "ISO", "TAR", "TGZ", "GZ", "7Z", "NTFS", "exFAT", "FAT", "DVD", "VHD", "VHDX", "Deflate", "Deflate64", "GPT", "MBR", "ReFS", "DiskPart"
         };
 
         // Key names are only skipped inside a Cantonese sentence; a lone English "Delete" is still a gap.
@@ -139,7 +139,9 @@ namespace MonitoringTools.UI
             {
                 var en = (original ?? text).Trim();
                 if (Language.HasCjk(en) || !HasUntranslated(en)) return;   // already Cantonese, or a name, unit or code that stays as it is
-                string why = Language.Yue(en) == null ? null : Language.HasCjk(text) ? "ok" : "English only";
+                var yue = Language.Yue(en);
+                // A rendering that needs no Cantonese words, such as "3 / 6" for "3 of 6", reads the same in both languages.
+                string why = yue == null ? null : Language.HasCjk(text) || (!Language.HasCjk(yue) && !HasUntranslated(yue)) ? "ok" : "English only";
                 if (why == "ok") return;
                 var k = en;
                 if (!Found.ContainsKey(k)) Found[k] = new Finding { Text = k, Where = where, Kind = why == null ? kind + " (no Cantonese entry)" : kind + " (bilingual shows English only)" };

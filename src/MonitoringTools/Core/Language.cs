@@ -187,8 +187,42 @@ namespace MonitoringTools.Core
                 }
                 if (any) return string.Join(sep, outParts);
             }
+            // A list of short choices, such as a control's help text "GPT, MBR, Leave it empty": every item is translated or is
+            // a name, code or number that stays as it is, and the items are joined with the Chinese list comma. A list with an
+            // item that is neither stays English, so a sentence with commas is never half translated.
+            if (core.Contains(", "))
+            {
+                var items = core.Split(new[] { ", " }, StringSplitOptions.None);
+                if (items.Length >= 2 && items.All(ListItemShape))
+                {
+                    bool any = false;
+                    var outItems = new string[items.Length];
+                    for (int i = 0; i < items.Length; i++)
+                    {
+                        var item = items[i].Trim();
+                        var y = Lookup(item);
+                        if (y != null) { outItems[i] = y; any = true; }
+                        else if (StaysAsIs(item)) outItems[i] = item;
+                        else return null;
+                    }
+                    if (any) return string.Join("、", outItems);
+                }
+            }
             return null;
         }
+
+        private static bool ListItemShape(string item)
+        {
+            var t = item.Trim();
+            return t.Length > 0 && t.Length <= 40 && t.IndexOfAny(new[] { '.', '?', '!', ':', ';' }) < 0 && t.Split(' ').Length <= 5;
+        }
+
+        private static readonly System.Text.RegularExpressions.Regex AsIsToken = new System.Text.RegularExpressions.Regex(
+            @"^(?:\d[\d,]*|[A-Z0-9][A-Z0-9+#-]+|[A-Za-z]*[a-z][A-Z][A-Za-z0-9]*)$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+        /// <summary>A list item written the same in every language: numbers, codes in capitals (GPT, VHDX, FAT32) and names with
+        /// a capital inside them (ReFS, exFAT, PowerShell).</summary>
+        private static bool StaysAsIs(string item) => item.Split(' ', StringSplitOptions.RemoveEmptyEntries).All(w => AsIsToken.IsMatch(w));
 
         /// <summary>The text in the current language mode. English stays as it is; Bilingual shows English then Cantonese.</summary>
         public static string T(string english)

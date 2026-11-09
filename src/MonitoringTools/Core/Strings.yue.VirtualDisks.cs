@@ -301,6 +301,7 @@ namespace MonitoringTools.Core
             const RegexOptions Opt = RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline;
             void Add(string rx, string yue) => p.Add((new Regex(rx, Opt), m => m.Result(yue)));
             void AddFn(string rx, Func<Match, string> fn) => p.Add((new Regex(rx, Opt), fn));
+            Add(@"^(\d+) disks?$", "$1 隻磁碟");
             // a part that has its own entry is translated too; anything else (a name, a path, a message from Windows) stays as it is
             string Y(string en) => string.IsNullOrEmpty(en) ? en : Language.Yue(en) ?? en;
             string G(Match m, int i) => m.Groups[i].Value;
