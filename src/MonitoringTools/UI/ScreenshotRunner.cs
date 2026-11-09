@@ -371,6 +371,23 @@ namespace MonitoringTools.UI
             s.ThemeMode = "dark"; s.SeedColour = "mint";
             Appearance.Apply();
             await Task.Delay(400);
+
+            // the history kept in a Git repository, with a handful of real commits in a throwaway folder
+            var keepPath = s.ClipRepoPath;
+            try
+            {
+                s.ClipRepoPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "mt-shot-clipboard-history-" + Guid.NewGuid().ToString("N").Substring(0, 8));
+                Clip.ClipRepo.ForceForTest = true; Clip.ClipRepo.Reload();
+                foreach (var t in new[] { "https://learn.microsoft.com/windows/wsl/install", "background: #6FDBB4; color: #003827;", "Meeting moved to Thursday 14:00, room 4B", "{ \"server\": \"mc.example.net\", \"port\": 25565 }", "C:\\Users\\Sam\\Pictures\\holiday.png" })
+                    App.History.Add(Clip.ClipItem.FromText(t));
+                Clip.ClipRepo.Drain();
+                var first = Clip.ClipRepo.All().LastOrDefault();
+                if (first != null) Clip.ClipRepo.SetPinned(new[] { first }, true);
+                Clip.ClipRepo.Drain();
+                cc.Navigate("history");
+                await Shot(cc, "history-repository", "Clipboard history kept in a Git repository: status, filters, search, pins and the latest commits", 1200);
+            }
+            finally { Clip.ClipRepo.ForceForTest = false; s.ClipRepoPath = keepPath; Clip.ClipRepo.Reload(); }
         }
 
         /// <summary>Renders the window and composites the builder popup at its anchored position.</summary>

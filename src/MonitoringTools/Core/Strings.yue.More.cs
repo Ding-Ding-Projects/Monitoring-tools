@@ -1488,6 +1488,34 @@ namespace MonitoringTools.Core
             Add("Game textures and 3D tools", "遊戲材質同 3D 工具"); Add("Fast lossless images for games", "遊戲用嘅快速無損圖片");
             Add("Plain pixel map for scripts", "腳本用嘅純像素圖"); Add("Archives and medical imaging", "檔案庫同醫學影像");
             Add("256 square app icon with transparency", "256 正方 app 圖示，支援透明");
+            // ---- the clipboard history repository and its manager
+            Add("Recording every copy", "每次複製都會記錄"); Add("Paused: new copies are not committed", "已暫停：新嘅複製唔會提交");
+            Add("Every copy, kept in a Git repository on this computer. Each copy, edit, pin and removal is a commit, and there is no limit.", "每次複製都存喺呢部電腦嘅 Git 儲存庫。每次複製、修改、釘選同移除都係一次提交，冇上限。");
+            Add("Pause recording", "暫停記錄"); Add("Resume recording", "繼續記錄"); Add("Open folder", "打開資料夾"); Add("Copy path", "複製路徑");
+            Add("Change folder…", "更改資料夾…"); Add("Forget removed copies for good…", "永久忘記已移除嘅複製…");
+            Add("Rewrite the history repository?", "要重寫紀錄儲存庫？"); Add("Rewrite", "重寫"); Add("History not rewritten", "紀錄冇重寫到");
+            Add("Removed copies stay in earlier commits until this runs. It replaces every commit with one commit of what is kept today, so the versions of edited copies go too. This cannot be undone.", "執行呢個之前，已移除嘅複製仲會留喺之前嘅提交。佢會將所有提交換成一個只有今日保留內容嘅提交，所以修改過嘅複製嘅舊版本都會冇咗。呢個動作冇得還原。");
+            Add("Keep secrets too", "連秘密都保留"); Add("Also keeps copies marked as passwords, keys or tokens. Off by default, so they never reach the repository.", "連標記為密碼、金鑰或者權杖嘅複製都保留。預設關閉，所以佢哋永遠唔會入到儲存庫。");
+            Add("New copies are written encrypted, using the history protection in Safety.", "新嘅複製會用「安全」入面嘅紀錄保護加密寫入。");
+            Add("Copies are written as plain files. Turn on history protection in Safety to encrypt new ones.", "複製會以普通檔案寫入。喺「安全」開啟紀錄保護就可以加密新嘅複製。");
+            Add("All copies", "所有複製"); Add("Search the whole history. Filters and search reach every copy, not only the ones shown.", "搜尋成個紀錄。篩選同搜尋會涵蓋每次複製，唔止顯示緊嗰啲。");
+            Add("Search every copy, for example an address or a word", "搜尋每次複製，例如一個地址或者一個字");
+            Add("Today", "今日"); Add("7 days", "7 日"); Add("30 days", "30 日"); Add("All time", "全部時間"); Add("Pinned only", "只顯示已釘選");
+            Add("Newest first", "最新排先"); Add("Oldest first", "最舊排先"); Add("Links", "連結"); Add("Code and JSON", "程式碼同 JSON"); Add("Colours", "顏色"); Add("Images and sound", "圖片同聲音");
+            Add("Pin", "釘選"); Add("Unpin", "取消釘選"); Add("More", "更多"); Add("Less", "收起"); Add("Export…", "匯出…"); Add("Remove…", "移除…");
+            Add("pinned", "已釘選"); Add("edited once", "改過一次"); Add("Copy this version", "複製呢個版本"); Add("Remove from history…", "喺紀錄移除…");
+            Add("Remove this copy from history?", "要喺紀錄移除呢次複製？");
+            Add("It leaves the history in one commit. Git keeps it in earlier commits until you choose Forget removed copies for good.", "佢會用一次提交離開紀錄。揀「永久忘記已移除嘅複製」之前，Git 仍然會喺之前嘅提交保留佢。");
+            Add("They leave the history in one commit. Git keeps them in earlier commits until you choose Forget removed copies for good.", "佢哋會用一次提交離開紀錄。揀「永久忘記已移除嘅複製」之前，Git 仍然會喺之前嘅提交保留佢哋。");
+            Add("Latest commits", "最新提交"); Add("What changed most recently in the history repository.", "紀錄儲存庫最近有咩改變。");
+            Add("No commits yet. The first copy starts the repository.", "仲未有提交。第一次複製就會建立儲存庫。");
+            Add("Nothing yet. Copy something and it is committed here.", "暫時冇嘢。複製啲嘢就會喺度提交。");
+            Add("No copy matches. Try fewer words or another filter.", "冇複製符合。試吓少啲字或者換個篩選。");
+            Add("This copy cannot be read right now (the file is missing, or the history is locked).", "暫時讀唔到呢次複製（檔案唔見咗，或者紀錄鎖咗）。");
+            Add("Keep every copy in a Git repository", "將每次複製存入 Git 儲存庫");
+            Add("Commits each copy, edit, pin and removal to a local Git repository, with no limit. The History page then searches all of them. Copies marked as secrets stay out unless you allow them there. On by default.", "將每次複製、修改、釘選同移除提交到本機 Git 儲存庫，冇上限。紀錄頁就可以搜尋全部。標記為秘密嘅複製唔會入去，除非你准許。預設開啟。");
+            Add("How many recent copies stay in memory for the toasts and the Overview. The Git repository keeps every copy whatever this says. Default: 50.", "通知同總覽喺記憶體保留幾多個最近嘅複製。無論呢度設幾多，Git 儲存庫都會保留每次複製。預設：50。");
+            Add("How many recent copies stay in memory for the toasts and the Overview. The Git repository keeps every copy whatever this says.", "通知同總覽喺記憶體保留幾多個最近嘅複製。無論呢度設幾多，Git 儲存庫都會保留每次複製。");
             Add("Colour in this copy", "呢次複製有嘅顏色"); Add("Colours in this copy", "呢次複製有嘅顏色");
             Add("An existing file is never overwritten: the new one gets a (1), (2) suffix.", "現有檔案永遠唔會被覆蓋：新檔案會加 (1)、(2) 後綴。");
             // ---- typed number fields

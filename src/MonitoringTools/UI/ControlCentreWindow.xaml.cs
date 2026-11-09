@@ -493,6 +493,7 @@ namespace MonitoringTools.UI
 
         private FrameworkElement HistoryPage()
         {
+            if (ClipRepo.InUse) return RepoHistoryPage();
             var root = PageRoot("Clipboard", "History", $"The last {Settings.Current.HistorySize} copies, kept in memory only. Quitting the app forgets them.");
             if (App.History.Items.Count == 0)
             {
@@ -631,7 +632,8 @@ namespace MonitoringTools.UI
             a.Children.Add(Switch("Skip password managers", "Copies the source app marks as private (password managers do this) never pop up or reach history. On by default.", s.IgnoreSensitiveSources, v => s.IgnoreSensitiveSources = v));
             a.Children.Add(Switch("Quick commands", "Runs :mp4, :push and your own shortcuts as soon as they land on the clipboard. On by default.", s.QuickCommandsEnabled, v => s.QuickCommandsEnabled = v));
             a.Children.Add(Number("Toast duration", "How long a toast stays on screen before it fades. Default: 3 s.", s.ToastSeconds, 1, 600, 0.5, v => s.ToastSeconds = v, "s", 1));
-            a.Children.Add(Number("History size", "How many recent copies are kept in memory for the History page. Quitting the app clears them. Default: 50.", s.HistorySize, 5, 1000, 5, v => { s.HistorySize = (int)v; App.History.Trim(); }, "items"));
+            a.Children.Add(Switch("Keep every copy in a Git repository", "Commits each copy, edit, pin and removal to a local Git repository, with no limit. The History page then searches all of them. Copies marked as secrets stay out unless you allow them there. On by default.", s.ClipRepoEnabled, v => { s.ClipRepoEnabled = v; ClipRepo.Reload(); }));
+            a.Children.Add(Number("History size", "How many recent copies stay in memory for the toasts and the Overview. The Git repository keeps every copy whatever this says. Default: 50.", s.HistorySize, 5, 1000, 5, v => { s.HistorySize = (int)v; App.History.Trim(); }, "items"));
             root.Children.Add(Card(a));
             root.Children.Add(Card(InstallCommandsCard()));
 

@@ -153,6 +153,26 @@ jobs:
           path: vdisk
           if-no-files-found: warn
 
+      - name: Check the clipboard history repository
+        id: cliprepo
+        shell: pwsh
+        run: |
+          $env:MT_ONLY = 'cliprepo'
+          $p = Start-Process -FilePath out/MonitoringTools.exe -ArgumentList '--selftest', "$PWD/cliprepo" -PassThru
+          if (-not $p.WaitForExit(600000)) { $p.Kill(); throw "The clipboard history repository checks timed out" }
+          if (-not (Test-Path cliprepo/selftest.json)) { throw "The clipboard history repository checks wrote no results" }
+          $r = Get-Content cliprepo/selftest.json -Raw | ConvertFrom-Json
+          foreach ($c in $r.results) { Write-Host ("{0}  {1}: {2}" -f $(if ($c.Pass) { 'pass' } else { 'FAIL' }), $c.Name, $c.Detail) }
+          Write-Host "Passed: $($r.passed). Failed: $($r.failed)."
+          if ($r.failed -gt 0 -or $r.passed -lt 6) { throw "Clipboard history repository checks failed: $($r.failed) of $($r.passed + $r.failed); see selftest.json in the cliprepo artifact." }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cliprepo
+          path: cliprepo
+          if-no-files-found: warn
+
       - name: Check colour previews in copied text
         id: colors
         shell: pwsh

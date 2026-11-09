@@ -34,7 +34,7 @@ namespace MonitoringTools.UI
             Add("Skip copies from password managers", "Copies that the source app marks as private never produce a toast and never reach history.", s => OnOff(s.IgnoreSensitiveSources));
             Add("Quick commands", "Lets a copied path or text that ends in a colon command (for example :mp4 or :push, or one of your own) run that command as soon as it lands on the clipboard.", s => OnOff(s.QuickCommandsEnabled));
             Add("Toast duration", "How many seconds a toast stays on screen before it fades.", s => s.ToastSeconds + " s");
-            Add("History size", "How many recent copies are kept in memory for the History page. Quitting the app clears them.", s => s.HistorySize.ToString());
+            Add("History size", "How many recent copies stay in memory for the toasts and the Overview. The Git repository keeps every copy whatever this says.", s => s.HistorySize.ToString());
             Add("Sound effects", "Plays a short cue when an action finishes or fails, or when the connection drops and returns. Cues stay quiet during Windows quiet time, presentations and games.", s => OnOff(s.SoundsEnabled));
             Add("Volume", "How loud the sound effects are. It does not change the Windows volume.", s => Math.Round(s.SoundVolume * 100) + " %");
             Add("Network alerts", "Shows a dialog when the internet connection drops and keeps it up until the line comes back or you dismiss it.", s => OnOff(s.NetworkEnabled));

@@ -49,7 +49,7 @@ To remove it, right-click the tray icon and choose **Uninstall service**.
   - **Text is editable in the toast**: click it, edit, and the clipboard follows after a short pause. Ctrl+Enter keeps, Esc restores the original.
   - **Install commands**: a copied `choco install` or `winget install` shows the packages, the source and whether Windows will ask for permission, and installs only when you press Install. An opt-in automatic mode (off by default) starts plain commands after a visible countdown. See [install commands](docs/features/clipboard/install-commands.md).
 - Copies that password managers mark as private are skipped.
-- History of the last copies, kept in memory only.
+- Every copy kept in a local Git repository, one commit per copy and no limit, with a history manager to search, filter, pin, export and remove.
 
 </details>
 

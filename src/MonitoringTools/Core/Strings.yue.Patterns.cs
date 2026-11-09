@@ -28,6 +28,11 @@ namespace MonitoringTools.Core
                 return Inner(m.Groups[1].Value) + " · 可以由" + kinds + "轉換";
             });
             Add(@"^(\d+) formats$", "$1 種格式");
+            // the clipboard history repository
+            Add(@"^([\d,]+) copies$", "$1 次複製"); Add(@"^([\d,]+) of ([\d,]+) copies$", "$2 次複製之中嘅 $1 次"); Add(@"^([\d,]+) commits$", "$1 次提交");
+            Add(@"^Show (\d+) more \(([\d,]+) left\)$", "再顯示 $1 個（仲有 $2 個）"); Add(@"^Select all ([\d,]+) matching$", "全選 $1 個符合嘅");
+            Add(@"^edited (\d+) times$", "改過 $1 次"); Add(@"^([\d,]+) characters$", "$1 個字元"); Add(@"^Versions · (\d+)$", "版本 · $1 個");
+            Add(@"^Remove ([\d,]+) (?:copy|copies) from history\?$", "要喺紀錄移除 $1 次複製？");
             // colour previews in a copied text's toast
             Add(@"^Colours in this copy · (\d+)$", "呢次複製有嘅顏色 · $1 個"); Add(@"^Colours in this copy · first (\d+)$", "呢次複製有嘅顏色 · 頭 $1 個");
             Add(@"^copied (#[0-9A-F]{6,8})$", "已複製 $1"); Add(@"^(\d+)% opaque$", "$1% 不透明");

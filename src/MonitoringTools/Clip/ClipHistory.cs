@@ -4,7 +4,10 @@ using MonitoringTools.Core;
 
 namespace MonitoringTools.Clip
 {
-    /// <summary>In-memory history only; nothing copied is ever written to disk.</summary>
+    /// <summary>
+    /// The recent copies in memory (up to the History size setting). Every copy is also handed to <see cref="ClipRepo"/>,
+    /// which keeps all of them, without a limit, in a local Git repository unless that is turned off.
+    /// </summary>
     public sealed class ClipHistory
     {
         public ObservableCollection<ClipItem> Items { get; } = new ObservableCollection<ClipItem>();
@@ -32,6 +35,7 @@ namespace MonitoringTools.Clip
                 default: TextCount++; break;
             }
             Items.Insert(0, item);
+            ClipRepo.Record(item);
             // Keep pixels only for the newest few images so history stays light on memory.
             for (int i = 5; i < Items.Count; i++) { Items[i].Image = null; Items[i].Audio = null; }
             TrimQuiet();
@@ -39,7 +43,7 @@ namespace MonitoringTools.Clip
         }
 
         /// <summary>An entry changed in place (an edited copy): tell the History page without adding a second entry.</summary>
-        public void Touch(ClipItem item) { if (Items.Contains(item)) Updated?.Invoke(); }
+        public void Touch(ClipItem item) { if (Items.Contains(item)) { ClipRepo.RecordEdit(item); Updated?.Invoke(); } }
 
         /// <summary>Drops the oldest copies beyond the History size setting. Called when a copy is added and when the setting is lowered.</summary>
         public void Trim()

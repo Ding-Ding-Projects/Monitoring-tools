@@ -16,6 +16,14 @@ namespace MonitoringTools.Core
         /// <summary>Copying the path of a valid personal wording file applies it, like dropping it on a window.</summary>
         public bool ApplyCopiedWordingFile { get; set; } = true;
         public int HistorySize { get; set; } = 50;
+        /// <summary>Keep every copy in a local Git repository (one commit per copy, no limit).</summary>
+        public bool ClipRepoEnabled { get; set; } = true;
+        /// <summary>Stop committing new copies for now, without turning the repository off.</summary>
+        public bool ClipRepoPaused { get; set; }
+        /// <summary>Also keep copies marked as secrets (passwords, keys, tokens). Off by default.</summary>
+        public bool ClipRepoKeepSecrets { get; set; }
+        /// <summary>Where the repository lives; empty means the app's data folder.</summary>
+        public string ClipRepoPath { get; set; } = "";
 
         // Network
         public bool NetworkEnabled { get; set; } = true;

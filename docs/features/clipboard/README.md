@@ -12,6 +12,6 @@ Everything that happens when you copy something: the toast that slides in, the a
 | [Clipboard power features](power-features.md) | History with previews on Win+Shift+V, plain text paste, undo, the paste queue, pins, collect mode, snippets, recipes, per-app rules and clipboard settings |
 | [Extensions](extensions.md) | Managing extensions, and writing your own with extension.json and one line of JSON |
 
-Copies that password managers mark as private are skipped. History stays in memory only.
+Copies that password managers mark as private are skipped. Every other copy is committed to a local Git repository with no limit; see [Clipboard history](history.md).
 
 Not applicable: this category has no HTTP API, so it has no Postman collection.

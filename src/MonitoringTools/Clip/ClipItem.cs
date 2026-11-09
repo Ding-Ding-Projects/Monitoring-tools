@@ -34,6 +34,8 @@ namespace MonitoringTools.Clip
         public bool Edited { get; set; }
         public string OriginalText { get; set; }
         public DateTime At { get; set; } = DateTime.Now;
+        /// <summary>The copy's id in the clipboard history repository, once recorded.</summary>
+        public string RepoId { get; set; }
         public string Signature { get; set; }
         /// <summary>The copied text wrapped paths in quotes (Explorer "Copy as path" does this).</summary>
         public bool HadQuotes { get; set; }
