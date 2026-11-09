@@ -6,8 +6,16 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.70, up to `ee72d8c`.
+Commits after v1.0.71, up to `a424559`.
 
+- Refresh screenshots for v1.0.71 ([`a424559`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a4245595d2835d41f54db4e90467ec9360ad7e29))
+
+## 1.0.71 (2026-11-09)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.71)
+
+- Show a colour preview for colours in copied text and code ([`efe8f1c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/efe8f1c0cc9feca434988c0da4afe6b1c7f739cb))
+- Record v1.0.70 figures and changelog ([`22bdd50`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/22bdd509238a8f118644ef25208e643c4cad19cd))
 - Refresh screenshots for v1.0.70 ([`ee72d8c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ee72d8cba8843bf8c13cfe5daa1028c780e97406))
 
 ## 1.0.70 (2026-11-09)
