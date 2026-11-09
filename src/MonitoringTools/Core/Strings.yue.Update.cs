@@ -49,6 +49,7 @@ namespace MonitoringTools.Core
 
             // ---- copied folders and Git repositories
             Add("Open in Desktop Material", "用 Desktop Material 開");
+            Add("Remote", "遠端");
             Add("Start a Git repository", "開個 Git 儲存庫");
             Add("Started", "開咗");
             Add("Repository not started", "儲存庫開唔到");
@@ -78,7 +79,9 @@ namespace MonitoringTools.Core
             Add(@"^(.+) already exists and is not empty\.$", "$1 已經存在而且唔係空嘅。");
             Add(@"^Copies what the (.+) holds: (.*)$", "複製 $1 入面嘅內容：$2");
             Add(@"^Opens (https?://.+)$", "開 $1");
-            Add(@"^Opens (.+) in Desktop Material\. It is added to Desktop Material's list first if it is not there yet\.$", "用 Desktop Material 開 $1；如果未喺佢個清單入面，會先加入去。");
+            Add(@"^Opens (.+) in Desktop Material, adding it to Desktop Material's list straight away if it is not there yet\.$", "用 Desktop Material 開 $1；如果未喺佢個清單入面，會即刻加入去。");
+            Add(@"^Open on (.+)$", "去 $1 開");
+            Add(@"^Opens (.+), the page of the (.+) remote, in your browser\.$", "用瀏覽器開 $1，即係 $2 遠端嘅網頁。");
             Add(@"^Runs git init in (.+) with the bundled Git, on a main branch\. Nothing is committed\.$", "用內置 Git 喺 $1 行 git init，分支係 main，唔會提交任何嘢。");
             Add(@"^(.+) is now a Git repository on the main branch\.$", "$1 而家係 main 分支嘅 Git 儲存庫。");
             Add(@"^That folder is already inside a Git repository\.$", "嗰個資料夾已經喺 Git 儲存庫入面。");

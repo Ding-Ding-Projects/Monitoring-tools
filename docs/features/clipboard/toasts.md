@@ -25,6 +25,7 @@ Beside the title a small label says **Cut** (amber) or **Copied** (green), and c
 | Text or Markdown | Rendered Markdown | Copy as plain text, change case, tidy spaces, join lines, search, translate, save as a file |
 | A link | The address | Open, open in a private window, copy domain, strip tracking parameters, copy as a Markdown link |
 | A file or folder | Video frames, PDF and document thumbnails, album art, first lines of text or code, CSV tables, folder and zip listings, plus duration, resolution and codecs for media | Open in the default app, Open with, show in folder, copy name, forward slashes, terminal here |
+| A Git repository folder | The folder listing | Open in Desktop Material, Open on GitHub (or GitLab, Bitbucket, the server), with a Remote dropdown list box when there are several remotes; see [Git repository folders](../files/repository-folders.md) |
 | A quoted path (Explorer "Copy as path") | The path | Remove quotes |
 | An unquoted path | The path | Add quotes |
 | Several files | A count and names | Move to, copy to, delete to the Recycle Bin, batch conversion chips |

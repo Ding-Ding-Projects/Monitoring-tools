@@ -36,6 +36,7 @@ namespace SmartTests
             MarkdownChecks();
             QuickPackChecks();
             DiskJobChecks();
+            RemotePageChecks();
             Console.WriteLine($"{passed} passed, {failed} failed");
             return failed == 0 ? 0 : 1;
         }

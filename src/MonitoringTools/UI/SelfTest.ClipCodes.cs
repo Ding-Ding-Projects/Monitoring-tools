@@ -12,6 +12,39 @@ namespace MonitoringTools.UI
 {
     public static partial class SelfTest
     {
+        private const string RemoteConfig = "[core]\n\tbare = false\n[remote \"upstream\"]\n\turl = https://gitlab.com/team/app.git\n[remote \"backup\"]\n\turl = D:/backup/app.git\n[remote \"origin\"]\n\turl = https://me:ghp_secret@github.com/me/app.git\n";
+
+        /// <summary>The toast of a copied repository with several remotes: a dropdown list box of every remote beside an Open on
+        /// button that follows the pick.</summary>
+        private static async System.Threading.Tasks.Task RemoteToastChecksAsync(string dir)
+        {
+            await CheckAsync("folders: the toast shows a Remote dropdown list box whose pick renames the Open on button", async () =>
+            {
+                var repo = Path.Combine(dir, "repo-remotes-toast");
+                if (Directory.Exists(repo)) Directory.Delete(repo, true);
+                Directory.CreateDirectory(Path.Combine(repo, ".git"));
+                File.WriteAllText(Path.Combine(repo, ".git", "config"), RemoteConfig);
+                var w = App.Toasts.ShowClip(new ClipItem { Kind = ClipKind.Files, Files = new[] { repo } });
+                try
+                {
+                    w.ExpandNow();
+                    await System.Threading.Tasks.Task.Delay(400); w.UpdateLayout();
+                    var list = Descend<Dialogs.Dropdown>(w).FirstOrDefault();
+                    if (list == null) return "no dropdown list box in the toast";
+                    if (System.Windows.Automation.AutomationProperties.GetName(list) != "Remote") return "the list is named " + System.Windows.Automation.AutomationProperties.GetName(list);
+                    if (list.Choices.Count != 2) return list.Choices.Count + " choices";
+                    if (FindButton(w, "Open on GitHub") == null) return "no Open on GitHub button: " + string.Join(", ", w.ActionButtons.Select(b => ButtonLabel(b)));
+                    if (ToastTexts(w).Contains("secret")) return "the toast shows the token";
+                    list.Select("1");
+                    await System.Threading.Tasks.Task.Delay(100); w.UpdateLayout();
+                    if (FindButton(w, "Open on GitLab") == null) return "picking upstream did not rename the button: " + string.Join(", ", w.ActionButtons.Select(b => ButtonLabel(b)));
+                    if (list.ActualWidth < 100) return "the list is only " + list.ActualWidth + " wide";
+                    return null;
+                }
+                finally { w.CloseAnimated(); }
+            });
+        }
+
         /// <summary>Codes in copied pictures, folders that are or are not repositories, and Docker files under any name.</summary>
         private static void ClipCodeChecks(string dir)
         {
@@ -84,6 +117,29 @@ namespace MonitoringTools.UI
                     return null;
                 }
                 finally { RepoActions.DesktopMaterialForTest = null; foreach (var t in App.Toasts.LiveToasts.ToList()) { try { t.Close(); } catch { } } }
+            });
+
+            Check("folders: a repository offers its remotes' web pages, origin first, with every remote as a choice and never a credential", () =>
+            {
+                var repo = Path.Combine(dir, "repo-remotes");
+                if (Directory.Exists(repo)) Directory.Delete(repo, true);
+                Directory.CreateDirectory(Path.Combine(repo, ".git"));
+                File.WriteAllText(Path.Combine(repo, ".git", "config"), RemoteConfig);
+                var actions = ActionProvider.For(new ClipItem { Kind = ClipKind.Files, Files = new[] { repo } });
+                var open = actions.FirstOrDefault(a => a.Choices != null);
+                if (open == null) return "no remote choices; actions: " + string.Join(", ", actions.Select(a => a.Label));
+                if (open.Label != "Open on GitHub" || open.ChoicesName != "Remote") return $"label '{open.Label}', list '{open.ChoicesName}'";
+                var texts = string.Join(" | ", open.Choices.Select(c => c.Text + " → " + c.Label));
+                if (texts != "origin (github.com/me/app) → Open on GitHub | upstream (gitlab.com/team/app) → Open on GitLab") return "choices: " + texts;
+                if (open.Choices.Any(c => (c.Text + c.Label + c.Tip).Contains("secret"))) return "a choice shows the token";
+
+                File.WriteAllText(Path.Combine(repo, ".git", "config"), "[remote \"origin\"]\n\turl = git@codeberg.org:me/notes.git\n");
+                var one = ActionProvider.For(new ClipItem { Kind = ClipKind.Files, Files = new[] { repo } }).FirstOrDefault(a => a.Label == "Open on Codeberg");
+                if (one == null || one.Choices != null) return "one remote: " + (one == null ? "no Open on Codeberg" : "it has a dropdown");
+
+                File.WriteAllText(Path.Combine(repo, ".git", "config"), "[remote \"backup\"]\n\turl = D:/backup/app.git\n");
+                if (ActionProvider.For(new ClipItem { Kind = ClipKind.Files, Files = new[] { repo } }).Any(a => a.Label.StartsWith("Open on "))) return "a local remote offered a web page";
+                return null;
             });
 
             Check("github links: a repository link offers Clone and Clone to…, other GitHub pages do not, and cloning twice reports the existing copy", () =>

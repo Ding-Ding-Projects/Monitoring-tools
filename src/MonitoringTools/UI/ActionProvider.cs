@@ -28,6 +28,22 @@ namespace MonitoringTools.UI
         public bool Stay;
         /// <summary>A key shown inside the button, for example "Ctrl+Enter".</summary>
         public string KeyHint;
+        /// <summary>Several targets for one action, for example every remote of a repository. With two or more, the toast shows
+        /// a dropdown list box named <see cref="ChoicesName"/> beside the button, and the button says and does what the picked
+        /// choice says and does. The first choice is picked to start with.</summary>
+        public IReadOnlyList<ToastChoice> Choices;
+        /// <summary>The accessible name of the dropdown list box, for example "Remote".</summary>
+        public string ChoicesName;
+    }
+
+    /// <summary>One target of an action that offers several: its line in the dropdown list box, and what the button then
+    /// says, explains and does.</summary>
+    public sealed class ToastChoice
+    {
+        public string Text;
+        public string Label;
+        public string Tip;
+        public Action Run;
     }
 
     public static class ActionProvider
@@ -456,9 +472,10 @@ namespace MonitoringTools.UI
                     l.Add(new ToastAction
                     {
                         Label = "Open in Desktop Material", Icon = Icons.Folder, Primary = primary, HandsOff = true,
-                        Tip = $"Opens {Path.GetFileName(root)} in Desktop Material. It is added to Desktop Material's list first if it is not there yet.",
+                        Tip = $"Opens {Path.GetFileName(root)} in Desktop Material, adding it to Desktop Material's list straight away if it is not there yet.",
                         Run = () => RepoActions.OpenInDesktopMaterial(dm, root),
                     });
+                RemoteLinks(root, l);
                 return;
             }
             l.Add(new ToastAction
@@ -472,6 +489,28 @@ namespace MonitoringTools.UI
                     var actions = dm == null ? null : new List<ToastAction> { new ToastAction { Label = "Open in Desktop Material", Icon = Icons.Folder, Primary = true, HandsOff = true, Run = () => RepoActions.OpenInDesktopMaterial(dm, folder) } };
                     App.Toasts?.ShowNotice("Git repository started", Path.GetFileName(folder.TrimEnd('\\')) + " is now a Git repository on the main branch.", App.Toasts.Mint, 5, actions, Icons.Folder);
                 },
+            });
+        }
+
+        /// <summary>The web pages of a repository's remotes: "Open on GitHub" (or GitLab, Bitbucket, the server's name) for one
+        /// remote, and a dropdown list box of every remote beside the button when there are several. Pages never carry a
+        /// user name or token from the remote's address.</summary>
+        internal static void RemoteLinks(string root, List<ToastAction> l)
+        {
+            var pages = RemotePages.For(root);
+            if (pages.Count == 0) return;
+            var choices = pages.Select(p => new ToastChoice
+            {
+                Text = $"{p.Remote} ({p.Shown})",
+                Label = $"Open on {p.Host}",
+                Tip = $"Opens {p.Shown}, the page of the {p.Remote} remote, in your browser.",
+                Run = () => SmartActions.Open(p.Url),
+            }).ToList();
+            var first = choices[0];
+            l.Add(new ToastAction
+            {
+                Label = first.Label, Icon = Icons.Globe, HandsOff = true, Tip = first.Tip, Run = first.Run,
+                Choices = choices.Count > 1 ? choices : null, ChoicesName = "Remote",
             });
         }
 

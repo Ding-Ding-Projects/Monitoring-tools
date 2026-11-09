@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
@@ -147,15 +148,19 @@ namespace MonitoringTools.UI
             ActionsPanel.Children.Clear();
             ChipsPanel.Children.Clear();
             _actionButtons.Clear();
+            var host = (Panel)ActionsPanel.Parent;
+            foreach (var old in host.Children.OfType<FrameworkElement>().Where(e => ReferenceEquals(e.Tag, ChoiceRowTag)).ToList()) host.Children.Remove(old);
             _hasActions = actions != null && actions.Count > 0;
             if (!_hasActions) return;
 
+            // An action with several targets gets its own row: a dropdown list box of the targets beside its button.
+            var withChoices = actions.Where(a => !a.Chip && a.Choices != null && a.Choices.Count > 1).ToList();
+
             // Keep the toast calm: four buttons and one row of chips up front, the rest behind More.
             const int maxButtons = 4, maxChips = 7;
-            var buttons = actions.Where(a => !a.Chip).OrderByDescending(a => a.Primary).ToList();
+            var buttons = actions.Where(a => !a.Chip && !withChoices.Contains(a)).OrderByDescending(a => a.Primary).ToList();
             var chips = actions.Where(a => a.Chip).ToList();
             var overflow = new WrapPanel { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 2, 0, 0) };
-            var host = (Panel)ActionsPanel.Parent;
             host.Children.Insert(host.Children.IndexOf(ChipsPanel) + 1, overflow);
 
             Button Make(ToastAction a)
@@ -173,6 +178,7 @@ namespace MonitoringTools.UI
                 return b;
             }
 
+            foreach (var a in withChoices) host.Children.Insert(host.Children.IndexOf(ActionsPanel), ChoiceRow(a, Make));
             foreach (var a in buttons.Take(maxButtons)) ActionsPanel.Children.Add(Make(a));
             foreach (var a in chips.Take(maxChips)) ChipsPanel.Children.Add(Make(a));
             var rest = buttons.Skip(maxButtons).Concat(chips.Skip(maxChips)).ToList();
@@ -191,6 +197,43 @@ namespace MonitoringTools.UI
                 };
                 ActionsPanel.Children.Add(more);
             }
+        }
+
+        private static readonly object ChoiceRowTag = new object();
+
+        /// <summary>The row of an action with several targets: a dropdown list box of every target, taking the room the button
+        /// leaves, and the button, which says and does what the picked target says and does. Opening the list lets the toast
+        /// take focus and holds its countdown, as clicking into its text does, so the list's filter and keys work.</summary>
+        private FrameworkElement ChoiceRow(ToastAction a, Func<ToastAction, Button> make)
+        {
+            var choices = a.Choices;
+            void Use(ToastChoice c) { a.Label = c.Label; a.Tip = c.Tip; a.Run = c.Run; }
+            Use(choices[0]);
+            var button = make(a);
+            button.Margin = new Thickness(8, 0, 0, 0);
+            var list = new Dialogs.Dropdown(a.ChoicesName ?? a.Label, choices.Select((c, i) => new Dialogs.Choice(i.ToString(CultureInfo.InvariantCulture), c.Text)), "0")
+            {
+                Height = 40, MinWidth = 120, HorizontalAlignment = HorizontalAlignment.Stretch,
+            };
+            ToolTipService.SetToolTip(list, a.ChoicesName);
+            list.PreviewMouseLeftButtonDown += (s, e) => { if (!FocusHeld) TakeFocusHeld(); };
+            list.Changed += id =>
+            {
+                Use(choices[int.Parse(id, CultureInfo.InvariantCulture)]);
+                if (button.Content is StackPanel sp && sp.Children.OfType<TextBlock>().FirstOrDefault() is TextBlock text) text.Text = a.Label;
+                else button.Content = a.Label;
+                AutomationProperties.SetName(button, a.Label);
+                TipText.Text = a.Tip ?? "";
+            };
+            list.MouseEnter += (s, e) => TipText.Text = a.Tip ?? "";
+            list.MouseLeave += (s, e) => TipText.Text = TipDefault ?? "";
+            var row = new Grid { Tag = ChoiceRowTag, Margin = new Thickness(0, 12, 0, 0) };
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 120 });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            row.Children.Add(list);
+            Grid.SetColumn(button, 1);
+            row.Children.Add(button);
+            return row;
         }
 
         // A small key cap inside the button ("Ctrl+Enter"), so the shortcut is visible where it is used.

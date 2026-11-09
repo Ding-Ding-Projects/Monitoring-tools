@@ -882,6 +882,7 @@ namespace MonitoringTools.UI
             await UpdateChecksAsync(dir);
             TotpQrChecks();
             ClipCodeChecks(dir);
+            await RemoteToastChecksAsync(dir);
             InstallParserChecks();
             await InstallToastChecksAsync();
             await TextToastChecksAsync();
