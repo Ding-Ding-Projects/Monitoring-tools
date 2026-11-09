@@ -6,8 +6,53 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.67, up to `2247f94`.
+Commits after v1.0.69, up to `9b1eed2`.
 
+- Refresh screenshots for v1.0.69 ([`9b1eed2`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9b1eed28f3b30ecaf492c887b40d02065e69e094))
+
+## 1.0.69 (2026-11-09)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.69)
+
+- Make the plain-folder check use a folder outside any repository ([`1cdb21f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/1cdb21f37d6505b11c0aeb430c2cfd5001c3452e))
+- Check copied folders and their toasts on every build ([`cfe86f4`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/cfe86f4491a04d07e2555fa9715b74d70d1933a8))
+- Translate choice lists and accept figures that read the same in both ([`b7ebea8`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b7ebea83149d5cd24549b2ecb4d60ffa9aca975d))
+- Record repository folder remote pages and the sweep fixes ([`975ac9e`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/975ac9e8fa90c89b814fafd4495321ab77f846e6))
+- List attached virtual disks with a real buffer and plain paths ([`1b287a4`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/1b287a466f74da7390ee832c822ee3b58ac49c60))
+- Keep page searches and narrow cards uncut at large text ([`38ad4cf`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/38ad4cf860d56ed44546d0cb5ca90fb7b73a9330))
+- Open a copied repository's remote pages, with a dropdown of every remote ([`4b1d3bb`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/4b1d3bb670a78acc8380ff97a5c2c3ca63652e11))
+- Offer Quick pack and the Virtual disks page from a copied file ([`b4e7d8f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b4e7d8f549a66cae64607cb44f3c98f13c8de541))
+- Keep the feature design boards in the repository ([`8ad85a3`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/8ad85a39b48f69375292a407f260db6e57b99c3b))
+- Bring the switch, menu builder, Base64 and folds to the project site ([`5371aae`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/5371aaed3e1ab11b869db7e6dcf21cd62916ff26))
+- Refresh screenshots for v1.0.68 ([`dfebe1a`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/dfebe1a72aed52a8856c16792ec79fc568e316eb))
+- Document the Virtual disks page and the features beside it ([`61fab7b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/61fab7b8a5bb973c6a3f307c9c8893b1f8c05a8d))
+- Add the Virtual disks page, with Quick pack and real disk checks ([`b33c730`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/b33c730f4f25df188505d45fc71c38cfbc2c8cb8))
+- Add the virtual disk engine: the disk service, checked jobs and Quick pack parts ([`67d0931`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/67d0931d343b409e52283c0fb76e539da2573acd))
+- Wrap the labels and button rows the stricter sweep found cut ([`9393047`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/93930476b1d93c4223db6ecbb7797a2c96eb4d7a))
+- Make the regex builder and explanations resizable, with a reset ([`4940f7a`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/4940f7aacfdebc7448ee8d1519cff8ad0d41c999))
+- Add the live response-time chart and folding search, filters and stats ([`7e08e80`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/7e08e8076412420f784ae88c04d1ac97851de8a0))
+- Put live controls in context menus and a filter in every dropdown ([`0b90ebc`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0b90ebc59197caa8e3542f6ab4bdc0e4f22737a2))
+- Split bilingual rail labels in the tab and teach the sweep about scrolling ([`46710b3`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/46710b376883eada22c1d43a99d33635be14c0c3))
+- Give the Markdown renderer emoji, relative links and an empty state ([`c28cf7b`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c28cf7b246008d64993352a7f1d994afc4e03f8b))
+- Record discarded changes so they can be copied back ([`facdf57`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/facdf57133f67d283dc50eae61a149109471c1d0))
+- Add the dim sum switch, Base64 beside the file and a local history ([`e0af234`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e0af234aae61570211b9c9b4b6626857292d7e43))
+
+## 1.0.68 (2026-11-07)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.68)
+
+- Give the screenshot run thirty minutes ([`0585e5c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0585e5c8a321662bc0df87494be9b19714d5ecfb))
+- Step past the look step in the guided look capture ([`317fcf3`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/317fcf349f873543907f65724cab32aacae7c860))
+- Record the green every-surface sweep for the four looks ([`9dcd113`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9dcd11334c26a3319b2055d5d36c829ecd35c642))
+- Wrap the labels and button rows the stricter sweep found cut ([`bd92da5`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/bd92da5ce0844133ba8ca4df6682a647ba82e7ca))
+- Split bilingual rail labels in the tab and teach the sweep about scrolling ([`3af678d`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/3af678d72e77e5dde41428695e9243431e921b80))
+- Stack bilingual rail labels and let the look figure shrink ([`0e269e7`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0e269e7804229f22611f9904cc5d076916b3c394))
+- Keep the look previews out of the language layer from the start ([`6964461`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/696446110c989c5ff6e8ed097f67140d3d2e6f98))
+- Widen the side rail and record the layout building blocks ([`c58b66f`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/c58b66f2e207b5d6c5f2708c9c621c26b200e8c4))
+- Fix what the second sweep found and make the sweep trust the layout ([`1d06a46`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/1d06a461e1822e35d9fd905c4724112285c93460))
+- Fix the corner mapping, fit every window to the screen and text size ([`0d99b57`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/0d99b57f5babecc4ee715887fa0ec22f1ed3b25c))
+- Add four looks and an every-surface sweep ([`9a04c73`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/9a04c7359605a08bba919f809656de80e3d87df8))
+- Record v1.0.67 figures and changelog ([`beea9e0`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/beea9e045de038c57c6ad308dbc262e5913fa68f))
 - Refresh screenshots for v1.0.67 ([`2247f94`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/2247f94a437cd83e61da483d0f534366b2dc087c))
 
 ## 1.0.67 (2026-11-07)
