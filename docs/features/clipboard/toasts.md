@@ -33,6 +33,7 @@ Beside the title a small label says **Cut** (amber) or **Copied** (green), and c
 | Base64 text | The text | Decode |
 | Any text | The text | Encode as Base64 |
 | JSON, a color, an email address | A tailored preview | Actions for that type |
+| Text or code that contains colours | The usual preview, then a swatch for each colour | Press a swatch to copy its hex |
 
 ![A toast for a copied compose file](../../screenshots/toast-compose.png)
 
@@ -63,3 +64,29 @@ Toasts are held back in game mode and while a presentation or fullscreen app is 
 ## Editable text and install commands
 
 Plain copied text is edited in place in its toast, and a copied choco or winget install command gets a strict, opt-in install card. See [install commands and editable text toasts](install-commands.md).
+
+## Colour previews
+
+A copy that is one colour (`#6FDBB4`, `rgb(111 219 180)`, `hsl(160 58% 65% / 50%)`, `Colors.Tomato`,
+`Color.FromArgb(128, 255, 136, 0)`) opens as a colour toast: a large swatch with "Aa" in the colour that reads on it,
+then the hex, `rgb()` and `hsl()` values and how opaque it is. A translucent colour is drawn over a checkerboard.
+
+Any other copied text, Markdown or JSON that contains colours gets a **Colours in this copy** strip under its
+preview: one swatch per colour, in reading order, each written form once, up to 12. Hovering a swatch shows its hex,
+rgb and hsl; pressing it copies the hex. The history preview shows the same strip.
+
+Forms that are recognised:
+
+| Form | Examples |
+| --- | --- |
+| CSS hex | `#f80`, `#f808`, `#FF8800`, `#FF880080` (alpha last) |
+| Quoted 8-digit hex, as in XAML or .NET strings | `Background="#FF2B4A3F"` (alpha first) |
+| CSS functions | `rgb(255, 136, 0)`, `rgb(255 136 0 / 50%)`, `rgba(0,0,255,.5)`, `hsl(120 100% 50%)`, `hsla(0deg, 100%, 50%, .4)` |
+| Hex constants | `0xFF8800`; `0x80FF8800` only on a line that mentions colour |
+| Calls | `Color.FromRgb(255, 136, 0)`, `Color.FromArgb(128, 255, 136, 0)` |
+| Named colours | `Colors.Tomato`, `Color.Red`, `color: tomato`, `Fill="SteelBlue"`, or a copy that is only a name such as `rebeccapurple` |
+
+Left out on purpose: `#123` inside a sentence (an issue number), `&#123;` (an HTML entity), `page#top` (a link
+anchor), `0x80070005` on its own (a Windows error code keeps its own smart toast) and colour words in ordinary prose
+("the red team"). A copy that is only a colour name stays a text copy, so it can still be edited, with the swatch under it.
+

@@ -140,6 +140,9 @@ namespace MonitoringTools.UI
                     else { w.SetHeader(Icons.Text, "Text", Counts(item.Text)); w.SetBody(PlainText(item.Text)); }
                     break;
             }
+            // Colours written in copied text or code get a preview strip under the body (never for a hidden secret).
+            if ((item.Kind == ClipKind.Text || item.Kind == ClipKind.Markdown || item.Kind == ClipKind.Json) && !item.Sensitive && !(item.BestFact?.Sensitive ?? false))
+                w.AppendBelowBody(ColorPreview.StripFor(item.Text));
             w.SetGesture(item.Gesture, item.Kind == ClipKind.Files || item.Kind == ClipKind.Command);
             var offered = ActionProvider.For(item);
             if (editor != null) { editor.Decorate(offered); w.SetActions(offered); editor.ApplyIdleHeader(); }
@@ -197,11 +200,31 @@ namespace MonitoringTools.UI
         {
             w.SetHeader(Icons.Palette, "Color", item.Text);
             var c = ActionProvider.ParseColor(item.Text) ?? Colors.Transparent;
-            var row = new StackPanel { Orientation = Orientation.Horizontal };
-            row.Children.Add(new Border { Width = 56, Height = 56, CornerRadius = new CornerRadius(12), Background = new SolidColorBrush(c), BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1) });
-            var sp = new StackPanel { Margin = new Thickness(14, 4, 0, 0) };
-            sp.Children.Add(Ui.Mono($"#{c.R:X2}{c.G:X2}{c.B:X2}", Ui.Res("B.Text"), 14));
-            sp.Children.Add(Ui.Mono($"rgb({c.R}, {c.G}, {c.B})", Ui.Res("B.TextMute")));
+            var f = new ColorScan.Found { Color = c, Text = item.Text };
+            var (h, s, l) = ColorScan.Hsl(c);
+            var row = new Grid();
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            row.ColumnDefinitions.Add(new ColumnDefinition());
+            // the swatch carries its own hex in the colour that reads on it
+            var swatch = new Border
+            {
+                Width = 96, Height = 64, CornerRadius = new CornerRadius(14), Background = ColorPreview.Checker(c),
+                BorderBrush = Ui.Res("B.LineStrong"), BorderThickness = new Thickness(1),
+                Child = new TextBlock
+                {
+                    Text = c.A < 128 ? "" : "Aa", FontSize = 18, FontWeight = FontWeights.Medium,
+                    Foreground = new SolidColorBrush(ColorScan.IsLight(c) ? Color.FromRgb(0x14, 0x14, 0x14) : Colors.White),
+                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontFamily = Ui.Font("F.Body")
+                }
+            };
+            System.Windows.Automation.AutomationProperties.SetName(swatch, "Colour preview " + f.Hex);
+            row.Children.Add(swatch);
+            var sp = new StackPanel { Margin = new Thickness(14, 2, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            sp.Children.Add(Ui.Mono(f.Hex, Ui.Res("B.Text"), 14));
+            sp.Children.Add(Ui.Mono(f.Rgb, Ui.Res("B.TextMute")));
+            sp.Children.Add(Ui.Mono($"hsl({h}, {s}%, {l}%)" + (c.A < 255 ? $" · {Math.Round(c.A / 2.55)}% opaque" : ""), Ui.Res("B.TextMute")));
+            foreach (UIElement e in sp.Children) Core.Language.SetLiteral(e, true);
+            Grid.SetColumn(sp, 1);
             row.Children.Add(sp);
             w.SetBody(row);
         }

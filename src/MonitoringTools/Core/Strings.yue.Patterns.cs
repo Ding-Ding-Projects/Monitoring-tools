@@ -28,6 +28,9 @@ namespace MonitoringTools.Core
                 return Inner(m.Groups[1].Value) + " · 可以由" + kinds + "轉換";
             });
             Add(@"^(\d+) formats$", "$1 種格式");
+            // colour previews in a copied text's toast
+            Add(@"^Colours in this copy · (\d+)$", "呢次複製有嘅顏色 · $1 個"); Add(@"^Colours in this copy · first (\d+)$", "呢次複製有嘅顏色 · 頭 $1 個");
+            Add(@"^copied (#[0-9A-F]{6,8})$", "已複製 $1"); Add(@"^(\d+)% opaque$", "$1% 不透明");
             Add(@"^(\d+) formats\. Copy a path with :format on the end, or pick one here and choose files\.$", "$1 種格式。喺路徑後面加 :格式 再複製，或者喺度揀一種，再揀檔案。");
             AddFn(@"^(All|Video|Audio|Image) (\d+)$", m => (m.Groups[1].Value switch { "All" => "全部", "Video" => "影片", "Audio" => "音訊", _ => "圖片" }) + " " + m.Groups[2].Value);
             AddFn(@"^Show (all|video|audio|image) formats$", m => "顯示" + (m.Groups[1].Value switch { "all" => "所有", "video" => "影片", "audio" => "音訊", _ => "圖片" }) + "格式");

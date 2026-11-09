@@ -310,7 +310,7 @@ namespace MonitoringTools.UI
             var f = it.BestFact;
             if (it.Kind == ClipKind.Image && it.Image != null) sp.Children.Add(new Border { CornerRadius = new CornerRadius(14), ClipToBounds = true, Child = new Image { Source = it.Image, MaxHeight = 300, Stretch = Stretch.Uniform } });
             else if (it.Kind == ClipKind.Files) foreach (var file in it.Files.Take(8)) { sp.Children.Add(Small(new ClipItem { Kind = ClipKind.Files, Files = new[] { file } })); sp.Children.Add(new Border { Height = 8 }); }
-            else if (it.Kind == ClipKind.Color && ActionProvider.ParseColor(it.Text) is Color col) { sp.Children.Add(new Border { Height = 140, CornerRadius = new CornerRadius(16), Background = new SolidColorBrush(col), Margin = new Thickness(0, 0, 0, 10) }); sp.Children.Add(Swatch(col, it.Text, 0)); }
+            else if (it.Kind == ClipKind.Color && ActionProvider.ParseColor(it.Text) is Color col) { sp.Children.Add(new Border { Height = 140, CornerRadius = new CornerRadius(16), Background = ColorPreview.Checker(col), Margin = new Thickness(0, 0, 0, 10) }); sp.Children.Add(Swatch(col, it.Text, 0)); sp.Children.Add(Ui.Mono(ColorPreview.Describe(col), Ui.Res("B.TextSoft"), 11.5)); }
             else if (f?.Kind == "table") sp.Children.Add(MiniTable(Developer2.ReadTable(it.Text), 12));
             else if (f != null && f.Sensitive) sp.Children.Add(Ui.Text("This copy is hidden because it looks like a secret.", "T.Body"));
             else
@@ -319,6 +319,7 @@ namespace MonitoringTools.UI
                 t.TextWrapping = TextWrapping.Wrap; Core.Language.SetLiteral(t, true);
                 sp.Children.Add(t);
                 if (it.Text != null) sp.Children.Add(Ui.Mono(it.Text.Split((char[])null, StringSplitOptions.RemoveEmptyEntries).Length + " words · " + it.Text.Length + " characters", Ui.Res("B.TextSoft"), 11));
+                if (it.Text != null && it.Kind != ClipKind.Color && !(f?.Sensitive ?? false)) { var strip = ColorPreview.StripFor(it.Text, 12); if (strip != null) sp.Children.Add(strip); }
             }
             if (f != null && !f.Sensitive && f.Values.Count > 0 && f.Kind != "table")
             {

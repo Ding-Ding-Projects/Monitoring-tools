@@ -201,29 +201,17 @@ namespace MonitoringTools.UI
             l.Add(A("Copy domain", null, () => Set(mail.Split('@')[1]), done: "Copied"));
         }
 
-        public static System.Windows.Media.Color? ParseColor(string s)
-        {
-            try
-            {
-                s = s.Trim();
-                var rgb = Regex.Match(s, @"rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})");
-                if (rgb.Success) return System.Windows.Media.Color.FromRgb(byte.Parse(rgb.Groups[1].Value), byte.Parse(rgb.Groups[2].Value), byte.Parse(rgb.Groups[3].Value));
-                var h = s.TrimStart('#');
-                if (h.Length == 3) h = string.Concat(h.Select(c => $"{c}{c}"));
-                if (h.Length == 8) h = h.Substring(0, 6);
-                if (h.Length != 6) return null;
-                return System.Windows.Media.Color.FromRgb(Convert.ToByte(h[..2], 16), Convert.ToByte(h.Substring(2, 2), 16), Convert.ToByte(h.Substring(4, 2), 16));
-            }
-            catch { return null; }
-        }
+        /// <summary>Any colour form the clipboard understands (hex, rgb, hsl, 0x, calls, names); alpha is kept.</summary>
+        public static System.Windows.Media.Color? ParseColor(string s) => ColorScan.Parse(s);
 
         private static void Color(string s, List<ToastAction> l)
         {
             var c = ParseColor(s);
             if (c == null) return;
             var v = c.Value;
-            l.Add(A($"#{v.R:X2}{v.G:X2}{v.B:X2}", null, () => Set($"#{v.R:X2}{v.G:X2}{v.B:X2}"), chip: true, done: "Copied"));
-            l.Add(A($"rgb({v.R}, {v.G}, {v.B})", null, () => Set($"rgb({v.R}, {v.G}, {v.B})"), chip: true, done: "Copied"));
+            var f = new ColorScan.Found { Color = v };
+            l.Add(A(f.Hex, null, () => Set(f.Hex), chip: true, done: "Copied"));
+            l.Add(A(f.Rgb, null, () => Set(f.Rgb), chip: true, done: "Copied"));
             var (hh, ss, ll) = ToHsl(v);
             l.Add(A($"hsl({hh}, {ss}%, {ll}%)", null, () => Set($"hsl({hh}, {ss}%, {ll}%)"), chip: true, done: "Copied"));
         }

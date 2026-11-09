@@ -60,6 +60,8 @@ namespace MonitoringTools.UI
                 lw.CloseAnimated(); await Task.Delay(350);
 
                 // install command toasts
+                await Toast("toast-colors-in-code", "Copied code with colours: a swatch for each one, press to copy its hex", App.Toasts.ShowClip(ClipItem.FromText("button {\n  color: white;\n  background: #6FDBB4;\n  border: 1px solid hsl(160 40% 30%);\n  box-shadow: 0 0 0 4px rgba(111, 219, 180, .4);\n}")), 900);
+                await Toast("toast-color", "A copied colour: large preview with hex, rgb and hsl", App.Toasts.ShowClip(ClipItem.FromText("hsl(160 58% 65%)")), 900);
                 await Toast("toast-install-choco", "choco install: names, source, consent note", App.Toasts.ShowClip(ClipItem.FromText("choco install 7zip vlc -y")), 900);
                 await Toast("toast-install-winget", "winget install: the installer decides", App.Toasts.ShowClip(ClipItem.FromText("winget install --id Microsoft.PowerToys -e")), 900);
                 await Toast("toast-install-refused", "Refused command, with a reason per flag", App.Toasts.ShowClip(ClipItem.FromText("choco install 7zip --ignore-checksums -s http://pkgs.example.net/feed")), 900);

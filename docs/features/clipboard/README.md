@@ -4,7 +4,7 @@ Everything that happens when you copy something: the toast that slides in, the a
 
 | Article | What it covers |
 | --- | --- |
-| [Clipboard toasts](toasts.md) | What a toast shows for text, links, files, images, JSON, colors and email addresses, and how to read the actions |
+| [Clipboard toasts](toasts.md) | What a toast shows for text, links, files, images, JSON, colors (with a swatch for every colour written in copied text or code) and email addresses, and how to read the actions |
 | [Clipboard history](history.md) | Finding something you copied earlier, and what is and is not remembered |
 | [Smart copies](smart-copies.md) | The 30 kinds of copied text the app recognises, and the tiles and buttons each one gets |
 | [Quick conversions](conversions.md) | Every unit of an amount at once, each one copyable |

@@ -1488,6 +1488,7 @@ namespace MonitoringTools.Core
             Add("Game textures and 3D tools", "遊戲材質同 3D 工具"); Add("Fast lossless images for games", "遊戲用嘅快速無損圖片");
             Add("Plain pixel map for scripts", "腳本用嘅純像素圖"); Add("Archives and medical imaging", "檔案庫同醫學影像");
             Add("256 square app icon with transparency", "256 正方 app 圖示，支援透明");
+            Add("Colour in this copy", "呢次複製有嘅顏色"); Add("Colours in this copy", "呢次複製有嘅顏色");
             Add("An existing file is never overwritten: the new one gets a (1), (2) suffix.", "現有檔案永遠唔會被覆蓋：新檔案會加 (1)、(2) 後綴。");
             // ---- typed number fields
             Add("s", "秒"); Add("min", "分鐘"); Add("checks", "次"); Add("type a number", "輸入數字");

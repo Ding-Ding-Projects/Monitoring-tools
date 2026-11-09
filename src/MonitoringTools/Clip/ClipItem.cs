@@ -90,7 +90,6 @@ namespace MonitoringTools.Clip
         private static readonly Regex CommandRx = new Regex(@"^\s*""?(?<path>.*?)""?\s*:(?<fmt>[A-Za-z][A-Za-z0-9_-]{1,31})\s*$", RegexOptions.Compiled);
         private static readonly Regex UrlRx = new Regex(@"^(https?://|www\.)[^\s]+$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex EmailRx = new Regex(@"^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$", RegexOptions.Compiled);
-        private static readonly Regex ColorRx = new Regex(@"^(#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*[\d.]+\s*)?\))$", RegexOptions.Compiled);
         private static readonly Regex MdRx = new Regex(@"(^|\n)\s{0,3}(#{1,6}\s|[-*+]\s|\d+\.\s|>\s|```)|\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^)\s]+\)|`[^`\n]+`|(^|\n)\|.+\|", RegexOptions.Compiled);
 
         public static ClipItem FromText(string raw)
@@ -115,7 +114,7 @@ namespace MonitoringTools.Clip
             {
                 if (UrlRx.IsMatch(t)) { item.Kind = ClipKind.Url; item.Text = t; return item; }
                 if (EmailRx.IsMatch(t)) { item.Kind = ClipKind.Email; item.Text = t; return item; }
-                if (ColorRx.IsMatch(t)) { item.Kind = ClipKind.Color; item.Text = t; return item; }
+                if (ColorScan.Whole(t) != null) { item.Kind = ClipKind.Color; item.Text = t; return item; }
             }
 
             var paths = AsPaths(t);

@@ -135,6 +135,18 @@ namespace MonitoringTools.UI
 
         public void SetBody(UIElement body) => BodyHost.Content = body;
 
+        /// <summary>Adds something under the body (such as the colour previews) without rebuilding the body itself.</summary>
+        public void AppendBelowBody(UIElement extra)
+        {
+            if (extra == null) return;
+            var current = BodyHost.Content as UIElement;
+            BodyHost.Content = null;
+            var sp = new StackPanel();
+            if (current != null) sp.Children.Add(current);
+            sp.Children.Add(extra);
+            BodyHost.Content = sp;
+        }
+
         public void SetHint(string hint)
         {
             HintText.Text = hint ?? "";
