@@ -51,8 +51,10 @@ namespace MonitoringTools.UI
         {
             Check("folders: a plain folder offers Start a Git repository, which makes it one; a repository offers Open in Desktop Material only when it is installed", () =>
             {
-                var root = Path.Combine(dir, "repo-actions");
-                if (Directory.Exists(root)) Directory.Delete(root, true);
+                // The plain folder must not sit inside any repository, and the results folder may (the build runs the checks
+                // inside its own checkout), so it goes in the temporary folder instead.
+                var root = Path.Combine(Path.GetTempPath(), "mt-repo-actions-" + Guid.NewGuid().ToString("N").Substring(0, 8));
+                if (RepoActions.RepoRoot(Path.GetTempPath()) != null) return "the temporary folder is inside a repository: " + RepoActions.RepoRoot(Path.GetTempPath());
                 var plain = Path.Combine(root, "plain"); Directory.CreateDirectory(plain);
                 ClipItem Folder(string p) => new ClipItem { Kind = ClipKind.Files, Files = new[] { p } };
                 try
@@ -76,7 +78,12 @@ namespace MonitoringTools.UI
                     if (ActionProvider.For(Folder(inner)).Any(a => a.Label == "Open in Desktop Material")) return "Open in Desktop Material offered without Desktop Material installed";
                     return null;
                 }
-                finally { RepoActions.DesktopMaterialForTest = null; foreach (var t in App.Toasts.LiveToasts.ToList()) { try { t.Close(); } catch { } } }
+                finally
+                {
+                    RepoActions.DesktopMaterialForTest = null;
+                    foreach (var t in App.Toasts.LiveToasts.ToList()) { try { t.Close(); } catch { } }
+                    try { Directory.Delete(root, true); } catch { }
+                }
             });
 
             Check("folders: a repository offers its remotes' web pages, origin first, with every remote as a choice and never a credential", () =>
