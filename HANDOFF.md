@@ -12,6 +12,27 @@ checked; anything unchecked is labelled.
   publishes the next normal release and deploys the site (`.github/workflows/build.yml`).
 - Latest release at the time of writing: v1.0.36 (see [CHANGELOG.md](CHANGELOG.md)).
 
+## Repository folders, sweep cuts and the attached-disk list (2026-11-09)
+
+- **Remote pages for a copied repository:** `Core/RemotePages.cs` reads a repository's remotes from its own
+  configuration (`.git/config`, or the main repository's through a linked worktree's `commondir`) without starting Git,
+  applies `url.<base>.insteadOf` rewrites from the repository and the global configuration, and turns each remote
+  address into its web page with no user name, password, token, query or fragment. `ActionProvider.RemoteLinks` adds
+  **Open on GitHub** (or GitLab, Bitbucket, the server's name) to a copied repository folder's toast; with several
+  remotes the action carries `Choices`, and `ToastWindow` shows them in a **Remote** dropdown list box beside the button,
+  origin first. Unit checks in `tests/SmartTests/RemotePageChecks.cs`; the self-test shows the real toast. See
+  [Git repository folders](docs/features/files/repository-folders.md).
+- **Desktop Material:** opening a repository with `--cli-open` now adds it to Desktop Material's list straight away
+  (that change is in Desktop Material itself), so the toast's tip says so.
+- **Sweep cuts:** the 49 clipped controls at 150 percent text and in both languages are gone (the sweep on `38ad4cf`
+  reported 0 failing findings and 85 trimmed texts to review). `Ui.BesideOrBelow` moves a row's buttons under its title
+  when the row is too narrow; the page search has no minimum width and its builder button keeps only its wand in a
+  narrow bar; New virtual disk picks its type from a dropdown list box.
+- **Attached-disk list:** `VirtDisk.Attached()` now calls the service with a buffer from the start and strips the
+  `\\?\` prefix. On `38ad4cf` the real-disk check found the list empty while a disk was attached, and the disk then
+  stayed attached for six more checks; the check now recognises the disk by its own folder, reports the Windows error
+  code, and always detaches before the next check.
+
 ## Virtual disks, Quick pack and the smaller features beside them (2026-11-07)
 
 - **Design:** [design/features](design/features/HANDOFF.md), five interactive boards made before the build: the page,

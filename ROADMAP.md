@@ -36,6 +36,7 @@ finished (a dropped item would be struck through or moved to the last section wi
 - [x] Element locks, an unlock ladder, Support Tickets and a TOTP authenticator
 - [x] A local AI models (Ollama) manager, a Minecraft world generator, drawing, publishing to GitHub and editor hand-off
 - [x] A Virtual disks page and Quick pack, proved on real disks by the build on every push
+- [x] Copied Git repository folders open their remotes' web pages (GitHub, GitLab, Bitbucket, Azure DevOps, Codeberg, Gitea, self-hosted), with a Remote dropdown list box when there are several and no credential ever shown
 - [x] Base64 beside the file, an append-only record of actions and discarded changes, a live response-time chart, folding search bars, filters and statistics, live controls in right-click menus and a filter in every dropdown, and one Markdown renderer with emoji and relative links
 
 ## In progress
