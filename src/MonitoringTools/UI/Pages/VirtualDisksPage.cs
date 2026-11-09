@@ -200,6 +200,7 @@ namespace MonitoringTools.UI
             }, "Btn.Ghost", Icons.Search));
             Grid.SetColumn(tools, 1);
             head.Children.Add(tools);
+            Ui.BesideOrBelow(head, tools, 1, 0);
             sp.Children.Add(head);
             if (_vdResult != null)
             {
@@ -675,7 +676,9 @@ namespace MonitoringTools.UI
             var fmt = new Segmented("Format", new[] { new Choice(".vhdx", "VHDX"), new Choice(".vhd", "VHD"), new Choice(".vhds", "VHD Set") }, Path.GetExtension(job.File).ToLowerInvariant()) { Margin = new Thickness(0, 0, 0, 8), HorizontalAlignment = HorizontalAlignment.Left };
             fmt.Changed += v => { job.File = Path.ChangeExtension(job.File, v); VdRefresh(); };
             sp.Children.Add(DialogParts.Label("Format")); sp.Children.Add(fmt);
-            var type = new Segmented("Type", new[] { new Choice("dynamic", "Grows as it fills"), new Choice("fixed", "Fixed size"), new Choice("differencing", "Child of a disk"), new Choice("copy", "Copy of a disk") }, job.Type) { Margin = new Thickness(0, 0, 0, 8), HorizontalAlignment = HorizontalAlignment.Left };
+            // Four long choices: a dropdown list box rather than a segmented row, so no choice is cut off in a narrow window,
+            // at large text or in both languages.
+            var type = new Dropdown("Type", new[] { new Choice("dynamic", "Grows as it fills"), new Choice("fixed", "Fixed size"), new Choice("differencing", "Child of a disk"), new Choice("copy", "Copy of a disk") }, job.Type) { Margin = new Thickness(0, 0, 0, 8), HorizontalAlignment = HorizontalAlignment.Left, MinWidth = 220 };
             type.Changed += v => { job.Type = v; if (v == "differencing" || v == "copy") job.Init = "none"; VdRefresh(); };
             sp.Children.Add(DialogParts.Label("Type")); sp.Children.Add(type);
             if (job.Type == "differencing" || job.Type == "copy")

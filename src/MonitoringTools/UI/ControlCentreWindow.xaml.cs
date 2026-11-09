@@ -173,7 +173,7 @@ namespace MonitoringTools.UI
             if (page is StackPanel sp && sp.Children.Count > 0)
             {
                 var label = _sections[idx].Label;
-                _pageSearch = new SearchField("page:" + id, "Search " + label.ToLowerInvariant()) { MinWidth = 360 };
+                _pageSearch = new SearchField("page:" + id, "Search " + label.ToLowerInvariant());
                 _pageSearch.SearchEverywhere = st => CommandPalette.OpenWith(st, this);
                 sp.Children.Insert(1, FoldableSearch(id, _pageSearch));
                 SearchScope.Attach(sp, _pageSearch, id switch { "history" => "copies", "activity" => "entries", "shortcuts" => "shortcuts", _ => "settings and sections" });
@@ -1251,6 +1251,7 @@ namespace MonitoringTools.UI
             side.Children.Add(pause);
             Grid.SetColumn(side, 1);
             head.Children.Add(side);
+            Ui.BesideOrBelow(head, side, 1, 0);
             sp.Children.Add(head);
 
             var legend = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -94,6 +95,19 @@ namespace MonitoringTools.UI.Search
                 Background = Ui.Res("B.Raised"), BorderBrush = Brushes.Transparent, BorderThickness = new Thickness(2),
                 CornerRadius = new CornerRadius(h / 2), Padding = new Thickness(compact ? 12 : 18, 0, compact ? 4 : 8, 0), Height = h, Child = g
             };
+            // In a narrow bar (a narrow window, large text) the builder button keeps only its wand, so the text box keeps room
+            // to type and nothing at the end of the bar is cut off. Its name and tooltip still say what it does.
+            if (!compact && _build.Content is StackPanel buildRow && buildRow.Children.OfType<TextBlock>().FirstOrDefault() is TextBlock buildText)
+            {
+                var widePadding = _build.Padding;
+                Bar.SizeChanged += (s, e) =>
+                {
+                    if (!e.WidthChanged) return;
+                    bool narrow = e.NewSize.Width < 420;
+                    buildText.Visibility = narrow ? Visibility.Collapsed : Visibility.Visible;
+                    _build.Padding = narrow ? new Thickness(0) : widePadding;
+                };
+            }
             _empty = new TextBlock { Style = Ui.Style("T.Body"), Foreground = Ui.Res("B.TextSoft"), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
             _everywhere = Ui.Button("Search every page", () => SearchEverywhere?.Invoke(State), "Btn.Ghost", Icons.Search);
             _everywhere.Margin = new Thickness(12, 0, 0, 0);

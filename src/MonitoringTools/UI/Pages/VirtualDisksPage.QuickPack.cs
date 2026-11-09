@@ -139,6 +139,7 @@ namespace MonitoringTools.UI
             picks.Children.Add(pickFiles); picks.Children.Add(pickFolder);
             Grid.SetColumn(picks, 2);
             g.Children.Add(picks);
+            Ui.BesideOrBelow(g, picks, 2, 1, mainMin: 54 + 200);
             zone.Child = g;
             AutomationProperties.SetName(zone, "Drop files and folders here to pack them into a new VHDX");
             void Lit(bool on) { zone.SetResourceReference(Border.BorderBrushProperty, on ? "B.Mint" : "B.Line"); zone.SetResourceReference(Border.BackgroundProperty, on ? "B.SecondaryContainer" : "B.MintWash"); }

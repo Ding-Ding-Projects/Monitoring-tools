@@ -120,6 +120,33 @@ namespace MonitoringTools.UI
             return b;
         }
 
+        /// <summary>
+        /// Keeps a row's side controls (buttons, a status chip) beside its main content while both fit, and moves them under
+        /// the main content when the row is too narrow, as at large text or in a narrow window, so neither is ever cut off.
+        /// The side goes to <paramref name="besideColumn"/> of the first row, or under the main content in
+        /// <paramref name="belowColumn"/> of a second row, aligned to its left edge, where a wrapping panel wraps.
+        /// </summary>
+        public static void BesideOrBelow(Grid row, FrameworkElement side, int besideColumn, int belowColumn, double mainMin = 240)
+        {
+            while (row.RowDefinitions.Count < 2) row.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            var align = side.HorizontalAlignment;
+            var margin = side.Margin;
+            bool? below = null;
+            void Lay(double width)
+            {
+                if (width <= 0) return;
+                side.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                bool now = width < side.DesiredSize.Width + mainMin;
+                if (now == below) return;
+                below = now;
+                Grid.SetRow(side, now ? 1 : 0);
+                Grid.SetColumn(side, now ? belowColumn : besideColumn);
+                side.HorizontalAlignment = now ? HorizontalAlignment.Left : align;
+                side.Margin = now ? new Thickness(0, 8, 0, 0) : margin;
+            }
+            row.SizeChanged += (s, e) => { if (e.WidthChanged) Lay(e.NewSize.Width); };
+        }
+
         // -------------------------------------------------------------- motion helpers
 
         public static readonly IEasingFunction Out = new CubicEase { EasingMode = EasingMode.EaseOut };
