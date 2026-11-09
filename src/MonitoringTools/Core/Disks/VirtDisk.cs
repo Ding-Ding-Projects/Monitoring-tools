@@ -256,31 +256,54 @@ namespace MonitoringTools.Core.Disks
             return string.IsNullOrEmpty(s) ? null : s;
         }
 
-        /// <summary>The backing files of every virtual disk attached on this computer right now.</summary>
+        /// <summary>The Windows error the last <see cref="Attached"/> call ended with, 0 when it succeeded. For checks.</summary>
+        internal static int LastAttachedError { get; private set; }
+
+        /// <summary>
+        /// The backing files of every virtual disk attached on this computer right now. The call is made with a buffer from the
+        /// start, as the single-disk path call is, because the service refuses a size query without one; a buffer that is too
+        /// small is grown to the size the service asks for. Paths come back without the \\?\ prefix, so they compare equal
+        /// to the paths in the library.
+        /// </summary>
         public static List<string> Attached()
         {
             var list = new List<string>();
+            LastAttachedError = 0;
             if (!Available) return list;
             try
             {
-                int size = 0;
-                int rc = GetAllAttachedVirtualDiskPhysicalPaths(ref size, IntPtr.Zero);
-                if (rc != 0 && rc != ErrorInsufficientBuffer && rc != ErrorMoreData) return list;
-                if (size <= 2) return list;
-                using var b = new Block(size + 4);
-                rc = GetAllAttachedVirtualDiskPhysicalPaths(ref size, b.P);
-                if (rc != 0) return list;
-                int off = 0;
-                while (off < size - 2)
+                int size = 8192;
+                for (int attempt = 0; attempt < 5; attempt++)
                 {
-                    var s = Marshal.PtrToStringUni(b.P + off);
-                    if (string.IsNullOrEmpty(s)) break;
-                    list.Add(s);
-                    off += (s.Length + 1) * 2;
+                    using var b = new Block(size + 4);
+                    int used = size;
+                    int rc = GetAllAttachedVirtualDiskPhysicalPaths(ref used, b.P);
+                    if (rc == ErrorInsufficientBuffer || rc == ErrorMoreData) { size = Math.Max(used + 2, size * 2); continue; }
+                    LastAttachedError = rc;
+                    if (rc != 0) return list;
+                    int end = Math.Min(Math.Max(used, 0), size);
+                    int off = 0;
+                    while (off < end - 1)
+                    {
+                        var one = Marshal.PtrToStringUni(b.P + off);
+                        if (string.IsNullOrEmpty(one)) break;
+                        list.Add(WithoutDevicePrefix(one));
+                        off += (one.Length + 1) * 2;
+                    }
+                    return list;
                 }
+                LastAttachedError = ErrorInsufficientBuffer;
             }
-            catch { }
+            catch (Exception ex) { LastAttachedError = ex.HResult; }
             return list;
+        }
+
+        /// <summary>A path as Windows usually writes it: \\?\C:\x becomes C:\x and \\?\UNC\server\share becomes \\server\share.</summary>
+        internal static string WithoutDevicePrefix(string path)
+        {
+            if (path.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase)) return @"\\" + path.Substring(8);
+            if (path.StartsWith(@"\\?\", StringComparison.Ordinal) || path.StartsWith(@"\\.\", StringComparison.Ordinal)) return path.Substring(4);
+            return path;
         }
 
         // ------------------------------------------------------------------ changes (administrator rights)

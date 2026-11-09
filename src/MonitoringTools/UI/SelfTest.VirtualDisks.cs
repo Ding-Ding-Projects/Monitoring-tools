@@ -106,13 +106,26 @@ namespace MonitoringTools.UI
                 {
                     var s = await Task.Run(() => DiskJobs.Execute(new DiskJob { Op = "attach", File = P("a.vhdx"), ReadOnly = true, NoLetters = true }));
                     if (s.Phase != "done") return s.Error;
-                    var i = VirtDisk.Read(P("a.vhdx"));
-                    if (!i.Attached || i.DiskNumber == null) return "not attached after attach: " + i.PhysicalPath;
-                    if (!VirtDisk.Attached().Any(x => string.Equals(x, P("a.vhdx"), StringComparison.OrdinalIgnoreCase))) return "the attached list does not have it: " + string.Join(", ", VirtDisk.Attached());
-                    var again = await Task.Run(() => DiskJobs.Execute(new DiskJob { Op = "attach", File = P("a.vhdx") }));
-                    if (again.Phase != "done" || !again.Message.Contains("already attached")) return "a second attach was not recognised: " + again.Message + again.Error;
-                    var d = await Task.Run(() => DiskJobs.Execute(new DiskJob { Op = "detach", File = P("a.vhdx") }));
-                    return d.Phase == "done" && !VirtDisk.Read(P("a.vhdx")).Attached ? null : "detach: " + d.Error;
+                    try
+                    {
+                        var i = VirtDisk.Read(P("a.vhdx"));
+                        if (!i.Attached || i.DiskNumber == null) return "not attached after attach: " + i.PhysicalPath;
+                        // The temporary folder can be named in its short 8.3 form (RUNNER~1) while Windows lists the long form, so
+                        // the disk is recognised by its own uniquely named folder and file.
+                        var listed = VirtDisk.Attached();
+                        var tail = Path.DirectorySeparatorChar + Path.Combine(Path.GetFileName(root), "a.vhdx");
+                        if (!listed.Any(x => x.EndsWith(tail, StringComparison.OrdinalIgnoreCase)))
+                            return $"the attached list does not have it (Windows error {VirtDisk.LastAttachedError}): " + string.Join(", ", listed);
+                        var again = await Task.Run(() => DiskJobs.Execute(new DiskJob { Op = "attach", File = P("a.vhdx") }));
+                        if (again.Phase != "done" || !again.Message.Contains("already attached")) return "a second attach was not recognised: " + again.Message + again.Error;
+                        var d = await Task.Run(() => DiskJobs.Execute(new DiskJob { Op = "detach", File = P("a.vhdx") }));
+                        return d.Phase == "done" && !VirtDisk.Read(P("a.vhdx")).Attached ? null : "detach: " + d.Error;
+                    }
+                    finally
+                    {
+                        // A failed step above must not leave the disk attached for every check after it.
+                        if (VirtDisk.Read(P("a.vhdx")).Attached) await Task.Run(() => DiskJobs.Execute(new DiskJob { Op = "detach", File = P("a.vhdx") }));
+                    }
                 });
                 await CheckAsync("vdisk: grow and extend its volume", async () =>
                 {
