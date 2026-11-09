@@ -45,50 +45,10 @@ namespace MonitoringTools.UI
             });
         }
 
-        /// <summary>Codes in copied pictures, folders that are or are not repositories, and Docker files under any name.</summary>
-        private static void ClipCodeChecks(string dir)
+        /// <summary>Copied folders: Start a Git repository for a plain folder, Open in Desktop Material and the remotes' web pages
+        /// for a repository. Also run on their own by the build (MT_ONLY=folders).</summary>
+        private static void RepoFolderChecks(string dir)
         {
-            BitmapSource Render(BarcodeFormat format, string text, int w, int h)
-            {
-                var writer = new ZXing.BarcodeWriterPixelData { Format = format, Options = new EncodingOptions { Width = w, Height = h, Margin = 10 } };
-                var px = writer.Write(text);
-                var bmp = BitmapSource.Create(px.Width, px.Height, 96, 96, PixelFormats.Bgra32, null, px.Pixels, px.Width * 4);
-                bmp.Freeze();
-                return bmp;
-            }
-
-            Check("clipboard codes: QR, Data Matrix, EAN-13 and Code 128 in a copied picture are read, shown and offered to copy", () =>
-            {
-                var cases = new (BarcodeFormat F, string Text, string Kind, string Label)[]
-                {
-                    (BarcodeFormat.QR_CODE, "https://example.com/menu", "QR code", "Copy QR text"),
-                    (BarcodeFormat.DATA_MATRIX, "PART-4471-B", "Data Matrix code", "Copy code text"),
-                    (BarcodeFormat.EAN_13, "4006381333931", "EAN-13 barcode", "Copy barcode text"),
-                    (BarcodeFormat.CODE_128, "SHIP-2026-0042", "Code 128 barcode", "Copy barcode text"),
-                };
-                foreach (var c in cases)
-                {
-                    var img = Render(c.F, c.Text, c.F is BarcodeFormat.EAN_13 or BarcodeFormat.CODE_128 ? 420 : 300, c.F is BarcodeFormat.EAN_13 or BarcodeFormat.CODE_128 ? 160 : 300);
-                    var found = CodeScanner.Scan(img);
-                    var hit = found.FirstOrDefault(x => x.Text == c.Text);
-                    if (hit == null) return $"{c.Kind} not read; got [{string.Join(", ", found.Select(x => x.Kind + "=" + x.Text))}]";
-                    if (hit.Kind != c.Kind) return $"{c.Text} was called {hit.Kind}, not {c.Kind}";
-                    var actions = ActionProvider.For(new ClipItem { Kind = ClipKind.Image, Image = img });
-                    var copy = actions.FirstOrDefault(a => a.Label == c.Label);
-                    if (copy == null) return $"no {c.Label} for the {c.Kind}; actions: {string.Join(", ", actions.Select(a => a.Label))}";
-                    if (!copy.Primary) return $"{c.Label} is not the first choice";
-                    if (c.Text.StartsWith("https://") && !actions.Any(a => a.Label == "Open link")) return "a link QR has no Open link";
-                    if (!c.Text.StartsWith("https://") && actions.Any(a => a.Label == "Open link")) return $"{c.Kind} without a link offered Open link";
-                }
-                // a plain picture offers nothing extra, and a picture is only read once
-                var blank = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Bgra32, null, new byte[64 * 64 * 4], 64 * 4);
-                if (CodeScanner.Scan(blank).Count != 0) return "a blank picture produced a code";
-                if (!ReferenceEquals(CodeScanner.Scan(blank), CodeScanner.Scan(blank))) return "the same picture was read twice";
-                // an authenticator QR never shows its secret in the preview
-                if (!ActionProvider.Preview("otpauth://totp/x?secret=JBSWY3DPEHPK3PXP").Contains("secret hidden")) return "an authenticator link preview shows its secret";
-                return null;
-            });
-
             Check("folders: a plain folder offers Start a Git repository, which makes it one; a repository offers Open in Desktop Material only when it is installed", () =>
             {
                 var root = Path.Combine(dir, "repo-actions");
@@ -141,6 +101,53 @@ namespace MonitoringTools.UI
                 if (ActionProvider.For(new ClipItem { Kind = ClipKind.Files, Files = new[] { repo } }).Any(a => a.Label.StartsWith("Open on "))) return "a local remote offered a web page";
                 return null;
             });
+        }
+
+        /// <summary>Codes in copied pictures, folders that are or are not repositories, and Docker files under any name.</summary>
+        private static void ClipCodeChecks(string dir)
+        {
+            BitmapSource Render(BarcodeFormat format, string text, int w, int h)
+            {
+                var writer = new ZXing.BarcodeWriterPixelData { Format = format, Options = new EncodingOptions { Width = w, Height = h, Margin = 10 } };
+                var px = writer.Write(text);
+                var bmp = BitmapSource.Create(px.Width, px.Height, 96, 96, PixelFormats.Bgra32, null, px.Pixels, px.Width * 4);
+                bmp.Freeze();
+                return bmp;
+            }
+
+            Check("clipboard codes: QR, Data Matrix, EAN-13 and Code 128 in a copied picture are read, shown and offered to copy", () =>
+            {
+                var cases = new (BarcodeFormat F, string Text, string Kind, string Label)[]
+                {
+                    (BarcodeFormat.QR_CODE, "https://example.com/menu", "QR code", "Copy QR text"),
+                    (BarcodeFormat.DATA_MATRIX, "PART-4471-B", "Data Matrix code", "Copy code text"),
+                    (BarcodeFormat.EAN_13, "4006381333931", "EAN-13 barcode", "Copy barcode text"),
+                    (BarcodeFormat.CODE_128, "SHIP-2026-0042", "Code 128 barcode", "Copy barcode text"),
+                };
+                foreach (var c in cases)
+                {
+                    var img = Render(c.F, c.Text, c.F is BarcodeFormat.EAN_13 or BarcodeFormat.CODE_128 ? 420 : 300, c.F is BarcodeFormat.EAN_13 or BarcodeFormat.CODE_128 ? 160 : 300);
+                    var found = CodeScanner.Scan(img);
+                    var hit = found.FirstOrDefault(x => x.Text == c.Text);
+                    if (hit == null) return $"{c.Kind} not read; got [{string.Join(", ", found.Select(x => x.Kind + "=" + x.Text))}]";
+                    if (hit.Kind != c.Kind) return $"{c.Text} was called {hit.Kind}, not {c.Kind}";
+                    var actions = ActionProvider.For(new ClipItem { Kind = ClipKind.Image, Image = img });
+                    var copy = actions.FirstOrDefault(a => a.Label == c.Label);
+                    if (copy == null) return $"no {c.Label} for the {c.Kind}; actions: {string.Join(", ", actions.Select(a => a.Label))}";
+                    if (!copy.Primary) return $"{c.Label} is not the first choice";
+                    if (c.Text.StartsWith("https://") && !actions.Any(a => a.Label == "Open link")) return "a link QR has no Open link";
+                    if (!c.Text.StartsWith("https://") && actions.Any(a => a.Label == "Open link")) return $"{c.Kind} without a link offered Open link";
+                }
+                // a plain picture offers nothing extra, and a picture is only read once
+                var blank = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Bgra32, null, new byte[64 * 64 * 4], 64 * 4);
+                if (CodeScanner.Scan(blank).Count != 0) return "a blank picture produced a code";
+                if (!ReferenceEquals(CodeScanner.Scan(blank), CodeScanner.Scan(blank))) return "the same picture was read twice";
+                // an authenticator QR never shows its secret in the preview
+                if (!ActionProvider.Preview("otpauth://totp/x?secret=JBSWY3DPEHPK3PXP").Contains("secret hidden")) return "an authenticator link preview shows its secret";
+                return null;
+            });
+
+            RepoFolderChecks(dir);
 
             Check("github links: a repository link offers Clone and Clone to…, other GitHub pages do not, and cloning twice reports the existing copy", () =>
             {
