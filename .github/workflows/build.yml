@@ -164,7 +164,7 @@ jobs:
           $r = Get-Content elevateddrop/selftest.json -Raw | ConvertFrom-Json
           foreach ($c in $r.results) { Write-Host ("{0}  {1}: {2}" -f $(if ($c.Pass) { 'pass' } else { 'FAIL' }), $c.Name, $c.Detail) }
           Write-Host "Passed: $($r.passed). Failed: $($r.failed)."
-          if ($r.failed -gt 0 -or $r.passed -lt 4) { throw "Elevated drop checks failed: $($r.failed) of $($r.passed + $r.failed); see selftest.json in the elevateddrop artifact." }
+          if ($r.failed -gt 0 -or $r.passed -lt 5) { throw "Elevated drop checks failed: $($r.failed) of $($r.passed + $r.failed); see selftest.json in the elevateddrop artifact." }
 
       - uses: actions/upload-artifact@v4
         if: always()

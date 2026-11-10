@@ -45,6 +45,12 @@ namespace MonitoringTools.UI
         public static int Delivered { get; private set; }
 
         private static readonly HashSet<IntPtr> Bridged = new HashSet<IntPtr>();
+        // HwndSource can hold hooks weakly, so each window's hook is kept alive here until the window closes
+        private static readonly Dictionary<IntPtr, HwndSourceHook> Hooks = new Dictionary<IntPtr, HwndSourceHook>();
+
+        /// <summary>The last steps the bridge took, newest last (for the self-test and the log).</summary>
+        public static readonly List<string> Trace = new List<string>();
+        private static void Note(string s) { lock (Trace) { Trace.Add(s); if (Trace.Count > 40) Trace.RemoveAt(0); } }
 
         private static readonly MethodInfo RegisterTarget = typeof(DragDrop).GetMethod("RegisterDropTarget", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(IntPtr) }, null);
         private static readonly MethodInfo RevokeTarget = typeof(DragDrop).GetMethod("RevokeDropTarget", BindingFlags.NonPublic | BindingFlags.Static, null, new[] { typeof(IntPtr) }, null);
@@ -74,16 +80,22 @@ namespace MonitoringTools.UI
                 foreach (var m in new[] { WM_DROPFILES, WM_COPYDATA, WM_COPYGLOBALDATA }) ChangeWindowMessageFilterEx(hwnd, m, MSGFLT_ALLOW, IntPtr.Zero);
                 Revoke(hwnd);
                 DragAcceptFiles(hwnd, true);
-                HwndSource.FromHwnd(hwnd)?.AddHook((IntPtr h, int msg, IntPtr wp, IntPtr lp, ref bool handled) =>
+                HwndSourceHook hook = (IntPtr h, int msg, IntPtr wp, IntPtr lp, ref bool handled) =>
                 {
                     if (msg != WM_DROPFILES) return IntPtr.Zero;
                     handled = true;
+                    Note("WM_DROPFILES arrived");
                     OnDropFiles(w, wp);
                     return IntPtr.Zero;
-                });
-                w.Closed += (o, e) => Bridged.Remove(hwnd);
+                };
+                Hooks[hwnd] = hook;
+                var src = HwndSource.FromHwnd(hwnd);
+                if (src == null) { Note("no HwndSource for the window"); return; }
+                src.AddHook(hook);
+                Note("bridged " + (w.Title ?? w.GetType().Name));
+                w.Closed += (o, e) => { Bridged.Remove(hwnd); Hooks.Remove(hwnd); };
             }
-            catch (Exception ex) { Log.Warn("Elevated drop bridge not set up: " + ex.Message); }
+            catch (Exception ex) { Note("bridge failed: " + ex.Message); Log.Warn("Elevated drop bridge not set up: " + ex.Message); }
         }
 
         /// <summary>
@@ -127,6 +139,7 @@ namespace MonitoringTools.UI
                 DragQueryPoint(hDrop, out pt);
             }
             finally { DragFinish(hDrop); }
+            Note($"{files.Length} file(s) at {pt.X},{pt.Y}");
             if (files.Length == 0) return;
             w.Activate();
             Deliver(w, files, new Point(pt.X, pt.Y), devicePixels: true);
@@ -144,6 +157,7 @@ namespace MonitoringTools.UI
             while (hit != null && !(hit is UIElement) && !(hit is ContentElement))
                 hit = hit is Visual ? VisualTreeHelper.GetParent(hit) : LogicalTreeHelper.GetParent(hit);
             hit ??= w;
+            Note("target " + hit.GetType().Name + " at " + at);
             var data = new DataObject(DataFormats.FileDrop, files);
             const DragDropEffects allowed = DragDropEffects.Copy | DragDropEffects.Link | DragDropEffects.Move;
 
@@ -166,6 +180,7 @@ namespace MonitoringTools.UI
                 if (over.Effects == DragDropEffects.None)
                 {
                     Raise(DragDrop.PreviewDragLeaveEvent, DragDrop.DragLeaveEvent);
+                    Note("refused in DragOver");
                     Log.Info($"Elevated drop: the target refused {files.Length} file(s)");
                     return false;
                 }
@@ -174,7 +189,7 @@ namespace MonitoringTools.UI
                 Log.Info($"Elevated drop: delivered {files.Length} file(s)");
                 return true;
             }
-            catch (Exception ex) { Log.Warn("Elevated drop failed: " + ex.Message); return false; }
+            catch (Exception ex) { Note("delivery failed: " + (ex.InnerException ?? ex).Message); Log.Warn("Elevated drop failed: " + ex.Message); return false; }
         }
 
         private static void RaiseOn(DependencyObject target, RoutedEventArgs a)

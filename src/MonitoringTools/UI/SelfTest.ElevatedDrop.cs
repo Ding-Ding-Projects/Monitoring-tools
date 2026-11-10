@@ -62,13 +62,23 @@ namespace MonitoringTools.UI
                 var scale = PresentationSource.FromVisual(w)?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
                 var files = new[] { @"C:\Users\Sam\Pictures\holiday photo.png", @"C:\Users\Sam\Documents\notes.txt" };
 
+                await CheckAsync("elevated drop: the events reach the drop zone under a point (without the message)", async () =>
+                {
+                    var pt = zone.TranslatePoint(new Point(zone.ActualWidth / 2, zone.ActualHeight / 2), w);
+                    ElevatedDrop.Deliver(w, files, pt);
+                    await Task.Delay(100);
+                    var r = got == null ? "the zone got no Drop; bridge trace: " + string.Join(" › ", ElevatedDrop.Trace) : null;
+                    got = null; lit = false;
+                    return r;
+                });
+
                 await CheckAsync("elevated drop: a WM_DROPFILES from File Explorer reaches the drop zone under the point", async () =>
                 {
                     int before = ElevatedDrop.Delivered;
                     var pt = zone.TranslatePoint(new Point(zone.ActualWidth / 2, zone.ActualHeight / 2), w);
                     PostMessage(hwnd, 0x0233, MakeHDrop(files, (int)(pt.X * scale), (int)(pt.Y * scale)), IntPtr.Zero);
                     for (int i = 0; i < 20 && got == null; i++) await Task.Delay(100);
-                    if (got == null) return "the zone got no Drop";
+                    if (got == null) return "the zone got no Drop; bridge trace: " + string.Join(" › ", ElevatedDrop.Trace);
                     if (got.Length != 2 || got[0] != files[0] || got[1] != files[1]) return "the zone got: " + string.Join(" | ", got);
                     if (!lit) return "the zone got no DragEnter, so it could not light up";
                     if (ElevatedDrop.Delivered != before + 1) return "the bridge did not count the drop";
