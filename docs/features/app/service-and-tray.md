@@ -16,6 +16,17 @@ Right-click for the control centre, history, shortcuts, connection test, toggles
 
 Off by default. Turning them on asks once through UAC, then the service starts elevated at every sign-in until you turn it off. Things that need it, such as changing DNS, then run without a prompt.
 
+### Dropping files while running as administrator
+
+Windows does not let a normal-rights program (File Explorer, the desktop) drag and drop into an elevated program, so
+without help every drop zone would ignore files while administrator rights are on. The app works around it: each window
+allows the older `WM_DROPFILES` message through the Windows message filter, accepts dropped files that way, and hands
+them to the drop zone under the pointer exactly as a normal drop would (it lights up, can refuse, and receives the files).
+Dragging tabs inside the app keeps working.
+
+Only files cross over this way. Text or images dragged from another program (a browser selection, say) cannot reach an
+elevated window; copy and paste them instead, or turn administrator rights off.
+
 ## Updates install themselves
 
 On by default (**About**, **Install updates by themselves**). A little after the service starts, and then every hour, it asks GitHub for the latest release. A newer one is downloaded in the background into `%LOCALAPPDATA%\MonitoringTools\updates`. It is kept only when its SHA-256 matches the digest GitHub publishes for the file and the file's own version matches the release; otherwise it is thrown away and the About page says why. Drafts and pre-releases are ignored.

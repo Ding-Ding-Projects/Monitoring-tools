@@ -204,7 +204,7 @@ namespace MonitoringTools.UI.Tabs
                 var p = e.GetPosition(this);
                 if (Math.Abs(p.X - _down.X) < SystemParameters.MinimumHorizontalDragDistance && Math.Abs(p.Y - _down.Y) < SystemParameters.MinimumVerticalDragDistance) return;
                 _pressed = false;
-                DragDrop.DoDragDrop(this, new DataObject(TabStrip.DragFormat, TabId), DragDropEffects.Move);
+                ElevatedDrop.InternalDrag(this, new DataObject(TabStrip.DragFormat, TabId), DragDropEffects.Move);
             };
             DragOver += (s, e) => { e.Effects = e.Data.GetDataPresent(TabStrip.DragFormat) && _o.CanDrop((string)e.Data.GetData(TabStrip.DragFormat), TabId) ? DragDropEffects.Move : DragDropEffects.None; e.Handled = true; };
             Drop += (s, e) => { if (e.Data.GetDataPresent(TabStrip.DragFormat)) _o.DropOn((string)e.Data.GetData(TabStrip.DragFormat), TabId); e.Handled = true; };
