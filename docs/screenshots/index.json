@@ -654,6 +654,12 @@
     "height": 1576
   },
   {
+    "file": "history-repository.png",
+    "caption": "Clipboard history kept in a Git repository: status, filters, search, pins and the latest commits",
+    "width": 2088,
+    "height": 1576
+  },
+  {
     "file": "look-graphite-light.png",
     "caption": "The Graphite look in the light theme: the overview with every page open",
     "width": 2088,
