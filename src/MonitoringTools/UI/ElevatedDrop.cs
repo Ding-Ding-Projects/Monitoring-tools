@@ -166,11 +166,12 @@ namespace MonitoringTools.UI
                 var a = (DragEventArgs)ArgsCtor.Invoke(new object[] { data, DragDropKeyStates.None, allowed, w, at });
                 a.RoutedEvent = preview;
                 RaiseOn(hit, a);
+                if (a.Handled) return a;
                 var b = (DragEventArgs)ArgsCtor.Invoke(new object[] { data, DragDropKeyStates.None, allowed, w, at });
-                b.Effects = a.Effects; b.Handled = a.Handled;
-                b.RoutedEvent = bubble;
-                if (!a.Handled) RaiseOn(hit, b);
-                return a.Handled ? a : b;
+                b.RoutedEvent = bubble;   // before anything else: WPF refuses Handled on arguments without an event
+                b.Effects = a.Effects;
+                RaiseOn(hit, b);
+                return b;
             }
 
             try
