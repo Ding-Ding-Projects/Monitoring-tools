@@ -6,8 +6,16 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.71, up to `a424559`.
+Commits after v1.0.72, up to `92cdab9`.
 
+- Refresh screenshots for v1.0.72 ([`92cdab9`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/92cdab9e14f773d95189f6ef6254218c65b4ddd5))
+
+## 1.0.72 (2026-11-09)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.72)
+
+- Keep every copy in a local Git repository with a history manager ([`a9b4e12`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a9b4e12f020d2a27a019a186f5653bd66100a03f))
+- Record v1.0.71 figures and changelog ([`5f3f241`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/5f3f24116ec6b64542f365ebe2e106c7647b0bfd))
 - Refresh screenshots for v1.0.71 ([`a424559`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/a4245595d2835d41f54db4e90467ec9360ad7e29))
 
 ## 1.0.71 (2026-11-09)
