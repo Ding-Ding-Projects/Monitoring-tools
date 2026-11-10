@@ -6,8 +6,18 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.72, up to `92cdab9`.
+Commits after v1.0.73, up to `e832e6e`.
 
+- Refresh screenshots for v1.0.73 ([`e832e6e`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e832e6e2226ea60d9b9867d7f9bf03140ed0dbef))
+
+## 1.0.73 (2026-11-09)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.73)
+
+- Set the routed event before anything else on bridged drop arguments ([`7543e2c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/7543e2cdb11ffff14e24b1666ba2d1f3ef856b79))
+- Keep the elevated drop hook alive and trace the bridge ([`ca3f64c`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/ca3f64caad7a30871cda17fe4437cc6bd8f3a51e))
+- Accept dropped files while running as administrator ([`491d7e8`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/491d7e8aaae2f24d84bf510de8ad6353b895399a))
+- Record v1.0.72 figures and changelog ([`79c5532`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/79c55327162a1596a7beabcc710ebe4e6a14b45b))
 - Refresh screenshots for v1.0.72 ([`92cdab9`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/92cdab9e14f773d95189f6ef6254218c65b4ddd5))
 
 ## 1.0.72 (2026-11-09)
