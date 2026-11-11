@@ -85,6 +85,8 @@ namespace MonitoringTools.UI
             }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "datasec") { await DataSecChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "vdisk") { await VirtualDiskChecksAsync(dir); Finish(dir); return; }   // real disks: needs administrator rights
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "mccreate") { await McCreateChecksAsync(); Finish(dir); return; }
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "wordingcopy") { await WordingCopyChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "elevateddrop") { await ElevatedDropChecksAsync(); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "cliprepo") { await ClipRepoChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "colors") { await ColorChecksAsync(); Finish(dir); return; }

@@ -223,9 +223,13 @@ namespace MonitoringTools
         // same celebration and sound. Unrelated JSON files fall through to the ordinary clipboard toast.
         internal static bool TryApplyCopiedWording(ClipItem item)
         {
-            if (!Settings.Current.ApplyCopiedWordingFile || item.Kind != ClipKind.Files || item.Files == null || item.Files.Length != 1) return false;
-            var path = item.Files[0];
-            if (!PersonalWording.IsWordingFile(path)) return false;
+            if (!Settings.Current.ApplyCopiedWordingFile) return false;
+            // the file itself (Ctrl+C in File Explorer) or its path as text ("Copy as path" adds quotes; a file:/// address works too)
+            string path = item.Kind == ClipKind.Files && item.Files != null && item.Files.Length == 1 ? item.Files[0]
+                        : item.Files == null && item.Text != null ? PersonalWording.PathFromText(item.Text) : null;
+            if (path == null) return false;
+            // a JSON file that is not meant as wording stays an ordinary copy; one that is meant as wording but fails says why
+            if (!PersonalWording.IsWordingFile(path) && !PersonalWording.LooksLikeWordingFile(path)) return false;
             if (PersonalWording.TryApply(path, out var message))
             {
                 Sounds.Play(Cue.Tada);

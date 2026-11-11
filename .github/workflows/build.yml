@@ -153,6 +153,46 @@ jobs:
           path: vdisk
           if-no-files-found: warn
 
+      - name: Check copied wording files
+        id: wordingcopy
+        shell: pwsh
+        run: |
+          $env:MT_ONLY = 'wordingcopy'
+          $p = Start-Process -FilePath out/MonitoringTools.exe -ArgumentList '--selftest', "$PWD/wordingcopy" -PassThru
+          if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "The wording copy checks timed out" }
+          if (-not (Test-Path wordingcopy/selftest.json)) { throw "The wording copy checks wrote no results" }
+          $r = Get-Content wordingcopy/selftest.json -Raw | ConvertFrom-Json
+          foreach ($c in $r.results) { Write-Host ("{0}  {1}: {2}" -f $(if ($c.Pass) { 'pass' } else { 'FAIL' }), $c.Name, $c.Detail) }
+          Write-Host "Passed: $($r.passed). Failed: $($r.failed)."
+          if ($r.failed -gt 0 -or $r.passed -lt 5) { throw "wording copy checks failed: $($r.failed) of $($r.passed + $r.failed); see selftest.json in the wordingcopy artifact." }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wordingcopy
+          path: wordingcopy
+          if-no-files-found: warn
+
+      - name: Check creating a Minecraft server stays responsive
+        id: mccreate
+        shell: pwsh
+        run: |
+          $env:MT_ONLY = 'mccreate'
+          $p = Start-Process -FilePath out/MonitoringTools.exe -ArgumentList '--selftest', "$PWD/mccreate" -PassThru
+          if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "The Minecraft create checks timed out" }
+          if (-not (Test-Path mccreate/selftest.json)) { throw "The Minecraft create checks wrote no results" }
+          $r = Get-Content mccreate/selftest.json -Raw | ConvertFrom-Json
+          foreach ($c in $r.results) { Write-Host ("{0}  {1}: {2}" -f $(if ($c.Pass) { 'pass' } else { 'FAIL' }), $c.Name, $c.Detail) }
+          Write-Host "Passed: $($r.passed). Failed: $($r.failed)."
+          if ($r.failed -gt 0 -or $r.passed -lt 2) { throw "Minecraft create checks failed: $($r.failed) of $($r.passed + $r.failed); see selftest.json in the mccreate artifact." }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mccreate
+          path: mccreate
+          if-no-files-found: warn
+
       - name: Check file drops while running as administrator
         id: elevateddrop
         shell: pwsh

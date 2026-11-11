@@ -75,6 +75,10 @@ namespace MonitoringTools.UI
             root.Children.Add(_host);
             AutomationProperties.SetLiveSetting(_error, AutomationLiveSetting.Assertive);
             root.Children.Add(_error);
+            // the finish step's work: indeterminate until a report carries a percentage, then it glides to it
+            _work = new ProgressBar { Height = 8, Minimum = 0, Maximum = 100, Margin = new Thickness(0, 10, 0, 0), Visibility = Visibility.Collapsed, IsIndeterminate = true };
+            AutomationProperties.SetName(_work, "Progress");
+            root.Children.Add(_work);
 
             var bar = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
             _cancelBtn = Ui.Button("Cancel", CancelNow, "Btn.Ghost");
@@ -160,9 +164,14 @@ namespace MonitoringTools.UI
             string result;
             if (FinishAsync != null)
             {
-                _next.IsEnabled = _back.IsEnabled = false;
+                _next.IsEnabled = _back.IsEnabled = _cancelBtn.IsEnabled = false;
+                Working = true;
+                _work.BeginAnimation(System.Windows.Controls.Primitives.RangeBase.ValueProperty, null);
+                _work.Value = 0; _work.IsIndeterminate = true; _work.Visibility = Visibility.Visible;
+                Ui.Expand(_work);
                 try { result = await FinishAsync(); } catch (Exception ex) { result = ex.Message; }
-                _next.IsEnabled = true; _back.IsEnabled = _index > 0;
+                finally { Working = false; _work.Visibility = Visibility.Collapsed; }
+                _next.IsEnabled = _cancelBtn.IsEnabled = true; _back.IsEnabled = _index > 0;
             }
             else
             {
@@ -178,8 +187,25 @@ namespace MonitoringTools.UI
             if (_errorIsProblem) { _errorIsProblem = false; _error.Visibility = Visibility.Collapsed; }
         }
 
+        private readonly ProgressBar _work;
+
+        /// <summary>True while the finish step's work runs (the bar shows and the buttons wait).</summary>
+        public bool Working { get; private set; }
+
+        /// <summary>The finish step's bar: the last percentage reported, or null while it is indeterminate.</summary>
+        public double? WorkPercent => _work.IsIndeterminate ? (double?)null : _work.Value;
+
+        private static readonly System.Text.RegularExpressions.Regex Pct = new System.Text.RegularExpressions.Regex(@"(\d{1,3}(?:\.\d+)?)\s?%");
+
         public void Report(string message, bool problem = false)
         {
+            if (Working && !string.IsNullOrEmpty(message))
+            {
+                var m = Pct.Match(message);
+                if (m.Success && double.TryParse(m.Groups[1].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v))
+                { _work.IsIndeterminate = false; Ui.Glide(_work, Math.Max(0, Math.Min(100, v)), 400); }
+                else { _work.IsIndeterminate = true; }
+            }
             _errorIsProblem = false;
             _error.Text = message;
             _error.Foreground = Ui.Res(problem ? "B.Danger" : "B.TextMute");

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace MonitoringTools.Core
 {
@@ -17,17 +16,21 @@ namespace MonitoringTools.Core
     /// is cached locally and revalidated on every load. Nothing here is logged, exported or sent.
     ///
     /// Format: { "schemaVersion": 1, "entries": { "ordinary phrase": "replacement", ... } }
+    /// Also accepted: other top-level fields (names, dates, notes) are ignored; an entry may be an object with a
+    /// "replacement", "value" or "to" text; keys that differ only in case are separate entries (the exact case wins).
     /// </summary>
     public static class PersonalWording
     {
-        public const int MaxBytes = 256 * 1024;
+        public const int MaxBytes = 4 * 1024 * 1024;
         public const int MaxDepth = 8;
         public const int MaxKey = 160;
         public const int MaxValue = 1000;
         public const int SupportedVersion = 1;
+        public const int NewestVersion = 2;
 
-        private static Dictionary<string, string> _map = new Dictionary<string, string>();
-        private static Regex _matcher;
+        private static Dictionary<string, string> _map = new Dictionary<string, string>(StringComparer.Ordinal);
+        private static Dictionary<string, string> _folded = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static int[] _lengths = Array.Empty<int>();
         public static event Action Changed;
 
         public static int Count => _map.Count;
@@ -88,8 +91,48 @@ namespace MonitoringTools.Core
             catch { return false; }
         }
 
+        /// <summary>
+        /// True when a JSON file is meant as a wording file (it has "entries" and "schemaVersion" near the top), whether or not it
+        /// passes. A copied file like that which fails is reported with the reason instead of being ignored.
+        /// </summary>
+        public static bool LooksLikeWordingFile(string path)
+        {
+            try
+            {
+                if (!string.Equals(Path.GetExtension(path), ".json", StringComparison.OrdinalIgnoreCase)) return false;
+                var info = new FileInfo(path);
+                if (!info.Exists || info.Length == 0 || info.Length > 16 * 1024 * 1024) return false;
+                using var f = File.OpenRead(path);
+                var buf = new byte[(int)Math.Min(info.Length, 64 * 1024)];
+                var n = f.Read(buf, 0, buf.Length);
+                var head = Encoding.UTF8.GetString(buf, 0, n);
+                return head.Contains("\"entries\"") && head.Contains("\"schemaVersion\"");
+            }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// The file a copied piece of text names, when it names one existing file: a plain path, a path in quotes as
+        /// File Explorer's "Copy as path" gives it, or a file:/// address. Null otherwise.
+        /// </summary>
+        public static string PathFromText(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            var t = text.Trim();
+            if (t.Contains('\n')) return null;
+            if (t.Length >= 2 && (t[0] == '"' && t[^1] == '"' || t[0] == '\'' && t[^1] == '\'')) t = t.Substring(1, t.Length - 2).Trim();
+            try
+            {
+                if (t.StartsWith("file:", StringComparison.OrdinalIgnoreCase) && Uri.TryCreate(t, UriKind.Absolute, out var u) && u.IsFile) t = u.LocalPath;
+                t = Environment.ExpandEnvironmentVariables(t);
+                if (t.Length < 4 || t.IndexOfAny(Path.GetInvalidPathChars()) >= 0 || !Path.IsPathFullyQualified(t)) return null;
+                return File.Exists(t) ? Path.GetFullPath(t) : null;
+            }
+            catch { return null; }
+        }
+
         /// <summary>Self-test only: drops the words from memory without touching the saved copy, as a restart does.</summary>
-        internal static void ForgetForTest() { _map = new Dictionary<string, string>(); _matcher = null; }
+        internal static void ForgetForTest() { _map = new Dictionary<string, string>(StringComparer.Ordinal); _folded = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); _lengths = Array.Empty<int>(); }
 
         public static void Clear()
         {
@@ -100,34 +143,63 @@ namespace MonitoringTools.Core
         private static void Set(Dictionary<string, string> map, bool persist, byte[] bytes = null)
         {
             if (persist && bytes != null) File.WriteAllBytes(CachePath, bytes);
-            _map = map;
-            _matcher = map.Count == 0 ? null : new Regex(
-                @"(?<![\p{L}\p{N}])(" + string.Join("|", map.Keys.OrderByDescending(k => k.Length).Select(Regex.Escape)) + @")(?![\p{L}\p{N}])",
-                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(50));
+            _map = new Dictionary<string, string>(map, StringComparer.Ordinal);
+            // case-folded lookup: the first spelling seen for each folded key answers when the exact case is not in the file
+            var folded = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var k in map.Keys) if (!folded.ContainsKey(k)) folded[k] = k;
+            _folded = folded;
+            _lengths = map.Keys.Select(k => k.Length).Distinct().OrderByDescending(n => n).ToArray();
             Changed?.Invoke();
         }
 
         // -------------------------------------------------------------- applying
 
-        /// <summary>Rewrites ordinary phrases in on-screen text, keeping the original capitalisation style.</summary>
+        private static bool IsWordChar(char c) => char.IsLetterOrDigit(c);
+
+        /// <summary>
+        /// Rewrites ordinary phrases in on-screen text, keeping the original capitalisation style. The longest phrase wins
+        /// at each place, phrases match whole words only, and the scan is linear in the text (no pattern, no timeout),
+        /// so a file with thousands of phrases applies as fast as a small one.
+        /// </summary>
         public static string Apply(string text)
         {
-            if (_matcher == null || string.IsNullOrEmpty(text)) return text;
-            try
+            if (_lengths.Length == 0 || string.IsNullOrEmpty(text)) return text;
+            StringBuilder sb = null;
+            int i = 0, copied = 0;
+            while (i < text.Length)
             {
-                return _matcher.Replace(text, m =>
+                // the same word edges as before: no letter or digit just before the phrase or just after it
+                bool startOk = i == 0 || !IsWordChar(text[i - 1]);
+                string hitKey = null; int hitLen = 0;
+                if (startOk)
                 {
-                    var key = _map.Keys.First(k => string.Equals(k, m.Value, StringComparison.OrdinalIgnoreCase));
-                    var rep = _map[key];
-                    if (m.Value.Length > 0 && char.IsUpper(m.Value[0]) && rep.Length > 0)
-                        rep = char.ToUpper(rep[0], CultureInfo.CurrentCulture) + rep.Substring(1);
-                    return rep;
-                });
+                    foreach (var len in _lengths)
+                    {
+                        if (i + len > text.Length) continue;
+                        if (i + len < text.Length && IsWordChar(text[i + len])) continue;
+                        var cand = text.Substring(i, len);
+                        if (_map.ContainsKey(cand)) { hitKey = cand; hitLen = len; break; }
+                        if (_folded.TryGetValue(cand, out var k)) { hitKey = k; hitLen = len; break; }
+                    }
+                }
+                if (hitKey == null) { i++; continue; }
+                sb ??= new StringBuilder(text.Length + 16);
+                sb.Append(text, copied, i - copied);
+                var written = text.Substring(i, hitLen);
+                var rep = _map[hitKey];
+                if (written.Length > 0 && char.IsUpper(written[0]) && rep.Length > 0 && !char.IsUpper(rep[0]))
+                    rep = char.ToUpper(rep[0], CultureInfo.CurrentCulture) + rep.Substring(1);
+                sb.Append(rep);
+                i += hitLen; copied = i;
             }
-            catch (RegexMatchTimeoutException) { return text; }
+            if (sb == null) return text;
+            sb.Append(text, copied, text.Length - copied);
+            return sb.ToString();
         }
 
         // -------------------------------------------------------------- validation
+
+        private static string Short(string s) => s.Length > 40 ? s.Substring(0, 40) + "…" : s;
 
         public static bool Validate(byte[] bytes, out Dictionary<string, string> map, out string why)
         {
@@ -149,7 +221,7 @@ namespace MonitoringTools.Core
                         case JsonTokenType.StartObject: seen.Push(new HashSet<string>(StringComparer.Ordinal)); break;
                         case JsonTokenType.EndObject: seen.Pop(); break;
                         case JsonTokenType.PropertyName:
-                            if (!seen.Peek().Add(reader.GetString())) { why = "The file repeats a key."; return false; }
+                            if (!seen.Peek().Add(reader.GetString())) { why = $"The file repeats the key \"{Short(reader.GetString())}\" exactly."; return false; }
                             break;
                     }
                 }
@@ -159,23 +231,31 @@ namespace MonitoringTools.Core
             using var doc = JsonDocument.Parse(text, new JsonDocumentOptions { MaxDepth = MaxDepth });
             var root = doc.RootElement;
             if (root.ValueKind != JsonValueKind.Object) { why = "The file must contain one JSON object."; return false; }
-            foreach (var p in root.EnumerateObject())
-                if (p.Name != "schemaVersion" && p.Name != "entries") { why = "The file has a field this version does not know."; return false; }
-            if (!root.TryGetProperty("schemaVersion", out var ver) || ver.ValueKind != JsonValueKind.Number || !ver.TryGetInt32(out var v) || v != SupportedVersion)
-            { why = $"Only schema version {SupportedVersion} is supported."; return false; }
+            // Other top-level fields (a name, a date, notes, a generator) are left alone; only "entries" is read.
+            if (root.TryGetProperty("schemaVersion", out var ver))
+            {
+                if (ver.ValueKind != JsonValueKind.Number || !ver.TryGetInt32(out var v) || v < SupportedVersion || v > NewestVersion)
+                { why = $"Schema version {(ver.ValueKind == JsonValueKind.Number ? ver.GetRawText() : "?")} is not supported; this version reads {SupportedVersion} to {NewestVersion}."; return false; }
+            }
+            else { why = "The file needs a \"schemaVersion\" number."; return false; }
             if (!root.TryGetProperty("entries", out var entries) || entries.ValueKind != JsonValueKind.Object)
             { why = "The file needs an \"entries\" object."; return false; }
 
-            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var result = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (var e in entries.EnumerateObject())
             {
                 var key = e.Name;
-                if (string.IsNullOrWhiteSpace(key) || key is "__proto__" or "constructor" or "prototype") { why = "The file has an unsafe or empty key."; return false; }
-                if (new StringInfo(key).LengthInTextElements > MaxKey) { why = $"A key is longer than {MaxKey} characters."; return false; }
-                if (e.Value.ValueKind != JsonValueKind.String) { why = "Every replacement must be text."; return false; }
-                var val = e.Value.GetString();
-                if (new StringInfo(val).LengthInTextElements > MaxValue) { why = $"A replacement is longer than {MaxValue} characters."; return false; }
-                if (result.ContainsKey(key)) { why = "The file repeats a key."; return false; }
+                if (string.IsNullOrWhiteSpace(key)) { why = "The file has an empty key."; return false; }
+                if (key == "__proto__") continue;
+                if (new StringInfo(key).LengthInTextElements > MaxKey) { why = $"The key \"{Short(key)}\" is longer than {MaxKey} characters."; return false; }
+                string val = null;
+                if (e.Value.ValueKind == JsonValueKind.String) val = e.Value.GetString();
+                else if (e.Value.ValueKind == JsonValueKind.Object)
+                    foreach (var name in new[] { "replacement", "value", "to", "text" })
+                        if (e.Value.TryGetProperty(name, out var inner) && inner.ValueKind == JsonValueKind.String) { val = inner.GetString(); break; }
+                if (val == null) { why = $"The entry \"{Short(key)}\" has no text to show (it must be text, or an object with a \"replacement\")."; return false; }
+                if (new StringInfo(val).LengthInTextElements > MaxValue) { why = $"The replacement for \"{Short(key)}\" is longer than {MaxValue} characters."; return false; }
+                if (result.TryGetValue(key, out var had) && had != val) { why = $"The file gives \"{Short(key)}\" two different replacements."; return false; }
                 result[key] = val;
             }
             if (result.Count == 0) { why = "The file has no entries."; return false; }

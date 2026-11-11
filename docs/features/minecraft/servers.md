@@ -122,3 +122,12 @@ server in Docker on an SSH host (a throwaway Docker-in-Docker container with an 
 
 - [Docker actions](../files/docker-actions.md)
 - [Game mode](../game/game-mode.md)
+
+## Creating a server without freezing the app
+
+Every slow part of **Create server** (reading the release, downloading and checking the jar, Java, Docker pulls,
+SSH setup, importing a world) runs on a worker thread, so the app keeps answering while it works. The guide shows a
+progress bar under the last step: it moves with the download percentage and runs indeterminate during steps that
+have no percentage, with a line saying what is happening. Back and Cancel wait until it finishes or fails; a failure
+leaves the guide open with the reason and adds no server. Checked by `MT_ONLY=mccreate`.
+

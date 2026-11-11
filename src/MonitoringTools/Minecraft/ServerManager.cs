@@ -289,8 +289,25 @@ namespace MonitoringTools.Minecraft
 
         /// <param name="initial">server.properties values for the first start, such as max-players and level-seed.</param>
         /// <param name="worldSource">A world folder or ZIP to copy in as the server's world, or null for a new world.</param>
+        /// <summary>
+        /// Creates a server. Every slow step (downloads, checksums, Java, Docker pulls, SSH setup, world import) runs on a worker
+        /// thread so the app stays responsive; only adding the finished server to the list comes back to the caller's thread.
+        /// <paramref name="report"/> is called from the worker; callers marshal it to their UI.
+        /// </summary>
         public static async Task CreateAsync(ServerDef s, Action<string> report, IDictionary<string, string> initial = null, string worldSource = null)
         {
+            var detail = await Task.Run(() => PrepareAsync(s, report, initial, worldSource));
+            Servers.Add(s);
+            Save();
+            Activity.Add(ActivityKind.Service, $"Minecraft server created: {s.Name}", detail);
+        }
+
+        /// <summary>Self-test only: runs first inside the worker, to stand in for a slow step without the network.</summary>
+        internal static Action<ServerDef, Action<string>> SlowStepForTest;
+
+        private static async Task<string> PrepareAsync(ServerDef s, Action<string> report, IDictionary<string, string> initial, string worldSource)
+        {
+            SlowStepForTest?.Invoke(s, report);
             if (!s.EulaAccepted) throw new InvalidOperationException("Accept the Minecraft EULA for this server first.");
             var props = new Dictionary<string, string> { ["server-port"] = s.Port.ToString(), ["motd"] = Escape(s.Name) };
             if (initial != null) foreach (var (k, v) in initial) props[k] = Escape(v);
@@ -298,10 +315,7 @@ namespace MonitoringTools.Minecraft
             {
                 if (worldSource != null) throw new NotSupportedException("Bedrock worlds are made new here; import an existing world from the Worlds section after the server is made.");
                 await McBedrock.InstallOtherAsync(s, report, initial);
-                Servers.Add(s);
-                Save();
-                Activity.Add(ActivityKind.Service, $"Minecraft server created: {s.Name}", $"Bedrock {s.Version} · {s.Target}");
-                return;
+                return $"Bedrock {s.Version} · {s.Target}";
             }
             switch (s.Target)
             {
@@ -314,6 +328,7 @@ namespace MonitoringTools.Minecraft
                 case Target.LocalProcess:
                 {
                     if (!McSoftware.RunsAsLocalProcess(s.Flavour)) throw new NotSupportedException($"{s.Flavour} needs its own installer, so it runs on the Docker targets. On this computer as a process, choose Vanilla, Paper or Purpur.");
+                    report($"Reading the {s.Version} release from Mojang…");
                     var d = await ResolveAsync(s.Version);
                     if (d.Missing != null) throw new InvalidOperationException(d.Missing);
                     Directory.CreateDirectory(s.Folder);
@@ -322,6 +337,7 @@ namespace MonitoringTools.Minecraft
                     {
                         report($"Downloading the {s.Version} server ({d.Size / 1048576.0:0.0} MB)…");
                         await Download(d.Url, jar + ".part", report);
+                        report("Checking the download…");
                         if (!string.Equals(Convert.ToHexString(SHA1.HashData(File.ReadAllBytes(jar + ".part"))), d.Sha1, StringComparison.OrdinalIgnoreCase))
                         { File.Delete(jar + ".part"); throw new InvalidDataException("The server jar failed its SHA-1 check."); }
                     }
@@ -335,6 +351,7 @@ namespace MonitoringTools.Minecraft
                 }
                 case Target.LocalDocker:
                 {
+                    report("Checking Docker on this computer…");
                     var info = Run("docker", "info --format \"{{.ServerVersion}}\"", 20000);
                     if (info.Code != 0) throw new InvalidOperationException("Docker is not running on this computer: " + ActionLine(info.Out));
                     Directory.CreateDirectory(s.Folder);
@@ -343,6 +360,7 @@ namespace MonitoringTools.Minecraft
                     report("Pulling the server image…");
                     var pull = Run("docker", "pull " + DockerImage(s), 900000);
                     if (pull.Code != 0) throw new InvalidOperationException("Pull failed: " + ActionLine(pull.Out));
+                    report("Creating the container…");
                     var mk = Run("docker", DockerCreateArgs(s, $"\"{s.Folder}\"", props), 60000);
                     if (mk.Code != 0) throw new InvalidOperationException("Container create failed: " + ActionLine(mk.Out));
                     break;
@@ -368,6 +386,7 @@ namespace MonitoringTools.Minecraft
                 case Target.SshDocker:
                 {
                     if (worldSource != null) throw new NotSupportedException("Copy an existing world to an SSH host from the Worlds section after the server is created.");
+                    report("Checking Docker on the SSH host…");
                     var info = Ssh(s, "docker info --format '{{.ServerVersion}}'", 30000);
                     if (info.Code != 0) throw new InvalidOperationException("Docker is not available on the SSH host: " + ActionLine(info.Out));
                     report("Pulling the server image on the SSH host…");
@@ -377,9 +396,8 @@ namespace MonitoringTools.Minecraft
                     break;
                 }
             }
-            Servers.Add(s);
-            Save();
-            Activity.Add(ActivityKind.Service, $"Minecraft server created: {s.Name}", $"{s.Version} · {s.Target}");
+            report?.Invoke("Finishing…");
+            return $"{s.Version} · {s.Target}";
         }
 
         /// <summary>Downloads a Paper or Purpur jar from its project's API and checks it against the hash that API publishes.</summary>
