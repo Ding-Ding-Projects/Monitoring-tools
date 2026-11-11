@@ -6,8 +6,17 @@ releases published after that feature was added.
 
 ## Unreleased
 
-Commits after v1.0.73, up to `e832e6e`.
+Commits after v1.0.74, up to `853ae07`.
 
+- Refresh screenshots for v1.0.74 ([`853ae07`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/853ae072ebe40d59f3af00dd86040bc0b466dad7))
+
+## 1.0.74 (2026-11-10)
+
+[Release page](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.74)
+
+- Read a copied file:/// address as a wording file path ([`5102804`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/5102804903ee39dd436a3efc7bd2c3da161ad7fd))
+- Apply copied wording paths and larger files; create servers off the UI thread ([`7a56748`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/7a567483545385521ac582f66ea5320cf26b06c4))
+- Record v1.0.73 figures and changelog ([`893e663`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/893e6633b2b967a66e28452423141d694a3a43ff))
 - Refresh screenshots for v1.0.73 ([`e832e6e`](https://github.com/Ding-Ding-Projects/Monitoring-tools/commit/e832e6e2226ea60d9b9867d7f9bf03140ed0dbef))
 
 ## 1.0.73 (2026-11-09)
