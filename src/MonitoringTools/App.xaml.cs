@@ -225,8 +225,9 @@ namespace MonitoringTools
         {
             if (!Settings.Current.ApplyCopiedWordingFile) return false;
             // the file itself (Ctrl+C in File Explorer) or its path as text ("Copy as path" adds quotes; a file:/// address works too)
+            // (a file:/// address is read as a quick command first, with an empty file list, so the text is always tried too)
             string path = item.Kind == ClipKind.Files && item.Files != null && item.Files.Length == 1 ? item.Files[0]
-                        : item.Files == null && item.Text != null ? PersonalWording.PathFromText(item.Text) : null;
+                        : item.Text != null ? PersonalWording.PathFromText(item.Text) : null;
             if (path == null) return false;
             // a JSON file that is not meant as wording stays an ordinary copy; one that is meant as wording but fails says why
             if (!PersonalWording.IsWordingFile(path) && !PersonalWording.LooksLikeWordingFile(path)) return false;
