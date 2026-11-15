@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "state": "verified-bounded-runtime",
+  "source": "8ba59c7b7a7510262558bcdb22b9f04b0963b67a",
+  "sha256": "9C326DD537CC5E1A226B4B8DAD85AA2826C0FC179942E4374A9863677C4AC42E",
+  "displayedVersion": "1.0.75",
+  "finishedAtUtc": "2026-11-15T06:32:03.1068646Z",
+  "route": "direct-cheap-cli with isolated-loopback CDP",
+  "profileProof": "Explicit --data-dir, observed child command lines and actual storage under the owned profile",
+  "pages": [
+    "index.html",
+    "docs/files/quick-pack.html",
+    "docs/files/docker-actions.html"
+  ],
+  "verified": [
+    "Home displays release1.0.75",
+    "quick-pack contains vhd add and Choose VHDX",
+    "Current quick-pack and Compose images load",
+    "Search input vhd returns results",
+    "Compose table-of-contents DOM click works"
+  ],
+  "limits": [
+    "DOM interaction is not native keyboard proof",
+    "No external links/download actions clicked",
+    "No broader layout, accessibility or universal feature audit",
+    "No console-observation claim"
+  ],
+  "teardown": "Owned window closed; all recorded owned processes and children absent; named desktop absent",
+  "publishedCaptures": [
+    "home.png",
+    "quick-pack.png"
+  ]
+}

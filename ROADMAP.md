@@ -41,7 +41,7 @@ finished (a dropped item would be struck through or moved to the last section wi
 
 ## In progress
 
-- [ ] One-click ZIP and VHDX packing from copied selections, dedicated progress, and detailed Compose startup with guided repairs (implementation and focused verification in progress)
+- [x] One-click ZIP/VHDX packing, immediate verified-success dismissal, lazy `vhd`/`vhd add`, transactional existing-disk additions, action icons, and detailed Compose startup with scoped repairs (v1.0.75; 23 packing and 5 dialog checks passed; wider verification limits recorded)
 
 - [ ] Virtual disk manager: VHD Set checkpoints, attach at sign-in, physical disk copy, metadata, mirror, change tracking ranges, Dev Drive trust and filters, native boot (the library, every action on one disk, New virtual disk and Quick pack are built; see [Virtual disks](docs/features/files/virtual-disks.md))
 

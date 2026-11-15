@@ -1,0 +1,151 @@
+{
+  "commit": "1d6541f0016b150a8cb9bde035cc42e9af5a91bd",
+  "command": "node scripts/line-counts.mjs --ref v1.0.75",
+  "project": {
+    "total": 135577,
+    "nonBlank": 124862
+  },
+  "grand": {
+    "total": 160437,
+    "nonBlank": 149265
+  },
+  "categories": {
+    "Configuration and data": {
+      "total": 2403,
+      "nonBlank": 2340,
+      "files": 32
+    },
+    "Documentation": {
+      "total": 9408,
+      "nonBlank": 7511,
+      "files": 135
+    },
+    "Styles and markup": {
+      "total": 2003,
+      "nonBlank": 1948,
+      "files": 16
+    },
+    "Source": {
+      "total": 107198,
+      "nonBlank": 99141,
+      "files": 439
+    },
+    "Tests": {
+      "total": 14565,
+      "nonBlank": 13922,
+      "files": 60
+    }
+  },
+  "languages": {
+    "Other": {
+      "total": 38,
+      "nonBlank": 36,
+      "files": 4
+    },
+    "YAML": {
+      "total": 515,
+      "nonBlank": 460,
+      "files": 2
+    },
+    "Markdown": {
+      "total": 9408,
+      "nonBlank": 7511,
+      "files": 135
+    },
+    "HTML": {
+      "total": 55,
+      "nonBlank": 50,
+      "files": 1
+    },
+    "JavaScript": {
+      "total": 2794,
+      "nonBlank": 2645,
+      "files": 13
+    },
+    "JSON": {
+      "total": 1739,
+      "nonBlank": 1739,
+      "files": 22
+    },
+    "CSS": {
+      "total": 756,
+      "nonBlank": 735,
+      "files": 3
+    },
+    "Batch": {
+      "total": 117,
+      "nonBlank": 110,
+      "files": 4
+    },
+    "Shell": {
+      "total": 97,
+      "nonBlank": 92,
+      "files": 1
+    },
+    "PowerShell": {
+      "total": 485,
+      "nonBlank": 465,
+      "files": 15
+    },
+    "SVG": {
+      "total": 1,
+      "nonBlank": 1,
+      "files": 1
+    },
+    "XAML": {
+      "total": 1191,
+      "nonBlank": 1162,
+      "files": 11
+    },
+    "C#": {
+      "total": 118270,
+      "nonBlank": 109751,
+      "files": 466
+    },
+    "MSBuild": {
+      "total": 89,
+      "nonBlank": 83,
+      "files": 3
+    },
+    "XML": {
+      "total": 22,
+      "nonBlank": 22,
+      "files": 1
+    }
+  },
+  "excluded": {
+    "Generated (lockfile)": {
+      "total": 7190,
+      "nonBlank": 7190,
+      "files": 2
+    },
+    "Design prototypes (historical design prototypes, not shipped code)": {
+      "total": 15760,
+      "nonBlank": 15303,
+      "files": 105
+    },
+    "Generated (generated screenshots and their index)": {
+      "total": 1910,
+      "nonBlank": 1910,
+      "files": 1
+    }
+  },
+  "authors": {
+    "Claude Fable 5.1": {
+      "lines": 106573,
+      "agentLines": 106573
+    },
+    "Claude": {
+      "lines": 26197,
+      "agentLines": 26197
+    },
+    "Claude Opus 5.5": {
+      "lines": 2807,
+      "agentLines": 2807
+    }
+  },
+  "agentLines": 135577,
+  "blameLines": 135577,
+  "blameAgrees": true,
+  "skippedBinaryFiles": 424
+}

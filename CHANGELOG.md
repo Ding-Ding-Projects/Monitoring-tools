@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.75
+
+- Start ZIP and VHDX packing directly from copied selections in dedicated progress dialogs.
+- Dismiss verified successful packing and Compose dialogs immediately; retain incomplete outcomes.
+- Add exact `vhd` and `vhd add` clipboard shortcuts and explicit existing-target selection.
+- Stage and verify existing VHDX additions, preserve old content, number collisions and keep rollback backups.
+- Stream detailed Compose startup, observe service health and offer previewed scoped recovery actions.
+- Add action icons while preserving text labels, language switching and keyboard-accessible controls.
+- Verify 23 packing/native checks, 5 Compose dialog checks and the portable documentation workflows.
+
+[Release and source-bound asset manifest](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.75)
+
 Generated from Git history by `node scripts/changelog.mjs`; do not edit by hand. Each release lists the commits
 that landed since the previous release tag, newest first. Dim sum code names appear in the release notes of
 releases published after that feature was added.

@@ -7,6 +7,22 @@ checked; anything unchecked is labelled.
 
 ### One-click packing and Compose operations (2026-11-15)
 
+- Delivered: normal release [v1.0.75](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.75).
+  All expected asset sizes and remote SHA-256 digests matched the local builds; the setup executable
+  was downloaded and hashed again. `release/v1.0.75-assets.json` records component revisions.
+- The current portable documentation companion is source `8ba59c7`, SHA-256
+  `9c326dd537cc5e1a226b4b8dad85aa2826c0fc179942e4374a9863677c4ac42e`. Its home, both updated
+  articles, search, section navigation and embedded images were exercised with an explicit isolated
+  profile. Owned processes and the hidden desktop were confirmed absent afterward.
+- Live home and both articles returned HTTP 200, exposed the new guide and exact v1.0.75 installer;
+  the About homepage readback matches the deployed home URL. Deployment run `43683785657` succeeded.
+- A native matching-installation update was independently verified against the release hash and
+  running background processes. Cancelling an observer wait briefly stopped that service; supported
+  background startup restored it and repeated readback confirmed readiness. A verified previous
+  release binary is retained privately for rollback, not misrepresented as an original data snapshot.
+- Report-only release statistics run `43688274154` succeeded against the published tag. Archive-backed task-owned
+  cleanup is the final closeout step. The wiki remains prepared but unpublished pending initialization.
+
 - Final application candidate: `1d6541f0016b150a8cb9bde035cc42e9af5a91bd`, version 1.0.75,
   SHA-256 `7a0d558610b75dea94865b64e1d773c894f3b22edfd939b84296df4e8c49413a`.
   Packing/native creation/native append: **23 passed, 0 failed**. Compose dialog checks:
@@ -18,9 +34,9 @@ checked; anything unchecked is labelled.
   use a staged disk, preserve old content, number collisions and retain a rollback backup.
 - Current proof: `current-capture.json`, `packing-release-checks.json`, `compose-release-checks.json`
   and icon captures in the evidence folder. Earlier records below retain their original scope.
-- The application candidate and both companions built through the root entrypoint. Final
-  documentation-companion refresh, manual normal release, deployment readback and installed
-  update remain the delivery steps. Wiki publication is staged under `docs/wiki/pending/`
+- The application candidate and both companions built through the root entrypoint. The
+  documentation companion, normal release, deployment readback and matching installed update
+  are verified above. Wiki publication is staged under `docs/wiki/pending/`
   because the supported wiki repository is not initialized.
 
 - Direct **Pack to ZIP** and **Pack to VHDX** actions now start a shared job in a retained progress
