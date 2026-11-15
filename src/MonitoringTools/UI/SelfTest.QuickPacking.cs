@@ -101,7 +101,12 @@ namespace MonitoringTools.UI
             PackingJob finished = null;
             await CheckAsync("direct ZIP starts automatically and verifies real entries", async () =>
             {
-                finished = PackingProgressDialog.Start(new[] { source, file }, PackingFormat.Zip);
+                var directParent = Path.Combine(root, "Direct ZIP");
+                var directSource = Path.Combine(directParent, "Sources");
+                Directory.CreateDirectory(Path.Combine(directSource, "Empty"));
+                var directFile = Path.Combine(directSource, "hello.txt");
+                File.WriteAllText(directFile, "Isolated direct ZIP fixture.");
+                finished = PackingProgressDialog.Start(new[] { directSource, directFile }, PackingFormat.Zip);
                 var window = PackingProgressDialog.For(finished);
                 window.Hide();
                 await finished.Completion;
@@ -112,8 +117,8 @@ namespace MonitoringTools.UI
                 using var zip = ZipFile.OpenRead(finished.Output);
                 if (zip.Entries.Count(e => !e.FullName.EndsWith("/")) != 1 || !zip.Entries.Any(e => e.FullName.EndsWith("Empty/"))) return "ZIP contents incorrect";
                 using var reader = new StreamReader(zip.Entries.Single(e => e.FullName.EndsWith("hello.txt")).Open());
-                if (reader.ReadToEnd() != File.ReadAllText(file)) return "ZIP bytes differ";
-                return Directory.GetDirectories(root, ".monitoring-pack-*").Length == 0 ? null : "temporary output remains";
+                if (reader.ReadToEnd() != File.ReadAllText(directFile)) return "ZIP bytes differ";
+                return Directory.GetDirectories(directParent, ".monitoring-pack-*").Length == 0 ? null : "temporary output remains";
             });
             await CheckAsync("missing inputs produce an explicit partial result", async () =>
             {
@@ -219,6 +224,15 @@ namespace MonitoringTools.UI
             if (finished != null && int.TryParse(Environment.GetEnvironmentVariable("MT_PACK_HOLD_MS"), out var hold))
             {
                 PackingProgressDialog.Open(finished);
+                var heldWindow = PackingProgressDialog.For(finished);
+                File.WriteAllText(Path.Combine(dir, "quickpack-held-dialog.json"), System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    version = 1, kind = "actual-packing-result", processId = Environment.ProcessId,
+                    hwnd = new System.Windows.Interop.WindowInteropHelper(heldWindow).Handle.ToInt64(),
+                    format = finished.Format.ToString(), complete = finished.Complete, success = finished.Success,
+                    stage = finished.Stage, output = finished.Output, error = finished.Error,
+                    heldAtUtc = DateTimeOffset.UtcNow, holdMilliseconds = Math.Clamp(hold, 0, 120000)
+                }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
                 await Task.Delay(Math.Clamp(hold, 0, 120000));
             }
             if (finished != null) PackingProgressDialog.For(finished)?.Close();
