@@ -8,6 +8,7 @@ Check(new ComposeServiceState("a", "a", "running", "unhealthy", 0, "").Failed, "
 Check(!new ComposeServiceState("a", "a", "exited", "", 0, "").Ready, "one-shot is not running");
 Check(ComposeDiagnostics.Redact("password=abc") == "[sensitive diagnostic omitted]", "redaction");
 Check(!ComposeDiagnostics.Redact("https://x/?q=private").Contains("private"), "query redaction");
+Check(ComposeDiagnostics.Redact("CUSTOM_VALUE=example-value") == "[environment assignment omitted]", "environment value redaction");
 var fake = new Fake();
 var controller = new ComposeController(Path.Combine(Path.GetTempPath(), "compose.yaml"), fake) { HealthTimeout = TimeSpan.FromMilliseconds(1), PollInterval = TimeSpan.FromMilliseconds(1) };
 await controller.ExecuteAsync("startup", null, CancellationToken.None);
@@ -31,7 +32,7 @@ Check(!controller.Result.StartsWith("Services running"), "invalid JSON fails clo
 using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
 await controller.ExecuteAsync("recheck", null, cancelled.Token);
 Check(controller.Result.StartsWith("Cancelled"), "cancelled observation");
-Console.WriteLine("PASS: 16 Compose controller checks");
+Console.WriteLine("PASS: Compose controller checks (health, preflight order, redaction, scoped repair, nonzero exit, timeout, one-shot, invalid JSON and cancellation)");
 sealed class Fake : IComposeProcess
 {
     public List<string[]> Calls = new(); public bool Fail;

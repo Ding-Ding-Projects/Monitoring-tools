@@ -31,10 +31,13 @@ namespace MonitoringTools.Core
             var retained = new StringBuilder(); bool truncated = false;
             async Task Read(StreamReader reader, bool stdout)
             {
-                var buffer = new char[1024]; var line = new StringBuilder(); bool oversized = false;
+                var buffer = new char[1024]; var line = new StringBuilder(); bool oversized = false, privateBlock = false;
                 async Task Publish()
                 {
-                    var safe = ComposeDiagnostics.Redact(line.ToString()); line.Clear();
+                    var raw = line.ToString(); line.Clear();
+                    if (raw.Contains("-----BEGIN ") && raw.Contains("PRIVATE KEY")) privateBlock = true;
+                    var safe = privateBlock ? "[sensitive diagnostic omitted]" : ComposeDiagnostics.Redact(raw);
+                    if (raw.Contains("-----END ") && raw.Contains("PRIVATE KEY")) privateBlock = false;
                     if (stdout) lock (retained) { if (retained.Length + safe.Length < 262144) retained.AppendLine(safe); else truncated = true; }
                     output?.Invoke(safe);
                     await Task.CompletedTask;
@@ -65,8 +68,9 @@ namespace MonitoringTools.Core
         public static string Redact(string text)
         {
             text = Regex.Replace(text ?? "", @"\x1B\[[0-?]*[ -/]*[@-~]", "");
-            if (Regex.IsMatch(text, @"(?i)password|passwd|secret|token|authorization|api[_-]?key|private[_ -]?key|credential|://[^\s/]+:[^\s/]+@"))
+            if (Regex.IsMatch(text, @"(?i)password|passwd|secret|token|authorization|api[_-]?key|private[_ -]?key|credential|bearer\s+|://[^\s/]+:[^\s/]+@"))
                 return "[sensitive diagnostic omitted]";
+            if (Regex.IsMatch(text, @"^\s*[A-Z_][A-Z0-9_]*\s*=", RegexOptions.IgnoreCase)) return "[environment assignment omitted]";
             return Regex.Replace(text, @"(https?://[^\s?]+)\?[^\s]+", "$1?[query omitted]", RegexOptions.IgnoreCase);
         }
     }
@@ -131,6 +135,7 @@ namespace MonitoringTools.Core
             try
             {
                 Result = "In progress";
+                if (operation == "startup") Services = Array.Empty<ComposeServiceState>();
                 if (operation == "startup")
                 {
                     await Run("CLI", new[] { "--version" }, cancellation);
