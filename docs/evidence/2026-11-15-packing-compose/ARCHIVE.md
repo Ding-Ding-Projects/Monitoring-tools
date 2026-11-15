@@ -11,3 +11,8 @@ evidence, not relabelled as captures of a later revision.
   dismissal. Exact capture instant unavailable.
 
 No private generated announcement images belong in this archive.
+
+`packing-append.png` and `docs/screenshots/quickpack-append.png` retain the pre-icon addition
+result from source `4bf231a37104fc70b1432a5f240a9ac65b2a2b39`. Their exact capture instant is
+unavailable; the validated hold interval is recorded in the evidence index. They are excluded
+from the current gallery index, which now uses the inspected icon captures.

@@ -1902,9 +1902,15 @@
     "height": 1576
   },
   {
-    "file": "quickpack-append.png",
-    "caption": "Reopened verified VHDX addition with retained rollback backup",
+    "file": "quickpack-append-current.png",
+    "caption": "Reopened verified VHDX addition with action icons and rollback backup",
     "width": 828,
-    "height": 854
+    "height": 926
+  },
+  {
+    "file": "compose-progress-current.png",
+    "caption": "Real Compose startup with themed icon buttons and verified service state",
+    "width": 1308,
+    "height": 1215
   }
 ]

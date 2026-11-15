@@ -1,0 +1,124 @@
+{
+  "at": "2026-11-15T00:46:41.2796884-05:00",
+  "version": "1.0.75.0",
+  "notes": {},
+  "passed": 23,
+  "failed": 0,
+  "results": [
+    {
+      "Name": "packing removes duplicate and parent-child overlaps",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "clipboard vhd consumes an exact in-memory selection once",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "cancelled live packing view remains visible",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "direct packing consumes only its matching clipboard selection",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "append destination note never promises the first source folder",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "exact vhd add routes once without changing new-pack command",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "append numbers complete top-level groups without merging",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "existing content hash verification catches changed bytes",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "append rejects target hard-link sources before native work",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "packing scan cancellation is observed",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "packing publishes concurrent outputs without overwrite",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "packing entry limit escapes ancestor read-error handling",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "each direct packing toast action starts once",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "completed packing details follow live language switches",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "direct ZIP starts automatically and verifies real entries",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "missing inputs produce an explicit partial result",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "packing diagnostics mask profile paths without changing raw warnings",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "locked input produces failure without deleting originals",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "cancelled packing leaves originals and no published file",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "ZIP cancellation during compression removes only owned output",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "VHDX declined consent remains incomplete",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "live VHDX packs verifies and detaches with native consent",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "live VHDX append preserves old content and cancellation",
+      "Pass": true,
+      "Detail": "ok"
+    }
+  ]
+}

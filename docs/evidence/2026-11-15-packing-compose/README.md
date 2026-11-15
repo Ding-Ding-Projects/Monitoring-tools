@@ -1,5 +1,27 @@
 # Packing and Compose verification
 
+## Current release candidate
+
+Source `1d6541f0016b150a8cb9bde035cc42e9af5a91bd`, application version 1.0.75, built executable
+SHA-256 `7a0d558610b75dea94865b64e1d773c894f3b22edfd939b84296df4e8c49413a`.
+The root installer entrypoint built the application and both portable companions.
+
+- [Packing release checks: 23 passed, 0 failed](packing-release-checks.json), including actual
+  native creation and append, staging cancellation, old/new file verification, rollback equality,
+  collision naming, lazy command routing and immediate dismissal.
+- [Compose release dialog checks: 5 passed, 0 failed](compose-release-checks.json), including
+  verified-success dismissal and retaining failed operations.
+- Focused Compose controller checks passed separately. Real startup observed a healthy isolated
+  service through the default process adapter.
+- Current icons and layout were inspected in `packing-append-icons.png` (828 × 926) and
+  `compose-icons.png` (1308 × 1215). The validated capture interval is recorded in
+  [the receipt](current-capture.json). Exact instants per image and final-capture DPI are unavailable.
+- Packing evidence reopens the actual completed result after production auto-dismissal. Compose
+  evidence explicitly suppresses auto-dismissal only in the test fixture; the default close path
+  is verified separately. Neither image is a generated reconstruction.
+
+Earlier runs below retain their actual source bindings and do not supersede these results.
+
 ## Source and build
 
 - Application source: `0536b2489faac68410c11a04f960bb42d8dbced2`.

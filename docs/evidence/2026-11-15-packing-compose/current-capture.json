@@ -1,0 +1,22 @@
+{
+  "source": "1d6541f0016b150a8cb9bde035cc42e9af5a91bd",
+  "exeSha256": "7A0D558610B75DEA94865B64E1D773C894F3B22EDFD939B84296DF4E8C49413A",
+  "captureStartedUtc": "2026-11-15T05:47:49.8120396Z",
+  "captureFinishedUtc": "2026-11-15T05:47:54.9961389Z",
+  "route": "direct-cheap-cli",
+  "pack": {
+    "height": 926,
+    "width": 828,
+    "productionAutoDismiss": true,
+    "reopenedVerifiedResult": true,
+    "file": "packing-append-icons.png"
+  },
+  "compose": {
+    "height": 1215,
+    "width": 1308,
+    "autoCloseSuppressedForEvidenceOnly": true,
+    "realDockerProcess": true,
+    "file": "compose-icons.png"
+  },
+  "privacy": "Inspected test-owned content, profile prefixes masked, no credentials or private wording."
+}

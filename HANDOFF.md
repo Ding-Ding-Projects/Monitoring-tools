@@ -7,6 +7,22 @@ checked; anything unchecked is labelled.
 
 ### One-click packing and Compose operations (2026-11-15)
 
+- Final application candidate: `1d6541f0016b150a8cb9bde035cc42e9af5a91bd`, version 1.0.75,
+  SHA-256 `7a0d558610b75dea94865b64e1d773c894f3b22edfd939b84296df4e8c49413a`.
+  Packing/native creation/native append: **23 passed, 0 failed**. Compose dialog checks:
+  **5 passed, 0 failed**. Focused controller checks passed. All requested icon controls were
+  inspected in genuine source-bound captures. Live success dismisses immediately; reopening
+  completed packing results remains supported.
+- `vhd` creates a new pack from the immediately preceding selection; `vhd add` targets the latest
+  successful pack in the current session; Choose VHDX selects another existing target. Additions
+  use a staged disk, preserve old content, number collisions and retain a rollback backup.
+- Current proof: `current-capture.json`, `packing-release-checks.json`, `compose-release-checks.json`
+  and icon captures in the evidence folder. Earlier records below retain their original scope.
+- The application candidate and both companions built through the root entrypoint. Final
+  documentation-companion refresh, manual normal release, deployment readback and installed
+  update remain the delivery steps. Wiki publication is staged under `docs/wiki/pending/`
+  because the supported wiki repository is not initialized.
+
 - Direct **Pack to ZIP** and **Pack to VHDX** actions now start a shared job in a retained progress
   dialog without opening the control centre. Repeated activation of one action starts one job.
 - Compose startup now has bounded live output, separate preflight/build/pull/start/health stages,

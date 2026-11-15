@@ -10,6 +10,11 @@ A copied `compose.yaml` or `docker-compose.yml` offers **up**, **down**, **pull*
 
 ### Start and follow a stack
 
+![Real Compose startup with icon buttons and healthy service state](https://raw.githubusercontent.com/Ding-Ding-Projects/Monitoring-tools/main/docs/screenshots/compose-progress-current.png)
+
+This inspected capture uses the real Docker CLI. An explicit evidence-only hold kept the
+successful dialog open for inspection; normal verified success dismisses it immediately.
+
 **Compose up** opens a dedicated operation dialog. Review the selected file, directory and
 exact command preview, then choose **Run previewed action**. The dialog checks the CLI, Compose,
 selected context, engine connection and active service names before separate build, pull and
@@ -59,4 +64,3 @@ rechecking where supported. Existing Dockerfile build actions continue to use th
 - [File tools](https://github.com/Ding-Ding-Projects/Monitoring-tools/blob/main/docs/features/files/file-tools.md)
 - [Clipboard toasts](https://github.com/Ding-Ding-Projects/Monitoring-tools/blob/main/docs/features/clipboard/toasts.md)
 - [Minecraft servers](https://github.com/Ding-Ding-Projects/Monitoring-tools/blob/main/docs/features/minecraft/servers.md)
-

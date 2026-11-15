@@ -62,7 +62,7 @@ newer, different selection alone. Cancelling the target picker leaves the pendin
 
 ## Preserve an existing disk while adding
 
-![Reopened verified add result with its rollback backup](https://raw.githubusercontent.com/Ding-Ding-Projects/Monitoring-tools/main/docs/screenshots/quickpack-append.png)
+![Reopened verified add result with action icons and its rollback backup](https://raw.githubusercontent.com/Ding-Ding-Projects/Monitoring-tools/main/docs/screenshots/quickpack-append-current.png)
 
 The live dialog dismisses immediately after verified success. This genuine built-application
 capture shows the retained result reopened afterward, with the target and rollback backup.
@@ -93,4 +93,3 @@ until the required contents are verified; do not overwrite an active or mounted 
 - [Virtual disks](https://github.com/Ding-Ding-Projects/Monitoring-tools/blob/main/docs/features/files/virtual-disks.md)
 - [File tools](https://github.com/Ding-Ding-Projects/Monitoring-tools/blob/main/docs/features/files/file-tools.md)
 - [Docker actions](Compose-operations)
-

@@ -62,7 +62,7 @@ newer, different selection alone. Cancelling the target picker leaves the pendin
 
 ## Preserve an existing disk while adding
 
-![Reopened verified add result with its rollback backup](../../screenshots/quickpack-append.png)
+![Reopened verified add result with action icons and its rollback backup](../../screenshots/quickpack-append-current.png)
 
 The live dialog dismisses immediately after verified success. This genuine built-application
 capture shows the retained result reopened afterward, with the target and rollback backup.
