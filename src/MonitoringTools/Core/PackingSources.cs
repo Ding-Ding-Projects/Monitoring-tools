@@ -16,7 +16,7 @@ namespace MonitoringTools.Core.Packing
         public readonly List<string> Warnings = new();
         public const int Limit = 250000;
         private int _visited, _entryLimit;
-        private sealed class LimitException : Exception { public LimitException() : base("The selection exceeds 250,000 entries. Pack a smaller selection.") { } }
+        private sealed class LimitException : Exception { public LimitException(string message = "The selection exceeds 250,000 entries. Pack a smaller selection.") : base(message) { } }
 
         public static PackingSources Scan(IEnumerable<string> paths, CancellationToken ct, int entryLimit = Limit)
         {
@@ -33,8 +33,14 @@ namespace MonitoringTools.Core.Packing
             result.MixedFolders = items.Select(Path.GetDirectoryName).Distinct(StringComparer.OrdinalIgnoreCase).Count() > 1;
             result.Name = items.Length == 1 ? (Directory.Exists(items[0]) ? Path.GetFileName(items[0]) : Path.GetFileNameWithoutExtension(items[0])) : Path.GetFileName(result.Folder);
             if (string.IsNullOrWhiteSpace(result.Name)) result.Name = "Quick pack";
-            result.Items = items.Where(p => !items.Any(parent => !string.Equals(p, parent, StringComparison.OrdinalIgnoreCase)
-                && Directory.Exists(parent) && p.StartsWith(Path.TrimEndingDirectorySeparator(parent) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))).ToArray();
+            var selectedFolders = new HashSet<string>(items.Where(Directory.Exists), StringComparer.OrdinalIgnoreCase);
+            bool HasSelectedParent(string path)
+            {
+                for (var parent = Path.GetDirectoryName(path); parent != null; parent = Path.GetDirectoryName(parent))
+                    if (selectedFolders.Contains(Path.TrimEndingDirectorySeparator(parent))) return true;
+                return false;
+            }
+            result.Items = items.Where(p => !HasSelectedParent(p)).ToArray();
             var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var path in result.Items)
             {
@@ -48,9 +54,10 @@ namespace MonitoringTools.Core.Packing
             return result;
         }
 
-        private void Visit(string path, string relative, CancellationToken ct)
+        private void Visit(string path, string relative, CancellationToken ct, int depth = 0)
         {
             ct.ThrowIfCancellationRequested();
+            if (depth > 128) throw new LimitException("The selection exceeds 128 folder levels. Pack a shallower selection.");
             if (++_visited > _entryLimit) throw new LimitException();
             try
             {
@@ -59,7 +66,7 @@ namespace MonitoringTools.Core.Packing
                 if ((attr & FileAttributes.Directory) == 0) { Entries.Add((path, relative, false, new FileInfo(path).Length)); return; }
                 Entries.Add((path, relative, true, 0));
                 // Enumeration remains bounded; the surrounding catch records lazy read failures.
-                foreach (var child in Directory.EnumerateFileSystemEntries(path)) Visit(child, Path.Combine(relative, Path.GetFileName(child)), ct);
+                foreach (var child in Directory.EnumerateFileSystemEntries(path)) Visit(child, Path.Combine(relative, Path.GetFileName(child)), ct, depth + 1);
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
             { Warnings.Add(path + ": " + ex.Message); }
