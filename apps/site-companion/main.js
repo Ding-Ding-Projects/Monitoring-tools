@@ -2,6 +2,19 @@
 // Pages are baked in by prepare.js; links inside the app stay inside, anything else opens in the browser.
 const { app, BrowserWindow, shell } = require('electron');
 const path = require('node:path');
+const fs = require('node:fs');
+
+// Explicit profiles allow portable use and isolated verification without changing the default profile.
+const dataArgument = process.argv.find((value) => value.startsWith('--data-dir='));
+if (dataArgument) {
+  const directory = dataArgument.slice('--data-dir='.length);
+  if (!directory || !path.isAbsolute(directory)) throw new Error('--data-dir requires an absolute directory');
+  const resolved = path.resolve(directory);
+  const sessions = path.join(resolved, 'session');
+  fs.mkdirSync(sessions, { recursive: true });
+  app.setPath('userData', resolved);
+  app.setPath('sessionData', sessions);
+}
 
 function createWindow() {
   const win = new BrowserWindow({
