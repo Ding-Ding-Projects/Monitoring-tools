@@ -1,0 +1,29 @@
+{
+  "at": "2026-11-14T23:53:27.9257026-05:00",
+  "version": "1.0.75.0",
+  "notes": {},
+  "passed": 4,
+  "failed": 0,
+  "results": [
+    {
+      "Name": "Compose dialog: Cantonese opening switches live to English and bilingual",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "Compose dialog: real controls with deterministic CLI fixture, not Docker runtime proof",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "Compose diagnostic redaction: credential lines and URL queries never displayed",
+      "Pass": true,
+      "Detail": "ok"
+    },
+    {
+      "Name": "Compose exited one-shot never claims health",
+      "Pass": true,
+      "Detail": "ok"
+    }
+  ]
+}

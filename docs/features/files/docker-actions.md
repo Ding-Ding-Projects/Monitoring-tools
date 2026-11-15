@@ -20,6 +20,9 @@ After startup, the dialog observes service state for up to 120 seconds. It disti
 healthy services, running services without a health check, pending health, unhealthy or exited
 services, and possible completed one-shot tasks. A command exit code of zero is not a service
 health certificate. Published ports are reported without claiming that a URL was reached.
+The dialog dismisses immediately after startup, restart or recheck verifies readiness. A
+successful build, pull, log read or engine check does not prove readiness and does not dismiss
+it. Failed, cancelled, timed-out and uncertain one-shot outcomes remain visible.
 
 ### Diagnose and repair
 

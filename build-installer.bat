@@ -1,7 +1,7 @@
 @echo off
 rem Produces dist\MonitoringTools-Setup.exe: the bundled single-file app, which installs
 rem itself per user on first run (no administrator rights), plus a zip of the same file.
-rem Usage: build-installer.bat [version]
+rem Usage: build-installer.bat [version] [--companions]
 setlocal EnableExtensions
 set "ROOT=%~dp0"
 
@@ -20,4 +20,8 @@ if errorlevel 1 (
   exit /b 1
 )
 echo [installer] dist\MonitoringTools-Setup.exe and dist\MonitoringTools-win-x64.zip are ready
+if /i "%~2"=="--companions" (
+  call "%ROOT%build-companions.bat" %1
+  if errorlevel 1 exit /b 1
+)
 exit /b 0

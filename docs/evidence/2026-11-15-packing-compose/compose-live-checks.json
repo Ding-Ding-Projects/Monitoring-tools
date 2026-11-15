@@ -1,0 +1,14 @@
+{
+  "at": "2026-11-15T00:04:35.2475348-05:00",
+  "version": "1.0.75.0",
+  "notes": {},
+  "passed": 1,
+  "failed": 0,
+  "results": [
+    {
+      "Name": "Compose live: explicitly selected task fixture reaches observed service readiness",
+      "Pass": true,
+      "Detail": "ok"
+    }
+  ]
+}

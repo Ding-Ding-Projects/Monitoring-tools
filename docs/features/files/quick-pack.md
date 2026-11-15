@@ -37,8 +37,23 @@ or 128 nested directory levels rather than silently publishing a truncated selec
 
 ## Finish
 
-The result remains visible, with **Show in folder** and **Copy output path**. Explorer and the
-main workspace do not open automatically. A partial result lists what did not complete.
+After complete verification, the live progress dialog closes immediately. Activity's **Open
+progress** reopens its retained result with **Show in folder** and **Copy output path**. A
+manually reopened result stays visible. Explorer and the main workspace do not open automatically.
+Partial, cancelled and stopped results remain visible and explain what did not complete.
+
+## Lazy clipboard shortcuts
+
+With Quick commands enabled, copy the files or folders, then copy the exact word **vhd** to
+start a new quick-pack VHDX. Matching ignores case and surrounding whitespace. The selection is
+held in memory, never recovered from stored clipboard history. Each selection is consumed once;
+copy it again to run another operation. An unrelated clipboard copy, a sensitive item or a
+disabled quick-command route clears the selection. Missing or unsupported inputs stop the lazy
+operation without silently omitting them.
+
+The requested **vhd add** and **Choose VHDX** additions are in progress. They target an existing
+detached disk through a staged copy, keeping the original intact until the staged result is
+verified. Their native acceptance remains pending; do not treat this paragraph as delivery proof.
 
 ## Related
 

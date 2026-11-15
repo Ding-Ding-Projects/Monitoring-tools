@@ -7,6 +7,18 @@ A small Windows background service with a tray icon and a modern, animated UI. I
 ![Clipboard toast](docs/screenshots/toast-link.png)
 ![Control centre](docs/screenshots/control-overview.png)
 
+**One-click packing:** copied paths, files and folders now offer **Pack to ZIP** and **Pack to VHDX**.
+The job starts directly in its own progress dialog. Compose startup now streams its stages,
+checks service health and offers previewed recovery actions.
+[Packing guide](docs/features/files/quick-pack.md) · [Compose guide](docs/features/files/docker-actions.md)
+
+![Actual verified VHDX packing result](docs/evidence/2026-11-15-packing-compose/packing-vhdx.png)
+![Actual Compose startup with a healthy isolated service](docs/evidence/2026-11-15-packing-compose/compose-live.png)
+
+These are genuine hidden-desktop window captures from the built application, not design previews.
+Their [source, executable hash, checks and verification limits](docs/evidence/2026-11-15-packing-compose/README.md)
+are recorded separately.
+
 **Install in one line:** download `MonitoringTools-Setup.exe` from the latest release and run it. FFmpeg, FFprobe and portable Git are bundled, so nothing else is needed. Details are under Install below.
 
 **Contents** (each section below opens and closes, so you choose what to read):

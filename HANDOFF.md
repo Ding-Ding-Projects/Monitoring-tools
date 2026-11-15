@@ -15,8 +15,12 @@ checked; anything unchecked is labelled.
   including actual dynamic VHDX creation, both file hashes verified, originals unchanged and
   independent detached-state readback; real Compose startup 1 passed, 0 failed, with an isolated
   Alpine service observed healthy. Earlier built-dialog fixture checks: 4 passed, 0 failed.
-- Final display-path and terminal-progress refinements are integrated; their final rebuild,
-  focused checks, current screenshots and release proof remain pending at this checkpoint.
+- Final display-path and terminal-progress refinements are verified on source `0536b2489faac68410c11a04f960bb42d8dbced2`:
+  packing 14 passed, 0 failed; real Compose startup 1 passed, 0 failed. Current screenshots and
+  exact provenance are in `docs/evidence/2026-11-15-packing-compose/`.
+- Local application packaging succeeded. A manual documentation deployment workflow and an optional
+  `build-installer.bat VERSION --companions` route prepare the same update for one manual release.
+  Release publication, deployed content and installed-update readback remain pending here.
 - Source review fixed bounded-scan exception handling, duplicate activation, live language
   refresh and dark-theme controls. The full publication scan has existing literal-identifier
   and historical matches; the changed files had no matches after the encoding repair. This is
