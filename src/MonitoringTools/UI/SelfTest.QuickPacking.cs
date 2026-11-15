@@ -128,6 +128,26 @@ namespace MonitoringTools.UI
                 job.Start(); await job.Completion;
                 return !job.Success && job.Output != null && job.Partial && job.Warnings.Any(w => w.Contains("missing.txt")) ? null : "missing selection was silently dropped";
             });
+            await CheckAsync("packing diagnostics mask profile paths without changing raw warnings", async () =>
+            {
+                var profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                if (string.IsNullOrEmpty(profile)) return "user profile path unavailable";
+                var missing = Path.Combine(profile, "missing-pack-fixture-" + Guid.NewGuid().ToString("N"), "input.txt");
+                var job = PackingProgressDialog.Start(new[] { file, missing }, PackingFormat.Zip);
+                await job.Completion;
+                var window = PackingProgressDialog.For(job);
+                try
+                {
+                    var raw = job.Warnings.Single(w => w.Contains(missing));
+                    var shown = window.ResultText;
+                    if (shown.Contains(profile, StringComparison.OrdinalIgnoreCase) || !shown.Contains("%USERPROFILE%")) return "displayed warning exposes a profile path";
+                    if (!job.Warnings.Contains(raw) || !raw.Contains(missing)) return "raw warning was changed";
+                    var embedded = "Read failed: '" + missing.ToUpperInvariant() + "'.";
+                    var masked = PackingProgressDialog.DisplayDiagnostic(embedded);
+                    return masked.Contains(profile, StringComparison.OrdinalIgnoreCase) || !masked.Contains("%USERPROFILE%") ? "embedded diagnostic path was not masked" : null;
+                }
+                finally { window.Close(); }
+            });
             await CheckAsync("locked input produces failure without deleting originals", async () =>
             {
                 using var locked = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None);
