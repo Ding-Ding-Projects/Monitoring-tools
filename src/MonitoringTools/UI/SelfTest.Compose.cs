@@ -67,6 +67,8 @@ namespace MonitoringTools.UI
                 {
                     await dialog.RunForTest();
                     if (!dialog.Outcome.StartsWith("Services running")) return dialog.Outcome;
+                    if (dialog.SelectedServiceForTest != "web") return "Discovered service selection is blank";
+                    if (!dialog.FooterOutsideScrollForTest) return "Primary actions remain inside scrolling content";
                     // A real displayed dialog is available to the external native capture route.
                     // The explicit receipt prevents fixture pixels being mistaken for live Docker evidence.
                     File.WriteAllText(Path.Combine(dir, "compose-dialog-ready.json"), System.Text.Json.JsonSerializer.Serialize(new {
