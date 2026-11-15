@@ -6,6 +6,27 @@ namespace MonitoringTools.Core
         private static void AddCompose(Dictionary<string, string> t)
         {
             void Add(string en, string yue) => t.TryAdd(en, yue);
+            Add("Compose startup", "Compose 啟動");
+            Add("Retry startup", "重試啟動");
+            Add("Recheck engine", "重新檢查引擎");
+            Add("Retry build", "重試建置");
+            Add("Retry pull", "重試下載映像");
+            Add("Recheck health", "重新檢查狀態");
+            Add("Service for repair", "要處理嘅服務");
+            Add("Inspect logs", "查看記錄");
+            Add("Restart selected", "重新啟動所選服務");
+            Add("Run previewed action", "執行預覽操作");
+            Add("Cancel operation", "取消操作");
+            Add("Close", "關閉");
+            Add("Preview, run, then inspect service readiness", "先預覽，再執行及檢查服務狀態");
+            Add("Will check CLI, Compose, engine and configuration, then run:", "會檢查 CLI、Compose、引擎及設定，然後執行：");
+            Add("Health observation: 120 seconds. No configuration edits, volume deletion or rollback. Published ports are not verified URLs.", "狀態觀察：120 秒。不會修改設定、刪除磁碟區或回復原狀。已發佈連接埠並非已驗證網址。");
+            Add("Select a discovered service first.", "請先選擇已發現嘅服務。");
+            Add("Docker context", "Docker 環境");
+            Add("Observed evidence", "觀察所得證據");
+            Add("Stage", "階段");
+            Add("Elapsed", "已用時間");
+            Add("Stopping owned command and observation. Containers may remain running; close again after it stops.", "正在停止本次指令及觀察。容器可能仍然運作；停止後可再關閉。");
             Add("Context", "環境"); Add("No failure observed", "尚未觀察到失敗");
             Add("Command completed; service readiness unchanged. Recheck health separately.", "指令已完成；服務就緒狀態未變。請另行重新檢查健康狀態。");
             Add("Possible cause: a published port is already occupied. Inspect the reported port and configuration manually; no process is stopped and no port is changed.", "可能原因：已發佈連接埠已被佔用。請自行查看報告中嘅連接埠及設定；不會停止任何程序或更改連接埠。");
