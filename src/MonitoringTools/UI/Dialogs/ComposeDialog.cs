@@ -16,7 +16,7 @@ namespace MonitoringTools.UI.Dialogs
     public sealed class ComposeDialog : ToolDialogWindow
     {
         private readonly ComposeController _controller;
-        private readonly TextBlock _stage = Text(), _result = Text(), _services = Text(), _preview = Text();
+        private readonly TextBlock _stage = Text(), _result = Text(), _services = Text(), _preview = Text(), _diagnosis = Text(), _context = Text();
         private readonly TextBox _output = new TextBox { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Height = 210 };
         private readonly ComboBox _service = new ComboBox { MinWidth = 160, Margin = new Thickness(4) };
@@ -37,17 +37,20 @@ namespace MonitoringTools.UI.Dialogs
             _controller.Output += line => { if (Interlocked.Increment(ref _queued) <= 500) _pending.Enqueue(line); else Interlocked.Decrement(ref _queued); };
             var panel = new StackPanel();
             panel.Children.Add(new TextBlock { Text = _controller.FilePath + "\n" + _controller.DirectoryPath, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") });
-            panel.Children.Add(_stage); panel.Children.Add(_result); panel.Children.Add(_services);
+            panel.Children.Add(_context); panel.Children.Add(_stage); panel.Children.Add(_result); panel.Children.Add(_services);
             AutomationProperties.SetLiveSetting(_result, AutomationLiveSetting.Polite);
             panel.Children.Add(_output);
             _actions.Children.Add(Ui.Button(T("Retry startup", "重試啟動"), () => Plan("startup")));
+            _actions.Children.Add(Ui.Button(T("Recheck engine", "重新檢查引擎"), () => Plan("engine")));
+            _actions.Children.Add(Ui.Button(T("Retry build", "重試建置"), () => Plan("build")));
+            _actions.Children.Add(Ui.Button(T("Retry pull", "重試下載映像"), () => Plan("pull")));
             _actions.Children.Add(Ui.Button(T("Recheck health", "重新檢查狀態"), () => Plan("recheck")));
             _actions.Children.Add(_service);
             AutomationProperties.SetName(_service, T("Service for repair", "要處理嘅服務"));
             _actions.Children.Add(Ui.Button(T("Inspect logs", "查看記錄"), () => Plan("logs")));
             _actions.Children.Add(Ui.Button(T("Restart selected", "重新啟動所選服務"), () => Plan("restart")));
             panel.Children.Add(_actions); panel.Children.Add(_preview);
-            panel.Children.Add(new TextBlock { Text = T("Evidence: command exit and service state appear above. Possible causes, not diagnoses: engine unavailable, invalid configuration, image access, port conflict or failed health check. Inspect logs before repair.", "證據：上方列出指令結束碼及服務狀態。可能原因並非診斷：引擎未啟動、設定無效、映像存取、連接埠衝突或健康檢查失敗。處理前請查看記錄。"), TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") });
+            panel.Children.Add(_diagnosis);
             var footer = new WrapPanel();
             _confirm = Ui.Button(T("Run previewed action", "執行預覽操作"), async () => await Run());
             footer.Children.Add(_confirm);
@@ -69,7 +72,7 @@ namespace MonitoringTools.UI.Dialogs
             {
                 _preview.Text = operation == "startup"
                     ? T("Will check CLI, Compose, engine and configuration, then run:", "會檢查 CLI、Compose、引擎及設定，然後執行：") + "\n" + string.Join("\n", new[] { "build", "pull", "start", "inspect" }.Select(op => _controller.Preview(op)))
-                    : _controller.Preview(operation == "recheck" ? "inspect" : operation, operation == "recheck" ? null : _selected);
+                    : _controller.Preview(operation == "recheck" ? "inspect" : operation, operation is "recheck" or "engine" or "build" or "pull" ? null : _selected);
                 _preview.Text += "\n" + T("Health observation: 120 seconds. No configuration edits, volume deletion or rollback. Published ports are not verified URLs.", "狀態觀察：120 秒。不會修改設定、刪除磁碟區或回復原狀。已發佈連接埠並非已驗證網址。");
                 _confirm.IsEnabled = true;
             }
@@ -88,6 +91,8 @@ namespace MonitoringTools.UI.Dialogs
         }
         private void Refresh()
         {
+            _context.Text = T("Docker context", "Docker 環境") + ": " + _controller.DockerContext;
+            _diagnosis.Text = T("Observed evidence", "觀察所得證據") + ": " + Language.T(_controller.FailureEvidence) + "\n" + Language.T(_controller.PossibleCause);
             _stage.Text = T("Stage", "階段") + ": " + Language.T(_controller.Stage) + "   " + T("Elapsed", "已用時間") + ": " + _elapsed.Elapsed.ToString(@"hh\:mm\:ss");
             _result.Text = Language.T(_controller.Result);
             View = _busy ? "progress" : "done";

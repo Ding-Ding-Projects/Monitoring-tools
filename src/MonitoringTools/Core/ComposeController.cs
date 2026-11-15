@@ -88,6 +88,10 @@ namespace MonitoringTools.Core
         private readonly IComposeProcess _process;
         public string FilePath { get; }
         public string DirectoryPath => Path.GetDirectoryName(FilePath);
+        public string DockerContext { get; private set; } = "Not checked";
+        public string FailureEvidence { get; private set; } = "No failure observed";
+        public string PossibleCause { get; private set; } = "";
+        private readonly Queue<string> _recent = new Queue<string>();
         public string Stage { get; private set; } = "Ready";
         public string Result { get; private set; } = "Not started";
         public string[] ExpectedServices { get; private set; } = Array.Empty<string>();
@@ -100,6 +104,7 @@ namespace MonitoringTools.Core
         public string Preview(string operation, string service = null) => "docker " + string.Join(" ", Arguments(operation, service).Select(a => "\"" + a.Replace("\"", "\\\"") + "\""));
         private string[] Arguments(string operation, string service)
         {
+            if (operation == "engine") return new[] { "info", "--format", "{{.ServerVersion}}" };
             var args = new List<string> { "compose", "--ansi", "never", "-f", FilePath };
             switch (operation)
             {
@@ -122,11 +127,20 @@ namespace MonitoringTools.Core
         }
         private async Task<ComposeCommandResult> Run(string stage, IReadOnlyList<string> args, CancellationToken cancellation, bool display = true)
         {
-            Stage = stage; Changed?.Invoke();
+            Stage = stage; lock (_recent) _recent.Clear(); Changed?.Invoke();
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
             timeout.CancelAfter(stage is "Build" or "Pull" ? TimeSpan.FromMinutes(20) : TimeSpan.FromSeconds(30));
-            var result = await _process.RunAsync(DirectoryPath, args, display ? line => Output?.Invoke(line) : null, timeout.Token);
-            if (result.ExitCode != 0) throw new InvalidOperationException(stage + " command exited " + result.ExitCode + ". See diagnostics; no automatic repair was applied.");
+            var result = await _process.RunAsync(DirectoryPath, args, line => {
+                if (display) Output?.Invoke(line);
+                lock (_recent) { _recent.Enqueue(ComposeDiagnostics.Redact(line)); while (_recent.Count > 30) _recent.Dequeue(); }
+            }, timeout.Token);
+            if (result.ExitCode != 0)
+            {
+                FailureEvidence = stage + " command exited " + result.ExitCode;
+                string recent; lock (_recent) recent = string.Join("\n", _recent);
+                PossibleCause = InferCause(stage, recent);
+                throw new InvalidOperationException(FailureEvidence + ". See diagnostics; no automatic repair was applied.");
+            }
             if (result.Truncated && !display) throw new InvalidOperationException(stage + " response exceeded the safe limit; readiness is unverified.");
             return result;
         }
@@ -135,18 +149,28 @@ namespace MonitoringTools.Core
             try
             {
                 Result = "In progress";
+                FailureEvidence = "No failure observed"; PossibleCause = "";
+                lock (_recent) _recent.Clear();
                 if (operation == "startup") Services = Array.Empty<ComposeServiceState>();
                 if (operation == "startup")
                 {
                     await Run("CLI", new[] { "--version" }, cancellation);
                     await Run("Compose", new[] { "compose", "version" }, cancellation);
-                    await Run("Engine", new[] { "info", "--format", "{{.ServerVersion}}" }, cancellation);
+                    var context = await Run("Context", new[] { "context", "show" }, cancellation, false);
+                    DockerContext = context.Output.Trim();
+                    await Run("Engine", Arguments("engine", null), cancellation);
                     var config = await Run("Configuration", Arguments("config", null), cancellation, false);
                     ExpectedServices = config.Output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
                     if (ExpectedServices.Length == 0) throw new InvalidOperationException("No active services were discovered.");
                     await Run("Build", Arguments("build", null), cancellation);
                     await Run("Pull", Arguments("pull", null), cancellation);
                     await Run("Start", Arguments("start", null), cancellation);
+                }
+                else if (operation is "engine" or "build" or "pull")
+                {
+                    await Run(operation == "engine" ? "Engine" : operation == "build" ? "Build" : "Pull", Arguments(operation, null), cancellation);
+                    Result = "Command completed; service readiness unchanged. Recheck health separately.";
+                    return;
                 }
                 else if (operation == "logs") { await Run("Logs", Arguments("logs", service), cancellation); Result = "Logs retrieved; readiness unchanged"; return; }
                 else if (operation == "restart") await Run("Restart", Arguments("restart", service), cancellation);
@@ -159,7 +183,7 @@ namespace MonitoringTools.Core
                     var response = await Run("Health observation", Arguments("inspect", null), cancellation, false);
                     Services = ParseServices(response.Output); Changed?.Invoke();
                     bool complete = ExpectedServices.All(s => Services.Any(c => c.Service == s));
-                    if (Services.Any(s => s.Failed)) { Result = "Service failure observed; inspect the selected service logs"; return; }
+                    if (Services.Any(s => s.Failed)) { FailureEvidence = string.Join("; ", Services.Where(s => s.Failed).Select(s => s.Service + ": " + s.Verdict + ", exit=" + s.ExitCode)); PossibleCause = "Possible cause: the service process or its configured health check failed. Inspect selected-service logs; a failing health check does not establish the underlying cause."; Result = "Service failure observed; inspect the selected service logs"; return; }
                     if (complete && Services.All(s => s.Ready)) { Result = "Services running; health checks passed where configured. URLs are unverified."; return; }
                     if (complete && Services.All(s => s.Ready || (s.State == "exited" && s.ExitCode == 0)))
                     { Result = "Exited service observed with code 0. Confirm intended one-shot behavior; stack readiness is unverified."; return; }
@@ -168,8 +192,25 @@ namespace MonitoringTools.Core
                 Result = "Observation timed out; services may still be starting. Inspect logs or recheck.";
             }
             catch (OperationCanceledException) { Result = cancellation.IsCancellationRequested ? "Cancelled. Owned CLI/observation stopped; containers may remain running. No rollback was performed." : "Command timed out. Containers may remain running; recheck before retrying."; }
-            catch (Exception ex) { Result = ComposeDiagnostics.Redact(ex.Message); }
+            catch (Exception ex)
+            {
+                Result = ComposeDiagnostics.Redact(ex.Message);
+                if (FailureEvidence == "No failure observed") { FailureEvidence = Stage + ": " + Result; PossibleCause = InferCause(Stage, Result); }
+            }
             finally { Stage = "Stopped"; Changed?.Invoke(); }
+        }
+        public static string InferCause(string stage, string output)
+        {
+            if (Regex.IsMatch(output, @"(?i)address already in use|port is already allocated|bind.*failed|failed.*bind"))
+                return "Possible cause: a published port is already occupied. Inspect the reported port and configuration manually; no process is stopped and no port is changed.";
+            if (stage == "Pull" && Regex.IsMatch(output, @"(?i)unauthorized|authentication required|denied|access.*forbidden"))
+                return "Possible cause: image access or registry authentication is unavailable. Review access outside this dialog, then retry pull. No credentials are changed.";
+            if (stage == "Pull") return "Possible cause: image availability, registry reachability or image reference. Review the pull diagnostic, then retry pull.";
+            if (stage == "Configuration") return "Possible cause: the selected configuration or interpolation is invalid. Review the configuration manually, then retry startup. No file is edited.";
+            if (stage == "Engine") return "Possible cause: the selected Docker context cannot reach its engine. Check that context and engine, then recheck engine.";
+            if (stage == "Build") return "Possible cause: a build instruction, input or dependency failed. Review the build diagnostic, then retry build.";
+            if (stage == "Compose" || stage == "CLI") return "Possible cause: the required CLI or Compose plugin is unavailable. Review its installation and retry startup.";
+            return "No specific cause established. Inspect the failed stage diagnostics before retrying.";
         }
         public static IReadOnlyList<ComposeServiceState> ParseServices(string json)
         {
