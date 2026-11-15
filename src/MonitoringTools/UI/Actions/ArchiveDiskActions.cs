@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MonitoringTools.Clip;
+using MonitoringTools.Core.Packing;
 using MonitoringTools.UI.Dialogs;
 
 namespace MonitoringTools.UI
@@ -16,7 +17,7 @@ namespace MonitoringTools.UI
         public static void Add(ClipItem item, List<ToastAction> l)
         {
             if (item.Kind != ClipKind.Files || item.Files == null || item.Files.Length == 0) return;
-            var files = item.Files.Where(p => File.Exists(p) || Directory.Exists(p.TrimEnd('\\'))).ToArray();
+            var files = item.Files;
             if (files.Length == 0) return;
             var archive = new ToastAction
             {
@@ -32,13 +33,16 @@ namespace MonitoringTools.UI
             };
             var pack = new ToastAction
             {
-                Label = "Quick pack…", Icon = DialogParts.DiskIcon, HandsOff = true,
+                Label = "Pack to VHDX", Icon = DialogParts.DiskIcon, HandsOff = true,
                 Tip = "Pack " + (files.Length == 1 ? "this" : "these") + " into one new VHDX beside " + (files.Length == 1 ? "it" : "them") + ", which grows by itself and checks every file by SHA-256. Windows asks for permission once.",
-                Run = () => App.Current.OpenVirtualDisks(pack: files)
+                Run = () => PackingProgressDialog.Start(files, PackingFormat.Vhdx)
             };
             int at = l.FindIndex(a => a.Label == "File tools");
             if (at < 0) at = l.Count;
-            l.Insert(at, archive); l.Insert(at + 1, disk); l.Insert(at + 2, pack);
+            l.Insert(at, new ToastAction { Label = "Pack to ZIP", Icon = Icons.Archive, HandsOff = true,
+                Tip = "Create and verify a ZIP beside the original files. Starts immediately; originals are kept.",
+                Run = () => PackingProgressDialog.Start(files, PackingFormat.Zip) });
+            l.Insert(at + 1, pack); l.Insert(at + 2, archive); l.Insert(at + 3, disk);
             // copied virtual disk files open on the Virtual disks page, first among the file actions
             if (files.All(Core.Disks.DiskJobs.IsDiskFile))
                 l.Insert(at, new ToastAction

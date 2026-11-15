@@ -13,6 +13,8 @@ namespace MonitoringTools.Core
         public string Title;
         public string Detail;
         public bool Ok = true;
+        [System.Text.Json.Serialization.JsonIgnore]
+        public Action Reopen;
     }
 
     public sealed class Outage
@@ -31,11 +33,11 @@ namespace MonitoringTools.Core
         private static readonly List<Outage> Outages = new List<Outage>();
         public static event Action Changed;
 
-        public static void Add(ActivityKind kind, string title, string detail = null, bool ok = true)
+        public static void Add(ActivityKind kind, string title, string detail = null, bool ok = true, Action reopen = null)
         {
             lock (Gate)
             {
-                Entries.Insert(0, new ActivityEntry { Kind = kind, Title = title, Detail = detail, Ok = ok });
+                Entries.Insert(0, new ActivityEntry { Kind = kind, Title = title, Detail = detail, Ok = ok, Reopen = reopen });
                 if (Entries.Count > 300) Entries.RemoveAt(Entries.Count - 1);
             }
             Log.Info($"[{kind}] {title}{(detail == null ? "" : " :: " + detail)}");

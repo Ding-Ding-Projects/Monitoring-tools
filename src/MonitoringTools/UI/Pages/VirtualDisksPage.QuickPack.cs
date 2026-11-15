@@ -11,6 +11,7 @@ using System.Windows.Input;
 using Microsoft.Win32;
 using MonitoringTools.Core;
 using MonitoringTools.Core.Disks;
+using MonitoringTools.Core.Packing;
 using MonitoringTools.UI.Dialogs;
 using MonitoringTools.UI.Search;
 
@@ -95,6 +96,12 @@ namespace MonitoringTools.UI
         {
             var sp = new StackPanel();
             sp.Children.Add(CardTitle("Quick pack", "Drop files and folders here, or choose them. One new VHDX is made in the folder they came from and filled with everything you dropped. It grows by itself if it runs short, every file is checked against its original by SHA-256, and your originals are never moved or changed."));
+            var latest = PackingJob.Latest;
+            if (latest != null && latest.Format == PackingFormat.Vhdx)
+            {
+                sp.Children.Add(SharedPackingBlock(latest));
+                if (!latest.Complete) return Card(sp);
+            }
             var p = _pack;
             if (p == null || p.Phase == "done" || p.Phase == "cancelled" || p.Phase == "partial" || p.Phase == "stopped")
             {
@@ -243,84 +250,43 @@ namespace MonitoringTools.UI
 
         private async Task RunPack(PackRun p)
         {
-            p.Phase = "packing";
-            p.Cts = new CancellationTokenSource();
-            p.Log.Add("Asking Windows for permission to make and attach the disk.");
+            var job = new PackingJob(p.Items, PackingFormat.Vhdx)
+            {
+                Fixed = p.Fixed, FileSystem = p.FileSystem, CopyPermissions = p.Permissions, FitTightly = p.Tight
+            };
+            PackingProgressDialog.Open(job);
+            Activity.Add(ActivityKind.Files, "VHDX packing started", "Open packing progress", reopen: () => PackingProgressDialog.Open(job));
+            _pack = null;
+            job.Start();
             VdRefresh();
-            var letters = VhdEngine.FreeLetters();
-            if (letters.Count == 0) { p.Phase = "stopped"; p.Error = "Every drive letter from D to Z is in use, so the disk has nowhere to appear."; VdRefresh(); return; }
-            var req = new VhdRequest
-            {
-                File = p.Plan.File, SizeMb = Math.Max(VhdEngine.MinMb, p.Plan.StartBytes / QuickPackPlan.Mb), Fixed = p.Fixed, FileSystem = p.FileSystem,
-                Label = QuickPackPlan.LabelFor(p.Plan.Name), MountMode = "letter", Letter = letters[0]
-            };
-            var problem = VhdEngine.Validate(req, checkFolderState: false);
-            if (problem != null) { p.Phase = "stopped"; p.Error = problem; VdRefresh(); return; }
-            var session = new VhdSession(req);
-            p.Session = session;
-            if (!await session.StartAsync())
-            {
-                p.Phase = "cancelled"; p.Error = session.Declined ? "Windows asked for permission and it was not given, so nothing was made." : session.LaunchError;
-                VdRefresh(); return;
-            }
-            var ready = await session.WaitForAsync(s => s.Phase == "ready" || s.Phase == "error", TimeSpan.FromMinutes(10), CancellationToken.None, s => { p.Log.Add(s.Message); VdRefreshSoon(); });
-            if (ready?.Phase != "ready") { p.Phase = "stopped"; p.Error = ready?.Error ?? "The disk was not made."; VdRefresh(); return; }
-            p.Log.Add($"Made {Path.GetFileName(req.File)}: {Ui.Bytes(req.SizeMb * QuickPackPlan.Mb)}, {(p.Fixed ? "fixed size" : "grows as it fills")}, GPT, {p.FileSystem}, at {req.Letter}:.");
-            var copy = new PackCopy { CopyPermissions = p.Permissions };
-            p.Copy = copy;
-            long current = req.SizeMb * QuickPackPlan.Mb;
-            copy.Grow = async left =>
-            {
-                long to = QuickPackPlan.GrowTo(current, left);
-                if (to <= current) return "The disk is at the largest size a VHDX allows.";
-                p.Log.Add($"Ran out of room at {p.Progress?.Current}. Growing the disk from {Ui.Bytes(current)} to {Ui.Bytes(to)}.");
-                await Dispatcher.InvokeAsync(VdRefresh);
-                session.Send("grow " + to / QuickPackPlan.Mb);
-                var g = await session.WaitForAsync(s => s.Phase == "grown" || s.Phase == "grow-failed" || s.Phase == "error", TimeSpan.FromMinutes(10), CancellationToken.None);
-                if (g?.Phase != "grown") return g?.Error ?? "The disk could not grow.";
-                (p.Result ??= new PackResult()).Growths.Add((current, to));
-                p.Log.Add($"Grew from {Ui.Bytes(current)} to {Ui.Bytes(to)}, extended the volume, and carried on, checking that file again.");
-                current = to;
-                return null;
-            };
-            var progress = new Progress<PackProgress>(pr => { p.Progress = pr; VdRefreshSoon(); });
-            var growths = new List<(long, long)>();
-            var r = await copy.RunAsync(p.Walk, VhdEngine.MountRoot(req), progress, p.Cts.Token);
-            if (p.Result != null) r.Growths.AddRange(p.Result.Growths);
-            p.Result = r;
-            if (r.Cancelled)
-            {
-                await session.DetachAsync(delete: true);
-                p.Phase = "cancelled";
-                p.Error = $"Cancelled. Detached and removed {Path.GetFileName(req.File)}, the only file this run made. Your files were not touched.";
-                LocalHistory.Append("vdisk", "Quick pack cancelled: " + Path.GetFileName(req.File) + " removed", null, req.File);
-                VdRefresh(); return;
-            }
-            if (r.Error != null)
-            {
-                // stopped (for example, the host drive cannot hold the growth): keep nothing half-made
-                await session.DetachAsync(delete: true);
-                p.Phase = "stopped";
-                p.Error = r.Error + " The new disk was detached and removed; your files were not touched.";
-                LocalHistory.Append("vdisk", "Quick pack stopped: " + Path.GetFileName(req.File), r.Error, req.File);
-                VdRefresh(); return;
-            }
-            if (p.Tight)
-            {
-                session.Send("fit");
-                var f = await session.WaitForAsync(s => s.Phase == "fitted" || s.Phase == "fit-failed" || s.Phase == "error", TimeSpan.FromMinutes(10), CancellationToken.None);
-                p.Log.Add(f?.Phase == "fitted" ? f.Message : "Could not fit it tightly: " + (f?.Error ?? "no answer") + ". It keeps its size.");
-            }
-            await session.DetachAsync(delete: false);
-            var info = VirtDisk.Read(req.File);
-            p.Phase = r.Partial ? "partial" : "done";
-            p.Log.Add($"Detached. {Path.GetFileName(req.File)} sits beside the originals.");
-            LocalHistory.Append("vdisk", (r.Partial ? "Quick pack, partial: " : "Quick pack: ") + Path.GetFileName(req.File),
-                $"{r.Verified:N0} of {r.Files:N0} files match by SHA-256. Virtual size {Ui.Bytes((long)info.VirtualSize)}, on disk {Ui.Bytes((long)info.PhysicalSize)}." + (r.Growths.Count > 0 ? $" Grew {r.Growths.Count} time{(r.Growths.Count == 1 ? "" : "s")}." : ""), req.File);
-            Activity.Add(ActivityKind.Files, (r.Partial ? "Packed with skipped files into " : "Packed into ") + Path.GetFileName(req.File), req.File, !r.Partial);
-            VdAdd(new[] { req.File });
+            await job.Completion;
+            if (job.Output != null) VdAdd(new[] { job.Output });
             VdRefresh();
         }
+
+        private PackingJob _observedPackingJob;
+        private FrameworkElement SharedPackingBlock(PackingJob job)
+        {
+            if (_observedPackingJob != job)
+            {
+                if (_observedPackingJob != null) _observedPackingJob.Changed -= SharedPackingChanged;
+                _observedPackingJob = job;
+                job.Changed += SharedPackingChanged;
+            }
+            var panel = new StackPanel();
+            panel.Children.Add(ToolsNote(job.Stage, job.Complete && !job.Success ? "B.Amber" : "B.TextSoft"));
+            if (job.Progress != null) panel.Children.Add(ToolsNote(Ui.Bytes(job.Progress.Done) + " / " + Ui.Bytes(job.Progress.Total)));
+            if (job.Output != null)
+            {
+                var path = Ui.Mono(PathDisplay.Shown(job.Output), Ui.Res("B.Text"), 12);
+                path.TextWrapping = TextWrapping.Wrap;
+                Core.Language.SetLiteral(path, true);
+                panel.Children.Add(path);
+            }
+            panel.Children.Add(Ui.Button("Open progress", () => PackingProgressDialog.Open(job), "Btn.Ghost"));
+            return panel;
+        }
+        private void SharedPackingChanged() => Dispatcher.BeginInvoke(new Action(VdRefreshSoon));
 
         private DateTime _vdLastSoon;
         /// <summary>Redraws the page at most a few times a second while a pack runs.</summary>

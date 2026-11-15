@@ -204,6 +204,7 @@ namespace MonitoringTools.Core.Archives
 
     public sealed class ArchiveProgress
     {
+        public int FilesDone, FilesTotal;
         public string Step;                    // Scan, Compress, Test, Finish
         public long Done, Total;
         public double BytesPerSecond;
