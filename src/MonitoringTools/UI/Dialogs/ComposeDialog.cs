@@ -60,8 +60,8 @@ namespace MonitoringTools.UI.Dialogs
             ShowView("form", scroll, 840, Title, "Preview, run, then inspect service readiness", Icons.Box);
             Flex(scroll, 180);
             _timer.Tick += (s, e) => Refresh(); _timer.Start();
-            Language.Changed += OnLanguageChanged;
-            Closed += (s, e) => { _cancellation?.Cancel(); _timer.Stop(); Language.Changed -= OnLanguageChanged; };
+            Core.Language.Changed += OnLanguageChanged;
+            Closed += (s, e) => { _cancellation?.Cancel(); _timer.Stop(); Core.Language.Changed -= OnLanguageChanged; };
             Plan("startup");
         }
         private void OnLanguageChanged()
@@ -83,7 +83,7 @@ namespace MonitoringTools.UI.Dialogs
                 _confirm.IsEnabled = true;
             }
             catch (ArgumentException) { _preview.Text = "Select a discovered service first."; _confirm.IsEnabled = false; }
-            Language.Refresh(this);
+            Core.Language.Refresh(this);
         }
         internal string Outcome => _controller.Result;
         internal Task RunForTest() => Run();
@@ -109,7 +109,7 @@ namespace MonitoringTools.UI.Dialogs
             int count = 0;
             while (count++ < 100 && _pending.TryDequeue(out var line)) { Interlocked.Decrement(ref _queued); _output.AppendText(line + "\n"); }
             if (_output.Text.Length > 48000) _output.Text = "[older output discarded]\n" + _output.Text.Substring(_output.Text.Length - 40000);
-            Language.Refresh(this);
+            Core.Language.Refresh(this);
         }
         protected override void OnPrimary() { if (_confirm.IsEnabled) _ = Run(); }
         protected override void OnEscape()
