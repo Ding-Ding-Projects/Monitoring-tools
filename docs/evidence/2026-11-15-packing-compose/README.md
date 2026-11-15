@@ -30,7 +30,26 @@
 - Focused console Compose controller checks passed for preflight ordering, service-health verdicts,
   contextual diagnostics, redaction, scoped repair validation, nonzero exit, timeout and cancellation.
 
-## Limits
+## Existing-disk addition
+
+`packing-append.png` is a genuine reopened result from source
+`4bf231a37104fc70b1432a5f240a9ac65b2a2b39`, executable SHA-256
+`46792337685d54c0881e696b76ffe534d512ee79ba35a3e4a952bfd12505f3f0`.
+It is 828 × 854 pixels, dark English, 144 DPI, captured through the same native background route.
+The test explicitly reopened the completed result for inspection; production success dismissal
+was not disabled. Its validated result-hold interval began at 2026-11-15T05:27:03.7666649Z and
+lasted 120 seconds. The exact capture instant within that interval is unavailable.
+
+The native transaction succeeded: 2 existing user files and 2 newly added files verified,
+the colliding incoming root was numbered, cancellation during staging preserved the original,
+and the retained rollback copy matched the original disk bytes. A test-only ordering error in
+an unrelated overlap fixture caused that run's overall report to remain 22 passed, 1 failed.
+The unchanged engine verdict is not a claim that the whole suite passed. The fixture ordering
+was corrected afterward and its final rerun is pending.
+
+Earlier source-bound captures are listed in [the archive](ARCHIVE.md).
+
+## Verification limits
 
 The complete display-scale and minimum-layout matrix, assistive-technology interaction, native
 consent cancellation, automatic VHDX growth under actual low-space conditions, crash recovery and

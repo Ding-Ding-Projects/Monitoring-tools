@@ -10,9 +10,12 @@ A small Windows background service with a tray icon and a modern, animated UI. I
 **One-click packing:** copied paths, files and folders now offer **Pack to ZIP** and **Pack to VHDX**.
 The job starts directly in its own progress dialog. Compose startup now streams its stages,
 checks service health and offers previewed recovery actions.
+Verified success dismisses the live dialog immediately. Copy a selection and then **vhd** for
+a new disk, or **vhd add** to add it to the latest successful pack. **Choose VHDX** selects another
+existing target; additions preserve prior content through staging and a retained rollback backup.
 [Packing guide](docs/features/files/quick-pack.md) · [Compose guide](docs/features/files/docker-actions.md)
 
-![Actual verified VHDX packing result](docs/evidence/2026-11-15-packing-compose/packing-vhdx.png)
+![Reopened verified VHDX addition with retained rollback backup](docs/evidence/2026-11-15-packing-compose/packing-append.png)
 ![Actual Compose startup with a healthy isolated service](docs/evidence/2026-11-15-packing-compose/compose-live.png)
 
 These are genuine hidden-desktop window captures from the built application, not design previews.

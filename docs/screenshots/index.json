@@ -55,7 +55,7 @@
   },
   {
     "file": "toast-cut-text.png",
-    "caption": "Text that was cut with Ctrl\u002BX",
+    "caption": "Text that was cut with Ctrl+X",
     "width": 872,
     "height": 644
   },
@@ -199,7 +199,7 @@
   },
   {
     "file": "popup-history.png",
-    "caption": "Clipboard history on Win\u002BShift\u002BV: every row previews what it is",
+    "caption": "Clipboard history on Win+Shift+V: every row previews what it is",
     "width": 1720,
     "height": 1280
   },
@@ -217,7 +217,7 @@
   },
   {
     "file": "window-paste-queue.png",
-    "caption": "The paste queue: copy several things, then each Ctrl\u002BV pastes the next",
+    "caption": "The paste queue: copy several things, then each Ctrl+V pastes the next",
     "width": 760,
     "height": 1030
   },
@@ -313,7 +313,7 @@
   },
   {
     "file": "command-palette.png",
-    "caption": "Command palette (Ctrl\u002BShift\u002BF)",
+    "caption": "Command palette (Ctrl+Shift+F)",
     "width": 1360,
     "height": 1120
   },
@@ -1093,7 +1093,7 @@
   },
   {
     "file": "datasec-hash-match.png",
-    "caption": "Hash and verify: it matches the publisher\u0027s checksum",
+    "caption": "Hash and verify: it matches the publisher's checksum",
     "width": 1520,
     "height": 1089
   },
@@ -1681,7 +1681,7 @@
   },
   {
     "file": "mc-commands-give.png",
-    "caption": "Minecraft servers: the command builder giving an item, with the online players, the version\u0027s item list searched for diamond and the coloured command line (sample data)",
+    "caption": "Minecraft servers: the command builder giving an item, with the online players, the version's item list searched for diamond and the coloured command line (sample data)",
     "width": 2088,
     "height": 1576
   },
@@ -1693,7 +1693,7 @@
   },
   {
     "file": "mc-commands-tree.png",
-    "caption": "Minecraft servers: Every command, walking effect give through the server\u0027s own command tree with a control per argument (sample data)",
+    "caption": "Minecraft servers: Every command, walking effect give through the server's own command tree with a control per argument (sample data)",
     "width": 2088,
     "height": 1576
   },
@@ -1705,13 +1705,13 @@
   },
   {
     "file": "mc-commands-item-components.png",
-    "caption": "Minecraft servers: a give command with the item component editor: custom name, lore, enchantments with levels, damage, unbreakable and a generic component from the version\u0027s component list (sample data)",
+    "caption": "Minecraft servers: a give command with the item component editor: custom name, lore, enchantments with levels, damage, unbreakable and a generic component from the version's component list (sample data)",
     "width": 2088,
     "height": 1576
   },
   {
     "file": "mc-commands-item-components-more.png",
-    "caption": "Minecraft servers: the lower half of the item component editor: damage, unbreakable, custom model data and the generic component row with max_stack_size added from the version\u0027s component list (sample data)",
+    "caption": "Minecraft servers: the lower half of the item component editor: damage, unbreakable, custom model data and the generic component row with max_stack_size added from the version's component list (sample data)",
     "width": 2088,
     "height": 1576
   },
@@ -1723,7 +1723,7 @@
   },
   {
     "file": "mc-commands-plugins.png",
-    "caption": "Minecraft servers: the Plugins and mods group in the task gallery, with a form made from a command\u0027s usage text and labelled as coming from the live server (sample commands)",
+    "caption": "Minecraft servers: the Plugins and mods group in the task gallery, with a form made from a command's usage text and labelled as coming from the live server (sample commands)",
     "width": 2088,
     "height": 1576
   },
@@ -1783,7 +1783,7 @@
   },
   {
     "file": "mc-worlds-generator.png",
-    "caption": "Minecraft servers: the world generator\u0027s actions with Pause pre-generation beside Generate world and Cancel (sample data)",
+    "caption": "Minecraft servers: the world generator's actions with Pause pre-generation beside Generate world and Cancel (sample data)",
     "width": 2088,
     "height": 1576
   },
@@ -1837,7 +1837,7 @@
   },
   {
     "file": "mc-create-bedrock.png",
-    "caption": "New server: Bedrock edition, with Mojang\u0027s newest Windows server",
+    "caption": "New server: Bedrock edition, with Mojang's newest Windows server",
     "width": 2088,
     "height": 1576
   },
@@ -1885,7 +1885,7 @@
   },
   {
     "file": "mc-bedrock-players.png",
-    "caption": "Minecraft servers: a Bedrock server\u0027s players from allowlist.json and permissions.json (sample data)",
+    "caption": "Minecraft servers: a Bedrock server's players from allowlist.json and permissions.json (sample data)",
     "width": 2088,
     "height": 1576
   },
@@ -1900,5 +1900,11 @@
     "caption": "Minecraft servers: Bedrock worlds with sizes, Download ZIP and Import a world (sample data)",
     "width": 2088,
     "height": 1576
+  },
+  {
+    "file": "quickpack-append.png",
+    "caption": "Reopened verified VHDX addition with retained rollback backup",
+    "width": 828,
+    "height": 854
   }
 ]

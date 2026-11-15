@@ -51,9 +51,42 @@ copy it again to run another operation. An unrelated clipboard copy, a sensitive
 disabled quick-command route clears the selection. Missing or unsupported inputs stop the lazy
 operation without silently omitting them.
 
-The requested **vhd add** and **Choose VHDX** additions are in progress. They target an existing
-detached disk through a staged copy, keeping the original intact until the staged result is
-verified. Their native acceptance remains pending; do not treat this paragraph as delivery proof.
+To add a selection from another directory, copy it and then copy **vhd add**. This targets the
+most recent successful quick-pack VHDX in the current application session. **vhd** always creates
+a new disk. If there is no remembered successful disk, choose one explicitly rather than guessing.
+The file notice's **Choose VHDX** action selects another existing target. Reopened VHDX results
+also offer **Add copied files** and **Choose VHDX**.
+
+Starting a direct action consumes only its matching pending selection. An older notice leaves a
+newer, different selection alone. Cancelling the target picker leaves the pending selection intact.
+
+## Preserve an existing disk while adding
+
+![Reopened verified add result with its rollback backup](../../screenshots/quickpack-append.png)
+
+The live dialog dismisses immediately after verified success. This genuine built-application
+capture shows the retained result reopened afterward, with the target and rollback backup.
+
+The add route supports a detached local dynamic VHDX with one healthy GPT/NTFS data partition.
+Mounted disks, network drives, paths through directory links and unsupported layouts are rejected.
+Existing user content containing links is rejected rather than silently omitted.
+
+The original disk stays untouched while the application copies it into a sibling staging folder.
+It validates the staged copy, attaches that copy without creating or formatting partitions, hashes
+existing user files, copies and verifies the additions, checks existing contents again and detaches.
+Incoming top-level file and folder names are numbered when they collide. Existing folders are not
+merged and existing files are not overwritten.
+
+Only then does the application revalidate and atomically replace the detached target. A uniquely
+named `.before-add-....bak` rollback copy remains beside it, and Activity/result actions expose it.
+Allow space for both the original and staged disk plus the additions. Cancellation or failure
+before replacement leaves the original unchanged. If another writer changes the disk at the final
+replacement boundary, both versions are retained and the result reports incomplete recovery;
+this route does not claim filesystem compare-and-swap.
+
+To recover an earlier version, first preserve and detach the updated disk. Copy the retained
+backup to a new `.vhdx` filename and inspect that copy through Virtual disks. Keep both versions
+until the required contents are verified; do not overwrite an active or mounted disk.
 
 ## Related
 
