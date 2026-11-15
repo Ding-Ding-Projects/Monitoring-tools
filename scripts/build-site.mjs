@@ -214,8 +214,23 @@ const RELEASE = (() => {
   };
 })();
 const fmt = (n) => n.toLocaleString('en-US');
-// The installer button uses the immutable asset URL of the release the figures came from.
-const INSTALLER_URL = RELEASE ? `${REPO_URL}/releases/download/v${RELEASE.version}/MonitoringTools-Setup.exe` : DOWNLOAD_URL;
+// Manual delivery can advance the downloadable release independently of historical line counts.
+const DELIVERY = (() => {
+  const file = path.join(root, 'release', 'current.json');
+  if (!fs.existsSync(file)) return null;
+  const value = JSON.parse(read(file));
+  if (value.schemaVersion !== 1 || !/^\d+\.\d+\.\d+$/.test(value.version)
+      || value.tag !== `v${value.version}` || !/^[a-f0-9]{40}$/.test(value.sourceCommit)
+      || value.isDraft !== false || value.isPrerelease !== false
+      || value.installer?.url !== `${REPO_URL}/releases/download/${value.tag}/MonitoringTools-Setup.exe`
+      || !/^[a-f0-9]{64}$/.test(value.installer?.sha256 || '')
+      || !Number.isSafeInteger(value.installer?.bytes) || value.installer.bytes < 70000000) {
+    fail('manual release manifest is invalid');
+  }
+  return value;
+})();
+const CURRENT_VERSION = DELIVERY?.version || RELEASE?.version || '';
+const INSTALLER_URL = DELIVERY?.installer.url || (RELEASE ? `${REPO_URL}/releases/download/v${RELEASE.version}/MonitoringTools-Setup.exe` : DOWNLOAD_URL);
 const DISHES = (() => { try { return JSON.parse(read(path.join(root, 'scripts', 'dim-sum-code-names.json'))).dishes.map((d) => [d.en, d.zhHant]); } catch (e) { return []; } })();
 
 // ---------------------------------------------------------------- page chrome
@@ -340,7 +355,7 @@ function footer(page) {
       <li><a href="${REPO_URL}" rel="noopener noreferrer">Source on GitHub</a></li>
       <li><a href="${REPO_URL}/releases" rel="noopener noreferrer">All releases</a></li>
     </ul>
-    <p class="hint mono">${RELEASE ? `Documents release v${esc(RELEASE.version)}.` : 'Release figures are not available in this build.'} Fonts and every asset are served from this site: no CDN, no analytics, no tracking.</p>
+    <p class="hint mono">${CURRENT_VERSION ? `Documents release v${esc(CURRENT_VERSION)}.` : 'Release information is unavailable.'} ${RELEASE ? `Figures are from automated release v${esc(RELEASE.version)}.` : 'Release figures are unavailable.'} Fonts and every asset are served from this site: no CDN, no analytics, no tracking.</p>
   </div>
 </footer>
 <div class="toasts" id="toasts" role="region" aria-label="Notifications" aria-live="polite" data-feature="notifications"></div>
@@ -390,7 +405,7 @@ function buildHome() {
   const nArticles = [...docs.values()].filter((d) => !d.isReadme && d.category.slug !== STATUS_SLUG).length;
   const feats = categories.filter((c) => c.slug !== STATUS_SLUG);
   const demoChips = ['mp4', 'gif', 'webm', 'mp3', 'wav', 'flac', 'png', 'jpg', 'webp', 'avif', 'ico', 'push'];
-  const v = RELEASE ? `v${RELEASE.version}` : '';
+  const v = CURRENT_VERSION ? `v${CURRENT_VERSION}` : '';
   const body = `
 <section class="hero grid-bg" aria-labelledby="hero-h">
   <svg class="heartbeat" viewBox="0 0 1440 160" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 100 H260 l24 -70 l34 150 l30 -110 l20 30 H640 l18 -40 l26 90 l22 -50 H1000 l24 -70 l34 150 l30 -110 l20 30 H1440"/></svg>

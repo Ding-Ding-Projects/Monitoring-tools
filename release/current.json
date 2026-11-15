@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "version": "1.0.75",
+  "tag": "v1.0.75",
+  "sourceCommit": "1d6541f0016b150a8cb9bde035cc42e9af5a91bd",
+  "isDraft": false,
+  "isPrerelease": false,
+  "verifiedAtUtc": "2026-11-15T06:03:46.3075707Z",
+  "releaseUrl": "https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.75",
+  "installer": {
+    "url": "https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/download/v1.0.75/MonitoringTools-Setup.exe",
+    "bytes": 214887613,
+    "sha256": "7a0d558610b75dea94865b64e1d773c894f3b22edfd939b84296df4e8c49413a"
+  }
+}
