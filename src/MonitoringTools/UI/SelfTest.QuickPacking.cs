@@ -22,6 +22,51 @@ namespace MonitoringTools.UI
             Directory.CreateDirectory(Path.Combine(source, "Empty"));
             var file = Path.Combine(source, "hello.txt");
             File.WriteAllText(file, "Packing keeps the original intact. 香港文字。\n");
+            Check("clipboard vhd consumes an exact in-memory selection once", () =>
+            {
+                var old = Settings.Current.QuickCommandsEnabled;
+                int starts = 0, notices = 0;
+                string[] received = null;
+                void Start(string[] paths) { starts++; received = paths; }
+                void Notice(string text) { notices++; }
+                var app = App.Current;
+                bool Handle(Clip.ClipItem item) => app.HandlePackingClipboard(item, Start, Notice);
+                Clip.ClipItem Command(string text) => new() { Kind = Clip.ClipKind.Text, Text = text };
+                Clip.ClipItem Selection(params string[] paths) => new() { Kind = Clip.ClipKind.Files, Files = paths, IsPathText = true };
+                try
+                {
+                    Settings.Current.QuickCommandsEnabled = true;
+                    var copy = new[] { file, Path.Combine(source, "Empty") };
+                    Handle(Selection(copy)); copy[0] = "changed-after-event";
+                    if (!Handle(Command("  VhD \r\n")) || starts != 1 || received[0] != file || received.Length != 2) return "exact command or immutable snapshot mismatch";
+                    Handle(Command("vhd"));
+                    if (starts != 1 || notices != 1) return "selection was consumed more than once";
+                    Handle(Selection(file));
+                    if (Handle(Command("make vhd"))) return "phrase incorrectly accepted";
+                    Handle(Command("vhd"));
+                    if (starts != 1) return "unsupported intervening copy retained stale selection";
+                    Handle(Selection(file, Path.Combine(root, "missing-input")));
+                    Handle(Command("vhd"));
+                    if (starts != 1 || notices != 3) return "missing selection was silently reduced";
+                    Settings.Current.QuickCommandsEnabled = false;
+                    Handle(Selection(file));
+                    if (Handle(Command("vhd")) || starts != 1) return "disabled quick commands launched packing";
+                    Settings.Current.QuickCommandsEnabled = true;
+                    Handle(Command("vhd"));
+                    if (starts != 1 || notices != 4) return "disabled snapshot was retained";
+                    Handle(Selection(file)); Handle(new Clip.ClipItem { Kind = Clip.ClipKind.Image }); Handle(Command("vhd"));
+                    return starts == 1 && notices == 5 ? null : "unsupported selection reused stale files";
+                }
+                finally { Settings.Current.QuickCommandsEnabled = true; Handle(Command("clear test selection")); Settings.Current.QuickCommandsEnabled = old; }
+            });
+            await CheckAsync("cancelled live packing view remains visible", async () =>
+            {
+                var job = new PackingJob(new[] { file }, PackingFormat.Zip);
+                job.Cancel(); PackingProgressDialog.Open(job); job.Start(); await job.Completion;
+                var window = PackingProgressDialog.For(job);
+                try { return job.Cancelled && window?.IsVisible == true ? null : "cancelled view dismissed"; }
+                finally { window?.Close(); }
+            });
             Check("packing removes duplicate and parent-child overlaps", () =>
             {
                 var scan = PackingSources.Scan(new[] { file, source, file }, CancellationToken.None);
@@ -83,6 +128,7 @@ namespace MonitoringTools.UI
                 var other = Path.Combine(root, "other.txt"); File.WriteAllText(other, "Second folder");
                 var job = PackingProgressDialog.Start(new[] { file, other }, PackingFormat.Zip);
                 await job.Completion;
+                PackingProgressDialog.Open(job); // Completed results reopened by the person remain visible.
                 var window = PackingProgressDialog.For(job);
                 var old = Settings.Current.LanguageMode;
                 try
@@ -113,8 +159,12 @@ namespace MonitoringTools.UI
                 window.Hide();
                 await finished.Completion;
                 if (!finished.Success || finished.Partial) return finished.Error ?? string.Join("\n", finished.Warnings);
+                if (PackingProgressDialog.For(finished) != null || window.IsVisible) return "verified success did not dismiss immediately";
                 PackingProgressDialog.Open(finished);
-                if (PackingProgressDialog.For(finished) != window || !window.IsVisible) return "reopen did not retain the same job window";
+                var reopened = PackingProgressDialog.For(finished);
+                if (reopened == null || !reopened.IsVisible) return "completed result did not reopen";
+                Language.Refresh();
+                if (!reopened.IsVisible) return "manually reopened completed result auto-dismissed";
                 if (!Activity.Recent(20).Any(e => e.Reopen != null)) return "no reopen activity";
                 using var zip = ZipFile.OpenRead(finished.Output);
                 if (zip.Entries.Count(e => !e.FullName.EndsWith("/")) != 1 || !zip.Entries.Any(e => e.FullName.EndsWith("Empty/"))) return "ZIP contents incorrect";
@@ -242,7 +292,8 @@ namespace MonitoringTools.UI
                     }
                 });
             }
-            // Optional real-result inspection seam for an isolated desktop driver. No fabricated progress state.
+            // Explicit test-only inspection hold: reopen a real completed result exactly as Activity does.
+            // Production live-success auto-dismiss remains enabled; no delayed close or fabricated progress state.
             if (finished != null && int.TryParse(Environment.GetEnvironmentVariable("MT_PACK_HOLD_MS"), out var hold))
             {
                 PackingProgressDialog.Open(finished);
@@ -251,6 +302,7 @@ namespace MonitoringTools.UI
                 {
                     version = 1, kind = "actual-packing-result", processId = Environment.ProcessId,
                     hwnd = new System.Windows.Interop.WindowInteropHelper(heldWindow).Handle.ToInt64(),
+                    reopenedCompletedResult = true, productionAutoDismiss = true, testHoldOnly = true,
                     format = finished.Format.ToString(), complete = finished.Complete, success = finished.Success,
                     stage = finished.Stage, output = finished.Output, error = finished.Error,
                     heldAtUtc = DateTimeOffset.UtcNow, holdMilliseconds = Math.Clamp(hold, 0, 120000)

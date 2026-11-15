@@ -6,6 +6,10 @@ namespace MonitoringTools.Core
         private static void AddQuickPacking(Dictionary<string, string> t)
         {
             void Add(string en, string yue) => t.TryAdd(en, yue);
+            Add("The last copied selection contains a link. Copy the original files or folders again; nothing was packed.", "上次複製嘅項目有連結。請重新複製原本檔案或資料夾；今次冇打包任何嘢。");
+            Add("Quick VHDX packing", "快速 VHDX 打包");
+            Add("Copy files or folders first, then copy the exact word vhd. Each selection can be packed once.", "先複製檔案或資料夾，再複製 vhd 呢個字。每次選擇只會打包一次。");
+            Add("The last copied selection is no longer available. Copy the complete selection again; nothing was packed.", "上次複製嘅項目已經唔齊。請重新複製完整選擇；今次冇打包任何嘢。");
             Add("Pack to ZIP", "打包成 ZIP"); Add("Pack to VHDX", "打包成 VHDX");
             Add("Create and verify a ZIP beside the original files. Starts immediately; originals are kept.", "即刻喺原檔旁邊建立並驗證 ZIP；原檔會保留。");
             Add("Original files are kept. Closing this window keeps packing in the background.", "原檔會保留。關閉呢個視窗後，打包會喺背景繼續。");

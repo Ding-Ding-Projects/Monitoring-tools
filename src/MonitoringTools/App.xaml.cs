@@ -197,17 +197,25 @@ namespace MonitoringTools
             t.Start();
         }
 
+        private readonly Core.Packing.PackingClipboardSelection _packingSelection = new();
+        // This same event seam is exercised with supplied items in focused tests, without changing the OS clipboard.
+        internal bool HandlePackingClipboard(ClipItem item, Action<string[]> start = null, Action<string> unavailable = null) =>
+            _packingSelection.Handle(item, Settings.Current.QuickCommandsEnabled,
+                start ?? (paths => UI.Dialogs.PackingProgressDialog.Start(paths, Core.Packing.PackingFormat.Vhdx)),
+                unavailable ?? (message => Toasts.ShowNotice("Quick VHDX packing", message, Toasts.Amber, 6, icon: Icons.Archive)));
+
         private void OnClipboard(ClipItem item)
         {
             var rule = UI.ClipPower.ApplyRule(item);
-            if (rule == "never") return;
-            if (UI.ClipPower.Take(item)) { if (!item.Sensitive) History.Add(item); return; }
+            if (rule == "never") { _packingSelection.Clear(); return; }
+            if (UI.ClipPower.Take(item)) { _packingSelection.Clear(); if (!item.Sensitive) History.Add(item); return; }
             if (item.Sensitive && Settings.Current.SecretGuard) GuardSecret(item);
             else History.Add(item);
-            if (rule == "quiet") return;
-            if (TryApplyCopiedWording(item)) return;
-            if (!Modes.ClipboardToastsOn) return;
+            if (rule == "quiet") { _packingSelection.Clear(); return; }
+            if (TryApplyCopiedWording(item)) { _packingSelection.Clear(); return; }
+            if (!Modes.ClipboardToastsOn) { _packingSelection.Clear(); return; }
 
+            if (HandlePackingClipboard(item)) return;
             if (item.Command != null && Settings.Current.QuickCommandsEnabled)
             {
                 // Quick commands always run, even in game mode; only the toast is held back.
