@@ -5,6 +5,26 @@ checked; anything unchecked is labelled.
 
 ## Current state
 
+### One-click packing and Compose operations (2026-11-15)
+
+- Direct **Pack to ZIP** and **Pack to VHDX** actions now start a shared job in a retained progress
+  dialog without opening the control centre. Repeated activation of one action starts one job.
+- Compose startup now has bounded live output, separate preflight/build/pull/start/health stages,
+  discovered-service controls, evidence-based possible causes and previewed scoped repairs.
+- Native checks on source `43c85fa8109b224a4d526a50b1e4cf405d704341`: packing 13 passed, 0 failed,
+  including actual dynamic VHDX creation, both file hashes verified, originals unchanged and
+  independent detached-state readback; real Compose startup 1 passed, 0 failed, with an isolated
+  Alpine service observed healthy. Earlier built-dialog fixture checks: 4 passed, 0 failed.
+- Final display-path and terminal-progress refinements are integrated; their final rebuild,
+  focused checks, current screenshots and release proof remain pending at this checkpoint.
+- Source review fixed bounded-scan exception handling, duplicate activation, live language
+  refresh and dark-theme controls. The full publication scan has existing literal-identifier
+  and historical matches; the changed files had no matches after the encoding repair. This is
+  not a claim that the full repository publication gate passed.
+- Scope excludes broader roadmap leftovers. Full display-scale/minimum-layout coverage,
+  automatic disk-growth under low-space conditions and all live Compose failure scenarios
+  remain unverified unless added to the final evidence record.
+
 - Windows tray app (.NET 8, WPF, single-file) with clipboard toasts, quick commands, internet watch,
   control centre, regex builder, Minecraft server manager and the other features listed in
   [README.md](README.md). The checklist of shipped and open items is [ROADMAP.md](ROADMAP.md).

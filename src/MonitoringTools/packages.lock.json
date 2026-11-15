@@ -2,6 +2,12 @@
   "version": 1,
   "dependencies": {
     "net8.0-windows10.0.19041": {
+      "Microsoft.NET.ILLink.Tasks": {
+        "type": "Direct",
+        "requested": "[8.0.29, )",
+        "resolved": "8.0.29",
+        "contentHash": "HSBTfrkIZijz8z3ybLRKB7E8rHk4QQufFwpHa9fc5CMIgRhRzdn4mBGmlyXZqaueiMPtuJcnjresGvSTfaW8Mg=="
+      },
       "YamlDotNet": {
         "type": "Direct",
         "requested": "[16.3.0, )",
@@ -14,6 +20,7 @@
         "resolved": "0.16.10",
         "contentHash": "9avtcn21T7Ndcl8PQ1LHR7/wEoCruX1QKKHvO6zBPTsDW9IdvR5vKOmd618AY+DtDWZz8NaFDTkpbZdgaF4l4w=="
       }
-    }
+    },
+    "net8.0-windows10.0.19041/win-x64": {}
   }
 }

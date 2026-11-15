@@ -41,6 +41,8 @@ finished (a dropped item would be struck through or moved to the last section wi
 
 ## In progress
 
+- [ ] One-click ZIP and VHDX packing from copied selections, dedicated progress, and detailed Compose startup with guided repairs (implementation and focused verification in progress)
+
 - [ ] Virtual disk manager: VHD Set checkpoints, attach at sign-in, physical disk copy, metadata, mirror, change tracking ranges, Dev Drive trust and filters, native boot (the library, every action on one disk, New virtual disk and Quick pack are built; see [Virtual disks](docs/features/files/virtual-disks.md))
 
 - [ ] Minecraft servers: Bedrock edition, a world generator with seed preview, and a recorded acceptance check per target on real hardware
