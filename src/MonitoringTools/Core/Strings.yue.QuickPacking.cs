@@ -8,6 +8,7 @@ namespace MonitoringTools.Core
             void Add(string en, string yue) => t.TryAdd(en, yue);
             Add("The last copied selection contains a link. Copy the original files or folders again; nothing was packed.", "上次複製嘅項目有連結。請重新複製原本檔案或資料夾；今次冇打包任何嘢。");
             Add("Verifying existing files", "驗證現有檔案中");
+            Add("Adding files to the selected existing VHDX.", "將檔案加入所選現有 VHDX。");
             Add("Choose VHDX", "選擇 VHDX"); Add("Add copied files", "加入已複製檔案");
             Add("Adding files to VHDX", "加入檔案到 VHDX"); Add("Copying existing disk", "複製現有磁碟中");
             Add("Replacing verified disk", "替換已驗證磁碟中"); Add("Rollback backup retained", "已保留回復備份");

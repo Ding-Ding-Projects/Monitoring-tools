@@ -209,6 +209,7 @@ namespace MonitoringTools
                     if (target == null) PackingUnavailable("No successful quick-pack VHDX is available. Create one with vhd or choose a target.");
                     else UI.Dialogs.PackingProgressDialog.Start(paths, Core.Packing.PackingFormat.Vhdx, target);
                 }));
+        internal bool ConsumePackingSelection(string[] paths) => _packingSelection.ConsumeMatching(paths);
         private static void PackingUnavailable(string message) => Toasts.ShowNotice("Quick VHDX packing", message, Toasts.Amber, 6, icon: Icons.Archive);
         internal void AddCopiedFilesToDisk(string target, bool chooseTarget = false) =>
             HandlePackingClipboard(new ClipItem { Kind = ClipKind.Text, Text = "vhd add" }, add: paths =>

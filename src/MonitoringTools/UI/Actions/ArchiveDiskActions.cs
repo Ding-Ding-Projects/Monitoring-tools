@@ -26,7 +26,7 @@ namespace MonitoringTools.UI
         public static void Add(ClipItem item, List<ToastAction> l)
         {
             if (item.Kind != ClipKind.Files || item.Files == null || item.Files.Length == 0) return;
-            var files = item.Files;
+            var files = (string[])item.Files.Clone();
             if (files.Length == 0) return;
             var archive = new ToastAction
             {

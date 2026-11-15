@@ -70,6 +70,43 @@ namespace MonitoringTools.UI
                 try { return job.Cancelled && window?.IsVisible == true ? null : "cancelled view dismissed"; }
                 finally { window?.Close(); }
             });
+            await CheckAsync("direct packing consumes only its matching clipboard selection", async () =>
+            {
+                var old = Settings.Current.QuickCommandsEnabled;
+                int starts = 0, notices = 0; string[] received = null;
+                void Start(string[] paths) { starts++; received = paths; }
+                void Notice(string text) { notices++; }
+                var app = App.Current;
+                void Select(string path) => app.HandlePackingClipboard(new Clip.ClipItem { Kind = Clip.ClipKind.Files, Files = new[] { path } }, Start, Notice, Start);
+                void AddCommand() => app.HandlePackingClipboard(new Clip.ClipItem { Kind = Clip.ClipKind.Text, Text = "vhd add" }, Start, Notice, Start);
+                try
+                {
+                    Settings.Current.QuickCommandsEnabled = true;
+                    Select(file);
+                    var direct = PackingProgressDialog.Start(new[] { file }, PackingFormat.Zip); await direct.Completion;
+                    AddCommand();
+                    if (starts != 0 || notices != 1) return "direct action left the same selection reusable";
+                    var newer = Path.Combine(root, "newer-selection.txt"); File.WriteAllText(newer, "newer");
+                    Select(newer);
+                    var oldToast = PackingProgressDialog.Start(new[] { file }, PackingFormat.Zip); await oldToast.Completion;
+                    AddCommand();
+                    return starts == 1 && received?.Single() == newer ? null : "old toast consumed a newer selection";
+                }
+                finally { app.HandlePackingClipboard(new Clip.ClipItem { Kind = Clip.ClipKind.Text, Text = "clear fixture" }, Start, Notice, Start); Settings.Current.QuickCommandsEnabled = old; }
+            });
+            await CheckAsync("append destination note never promises the first source folder", async () =>
+            {
+                var other = Path.Combine(root, "destination-note.txt"); File.WriteAllText(other, "fixture");
+                var target = Path.Combine(root, "unsupported-target.vhdx"); File.WriteAllText(target, "Not a disk: validation must stop before native attachment.");
+                var job = PackingProgressDialog.Start(new[] { file, other }, PackingFormat.Vhdx, target); await job.Completion;
+                var window = PackingProgressDialog.For(job);
+                try
+                {
+                    return !job.Success && window?.DestinationNote == Language.T("Adding files to the selected existing VHDX.")
+                        && window.ResultText.Contains(PathDisplay.Shown(target)) ? null : "append destination wording is inaccurate";
+                }
+                finally { window?.Close(); }
+            });
             Check("exact vhd add routes once without changing new-pack command", () =>
             {
                 var state = new PackingClipboardSelection(); int created = 0, added = 0, notices = 0;

@@ -20,6 +20,7 @@ namespace MonitoringTools.UI.Dialogs
         private bool _closed;
         public static PackingJob Start(string[] items, PackingFormat format, string appendTarget = null)
         {
+            App.Current?.ConsumePackingSelection(items);
             var job = new PackingJob(items, format, appendTarget);
             Open(job);
             Activity.Add(ActivityKind.Files, appendTarget != null ? "Adding files to VHDX" : format == PackingFormat.Zip ? "ZIP packing started" : "VHDX packing started", "Open packing progress", reopen: () => Open(job));
@@ -97,7 +98,9 @@ namespace MonitoringTools.UI.Dialogs
             _rate.Text = _job.Complete || p == null ? "" : $"{Ui.Bytes((long)p.BytesPerSecond)}/s · {Core.Language.T("Time left")}: {(p.Left is TimeSpan left ? left.ToString(@"hh\:mm\:ss") : Core.Language.T("working it out"))}";
             _current.Text = PathDisplay.Shown(p?.Current) ?? "";
             var details = DisplayDiagnostic(_job.Error) ?? "";
-            _destinationNote.Text = _job.Sources?.MixedFolders == true ? Core.Language.T("Mixed folders: output is saved beside the first copied item.") : "";
+            _destinationNote.Text = _job.AppendTarget != null ? Core.Language.T("Adding files to the selected existing VHDX.")
+                : _job.Sources?.MixedFolders == true ? Core.Language.T("Mixed folders: output is saved beside the first copied item.") : "";
+            if (_job.AppendTarget != null && _job.Output == null) details += "\n" + PathDisplay.Shown(_job.AppendTarget);
             if (_job.Output != null) details += "\n" + PathDisplay.Shown(_job.Output);
             if (_job.RetainedPath != null) details += "\n" + PathDisplay.Shown(_job.RetainedPath);
             if (_job.BackupPath != null) details += "\n" + Core.Language.T("Rollback backup retained") + "\n" + PathDisplay.Shown(_job.BackupPath);
