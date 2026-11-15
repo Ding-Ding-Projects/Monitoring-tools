@@ -1,0 +1,33 @@
+name: Report release line counts
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published release tag
+        required: true
+        default: v1.0.75
+permissions:
+  contents: read
+jobs:
+  report:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Count the published source
+        shell: pwsh
+        env:
+          COUNT_REF: ${{ inputs.tag }}
+        run: |
+          if ($env:COUNT_REF -notmatch '^v\d+\.\d+\.\d+$') { throw 'Expected a release tag' }
+          node scripts/line-counts.mjs --ref $env:COUNT_REF --json-out release-counts.json > release-counts.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-counts
+          path: release-counts.*
