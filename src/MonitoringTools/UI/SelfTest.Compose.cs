@@ -13,6 +13,25 @@ namespace MonitoringTools.UI
     {
         private static async Task ComposeChecksAsync(string dir)
         {
+            await CheckAsync("Compose dialog: Cantonese opening switches live to English and bilingual", async () =>
+            {
+                var saved = Settings.Current.LanguageMode;
+                ComposeDialog dialog = null;
+                try
+                {
+                    Settings.Current.LanguageMode = LanguageMode.Cantonese; Language.Refresh();
+                    dialog = new ComposeDialog(Path.Combine(dir, "compose-language.yaml"), new ComposeFixture());
+                    dialog.Show(); await Task.Delay(200); Language.Refresh(dialog);
+                    if (!TextOf(dialog).Contains("重試啟動") || !dialog.Title.Contains("啟動")) return "Cantonese opening failed";
+                    Settings.Current.LanguageMode = LanguageMode.English; Language.Refresh(); await Task.Delay(200);
+                    var english = TextOf(dialog);
+                    if (!english.Contains("Retry startup") || !english.Contains("Run previewed action") || dialog.Title != "Compose startup" || english.Contains("重試啟動")) return "English restoration failed";
+                    Settings.Current.LanguageMode = LanguageMode.Bilingual; Language.Refresh(); await Task.Delay(200);
+                    var bilingual = TextOf(dialog);
+                    return bilingual.Contains("Retry startup") && bilingual.Contains("重試啟動") && dialog.Title.Contains("Compose startup") && dialog.Title.Contains("啟動") ? null : "Bilingual restoration failed";
+                }
+                finally { dialog?.Close(); Settings.Current.LanguageMode = saved; Language.Refresh(); }
+            });
             await CheckAsync("Compose dialog: real controls with deterministic CLI fixture, not Docker runtime proof", async () =>
             {
                 var process = new ComposeFixture();

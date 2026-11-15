@@ -30,8 +30,7 @@ namespace MonitoringTools.UI.Dialogs
         private bool _busy;
         private int _queued;
         private static TextBlock Text() => new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text"), Margin = new Thickness(0, 4, 0, 4) };
-        private static string T(string en, string yue) => Language.Mode == LanguageMode.English ? en : Language.Mode == LanguageMode.Cantonese ? yue : en + " / " + yue;
-        public ComposeDialog(string file, IComposeProcess process = null) : base(T("Compose startup", "Compose 啟動"))
+        public ComposeDialog(string file, IComposeProcess process = null) : base("Compose startup")
         {
             _controller = new ComposeController(file, process);
             _controller.Output += line => { if (Interlocked.Increment(ref _queued) <= 500) _pending.Enqueue(line); else Interlocked.Decrement(ref _queued); };
@@ -40,29 +39,36 @@ namespace MonitoringTools.UI.Dialogs
             panel.Children.Add(_context); panel.Children.Add(_stage); panel.Children.Add(_result); panel.Children.Add(_services);
             AutomationProperties.SetLiveSetting(_result, AutomationLiveSetting.Polite);
             panel.Children.Add(_output);
-            _actions.Children.Add(Ui.Button(T("Retry startup", "重試啟動"), () => Plan("startup")));
-            _actions.Children.Add(Ui.Button(T("Recheck engine", "重新檢查引擎"), () => Plan("engine")));
-            _actions.Children.Add(Ui.Button(T("Retry build", "重試建置"), () => Plan("build")));
-            _actions.Children.Add(Ui.Button(T("Retry pull", "重試下載映像"), () => Plan("pull")));
-            _actions.Children.Add(Ui.Button(T("Recheck health", "重新檢查狀態"), () => Plan("recheck")));
+            _actions.Children.Add(Ui.Button("Retry startup", () => Plan("startup")));
+            _actions.Children.Add(Ui.Button("Recheck engine", () => Plan("engine")));
+            _actions.Children.Add(Ui.Button("Retry build", () => Plan("build")));
+            _actions.Children.Add(Ui.Button("Retry pull", () => Plan("pull")));
+            _actions.Children.Add(Ui.Button("Recheck health", () => Plan("recheck")));
             _actions.Children.Add(_service);
-            AutomationProperties.SetName(_service, T("Service for repair", "要處理嘅服務"));
-            _actions.Children.Add(Ui.Button(T("Inspect logs", "查看記錄"), () => Plan("logs")));
-            _actions.Children.Add(Ui.Button(T("Restart selected", "重新啟動所選服務"), () => Plan("restart")));
+            AutomationProperties.SetName(_service, "Service for repair");
+            _actions.Children.Add(Ui.Button("Inspect logs", () => Plan("logs")));
+            _actions.Children.Add(Ui.Button("Restart selected", () => Plan("restart")));
             panel.Children.Add(_actions); panel.Children.Add(_preview);
             panel.Children.Add(_diagnosis);
             var footer = new WrapPanel();
-            _confirm = Ui.Button(T("Run previewed action", "執行預覽操作"), async () => await Run());
+            _confirm = Ui.Button("Run previewed action", async () => await Run());
             footer.Children.Add(_confirm);
-            footer.Children.Add(Ui.Button(T("Cancel operation", "取消操作"), () => _cancellation?.Cancel()));
-            footer.Children.Add(Ui.Button(T("Close", "關閉"), OnEscape));
+            footer.Children.Add(Ui.Button("Cancel operation", () => _cancellation?.Cancel()));
+            footer.Children.Add(Ui.Button("Close", OnEscape));
             panel.Children.Add(footer);
             var scroll = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 650 };
-            ShowView("form", scroll, 840, Title, T("Preview, run, then inspect service readiness", "先預覽，再執行及檢查服務狀態"), Icons.Box);
+            ShowView("form", scroll, 840, Title, "Preview, run, then inspect service readiness", Icons.Box);
             Flex(scroll, 180);
             _timer.Tick += (s, e) => Refresh(); _timer.Start();
-            Closed += (s, e) => { _cancellation?.Cancel(); _timer.Stop(); };
+            Language.Changed += OnLanguageChanged;
+            Closed += (s, e) => { _cancellation?.Cancel(); _timer.Stop(); Language.Changed -= OnLanguageChanged; };
             Plan("startup");
+        }
+        private void OnLanguageChanged()
+        {
+            // Regenerate dynamic English originals, then let the shared layer translate once.
+            Refresh();
+            if (!_busy) Plan(_planned);
         }
         private void Plan(string operation)
         {
@@ -71,12 +77,13 @@ namespace MonitoringTools.UI.Dialogs
             try
             {
                 _preview.Text = operation == "startup"
-                    ? T("Will check CLI, Compose, engine and configuration, then run:", "會檢查 CLI、Compose、引擎及設定，然後執行：") + "\n" + string.Join("\n", new[] { "build", "pull", "start", "inspect" }.Select(op => _controller.Preview(op)))
+                    ? "Will check CLI, Compose, engine and configuration, then run:" + "\n" + string.Join("\n", new[] { "build", "pull", "start", "inspect" }.Select(op => _controller.Preview(op)))
                     : _controller.Preview(operation == "recheck" ? "inspect" : operation, operation is "recheck" or "engine" or "build" or "pull" ? null : _selected);
-                _preview.Text += "\n" + T("Health observation: 120 seconds. No configuration edits, volume deletion or rollback. Published ports are not verified URLs.", "狀態觀察：120 秒。不會修改設定、刪除磁碟區或回復原狀。已發佈連接埠並非已驗證網址。");
+                _preview.Text += "\n" + "Health observation: 120 seconds. No configuration edits, volume deletion or rollback. Published ports are not verified URLs.";
                 _confirm.IsEnabled = true;
             }
-            catch (ArgumentException) { _preview.Text = T("Select a discovered service first.", "請先選擇已發現嘅服務。"); _confirm.IsEnabled = false; }
+            catch (ArgumentException) { _preview.Text = "Select a discovered service first."; _confirm.IsEnabled = false; }
+            Language.Refresh(this);
         }
         internal string Outcome => _controller.Result;
         internal Task RunForTest() => Run();
@@ -91,17 +98,18 @@ namespace MonitoringTools.UI.Dialogs
         }
         private void Refresh()
         {
-            _context.Text = T("Docker context", "Docker 環境") + ": " + _controller.DockerContext;
-            _diagnosis.Text = T("Observed evidence", "觀察所得證據") + ": " + Language.T(_controller.FailureEvidence) + "\n" + Language.T(_controller.PossibleCause);
-            _stage.Text = T("Stage", "階段") + ": " + Language.T(_controller.Stage) + "   " + T("Elapsed", "已用時間") + ": " + _elapsed.Elapsed.ToString(@"hh\:mm\:ss");
-            _result.Text = Language.T(_controller.Result);
+            _context.Text = "Docker context" + ": " + _controller.DockerContext;
+            _diagnosis.Text = "Observed evidence" + ": " + _controller.FailureEvidence + "\n" + _controller.PossibleCause;
+            _stage.Text = "Stage" + ": " + _controller.Stage + "   " + "Elapsed" + ": " + _elapsed.Elapsed.ToString(@"hh\:mm\:ss");
+            _result.Text = _controller.Result;
             View = _busy ? "progress" : "done";
-            _services.Text = string.Join("\n", _controller.Services.Select(s => $"{s.Service} [{s.Name}]: {Language.T(s.Verdict)}; exit={s.ExitCode?.ToString() ?? "unknown"}; {s.Ports}"));
+            _services.Text = string.Join("\n", _controller.Services.Select(s => $"{s.Service} [{s.Name}]: {s.Verdict}; exit={s.ExitCode?.ToString() ?? "unknown"}; {s.Ports}"));
             if (!_controller.ExpectedServices.SequenceEqual(_service.Items.Cast<string>()))
             { var selected = _service.SelectedItem; _service.ItemsSource = _controller.ExpectedServices; _service.SelectedItem = selected; }
             int count = 0;
             while (count++ < 100 && _pending.TryDequeue(out var line)) { Interlocked.Decrement(ref _queued); _output.AppendText(line + "\n"); }
             if (_output.Text.Length > 48000) _output.Text = "[older output discarded]\n" + _output.Text.Substring(_output.Text.Length - 40000);
+            Language.Refresh(this);
         }
         protected override void OnPrimary() { if (_confirm.IsEnabled) _ = Run(); }
         protected override void OnEscape()
@@ -109,7 +117,7 @@ namespace MonitoringTools.UI.Dialogs
             if (_busy)
             {
                 _cancellation.Cancel();
-                _result.Text = T("Stopping owned command and observation. Containers may remain running; close again after it stops.", "正在停止本次指令及觀察。容器可能仍然運作；停止後可再關閉。");
+                _result.Text = "Stopping owned command and observation. Containers may remain running; close again after it stops.";
                 return;
             }
             Close();
