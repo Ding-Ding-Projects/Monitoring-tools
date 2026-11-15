@@ -21,7 +21,10 @@ checked; anything unchecked is labelled.
   background startup restored it and repeated readback confirmed readiness. A verified previous
   release binary is retained privately for rollback, not misrepresented as an original data snapshot.
 - Report-only release statistics run `43688274154` succeeded against the published tag. Archive-backed task-owned
-  cleanup is the final closeout step. The wiki remains prepared but unpublished pending initialization.
+  cleanup completed for both implementation branches and linked working trees after pushed-main ancestry proof.
+  A tested source/admin archive and hash-verified copies of all 14 private announcement variants remain
+  in owner-only storage. Pre-existing unrelated branches were retained. The wiki remains prepared but
+  unpublished pending initialization.
 
 - Final application candidate: `1d6541f0016b150a8cb9bde035cc42e9af5a91bd`, version 1.0.75,
   SHA-256 `7a0d558610b75dea94865b64e1d773c894f3b22edfd939b84296df4e8c49413a`.
