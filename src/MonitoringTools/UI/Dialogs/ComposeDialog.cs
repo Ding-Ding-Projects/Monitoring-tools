@@ -31,6 +31,13 @@ namespace MonitoringTools.UI.Dialogs
         private bool _busy;
         private int _queued;
         private static TextBlock Text() => new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.Text"), Margin = new Thickness(0, 4, 0, 4) };
+        private static Button ActionButton(string label, Action action, string icon)
+        {
+            var button = Ui.Button(label, action, icon: icon);
+            button.MinHeight = 48;
+            AutomationProperties.SetName(button, label);
+            return button;
+        }
         public ComposeDialog(string file, IComposeProcess process = null) : base("Compose startup")
         {
             _controller = new ComposeController(file, process);
@@ -40,22 +47,22 @@ namespace MonitoringTools.UI.Dialogs
             panel.Children.Add(_context); panel.Children.Add(_stage); panel.Children.Add(_result); panel.Children.Add(_services);
             AutomationProperties.SetLiveSetting(_result, AutomationLiveSetting.Polite);
             panel.Children.Add(_output);
-            _actions.Children.Add(Ui.Button("Retry startup", () => Plan("startup")));
-            _actions.Children.Add(Ui.Button("Recheck engine", () => Plan("engine")));
-            _actions.Children.Add(Ui.Button("Retry build", () => Plan("build")));
-            _actions.Children.Add(Ui.Button("Retry pull", () => Plan("pull")));
-            _actions.Children.Add(Ui.Button("Recheck health", () => Plan("recheck")));
+            _actions.Children.Add(ActionButton("Retry startup", () => Plan("startup"), DocIcons.Refresh));
+            _actions.Children.Add(ActionButton("Recheck engine", () => Plan("engine"), Icons.Box));
+            _actions.Children.Add(ActionButton("Retry build", () => Plan("build"), Icons.Code));
+            _actions.Children.Add(ActionButton("Retry pull", () => Plan("pull"), ToastIcons.Download));
+            _actions.Children.Add(ActionButton("Recheck health", () => Plan("recheck"), Icons.Check));
             _actions.Children.Add(_service);
             AutomationProperties.SetName(_service, "Service for repair");
-            _actions.Children.Add(Ui.Button("Inspect logs", () => Plan("logs")));
-            _actions.Children.Add(Ui.Button("Restart selected", () => Plan("restart")));
+            _actions.Children.Add(ActionButton("Inspect logs", () => Plan("logs"), DocIcons.Eye));
+            _actions.Children.Add(ActionButton("Restart selected", () => Plan("restart"), DocIcons.Refresh));
             panel.Children.Add(_actions); panel.Children.Add(_preview);
             panel.Children.Add(_diagnosis);
             var footer = new WrapPanel();
-            _confirm = Ui.Button("Run previewed action", async () => await Run());
+            _confirm = ActionButton("Run previewed action", async () => await Run(), Icons.Play);
             footer.Children.Add(_confirm);
-            footer.Children.Add(Ui.Button("Cancel operation", () => _cancellation?.Cancel()));
-            footer.Children.Add(Ui.Button("Close", OnEscape));
+            footer.Children.Add(ActionButton("Cancel operation", () => _cancellation?.Cancel(), ToastIcons.Block));
+            footer.Children.Add(ActionButton("Close", OnEscape, Icons.Close));
             var scroll = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 650 };
             var body = new DockPanel { LastChildFill = true };
             footer.Margin = new Thickness(0, 12, 0, 0);
