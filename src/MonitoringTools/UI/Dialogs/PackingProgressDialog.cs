@@ -111,24 +111,24 @@ namespace MonitoringTools.UI.Dialogs
             _actions.Children.Clear();
             if (!_job.Complete)
             {
-                _actions.Children.Add(Ui.Button("Cancel packing", () => { _job.Cancel(); _stage.Text = Core.Language.T("Cancelling safely…"); }, "Btn.Ghost"));
-                _actions.Children.Add(Ui.Button("Hide and continue", Hide, "Btn.Ghost"));
+                _actions.Children.Add(Ui.Button("Cancel packing", () => { _job.Cancel(); _stage.Text = Core.Language.T("Cancelling safely…"); }, "Btn.Ghost", Icons.Close));
+                _actions.Children.Add(Ui.Button("Hide and continue", Hide, "Btn.Ghost", DialogParts.Chevron));
             }
             else
             {
                 if (_job.Output != null)
                 {
                     _actions.Children.Add(Ui.Button("Show in folder", () => ActionProvider.Reveal(_job.Output), "Btn.Accent", Icons.Folder));
-                    _actions.Children.Add(Ui.Button("Copy output path", () => Clipboard.SetText(_job.Output), "Btn.Ghost"));
+                    _actions.Children.Add(Ui.Button("Copy output path", () => Clipboard.SetText(_job.Output), "Btn.Ghost", DialogParts.Copy));
                     if (_job.Format == PackingFormat.Vhdx)
                     {
-                        _actions.Children.Add(Ui.Button("Open in the disk library", () => App.Current.OpenVirtualDisks(disks: new[] { _job.Output }), "Btn.Ghost"));
-                        _actions.Children.Add(Ui.Button("Add copied files", () => App.Current.AddCopiedFilesToDisk(_job.Output), "Btn.Ghost"));
-                        _actions.Children.Add(Ui.Button("Choose VHDX", () => App.Current.AddCopiedFilesToDisk(_job.Output, chooseTarget: true), "Btn.Ghost"));
+                        _actions.Children.Add(Ui.Button("Open in the disk library", () => App.Current.OpenVirtualDisks(disks: new[] { _job.Output }), "Btn.Ghost", DialogParts.DiskIcon));
+                        _actions.Children.Add(Ui.Button("Add copied files", () => App.Current.AddCopiedFilesToDisk(_job.Output), "Btn.Ghost", Icons.Plus));
+                        _actions.Children.Add(Ui.Button("Choose VHDX", () => App.Current.AddCopiedFilesToDisk(_job.Output, chooseTarget: true), "Btn.Ghost", DialogParts.DiskIcon));
                     }
                 }
-                if (_job.BackupPath != null) _actions.Children.Add(Ui.Button("Show rollback backup", () => ActionProvider.Reveal(_job.BackupPath), "Btn.Ghost"));
-                _actions.Children.Add(Ui.Button("Close", Close, "Btn.Ghost"));
+                if (_job.BackupPath != null) _actions.Children.Add(Ui.Button("Show rollback backup", () => ActionProvider.Reveal(_job.BackupPath), "Btn.Ghost", Icons.Restart));
+                _actions.Children.Add(Ui.Button("Close", Close, "Btn.Ghost", Icons.Close));
             }
             Core.Language.Refresh(_actions);
         }
