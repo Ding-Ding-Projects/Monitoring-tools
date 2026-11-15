@@ -25,6 +25,11 @@ namespace MonitoringTools.UI
             Directory.CreateDirectory(Path.Combine(source, "Empty"));
             var file = Path.Combine(source, "hello.txt");
             File.WriteAllText(file, "Packing keeps the original intact. 香港文字。\n");
+            Check("packing removes duplicate and parent-child overlaps", () =>
+            {
+                var scan = PackingSources.Scan(new[] { file, source, file }, CancellationToken.None);
+                return scan.Items.Length == 1 && scan.Entries.Count(e => !e.Folder) == 1 && scan.Entries.Any(e => e.Relative.EndsWith("Empty")) ? null : "duplicate or empty folder inventory mismatch";
+            });
             Check("clipboard vhd consumes an exact in-memory selection once", () =>
             {
                 var old = Settings.Current.QuickCommandsEnabled;
@@ -141,11 +146,6 @@ namespace MonitoringTools.UI
                 if (PackingFileIdentity.Read(alias) != PackingFileIdentity.Read(target)) return "hard-link identity differs";
                 var job = new PackingJob(new[] { alias }, PackingFormat.Vhdx, target); job.Start(); await job.Completion;
                 return !job.Success && job.Output == null && job.Error?.Contains("hard-link alias") == true && File.ReadAllText(target) == "unchanged target fixture" ? null : "target alias was not rejected safely";
-            });
-            Check("packing removes duplicate and parent-child overlaps", () =>
-            {
-                var scan = PackingSources.Scan(new[] { file, source, file }, CancellationToken.None);
-                return scan.Items.Length == 1 && scan.Entries.Count(e => !e.Folder) == 1 && scan.Entries.Any(e => e.Relative.EndsWith("Empty")) ? null : "duplicate or empty folder inventory mismatch";
             });
             Check("packing scan cancellation is observed", () =>
             {
