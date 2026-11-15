@@ -92,7 +92,9 @@ namespace MonitoringTools.UI
                         Settings.Current.LanguageMode = mode; Language.Refresh();
                         if (window.StageText != Language.T(job.Stage)) return "stage did not follow " + mode;
                         if (window.DestinationNote != Language.T("Mixed folders: output is saved beside the first copied item.")) return "destination explanation did not follow " + mode;
-                        if (!window.ResultText.Contains(job.Output)) return "output path was altered";
+                        if (!window.ResultText.Contains(PathDisplay.Shown(job.Output))) return "display path did not use the shared privacy presentation";
+                        if (window.RateText.Length != 0) return "terminal result still shows a transfer estimate";
+                        if (!File.Exists(job.Output)) return "operational output path was altered";
                     }
                     return null;
                 }

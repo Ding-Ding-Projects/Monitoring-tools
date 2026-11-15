@@ -56,6 +56,7 @@ namespace MonitoringTools.UI.Dialogs
         internal string StageText => _stage.Text;
         internal string DestinationNote => _destinationNote.Text;
         internal string ResultText => _result.Text;
+        internal string RateText => _rate.Text;
         private void RefreshLanguage() { _renderedComplete = null; Refresh(); }
         protected override void OnEscape() { if (_job.Complete) Close(); else Hide(); }
         private void Refresh()
@@ -67,12 +68,12 @@ namespace MonitoringTools.UI.Dialogs
             _bar.IsIndeterminate = !_job.Complete && (p == null || p.Total <= 0 || _job.Stage is "Growing disk" or "Detaching" or "Creating and mounting" or "Waiting for Windows permission");
             _bar.Value = p == null || p.Total == 0 ? 0 : Math.Clamp(100.0 * p.Done / p.Total, 0, 100);
             _counts.Text = p == null ? Core.Language.T("Counting files and folders…") : $"{Ui.Bytes(p.Done)} / {Ui.Bytes(p.Total)} · {Core.Language.T("Files")}: {(p.FilesDone < 0 ? Core.Language.T("in progress") : p.FilesDone.ToString("N0"))} / {p.FilesTotal:N0}";
-            _rate.Text = p == null ? "" : $"{Ui.Bytes((long)p.BytesPerSecond)}/s · {Core.Language.T("Time left")}: {(p.Left is TimeSpan left ? left.ToString(@"hh\:mm\:ss") : Core.Language.T("working it out"))}";
-            _current.Text = p?.Current ?? "";
+            _rate.Text = _job.Complete || p == null ? "" : $"{Ui.Bytes((long)p.BytesPerSecond)}/s · {Core.Language.T("Time left")}: {(p.Left is TimeSpan left ? left.ToString(@"hh\:mm\:ss") : Core.Language.T("working it out"))}";
+            _current.Text = PathDisplay.Shown(p?.Current) ?? "";
             var details = _job.Error ?? "";
             _destinationNote.Text = _job.Sources?.MixedFolders == true ? Core.Language.T("Mixed folders: output is saved beside the first copied item.") : "";
-            if (_job.Output != null) details += "\n" + _job.Output;
-            if (_job.RetainedPath != null) details += "\n" + _job.RetainedPath;
+            if (_job.Output != null) details += "\n" + PathDisplay.Shown(_job.Output);
+            if (_job.RetainedPath != null) details += "\n" + PathDisplay.Shown(_job.RetainedPath);
             foreach (var warning in _job.Warnings) details += "\n" + warning;
             _result.Text = details.Trim();
             if (_renderedComplete == _job.Complete) return;
