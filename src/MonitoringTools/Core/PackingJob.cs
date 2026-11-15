@@ -26,6 +26,7 @@ namespace MonitoringTools.Core.Packing
         public string Output { get; private set; }
         public string AppendTarget { get; }
         public string BackupPath { get; private set; }
+        public int ExistingFilesVerified { get; private set; }
         public string Error { get; private set; }
         public string RetainedPath { get; private set; }
         public bool Complete { get; private set; }
@@ -45,6 +46,8 @@ namespace MonitoringTools.Core.Packing
         private bool _detached;
         private PackingAppendTransaction _append;
         private bool _ownsTargetLock;
+        private string _targetLockKey;
+        public string[] AddedTopLevelNames { get; private set; } = Array.Empty<string>();
         public PackingJob(string[] items, PackingFormat format, string appendTarget = null)
         {
             Items = (string[])items.Clone(); Format = format;
@@ -68,15 +71,25 @@ namespace MonitoringTools.Core.Packing
             {
                 if (AppendTarget != null)
                 {
-                    _ownsTargetLock = AddingTargets.TryAdd(AppendTarget, 0);
-                    if (!_ownsTargetLock) throw new IOException("Another add operation is already using this disk.");
                     _append = new PackingAppendTransaction(AppendTarget);
+                    _targetLockKey = _append.Identity;
+                    _ownsTargetLock = AddingTargets.TryAdd(_targetLockKey, 0);
+                    if (!_ownsTargetLock) throw new IOException("Another add operation is already using this disk.");
                 }
                 Sources = await Task.Run(() => PackingSources.Scan(Items, _cancel.Token));
                 Warnings.AddRange(Sources.Warnings);
                 _cancel.Token.ThrowIfCancellationRequested();
                 if (_append != null && (Warnings.Count != 0 || Sources.Entries.Any(e => string.Equals(Path.GetFullPath(e.Source), AppendTarget, StringComparison.OrdinalIgnoreCase))))
                     throw new IOException("The selection is incomplete or includes the target disk. The original disk was not changed.");
+                if (_append != null)
+                {
+                    foreach (var entry in Sources.Entries)
+                    {
+                        PackingFileIdentity.RequireLocalUnaliased(entry.Source);
+                        if (!entry.Folder && PackingFileIdentity.Read(entry.Source) == _append.Identity)
+                            throw new IOException("The source selection includes the target disk or a hard-link alias. Nothing was added.");
+                    }
+                }
                 _staging = Path.Combine(_append == null ? Sources.Folder : Path.GetDirectoryName(AppendTarget), ".monitoring-pack-" + Guid.NewGuid().ToString("N"));
                 Directory.CreateDirectory(_staging);
                 if (_append != null)
@@ -84,6 +97,7 @@ namespace MonitoringTools.Core.Packing
                     SetStage("Copying existing disk");
                     await _append.CopyAsync(Path.Combine(_staging, "output.vhdx"), new Progress<PackProgress>(Report), _cancel.Token);
                 }
+                _cancel.Token.ThrowIfCancellationRequested();
                 var staged = Format == PackingFormat.Zip ? await Zip() : await Disk();
                 _cancel.Token.ThrowIfCancellationRequested();
                 SetStage("Finishing");
@@ -124,7 +138,7 @@ namespace MonitoringTools.Core.Packing
                     BackupPath = _append.Backup;
                     if (Output == null) RetainedPath = AppendTarget;
                 }
-                if (_ownsTargetLock) AddingTargets.TryRemove(AppendTarget, out _);
+                if (_ownsTargetLock) AddingTargets.TryRemove(_targetLockKey, out _);
                 Complete = true;
                 if (Success && Format == PackingFormat.Vhdx) LastSuccessfulDisk = Output;
                 Changed?.Invoke();
@@ -173,6 +187,12 @@ namespace MonitoringTools.Core.Packing
             var ready = await _session.WaitForAsync(s => s.Phase == "ready" || s.Phase == "error", TimeSpan.FromMinutes(10), CancellationToken.None);
             if (ready?.Phase != "ready") throw new IOException(ready?.Error ?? "Disk creation did not finish.");
             _cancel.Token.ThrowIfCancellationRequested();
+            Dictionary<string, string> existingHashes = null;
+            if (_append != null)
+            {
+                SetStage("Verifying existing files");
+                existingHashes = await Task.Run(() => PackingDiskContents.HashAsync(VhdEngine.MountRoot(request), _cancel.Token));
+            }
             var copy = new PackCopy { CopyPermissions = CopyPermissions };
             var growths = new List<(long From, long To)>();
             long size = request.SizeMb * QuickPackPlan.Mb;
@@ -189,12 +209,20 @@ namespace MonitoringTools.Core.Packing
             };
             SetStage("Copying and verifying");
             var walk = _append == null ? Sources.Entries : PackingSources.NumberTopLevel(Sources.Entries, Directory.EnumerateFileSystemEntries(VhdEngine.MountRoot(request)).Select(Path.GetFileName));
+            if (_append != null) AddedTopLevelNames = walk.Select(e => e.Relative.Split(new[] { '\\', '/' }, 2)[0]).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
             DiskResult = await copy.RunAsync(walk, VhdEngine.MountRoot(request), new Progress<PackProgress>(Report), _cancel.Token);
             DiskResult.Growths.AddRange(growths);
             Warnings.AddRange(DiskResult.Skipped.Select(s => s.Path + ": " + s.Reason));
             if (DiskResult.Cancelled) throw new OperationCanceledException();
             if (DiskResult.Error != null) throw new IOException(DiskResult.Error);
             if (_append != null && DiskResult.Partial) throw new IOException("Not every added file verified. The original disk was not changed.");
+            if (existingHashes != null)
+            {
+                SetStage("Verifying existing files");
+                if (!await Task.Run(() => PackingDiskContents.VerifyAsync(VhdEngine.MountRoot(request), existingHashes, _cancel.Token)))
+                    throw new IOException("Existing file content changed in the staging copy. The original disk was not replaced.");
+                ExistingFilesVerified = existingHashes.Count;
+            }
             if (FitTightly)
             {
                 SetStage("Fitting disk");

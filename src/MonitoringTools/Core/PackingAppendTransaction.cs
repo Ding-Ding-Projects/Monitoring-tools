@@ -14,13 +14,15 @@ namespace MonitoringTools.Core.Packing
     {
         public string Target { get; }
         public string OriginalHash { get; private set; }
+        public string Identity { get; }
         public string Backup { get; private set; }
         public VDiskInfo Info { get; private set; }
-        public PackingAppendTransaction(string target) { Target = Path.GetFullPath(target); }
+        public PackingAppendTransaction(string target) { Target = Path.GetFullPath(target); Identity = PackingFileIdentity.Read(Target); }
         public static VDiskInfo RequireDetached(string target)
         {
             if (!Path.IsPathFullyQualified(target) || !target.EndsWith(".vhdx", StringComparison.OrdinalIgnoreCase) || !File.Exists(target)) throw new IOException("Choose an existing local VHDX file.");
             if (target.StartsWith(@"\\") || (File.GetAttributes(target) & FileAttributes.ReparsePoint) != 0) throw new IOException("Network paths and links cannot be updated.");
+            PackingFileIdentity.RequireLocalUnaliased(target);
             var info = VirtDisk.Read(target);
             if (info.Error != null) throw new IOException(info.Error);
             if (info.Format != "VHDX" || info.Type != "dynamic") throw new IOException("Adding files requires a dynamic VHDX.");
@@ -32,6 +34,7 @@ namespace MonitoringTools.Core.Packing
         public async Task CopyAsync(string staged, IProgress<PackProgress> progress, CancellationToken ct)
         {
             Info = RequireDetached(Target);
+            if (PackingFileIdentity.Read(Target) != Identity) throw new IOException("The target file identity changed before copying.");
             await Task.Run(() =>
             {
                 // Refuse an in-use target, and prevent writes while the snapshot is copied.
@@ -58,6 +61,7 @@ namespace MonitoringTools.Core.Packing
         public async Task PublishAsync(string staged, CancellationToken ct)
         {
             RequireDetached(Target);
+            if (PackingFileIdentity.Read(Target) != Identity) throw new IOException("The original disk was replaced during packing. It was not updated.");
             RequireDetached(staged);
             await Task.Run(() =>
             {

@@ -13,6 +13,9 @@ namespace MonitoringTools.UI
 {
     public static partial class SelfTest
     {
+        [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+        private static extern bool CreateHardLinkW(string newName, string existingName, IntPtr security);
+
         private static async Task QuickPackingChecksAsync(string dir)
         {
             var root = Path.Combine(dir, "quick-packing-" + Guid.NewGuid().ToString("N"));
@@ -66,6 +69,41 @@ namespace MonitoringTools.UI
                 var window = PackingProgressDialog.For(job);
                 try { return job.Cancelled && window?.IsVisible == true ? null : "cancelled view dismissed"; }
                 finally { window?.Close(); }
+            });
+            Check("exact vhd add routes once without changing new-pack command", () =>
+            {
+                var state = new PackingClipboardSelection(); int created = 0, added = 0, notices = 0;
+                void Copy() => state.Handle(new Clip.ClipItem { Kind = Clip.ClipKind.Files, Files = new[] { file } }, true, _ => created++, _ => notices++, _ => added++);
+                bool Command(string text) => state.Handle(new Clip.ClipItem { Kind = Clip.ClipKind.Text, Text = text }, true, _ => created++, _ => notices++, _ => added++);
+                Copy(); Command(" VHD ADD "); Command("vhd add");
+                Copy(); Command("vhd"); Copy();
+                if (Command("vhd add more")) return "non-exact add phrase accepted";
+                return created == 1 && added == 1 && notices == 1 ? null : "new/add routing or consumption mismatch";
+            });
+            Check("append numbers complete top-level groups without merging", () =>
+            {
+                var entries = new[] { ("s", "Folder", true, 0L), ("f", Path.Combine("Folder", "inside.txt"), false, 3L), ("x", "report.txt", false, 4L) };
+                var mapped = PackingSources.NumberTopLevel(entries, new[] { "Folder", "Folder (1)", "report.txt" });
+                return mapped[0].Relative == "Folder (2)" && mapped[1].Relative == Path.Combine("Folder (2)", "inside.txt") && mapped[2].Relative == "report (1).txt" ? null : "existing top-level content would merge or overwrite";
+            });
+            await CheckAsync("existing content hash verification catches changed bytes", async () =>
+            {
+                var target = Path.Combine(root, "content-proof"); Directory.CreateDirectory(target);
+                var oldFile = Path.Combine(target, "old.txt"); File.WriteAllText(oldFile, "old");
+                var hashes = await PackingDiskContents.HashAsync(target, CancellationToken.None);
+                File.WriteAllText(Path.Combine(target, "new.txt"), "new");
+                if (!await PackingDiskContents.VerifyAsync(target, hashes, CancellationToken.None)) return "new files invalidated old content";
+                File.WriteAllText(oldFile, "changed");
+                return await PackingDiskContents.VerifyAsync(target, hashes, CancellationToken.None) ? "changed existing file was not detected" : null;
+            });
+            await CheckAsync("append rejects target hard-link sources before native work", async () =>
+            {
+                var target = Path.Combine(root, "identity.vhdx"); var alias = Path.Combine(root, "identity-alias.bin");
+                File.WriteAllText(target, "unchanged target fixture");
+                if (!CreateHardLinkW(alias, target, IntPtr.Zero)) return "hard-link fixture could not be created: " + System.Runtime.InteropServices.Marshal.GetLastWin32Error();
+                if (PackingFileIdentity.Read(alias) != PackingFileIdentity.Read(target)) return "hard-link identity differs";
+                var job = new PackingJob(new[] { alias }, PackingFormat.Vhdx, target); job.Start(); await job.Completion;
+                return !job.Success && job.Output == null && job.Error?.Contains("hard-link alias") == true && File.ReadAllText(target) == "unchanged target fixture" ? null : "target alias was not rejected safely";
             });
             Check("packing removes duplicate and parent-child overlaps", () =>
             {
@@ -289,6 +327,56 @@ namespace MonitoringTools.UI
                             if (finished != null) PackingProgressDialog.For(finished)?.Close();
                             finished = live;
                         }
+                    }
+                });
+            }
+            if (Environment.GetEnvironmentVariable("MT_PACK_LIVE_APPEND") == "1")
+            {
+                await CheckAsync("live VHDX append preserves old content and cancellation", async () =>
+                {
+                    if (finished?.Format != PackingFormat.Vhdx || !finished.Success) return "A successful opt-in live VHDX creation is required before append verification.";
+                    var target = finished.Output;
+                    string HashDisk() { using var disk = File.OpenRead(target); return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(disk)); }
+                    var before = HashDisk();
+                    var extra = Path.Combine(root, "Add sources", "Live disk sources"); Directory.CreateDirectory(extra);
+                    File.WriteAllText(Path.Combine(extra, "readme.txt"), "New content with a colliding top-level folder.");
+                    File.WriteAllText(Path.Combine(extra, "added.txt"), "Second addition.");
+                    bool cancelSafe = false;
+                    string failure = null;
+                    PackingJob added = null;
+                    var started = DateTimeOffset.UtcNow;
+                    try
+                    {
+                        var cancelled = new PackingJob(new[] { extra }, PackingFormat.Vhdx, target);
+                        cancelled.Changed += () => { if (cancelled.Stage == "Copying existing disk" && cancelled.Progress?.Done > 0) cancelled.Cancel(); };
+                        cancelled.Start(); await cancelled.Completion;
+                        cancelSafe = cancelled.Cancelled && cancelled.Output == null && HashDisk() == before;
+                        if (!cancelSafe) return failure = "Cancellation while staging changed the original or did not cancel.";
+                        added = PackingProgressDialog.Start(new[] { extra }, PackingFormat.Vhdx, target);
+                        await added.Completion;
+                        if (!added.Success) return failure = added.Error ?? "The live append did not succeed.";
+                        if (added.Output != target || added.DiskResult?.Verified != 2 || added.ExistingFilesVerified != 2) return failure = "New or existing content verification counts did not match.";
+                        if (!added.AddedTopLevelNames.SequenceEqual(new[] { "Live disk sources (1)" })) return failure = "The colliding folder was not numbered as a complete group.";
+                        if (added.BackupPath == null || !File.Exists(added.BackupPath)) return failure = "The rollback backup was not retained.";
+                        using (var backup = File.OpenRead(added.BackupPath))
+                            if (Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(backup)) != before) return failure = "Rollback bytes differ from the original disk.";
+                        PackingAppendTransaction.RequireDetached(target);
+                        if (PackingJob.LastSuccessfulDisk != target) return failure = "The recent successful disk target was not updated.";
+                        if (PackingProgressDialog.For(added) != null) return failure = "Verified append success did not dismiss immediately.";
+                        return null;
+                    }
+                    catch (Exception ex) { return failure = ex.Message; }
+                    finally
+                    {
+                        File.WriteAllText(Path.Combine(dir, "quickpack-live-append.json"), System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            version = 1, kind = "native-vhdx-append", startedAtUtc = started, finishedAtUtc = DateTimeOffset.UtcNow,
+                            success = failure == null && added?.Success == true, failure, cancelSafe, target,
+                            backup = added?.BackupPath, newFilesVerified = added?.DiskResult?.Verified,
+                            existingFilesVerified = added?.ExistingFilesVerified, addedTopLevelNames = added?.AddedTopLevelNames,
+                            retainedPath = added?.RetainedPath
+                        }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                        if (added != null) { PackingProgressDialog.For(finished)?.Close(); finished = added; }
                     }
                 });
             }

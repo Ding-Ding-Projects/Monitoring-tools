@@ -86,7 +86,7 @@ namespace MonitoringTools.Core.Disks
                 // Every failure cleans up after itself: detach if it was attached, delete a file this run made.
                 if (attached) { try { Step(VhdEngine.DetachScript(r), "detach after failure"); } catch { } }
                 if (created) { try { if (File.Exists(r.File)) File.Delete(r.File); } catch { } }
-                Status("error", "Nothing was left behind.", error, 5);
+                Status("error", r.ExistingCopy ? "The original disk was not modified. Check the staging copy cleanup status." : "Nothing was left behind.", error, 5);
                 return 5;
             }
 
@@ -94,7 +94,7 @@ namespace MonitoringTools.Core.Disks
             {
                 if (r.ExistingCopy)
                 {
-                    var stagedInfo = Packing.PackingAppendTransaction.RequireDetached(r.File);
+                    var stagedInfo = MonitoringTools.Core.Packing.PackingAppendTransaction.RequireDetached(r.File);
                     using (var staged = new FileStream(r.File, FileMode.Open, FileAccess.Read, FileShare.Read))
                         if (!Convert.ToHexString(SHA256.HashData(staged)).Equals(r.ExistingCopySha256, StringComparison.OrdinalIgnoreCase)) return Fail("The staging copy changed before attachment.");
                     Status("started", "Permission given for the staging copy");
