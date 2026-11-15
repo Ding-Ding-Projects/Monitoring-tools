@@ -12,10 +12,12 @@ namespace MonitoringTools.UI.Dialogs
     {
         private static readonly Dictionary<PackingJob, PackingProgressDialog> Windows = new();
         private readonly PackingJob _job;
+        private readonly bool _observesRunningJob;
         private readonly TextBlock _stage = new(), _counts = new(), _rate = new(), _current = new(), _result = new(), _destinationNote = new();
         private readonly ProgressBar _bar = new() { Height = 10, Margin = new Thickness(0, 10, 0, 12), Minimum = 0, Maximum = 100 };
         private readonly WrapPanel _actions = new();
         private bool? _renderedComplete;
+        private bool _closed;
         public static PackingJob Start(string[] items, PackingFormat format)
         {
             var job = new PackingJob(items, format);
@@ -33,6 +35,7 @@ namespace MonitoringTools.UI.Dialogs
         private PackingProgressDialog(PackingJob job) : base(job.Format == PackingFormat.Zip ? "Pack to ZIP" : "Pack to VHDX")
         {
             _job = job;
+            _observesRunningJob = !job.Complete;
             var body = new StackPanel();
             foreach (var text in new[] { _stage, _counts, _rate, _current, _result, _destinationNote })
             {
@@ -50,7 +53,7 @@ namespace MonitoringTools.UI.Dialogs
             job.Changed += Refresh;
             Core.Language.Changed += RefreshLanguage;
             Closing += (s, e) => { if (!job.Complete) { e.Cancel = true; Hide(); } };
-            Closed += (s, e) => { job.Changed -= Refresh; Core.Language.Changed -= RefreshLanguage; Windows.Remove(job); };
+            Closed += (s, e) => { _closed = true; job.Changed -= Refresh; Core.Language.Changed -= RefreshLanguage; Windows.Remove(job); };
             Refresh();
         }
         /// <summary>Display-only privacy treatment; job diagnostics and operational paths remain unchanged.</summary>
@@ -78,6 +81,8 @@ namespace MonitoringTools.UI.Dialogs
         private void Refresh()
         {
             if (!Dispatcher.CheckAccess()) { Dispatcher.BeginInvoke(new Action(Refresh)); return; }
+            if (_closed) return;
+            if (_observesRunningJob && _job.Complete && _job.Success) { Close(); return; }
             TitleText.Text = Title = Core.Language.T(_job.Format == PackingFormat.Zip ? "Pack to ZIP" : "Pack to VHDX");
             _stage.Text = Core.Language.T(_job.CancellationRequested && !_job.Complete ? "Cancelling safely…" : _job.Stage);
             var p = _job.Progress;
