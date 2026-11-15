@@ -12,7 +12,7 @@ Check(ComposeDiagnostics.Redact("CUSTOM_VALUE=example-value") == "[environment a
 var fake = new Fake();
 var controller = new ComposeController(Path.Combine(Path.GetTempPath(), "compose.yaml"), fake) { HealthTimeout = TimeSpan.FromMilliseconds(1), PollInterval = TimeSpan.FromMilliseconds(1) };
 await controller.ExecuteAsync("startup", null, CancellationToken.None);
-Check(controller.Result.StartsWith("Services running"), "startup healthy verdict");
+Check(controller.Result.StartsWith("Services running") && controller.ReadinessVerified, "startup healthy verdict");
 Check(fake.Calls.Count == 9, "preflight/build/pull/start/inspect sequence");
 Check(fake.Calls[4].Contains("--services") && !fake.Calls[4].Contains("--environment"), "no resolved configuration dump");
 Check(fake.Calls[7].Contains("--no-build"), "distinct build stage");
@@ -21,23 +21,23 @@ Check(ComposeController.InferCause("Start", "port is already allocated").Contain
 Check(ComposeController.InferCause("Pull", "unauthorized").Contains("authentication"), "pull access inference");
 Check(ComposeController.InferCause("Configuration", "invalid").Contains("No file is edited"), "config boundary");
 await controller.ExecuteAsync("engine", null, CancellationToken.None);
-Check(controller.Result.Contains("readiness unchanged"), "engine retry is not readiness proof");
+Check(controller.Result.Contains("readiness unchanged") && !controller.ReadinessVerified, "engine retry is not readiness proof");
 Check(controller.Preview("pull").Contains("--ignore-buildable"), "pull preview");
 fake.Fail = true;
 await controller.ExecuteAsync("startup", null, CancellationToken.None);
 Check(controller.Result.Contains("exited 17"), "nonzero command does not report success");
 fake.Fail = false; fake.State = "[]";
 await controller.ExecuteAsync("recheck", null, CancellationToken.None);
-Check(controller.Result.Contains("timed out"), "missing service is not ready");
+Check(controller.Result.Contains("timed out") && !controller.ReadinessVerified, "missing service is not ready");
 fake.State = "{\"Service\":\"web\",\"State\":\"exited\",\"ExitCode\":0}";
 await controller.ExecuteAsync("recheck", null, CancellationToken.None);
-Check(controller.Result.Contains("one-shot") && controller.Result.Contains("unverified"), "one-shot requires confirmation");
+Check(!controller.ReadinessVerified && controller.Result.Contains("one-shot") && controller.Result.Contains("unverified"), "one-shot requires confirmation");
 fake.State = "{invalid";
 await controller.ExecuteAsync("recheck", null, CancellationToken.None);
 Check(!controller.Result.StartsWith("Services running"), "invalid JSON fails closed");
 using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
 await controller.ExecuteAsync("recheck", null, cancelled.Token);
-Check(controller.Result.StartsWith("Cancelled"), "cancelled observation");
+Check(controller.Result.StartsWith("Cancelled") && !controller.ReadinessVerified, "cancelled observation");
 Console.WriteLine("PASS: Compose controller checks (health, preflight order, redaction, scoped repair, nonzero exit, timeout, one-shot, invalid JSON and cancellation)");
 sealed class Fake : IComposeProcess
 {

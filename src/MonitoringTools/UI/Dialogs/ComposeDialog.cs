@@ -91,6 +91,8 @@ namespace MonitoringTools.UI.Dialogs
             catch (ArgumentException) { _preview.Text = "Select a discovered service first."; _confirm.IsEnabled = false; }
             Core.Language.Refresh(this);
         }
+        internal bool SuppressAutoCloseForTest { get; set; }
+        internal bool ReadinessVerifiedForTest => _controller.ReadinessVerified;
         internal string SelectedServiceForTest => _service.SelectedId;
         internal bool FooterOutsideScrollForTest => _confirm.Parent is WrapPanel footer && footer.Parent is DockPanel;
         internal string Outcome => _controller.Result;
@@ -102,7 +104,11 @@ namespace MonitoringTools.UI.Dialogs
             _busy = true; _actions.IsEnabled = false; _confirm.IsEnabled = false;
             _cancellation?.Dispose(); _cancellation = new CancellationTokenSource(); _elapsed.Restart();
             try { await _controller.ExecuteAsync(_planned, _selected, _cancellation.Token); }
-            finally { _elapsed.Stop(); _busy = false; _actions.IsEnabled = true; _confirm.IsEnabled = true; Refresh(); }
+            finally
+            {
+                _elapsed.Stop(); _busy = false; _actions.IsEnabled = true; _confirm.IsEnabled = true; Refresh();
+                if (_controller.ReadinessVerified && !SuppressAutoCloseForTest) Close();
+            }
         }
         private void Refresh()
         {

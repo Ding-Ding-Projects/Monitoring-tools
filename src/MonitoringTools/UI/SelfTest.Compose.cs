@@ -20,14 +20,16 @@ namespace MonitoringTools.UI
                 {
                     var selected = Path.GetFullPath(liveFile);
                     if (!File.Exists(selected)) return "Explicit live Compose file does not exist";
-                    var live = new ComposeDialog(selected);
+                    bool captureHold = int.TryParse(Environment.GetEnvironmentVariable("MT_COMPOSE_CAPTURE_WAIT_SECONDS"), out var captureSeconds) && captureSeconds > 0;
+                    var live = new ComposeDialog(selected) { SuppressAutoCloseForTest = captureHold };
                     live.Show();
                     try
                     {
                         await live.RunForTest();
-                        bool verified = live.Outcome.StartsWith("Services running;", StringComparison.Ordinal);
+                        bool verified = live.ReadinessVerifiedForTest;
                         File.WriteAllText(Path.Combine(dir, "compose-live-ready.json"), System.Text.Json.JsonSerializer.Serialize(new {
                             kind = "built-dialog-with-real-docker-process", dockerRuntimeVerified = verified,
+                            testOnlyAutoCloseSuppressed = captureHold,
                             source = typeof(ComposeDialog).Assembly.GetName().Version?.ToString(), title = live.Title,
                             atUtc = DateTime.UtcNow, outcome = live.Outcome,
                             cleanup = "Caller owns fixture teardown; closing this dialog does not stop containers." }));
@@ -39,6 +41,25 @@ namespace MonitoringTools.UI
                 });
                 return;
             }
+            await CheckAsync("Compose dialog: verified readiness closes immediately, failure stays visible", async () =>
+            {
+                var success = new ComposeDialog(Path.Combine(dir, "compose-auto-close.yaml"), new ComposeFixture());
+                success.Show();
+                try
+                {
+                    await success.RunForTest();
+                    if (!success.ReadinessVerifiedForTest || success.IsVisible) return "Verified readiness did not dismiss the dialog";
+                }
+                finally { success.Close(); }
+                var failure = new ComposeDialog(Path.Combine(dir, "compose-remains-open.yaml"), new ComposeFixture { Fail = true });
+                failure.Show();
+                try
+                {
+                    await failure.RunForTest();
+                    return !failure.ReadinessVerifiedForTest && failure.IsVisible ? null : "Failure dismissed the dialog";
+                }
+                finally { failure.Close(); }
+            });
             await CheckAsync("Compose dialog: Cantonese opening switches live to English and bilingual", async () =>
             {
                 var saved = Settings.Current.LanguageMode;
@@ -61,7 +82,7 @@ namespace MonitoringTools.UI
             await CheckAsync("Compose dialog: real controls with deterministic CLI fixture, not Docker runtime proof", async () =>
             {
                 var process = new ComposeFixture();
-                var dialog = new ComposeDialog(Path.Combine(dir, "compose-fixture.yaml"), process);
+                var dialog = new ComposeDialog(Path.Combine(dir, "compose-fixture.yaml"), process) { SuppressAutoCloseForTest = true };
                 dialog.Show();
                 try
                 {
@@ -73,6 +94,7 @@ namespace MonitoringTools.UI
                     // The explicit receipt prevents fixture pixels being mistaken for live Docker evidence.
                     File.WriteAllText(Path.Combine(dir, "compose-dialog-ready.json"), System.Text.Json.JsonSerializer.Serialize(new {
                         kind = "built-dialog-with-deterministic-process-fixture", dockerRuntimeVerified = false,
+                        testOnlyAutoCloseSuppressed = true,
                         source = typeof(ComposeDialog).Assembly.GetName().Version?.ToString(), title = dialog.Title,
                         atUtc = DateTime.UtcNow, outcome = dialog.Outcome }));
                     if (int.TryParse(Environment.GetEnvironmentVariable("MT_COMPOSE_CAPTURE_WAIT_SECONDS"), out var seconds))
@@ -92,12 +114,12 @@ namespace MonitoringTools.UI
         }
         private sealed class ComposeFixture : IComposeProcess
         {
-            internal bool Wait;
+            internal bool Wait, Fail;
             public async Task<ComposeCommandResult> RunAsync(string directory, IReadOnlyList<string> args, Action<string> output, CancellationToken cancellation)
             {
                 if (Wait) await Task.Delay(Timeout.Infinite, cancellation);
                 output?.Invoke("Deterministic CLI fixture; no Docker command executed.");
-                return new ComposeCommandResult(0, args.Contains("--services") ? "web\n" : args.Contains("ps")
+                return new ComposeCommandResult(Fail ? 17 : 0, args.Contains("--services") ? "web\n" : args.Contains("ps")
                     ? "{\"Service\":\"web\",\"Name\":\"fixture-web-1\",\"State\":\"running\",\"Health\":\"healthy\",\"ExitCode\":0,\"Publishers\":[]}" : "fixture");
             }
         }
