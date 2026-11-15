@@ -45,7 +45,7 @@ namespace MonitoringTools.Core.Packing
         private VhdSession _session;
         private bool _detached;
         private PackingAppendTransaction _append;
-        private bool _ownsTargetLock;
+        private bool _ownsTargetLock, _ownsPathLock;
         private string _targetLockKey;
         public string[] AddedTopLevelNames { get; private set; } = Array.Empty<string>();
         public PackingJob(string[] items, PackingFormat format, string appendTarget = null)
@@ -71,8 +71,10 @@ namespace MonitoringTools.Core.Packing
             {
                 if (AppendTarget != null)
                 {
+                    _ownsPathLock = AddingTargets.TryAdd("path:" + AppendTarget, 0);
+                    if (!_ownsPathLock) throw new IOException("Another add operation is already using this disk path.");
                     _append = new PackingAppendTransaction(AppendTarget);
-                    _targetLockKey = _append.Identity;
+                    _targetLockKey = "id:" + _append.Identity;
                     _ownsTargetLock = AddingTargets.TryAdd(_targetLockKey, 0);
                     if (!_ownsTargetLock) throw new IOException("Another add operation is already using this disk.");
                 }
@@ -139,6 +141,7 @@ namespace MonitoringTools.Core.Packing
                     if (Output == null) RetainedPath = AppendTarget;
                 }
                 if (_ownsTargetLock) AddingTargets.TryRemove(_targetLockKey, out _);
+                if (_ownsPathLock) AddingTargets.TryRemove("path:" + AppendTarget, out _);
                 Complete = true;
                 if (Success && Format == PackingFormat.Vhdx) LastSuccessfulDisk = Output;
                 Changed?.Invoke();
