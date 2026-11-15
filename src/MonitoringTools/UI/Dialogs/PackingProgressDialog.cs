@@ -53,6 +53,22 @@ namespace MonitoringTools.UI.Dialogs
             Closed += (s, e) => { job.Changed -= Refresh; Core.Language.Changed -= RefreshLanguage; Windows.Remove(job); };
             Refresh();
         }
+        /// <summary>Display-only privacy treatment; job diagnostics and operational paths remain unchanged.</summary>
+        internal static string DisplayDiagnostic(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            foreach (var (folder, label) in new[]
+            {
+                (Environment.SpecialFolder.LocalApplicationData, "%LOCALAPPDATA%"),
+                (Environment.SpecialFolder.ApplicationData, "%APPDATA%"),
+                (Environment.SpecialFolder.UserProfile, "%USERPROFILE%")
+            })
+            {
+                var prefix = Environment.GetFolderPath(folder);
+                if (!string.IsNullOrEmpty(prefix)) text = text.Replace(prefix, label, StringComparison.OrdinalIgnoreCase);
+            }
+            return text;
+        }
         internal string StageText => _stage.Text;
         internal string DestinationNote => _destinationNote.Text;
         internal string ResultText => _result.Text;
@@ -70,11 +86,11 @@ namespace MonitoringTools.UI.Dialogs
             _counts.Text = p == null ? Core.Language.T("Counting files and folders…") : $"{Ui.Bytes(p.Done)} / {Ui.Bytes(p.Total)} · {Core.Language.T("Files")}: {(p.FilesDone < 0 ? Core.Language.T("in progress") : p.FilesDone.ToString("N0"))} / {p.FilesTotal:N0}";
             _rate.Text = _job.Complete || p == null ? "" : $"{Ui.Bytes((long)p.BytesPerSecond)}/s · {Core.Language.T("Time left")}: {(p.Left is TimeSpan left ? left.ToString(@"hh\:mm\:ss") : Core.Language.T("working it out"))}";
             _current.Text = PathDisplay.Shown(p?.Current) ?? "";
-            var details = _job.Error ?? "";
+            var details = DisplayDiagnostic(_job.Error) ?? "";
             _destinationNote.Text = _job.Sources?.MixedFolders == true ? Core.Language.T("Mixed folders: output is saved beside the first copied item.") : "";
             if (_job.Output != null) details += "\n" + PathDisplay.Shown(_job.Output);
             if (_job.RetainedPath != null) details += "\n" + PathDisplay.Shown(_job.RetainedPath);
-            foreach (var warning in _job.Warnings) details += "\n" + warning;
+            foreach (var warning in _job.Warnings) details += "\n" + DisplayDiagnostic(warning);
             _result.Text = details.Trim();
             if (_renderedComplete == _job.Complete) return;
             _renderedComplete = _job.Complete;
