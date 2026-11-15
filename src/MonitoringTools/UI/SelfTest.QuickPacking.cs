@@ -48,6 +48,56 @@ namespace MonitoringTools.UI
                 try { PackingSources.Scan(new[] { source }, CancellationToken.None, entryLimit: 2); return "over-limit tree was accepted"; }
                 catch (Exception ex) { return ex.Message.Contains("exceeds 250,000 entries") ? null : ex.Message; }
             });
+            await CheckAsync("each direct packing toast action starts once", async () =>
+            {
+                foreach (var format in new[] { PackingFormat.Zip, PackingFormat.Vhdx })
+                {
+                    var actions = new System.Collections.Generic.List<ToastAction>();
+                    ArchiveDiskActions.Add(new Clip.ClipItem { Kind = Clip.ClipKind.Files, Files = new[] { file } }, actions);
+                    var action = actions.Single(a => a.Label == (format == PackingFormat.Zip ? "Pack to ZIP" : "Pack to VHDX"));
+                    int started = 0;
+                    void Count() => started++;
+                    PackingJob.Started += Count;
+                    VhdSession.TestDecline = format == PackingFormat.Vhdx;
+                    PackingJob job = null;
+                    try
+                    {
+                        action.Run(); job = PackingJob.Latest; action.Run();
+                        if (started != 1 || PackingJob.Latest != job) return "repeated action started another job";
+                        await job.Completion;
+                        action.Run();
+                        if (started != 1 || PackingJob.Latest != job) return "completed action started again";
+                        if (format == PackingFormat.Zip && !job.Success) return job.Error ?? "ZIP did not complete";
+                        if (format == PackingFormat.Vhdx && (job.Success || job.Output != null)) return "declined consent produced output";
+                    }
+                    finally
+                    {
+                        PackingJob.Started -= Count; VhdSession.TestDecline = false;
+                        if (job != null) PackingProgressDialog.For(job)?.Close();
+                    }
+                }
+                return null;
+            });
+            await CheckAsync("completed packing details follow live language switches", async () =>
+            {
+                var other = Path.Combine(root, "other.txt"); File.WriteAllText(other, "Second folder");
+                var job = PackingProgressDialog.Start(new[] { file, other }, PackingFormat.Zip);
+                await job.Completion;
+                var window = PackingProgressDialog.For(job);
+                var old = Settings.Current.LanguageMode;
+                try
+                {
+                    foreach (var mode in new[] { LanguageMode.Cantonese, LanguageMode.Bilingual, LanguageMode.English })
+                    {
+                        Settings.Current.LanguageMode = mode; Language.Refresh();
+                        if (window.StageText != Language.T(job.Stage)) return "stage did not follow " + mode;
+                        if (window.DestinationNote != Language.T("Mixed folders: output is saved beside the first copied item.")) return "destination explanation did not follow " + mode;
+                        if (!window.ResultText.Contains(job.Output)) return "output path was altered";
+                    }
+                    return null;
+                }
+                finally { Settings.Current.LanguageMode = old; Language.Refresh(); window.Close(); }
+            });
             PackingJob finished = null;
             await CheckAsync("direct ZIP starts automatically and verifies real entries", async () =>
             {
