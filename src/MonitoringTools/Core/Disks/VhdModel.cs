@@ -13,6 +13,8 @@ namespace MonitoringTools.Core.Disks
         public int Version { get; set; } = 1;
         public string File { get; set; }              // absolute path ending in .vhd or .vhdx
         public long SizeMb { get; set; }
+        public bool ExistingCopy { get; set; }
+        public string ExistingCopySha256 { get; set; }
         public bool Fixed { get; set; }               // false: dynamically expanding
         public string FileSystem { get; set; } = "NTFS";   // NTFS, exFAT or FAT32
         public string Label { get; set; } = "";
@@ -116,6 +118,15 @@ namespace MonitoringTools.Core.Disks
             if (string.IsNullOrWhiteSpace(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return "Give the disk a name without \\ / : * ? \" < > or |.";
             var ext = Path.GetExtension(r.File);
             if (!ext.Equals(".vhd", StringComparison.OrdinalIgnoreCase) && !ext.Equals(".vhdx", StringComparison.OrdinalIgnoreCase)) return "The disk file must end in .vhd or .vhdx.";
+            if (r.ExistingCopy)
+            {
+                var parent = Path.GetFileName(Path.GetDirectoryName(r.File));
+                if (!r.Vhdx || !string.Equals(Path.GetFileName(r.File), "output.vhdx", StringComparison.OrdinalIgnoreCase)
+                    || parent == null || !Regex.IsMatch(parent, @"^\.monitoring-pack-[0-9a-f]{32}$")
+                    || !System.IO.File.Exists(r.File) || r.ExistingCopySha256 == null || !Regex.IsMatch(r.ExistingCopySha256, "^[A-Fa-f0-9]{64}$"))
+                    return "An existing-disk request must identify a verified owned staging copy.";
+                if (r.Fixed || r.FileSystem != "NTFS" || r.MountMode != "letter") return "Existing-copy packing supports dynamic NTFS disks mounted by drive letter.";
+            }
             if (!FileSystems.Contains(r.FileSystem)) return "The file system must be NTFS, exFAT, FAT32 or ReFS.";
             var unreadable = ScriptUnreadable(r.File) ?? ScriptUnreadable(r.Label) ?? (r.MountMode == "folder" ? ScriptUnreadable(r.Folder) : null);
             if (unreadable != null) return $"Windows disk tools cannot read the character {unreadable} on this computer. Use a name, folder and label without it.";

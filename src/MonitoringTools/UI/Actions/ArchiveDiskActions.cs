@@ -26,7 +26,7 @@ namespace MonitoringTools.UI
         public static void Add(ClipItem item, List<ToastAction> l)
         {
             if (item.Kind != ClipKind.Files || item.Files == null || item.Files.Length == 0) return;
-            var files = item.Files;
+            var files = (string[])item.Files.Clone();
             if (files.Length == 0) return;
             var archive = new ToastAction
             {
@@ -51,7 +51,10 @@ namespace MonitoringTools.UI
             l.Insert(at, new ToastAction { Label = "Pack to ZIP", Icon = Icons.Archive, HandsOff = true,
                 Tip = "Create and verify a ZIP beside the original files. Starts immediately; originals are kept.",
                 Run = Once(() => PackingProgressDialog.Start(files, PackingFormat.Zip)) });
-            l.Insert(at + 1, pack); l.Insert(at + 2, archive); l.Insert(at + 3, disk);
+            l.Insert(at + 1, pack);
+            l.Insert(at + 2, new ToastAction { Label = "Choose VHDX", Icon = DialogParts.DiskIcon, HandsOff = true,
+                Tip = "Add these files to a detached dynamic VHDX, keeping a rollback backup.", Run = Once(() => PackingProgressDialog.ChooseTarget(files)) });
+            l.Insert(at + 3, archive); l.Insert(at + 4, disk);
             // copied virtual disk files open on the Virtual disks page, first among the file actions
             if (files.All(Core.Disks.DiskJobs.IsDiskFile))
                 l.Insert(at, new ToastAction

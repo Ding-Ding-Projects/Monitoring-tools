@@ -18,13 +18,19 @@ namespace MonitoringTools.UI.Dialogs
         private readonly WrapPanel _actions = new();
         private bool? _renderedComplete;
         private bool _closed;
-        public static PackingJob Start(string[] items, PackingFormat format)
+        public static PackingJob Start(string[] items, PackingFormat format, string appendTarget = null)
         {
-            var job = new PackingJob(items, format);
+            App.Current?.ConsumePackingSelection(items);
+            var job = new PackingJob(items, format, appendTarget);
             Open(job);
-            Activity.Add(ActivityKind.Files, format == PackingFormat.Zip ? "ZIP packing started" : "VHDX packing started", "Open packing progress", reopen: () => Open(job));
+            Activity.Add(ActivityKind.Files, appendTarget != null ? "Adding files to VHDX" : format == PackingFormat.Zip ? "ZIP packing started" : "VHDX packing started", "Open packing progress", reopen: () => Open(job));
             job.Start();
             return job;
+        }
+        public static void ChooseTarget(string[] items)
+        {
+            var picker = new Microsoft.Win32.OpenFileDialog { Title = Core.Language.T("Choose VHDX"), Filter = "VHDX (*.vhdx)|*.vhdx", CheckFileExists = true, Multiselect = false };
+            if (picker.ShowDialog() == true) Start(items, PackingFormat.Vhdx, picker.FileName);
         }
         public static void Open(PackingJob job)
         {
@@ -86,15 +92,18 @@ namespace MonitoringTools.UI.Dialogs
             TitleText.Text = Title = Core.Language.T(_job.Format == PackingFormat.Zip ? "Pack to ZIP" : "Pack to VHDX");
             _stage.Text = Core.Language.T(_job.CancellationRequested && !_job.Complete ? "Cancelling safely…" : _job.Stage);
             var p = _job.Progress;
-            _bar.IsIndeterminate = !_job.Complete && (p == null || p.Total <= 0 || _job.Stage is "Growing disk" or "Detaching" or "Creating and mounting" or "Waiting for Windows permission");
+            _bar.IsIndeterminate = !_job.Complete && (p == null || p.Total <= 0 || _job.Stage is "Growing disk" or "Detaching" or "Creating and mounting" or "Waiting for Windows permission" or "Verifying existing files");
             _bar.Value = p == null || p.Total == 0 ? 0 : Math.Clamp(100.0 * p.Done / p.Total, 0, 100);
             _counts.Text = p == null ? Core.Language.T("Counting files and folders…") : $"{Ui.Bytes(p.Done)} / {Ui.Bytes(p.Total)} · {Core.Language.T("Files")}: {(p.FilesDone < 0 ? Core.Language.T("in progress") : p.FilesDone.ToString("N0"))} / {p.FilesTotal:N0}";
             _rate.Text = _job.Complete || p == null ? "" : $"{Ui.Bytes((long)p.BytesPerSecond)}/s · {Core.Language.T("Time left")}: {(p.Left is TimeSpan left ? left.ToString(@"hh\:mm\:ss") : Core.Language.T("working it out"))}";
             _current.Text = PathDisplay.Shown(p?.Current) ?? "";
             var details = DisplayDiagnostic(_job.Error) ?? "";
-            _destinationNote.Text = _job.Sources?.MixedFolders == true ? Core.Language.T("Mixed folders: output is saved beside the first copied item.") : "";
+            _destinationNote.Text = _job.AppendTarget != null ? Core.Language.T("Adding files to the selected existing VHDX.")
+                : _job.Sources?.MixedFolders == true ? Core.Language.T("Mixed folders: output is saved beside the first copied item.") : "";
+            if (_job.AppendTarget != null && _job.Output == null) details += "\n" + PathDisplay.Shown(_job.AppendTarget);
             if (_job.Output != null) details += "\n" + PathDisplay.Shown(_job.Output);
             if (_job.RetainedPath != null) details += "\n" + PathDisplay.Shown(_job.RetainedPath);
+            if (_job.BackupPath != null) details += "\n" + Core.Language.T("Rollback backup retained") + "\n" + PathDisplay.Shown(_job.BackupPath);
             foreach (var warning in _job.Warnings) details += "\n" + DisplayDiagnostic(warning);
             _result.Text = details.Trim();
             if (_renderedComplete == _job.Complete) return;
@@ -111,8 +120,14 @@ namespace MonitoringTools.UI.Dialogs
                 {
                     _actions.Children.Add(Ui.Button("Show in folder", () => ActionProvider.Reveal(_job.Output), "Btn.Accent", Icons.Folder));
                     _actions.Children.Add(Ui.Button("Copy output path", () => Clipboard.SetText(_job.Output), "Btn.Ghost"));
-                    if (_job.Format == PackingFormat.Vhdx) _actions.Children.Add(Ui.Button("Open in the disk library", () => App.Current.OpenVirtualDisks(disks: new[] { _job.Output }), "Btn.Ghost"));
+                    if (_job.Format == PackingFormat.Vhdx)
+                    {
+                        _actions.Children.Add(Ui.Button("Open in the disk library", () => App.Current.OpenVirtualDisks(disks: new[] { _job.Output }), "Btn.Ghost"));
+                        _actions.Children.Add(Ui.Button("Add copied files", () => App.Current.AddCopiedFilesToDisk(_job.Output), "Btn.Ghost"));
+                        _actions.Children.Add(Ui.Button("Choose VHDX", () => App.Current.AddCopiedFilesToDisk(_job.Output, chooseTarget: true), "Btn.Ghost"));
+                    }
                 }
+                if (_job.BackupPath != null) _actions.Children.Add(Ui.Button("Show rollback backup", () => ActionProvider.Reveal(_job.BackupPath), "Btn.Ghost"));
                 _actions.Children.Add(Ui.Button("Close", Close, "Btn.Ghost"));
             }
             Core.Language.Refresh(_actions);

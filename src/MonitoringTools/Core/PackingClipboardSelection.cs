@@ -9,7 +9,15 @@ namespace MonitoringTools.Core.Packing
     {
         private string[] _selection;
         public void Clear() => _selection = null;
-        public bool Handle(ClipItem item, bool enabled, Action<string[]> start, Action<string> unavailable)
+        public bool ConsumeMatching(string[] paths)
+        {
+            if (_selection == null || paths == null || _selection.Length != paths.Length) return false;
+            for (int i = 0; i < paths.Length; i++)
+                if (!string.Equals(_selection[i], paths[i], StringComparison.OrdinalIgnoreCase)) return false;
+            Clear();
+            return true;
+        }
+        public bool Handle(ClipItem item, bool enabled, Action<string[]> start, Action<string> unavailable, Action<string[]> add = null)
         {
             if (!enabled || item == null || item.Sensitive) { Clear(); return false; }
             if (item.Kind == ClipKind.Files)
@@ -17,7 +25,9 @@ namespace MonitoringTools.Core.Packing
                 _selection = item.Files == null ? null : (string[])item.Files.Clone();
                 return false;
             }
-            if (!string.Equals(item.Text?.Trim(), "vhd", StringComparison.OrdinalIgnoreCase))
+            var command = item.Text?.Trim();
+            var adding = string.Equals(command, "vhd add", StringComparison.OrdinalIgnoreCase);
+            if (!adding && !string.Equals(command, "vhd", StringComparison.OrdinalIgnoreCase))
             {
                 Clear();
                 return false;
@@ -50,7 +60,12 @@ namespace MonitoringTools.Core.Packing
                     return true;
                 }
             }
-            start(selected);
+            if (adding)
+            {
+                if (add == null) unavailable("No successful quick-pack VHDX is available. Create one with vhd or choose a target.");
+                else add(selected);
+            }
+            else start(selected);
             return true;
         }
     }

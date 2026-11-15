@@ -15,6 +15,8 @@ namespace MonitoringTools.Core.Packing
     public sealed class PackingJob
     {
         public static PackingJob Latest { get; private set; }
+        public static string LastSuccessfulDisk { get; private set; }
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> AddingTargets = new(StringComparer.OrdinalIgnoreCase);
         public static event Action Started;
         public event Action Changed;
         public PackingFormat Format { get; }
@@ -22,6 +24,9 @@ namespace MonitoringTools.Core.Packing
         public PackingSources Sources { get; private set; }
         public string Stage { get; private set; } = "Scanning";
         public string Output { get; private set; }
+        public string AppendTarget { get; }
+        public string BackupPath { get; private set; }
+        public int ExistingFilesVerified { get; private set; }
         public string Error { get; private set; }
         public string RetainedPath { get; private set; }
         public bool Complete { get; private set; }
@@ -39,7 +44,16 @@ namespace MonitoringTools.Core.Packing
         private string _staging;
         private VhdSession _session;
         private bool _detached;
-        public PackingJob(string[] items, PackingFormat format) { Items = (string[])items.Clone(); Format = format; }
+        private PackingAppendTransaction _append;
+        private bool _ownsTargetLock, _ownsPathLock;
+        private string _targetLockKey;
+        public string[] AddedTopLevelNames { get; private set; } = Array.Empty<string>();
+        public PackingJob(string[] items, PackingFormat format, string appendTarget = null)
+        {
+            Items = (string[])items.Clone(); Format = format;
+            AppendTarget = appendTarget == null ? null : Path.GetFullPath(appendTarget);
+            if (AppendTarget != null && format != PackingFormat.Vhdx) throw new ArgumentException("Only VHDX supports adding files.");
+        }
         public void Start()
         {
             if (Completion != null) return;
@@ -55,15 +69,47 @@ namespace MonitoringTools.Core.Packing
         {
             try
             {
+                if (AppendTarget != null)
+                {
+                    _ownsPathLock = AddingTargets.TryAdd("path:" + AppendTarget, 0);
+                    if (!_ownsPathLock) throw new IOException("Another add operation is already using this disk path.");
+                    _append = new PackingAppendTransaction(AppendTarget);
+                    _targetLockKey = "id:" + _append.Identity;
+                    _ownsTargetLock = AddingTargets.TryAdd(_targetLockKey, 0);
+                    if (!_ownsTargetLock) throw new IOException("Another add operation is already using this disk.");
+                }
                 Sources = await Task.Run(() => PackingSources.Scan(Items, _cancel.Token));
                 Warnings.AddRange(Sources.Warnings);
                 _cancel.Token.ThrowIfCancellationRequested();
-                _staging = Path.Combine(Sources.Folder, ".monitoring-pack-" + Guid.NewGuid().ToString("N"));
+                if (_append != null && (Warnings.Count != 0 || Sources.Entries.Any(e => string.Equals(Path.GetFullPath(e.Source), AppendTarget, StringComparison.OrdinalIgnoreCase))))
+                    throw new IOException("The selection is incomplete or includes the target disk. The original disk was not changed.");
+                if (_append != null)
+                {
+                    foreach (var entry in Sources.Entries)
+                    {
+                        PackingFileIdentity.RequireLocalUnaliased(entry.Source);
+                        if (!entry.Folder && PackingFileIdentity.Read(entry.Source) == _append.Identity)
+                            throw new IOException("The source selection includes the target disk or a hard-link alias. Nothing was added.");
+                    }
+                }
+                _staging = Path.Combine(_append == null ? Sources.Folder : Path.GetDirectoryName(AppendTarget), ".monitoring-pack-" + Guid.NewGuid().ToString("N"));
                 Directory.CreateDirectory(_staging);
+                if (_append != null)
+                {
+                    SetStage("Copying existing disk");
+                    await _append.CopyAsync(Path.Combine(_staging, "output.vhdx"), new Progress<PackProgress>(Report), _cancel.Token);
+                }
+                _cancel.Token.ThrowIfCancellationRequested();
                 var staged = Format == PackingFormat.Zip ? await Zip() : await Disk();
                 _cancel.Token.ThrowIfCancellationRequested();
                 SetStage("Finishing");
-                Output = PackingSources.Publish(staged, Sources.Folder, Sources.Name, Format == PackingFormat.Zip ? ".zip" : ".vhdx");
+                if (_append == null) Output = PackingSources.Publish(staged, Sources.Folder, Sources.Name, Format == PackingFormat.Zip ? ".zip" : ".vhdx");
+                else
+                {
+                    SetStage("Replacing verified disk");
+                    await _append.PublishAsync(staged, _cancel.Token);
+                    Output = AppendTarget;
+                }
                 SetStage(Partial ? "Packed with skipped items" : "Packed and checked");
             }
             catch (OperationCanceledException) { Cancelled = true; SetStage("Cancelled"); }
@@ -89,9 +135,17 @@ namespace MonitoringTools.Core.Packing
                     catch (Exception ex) { RetainedPath = _staging; Stage = "Cleanup needs attention"; Warnings.Add("Temporary output could not be removed: " + ex.Message); }
                 }
                 if (_session != null && !_session.HelperAlive) _session.Cleanup();
+                if (_append?.Backup != null && File.Exists(_append.Backup))
+                {
+                    BackupPath = _append.Backup;
+                    if (Output == null) RetainedPath = AppendTarget;
+                }
+                if (_ownsTargetLock) AddingTargets.TryRemove(_targetLockKey, out _);
+                if (_ownsPathLock) AddingTargets.TryRemove("path:" + AppendTarget, out _);
                 Complete = true;
+                if (Success && Format == PackingFormat.Vhdx) LastSuccessfulDisk = Output;
                 Changed?.Invoke();
-                Activity.Add(ActivityKind.Files, Stage, Output ?? Error ?? "Packing cancelled", Success && !Partial);
+                Activity.Add(ActivityKind.Files, Stage, (Output ?? Error ?? "Packing cancelled") + (BackupPath == null ? "" : "\nRollback backup retained: " + BackupPath), Success && !Partial);
             }
         }
 
@@ -121,6 +175,12 @@ namespace MonitoringTools.Core.Packing
             if (letters.Count == 0) throw new IOException("No drive letter is available for the temporary disk.");
             var request = new VhdRequest { File = Path.Combine(_staging, "output.vhdx"), SizeMb = Math.Max(VhdEngine.MinMb, plan.StartBytes / QuickPackPlan.Mb),
                 Fixed = Fixed, FileSystem = FileSystem, Label = QuickPackPlan.LabelFor(Sources.Name), MountMode = "letter", Letter = letters[0] };
+            if (_append != null)
+            {
+                request.ExistingCopy = true; request.ExistingCopySha256 = _append.OriginalHash;
+                request.SizeMb = (long)(_append.Info.VirtualSize / (ulong)QuickPackPlan.Mb);
+                request.Fixed = false; request.FileSystem = "NTFS";
+            }
             var invalid = VhdEngine.Validate(request, checkFolderState: false);
             if (invalid != null) throw new IOException(invalid);
             _session = new VhdSession(request);
@@ -130,6 +190,12 @@ namespace MonitoringTools.Core.Packing
             var ready = await _session.WaitForAsync(s => s.Phase == "ready" || s.Phase == "error", TimeSpan.FromMinutes(10), CancellationToken.None);
             if (ready?.Phase != "ready") throw new IOException(ready?.Error ?? "Disk creation did not finish.");
             _cancel.Token.ThrowIfCancellationRequested();
+            Dictionary<string, string> existingHashes = null;
+            if (_append != null)
+            {
+                SetStage("Verifying existing files");
+                existingHashes = await Task.Run(() => PackingDiskContents.HashAsync(VhdEngine.MountRoot(request), _cancel.Token));
+            }
             var copy = new PackCopy { CopyPermissions = CopyPermissions };
             var growths = new List<(long From, long To)>();
             long size = request.SizeMb * QuickPackPlan.Mb;
@@ -145,11 +211,21 @@ namespace MonitoringTools.Core.Packing
                 growths.Add((size, next)); size = next; SetStage("Copying and verifying"); return null;
             };
             SetStage("Copying and verifying");
-            DiskResult = await copy.RunAsync(Sources.Entries, VhdEngine.MountRoot(request), new Progress<PackProgress>(Report), _cancel.Token);
+            var walk = _append == null ? Sources.Entries : PackingSources.NumberTopLevel(Sources.Entries, Directory.EnumerateFileSystemEntries(VhdEngine.MountRoot(request)).Select(Path.GetFileName));
+            if (_append != null) AddedTopLevelNames = walk.Select(e => e.Relative.Split(new[] { '\\', '/' }, 2)[0]).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            DiskResult = await copy.RunAsync(walk, VhdEngine.MountRoot(request), new Progress<PackProgress>(Report), _cancel.Token);
             DiskResult.Growths.AddRange(growths);
             Warnings.AddRange(DiskResult.Skipped.Select(s => s.Path + ": " + s.Reason));
             if (DiskResult.Cancelled) throw new OperationCanceledException();
             if (DiskResult.Error != null) throw new IOException(DiskResult.Error);
+            if (_append != null && DiskResult.Partial) throw new IOException("Not every added file verified. The original disk was not changed.");
+            if (existingHashes != null)
+            {
+                SetStage("Verifying existing files");
+                if (!await Task.Run(() => PackingDiskContents.VerifyAsync(VhdEngine.MountRoot(request), existingHashes, _cancel.Token)))
+                    throw new IOException("Existing file content changed in the staging copy. The original disk was not replaced.");
+                ExistingFilesVerified = existingHashes.Count;
+            }
             if (FitTightly)
             {
                 SetStage("Fitting disk");

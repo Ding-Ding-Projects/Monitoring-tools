@@ -86,12 +86,28 @@ namespace MonitoringTools.Core.Disks
                 // Every failure cleans up after itself: detach if it was attached, delete a file this run made.
                 if (attached) { try { Step(VhdEngine.DetachScript(r), "detach after failure"); } catch { } }
                 if (created) { try { if (File.Exists(r.File)) File.Delete(r.File); } catch { } }
-                Status("error", "Nothing was left behind.", error, 5);
+                Status("error", r.ExistingCopy ? "The original disk was not modified. Check the staging copy cleanup status." : "Nothing was left behind.", error, 5);
                 return 5;
             }
 
             try
             {
+                if (r.ExistingCopy)
+                {
+                    var stagedInfo = MonitoringTools.Core.Packing.PackingAppendTransaction.RequireDetached(r.File);
+                    using (var staged = new FileStream(r.File, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        if (!Convert.ToHexString(SHA256.HashData(staged)).Equals(r.ExistingCopySha256, StringComparison.OrdinalIgnoreCase)) return Fail("The staging copy changed before attachment.");
+                    Status("started", "Permission given for the staging copy");
+                    VirtDisk.Attach(r.File, readOnly: false, noDriveLetters: true);
+                    attached = true;
+                    var mounted = MountExistingCopy(r);
+                    if (mounted.Code != 0) return Fail("The existing copy could not be mounted: " + FirstLines(mounted.Output));
+                    var existingRoot = VhdEngine.MountRoot(r);
+                    if (!MountReady(existingRoot)) return Fail("The existing volume did not become ready.");
+                    Status("ready", "Existing copy ready; no partitions were created or formatted", mount: existingRoot);
+                }
+                else
+                {
                 if (File.Exists(r.File)) return Fail("A file with that name already exists.");
                 Status("started", "Permission given");
                 var s1 = Step(VhdEngine.CreateScript(r), "create and attach");
@@ -115,6 +131,7 @@ namespace MonitoringTools.Core.Disks
                 }
                 Status("formatted", $"Formatted {r.FileSystem} as {(r.MountMode == "letter" ? r.Letter.ToUpperInvariant() + ":" : r.Folder)}", mount: root);
                 Status("ready", "Ready", mount: root);
+                }
             }
             catch (Exception ex) { return Fail(ex.Message); }
 
@@ -155,6 +172,23 @@ namespace MonitoringTools.Core.Disks
                 Thread.Sleep(250);
             }
             return 0;
+        }
+
+        private static (int Code, string Output) MountExistingCopy(VhdRequest r)
+        {
+            var file = r.File.Replace("'", "''");
+            return PowerShell(string.Join("\n", new[]
+            {
+                "$ErrorActionPreference = 'Stop'",
+                $"$d = Get-DiskImage -ImagePath '{file}' | Get-Disk",
+                "if ($d.PartitionStyle -ne 'GPT') { throw 'Only GPT disks are supported for adding files.' }",
+                "$parts = @(Get-Partition -DiskNumber $d.Number | Where-Object { $_.Type -ne 'Reserved' })",
+                "if ($parts.Count -ne 1) { throw 'Exactly one data partition is required.' }",
+                "$p = $parts[0]",
+                "$v = $p | Get-Volume",
+                "if ($v.FileSystem -ne 'NTFS' -or $v.HealthStatus -ne 'Healthy') { throw 'A healthy unlocked NTFS volume is required.' }",
+                $"Set-Partition -DiskNumber $d.Number -PartitionNumber $p.PartitionNumber -NewDriveLetter {r.Letter.ToUpperInvariant()}",
+            }));
         }
 
         /// <summary>Tests replace the growth so no real disk is touched; it returns null when it grew, or why it could not.</summary>

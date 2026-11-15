@@ -199,10 +199,24 @@ namespace MonitoringTools
 
         private readonly Core.Packing.PackingClipboardSelection _packingSelection = new();
         // This same event seam is exercised with supplied items in focused tests, without changing the OS clipboard.
-        internal bool HandlePackingClipboard(ClipItem item, Action<string[]> start = null, Action<string> unavailable = null) =>
+        internal bool HandlePackingClipboard(ClipItem item, Action<string[]> start = null, Action<string> unavailable = null, Action<string[]> add = null) =>
             _packingSelection.Handle(item, Settings.Current.QuickCommandsEnabled,
                 start ?? (paths => UI.Dialogs.PackingProgressDialog.Start(paths, Core.Packing.PackingFormat.Vhdx)),
-                unavailable ?? (message => Toasts.ShowNotice("Quick VHDX packing", message, Toasts.Amber, 6, icon: Icons.Archive)));
+                unavailable ?? PackingUnavailable,
+                add ?? (paths =>
+                {
+                    var target = Core.Packing.PackingJob.LastSuccessfulDisk;
+                    if (target == null) PackingUnavailable("No successful quick-pack VHDX is available. Create one with vhd or choose a target.");
+                    else UI.Dialogs.PackingProgressDialog.Start(paths, Core.Packing.PackingFormat.Vhdx, target);
+                }));
+        internal bool ConsumePackingSelection(string[] paths) => _packingSelection.ConsumeMatching(paths);
+        private static void PackingUnavailable(string message) => Toasts.ShowNotice("Quick VHDX packing", message, Toasts.Amber, 6, icon: Icons.Archive);
+        internal void AddCopiedFilesToDisk(string target, bool chooseTarget = false) =>
+            HandlePackingClipboard(new ClipItem { Kind = ClipKind.Text, Text = "vhd add" }, add: paths =>
+            {
+                if (chooseTarget) UI.Dialogs.PackingProgressDialog.ChooseTarget(paths);
+                else UI.Dialogs.PackingProgressDialog.Start(paths, Core.Packing.PackingFormat.Vhdx, target);
+            });
 
         private void OnClipboard(ClipItem item)
         {
