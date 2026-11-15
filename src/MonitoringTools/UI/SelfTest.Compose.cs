@@ -13,6 +13,32 @@ namespace MonitoringTools.UI
     {
         private static async Task ComposeChecksAsync(string dir)
         {
+            var liveFile = Environment.GetEnvironmentVariable("MT_COMPOSE_LIVE_FILE");
+            if (!string.IsNullOrWhiteSpace(liveFile))
+            {
+                await CheckAsync("Compose live: explicitly selected task fixture reaches observed service readiness", async () =>
+                {
+                    var selected = Path.GetFullPath(liveFile);
+                    if (!File.Exists(selected)) return "Explicit live Compose file does not exist";
+                    var live = new ComposeDialog(selected);
+                    live.Show();
+                    try
+                    {
+                        await live.RunForTest();
+                        bool verified = live.Outcome.StartsWith("Services running;", StringComparison.Ordinal);
+                        File.WriteAllText(Path.Combine(dir, "compose-live-ready.json"), System.Text.Json.JsonSerializer.Serialize(new {
+                            kind = "built-dialog-with-real-docker-process", dockerRuntimeVerified = verified,
+                            source = typeof(ComposeDialog).Assembly.GetName().Version?.ToString(), title = live.Title,
+                            atUtc = DateTime.UtcNow, outcome = live.Outcome,
+                            cleanup = "Caller owns fixture teardown; closing this dialog does not stop containers." }));
+                        if (int.TryParse(Environment.GetEnvironmentVariable("MT_COMPOSE_CAPTURE_WAIT_SECONDS"), out var hold))
+                            await Task.Delay(TimeSpan.FromSeconds(Math.Clamp(hold, 0, 90)));
+                        return verified ? null : live.Outcome;
+                    }
+                    finally { live.Close(); }
+                });
+                return;
+            }
             await CheckAsync("Compose dialog: Cantonese opening switches live to English and bilingual", async () =>
             {
                 var saved = Settings.Current.LanguageMode;
