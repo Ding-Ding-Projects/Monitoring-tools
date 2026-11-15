@@ -463,6 +463,7 @@ namespace MonitoringTools.Core
             AddDocSys(t);
             AddDocSysMore(t);
             AddArchiveDisk(t);
+            AddQuickPacking(t);
             AddDataSec(t);
             AddMedia(t);
             AddSmart(t);

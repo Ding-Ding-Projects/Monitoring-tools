@@ -1333,7 +1333,10 @@ namespace MonitoringTools.UI
             Grid.SetColumn(mid, 1); g.Children.Add(mid);
             var when = Ui.Mono(Ago(e.At), Ui.Res("B.TextMute"), 11);
             when.VerticalAlignment = VerticalAlignment.Center;
-            Grid.SetColumn(when, 2); g.Children.Add(when);
+            var trailing = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            trailing.Children.Add(when);
+            if (e.Reopen != null) trailing.Children.Add(Ui.Button("Open progress", e.Reopen, "Btn.Ghost"));
+            Grid.SetColumn(trailing, 2); g.Children.Add(trailing);
             if (e.Kind == ActivityKind.Convert && e.Title.Contains(" → ")) Core.Language.SetLiteral(g, true);   // "file → file" is the person's own file names
             return SearchScope.SetItem(g, $"{e.Title} {e.Detail} {e.Kind} {(e.Ok ? "ok" : "failed")}");
         }

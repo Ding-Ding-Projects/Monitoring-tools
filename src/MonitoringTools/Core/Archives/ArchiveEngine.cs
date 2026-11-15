@@ -130,7 +130,7 @@ namespace MonitoringTools.Core.Archives
             var hashes = new Dictionary<string, string>(StringComparer.Ordinal);
             try
             {
-                progress?.Report(new ArchiveProgress { Step = "Scan", Done = 0, Total = result.SourceBytes });
+                progress?.Report(new ArchiveProgress { Step = "Scan", Done = 0, Total = result.SourceBytes, FilesTotal = result.Files });
                 if (o.NeedsSevenZip) await RunSevenZipAsync(scan, o, chosen, output, progress, ct);
                 else if (o.Format == ArchiveFormat.Zip) await Task.Run(() => WriteZip(o, chosen, output, hashes, result.SourceBytes, progress, ct), ct);
                 else await Task.Run(() => WriteTarGz(o, chosen, output, hashes, result.SourceBytes, progress, ct), ct);
@@ -141,14 +141,14 @@ namespace MonitoringTools.Core.Archives
                 if (o.TestAfter)
                 {
                     result.Tested = true;
-                    progress?.Report(new ArchiveProgress { Step = "Test", Done = 0, Total = result.SourceBytes });
+                    progress?.Report(new ArchiveProgress { Step = "Test", Done = 0, Total = result.SourceBytes, FilesTotal = result.Files });
                     var (ok, detail) = o.NeedsSevenZip
                         ? await TestSevenZipAsync(result.Outputs[0], o, progress, ct, result.SourceBytes)
                         : await Task.Run(() => TestManaged(o, output, hashes, result.Files, result.SourceBytes, progress, ct), ct);
                     result.TestOk = ok; result.TestDetail = detail;
                     if (!ok) throw new InvalidDataException("The test failed: " + detail);
                 }
-                progress?.Report(new ArchiveProgress { Step = "Finish", Done = result.SourceBytes, Total = result.SourceBytes });
+                progress?.Report(new ArchiveProgress { Step = "Finish", Done = result.SourceBytes, Total = result.SourceBytes, FilesTotal = result.Files, FilesDone = result.Files });
                 result.Ok = true;
             }
             catch (OperationCanceledException) { result.Cancelled = true; DeleteOutputs(output); }
@@ -163,7 +163,9 @@ namespace MonitoringTools.Core.Archives
             private readonly Stopwatch _clock = Stopwatch.StartNew();
             private readonly IProgress<ArchiveProgress> _p; private readonly string _step; private readonly long _total;
             private long _done; private long _lastTick;
-            public Meter(IProgress<ArchiveProgress> p, string step, long total) { _p = p; _step = step; _total = total; }
+            private int _filesDone; private readonly int _filesTotal;
+            public Meter(IProgress<ArchiveProgress> p, string step, long total, int filesTotal = 0) { _p = p; _step = step; _total = total; _filesTotal = filesTotal; }
+            public void FileDone(string file) { _filesDone++; _lastTick = -1000; Add(0, file); }
             public void Add(long n, string file)
             {
                 _done += n;
@@ -171,7 +173,7 @@ namespace MonitoringTools.Core.Archives
                 _lastTick = _clock.ElapsedMilliseconds;
                 var s = _clock.Elapsed.TotalSeconds;
                 double rate = s > 0.2 ? _done / s : 0;
-                _p?.Report(new ArchiveProgress { Step = _step, Done = _done, Total = _total, BytesPerSecond = rate, Remaining = rate > 0 ? TimeSpan.FromSeconds(Math.Max(0, (_total - _done) / rate)) : null, CurrentFile = file });
+                _p?.Report(new ArchiveProgress { Step = _step, Done = _done, Total = _total, FilesDone = _filesDone, FilesTotal = _filesTotal, BytesPerSecond = rate, Remaining = rate > 0 ? TimeSpan.FromSeconds(Math.Max(0, (_total - _done) / rate)) : null, CurrentFile = file });
             }
         }
 
@@ -182,7 +184,7 @@ namespace MonitoringTools.Core.Archives
         // ---- zip through System.IO.Compression. Levels collapse to four here: Store, Fastest (Fastest and Fast), Optimal (Normal), Smallest (Maximum and Ultra).
         private static void WriteZip(ArchiveOptions o, List<(ScanEntry Entry, string Name)> chosen, string output, Dictionary<string, string> hashes, long total, IProgress<ArchiveProgress> progress, CancellationToken ct)
         {
-            var meter = new Meter(progress, "Compress", total);
+            var meter = new Meter(progress, "Compress", total, chosen.Count(c => !c.Entry.IsEmptyDirectory));
             var buffer = new byte[256 * 1024];
             var level = o.EffectiveMethod == "Store" ? CompressionLevel.NoCompression : Level(o.Level);
             using (var fs = new FileStream(output, FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -205,6 +207,7 @@ namespace MonitoringTools.Core.Archives
                         meter.Add(n, name);
                     }
                     hashes[Clamp(name)] = Convert.ToHexString(hash.GetHashAndReset());
+                    meter.FileDone(name);
                 }
             }
         }
@@ -235,7 +238,7 @@ namespace MonitoringTools.Core.Archives
 
         private static void WriteTarGz(ArchiveOptions o, List<(ScanEntry Entry, string Name)> chosen, string output, Dictionary<string, string> hashes, long total, IProgress<ArchiveProgress> progress, CancellationToken ct)
         {
-            var meter = new Meter(progress, "Compress", total);
+            var meter = new Meter(progress, "Compress", total, chosen.Count(c => !c.Entry.IsEmptyDirectory));
             using var fs = new FileStream(output, FileMode.CreateNew, FileAccess.Write, FileShare.None);
             using var gz = new GZipStream(fs, Level(o.Level == 0 ? 1 : o.Level));   // gzip has no store mode; Store becomes the fastest level
             using var tar = new TarWriter(gz, TarEntryFormat.Pax, leaveOpen: false);
@@ -248,13 +251,14 @@ namespace MonitoringTools.Core.Archives
                 using var src = new CountingStream(Open(e.Full), meter, name, hash, ct);
                 tar.WriteEntry(new PaxTarEntry(TarEntryType.RegularFile, n) { DataStream = src, ModificationTime = Stamp(e.Modified) });
                 hashes[n] = Convert.ToHexString(hash.GetHashAndReset());
+                meter.FileDone(n);
             }
         }
 
         // ---- the test step for archives this class wrote itself: read every entry back and compare its hash with the source it came from
         internal static (bool Ok, string Detail) TestManaged(ArchiveOptions o, string archive, Dictionary<string, string> hashes, int files, long total, IProgress<ArchiveProgress> progress, CancellationToken ct)
         {
-            var meter = new Meter(progress, "Test", total);
+            var meter = new Meter(progress, "Test", total, files);
             var seen = 0; var buffer = new byte[256 * 1024];
             string Check(string name, Stream s)
             {
@@ -275,6 +279,7 @@ namespace MonitoringTools.Core.Archives
                         var bad = Check(e.FullName, s);
                         if (bad != null) return (false, bad);
                         seen++;
+                        meter.FileDone(e.FullName);
                     }
                 }
                 else
@@ -287,6 +292,7 @@ namespace MonitoringTools.Core.Archives
                         var bad = Check(te.Name, te.DataStream);
                         if (bad != null) return (false, bad);
                         seen++;
+                        meter.FileDone(te.Name);
                     }
                 }
             }
