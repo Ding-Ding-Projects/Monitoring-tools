@@ -468,6 +468,7 @@ namespace MonitoringTools.Core
             AddSmart(t);
             AddFeatures(t);
             AddVirtualDisks(t);
+            AddCompose(t);
             return t;
         }
 
