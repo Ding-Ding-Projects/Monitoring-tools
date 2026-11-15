@@ -72,6 +72,26 @@ namespace MonitoringTools.Core.Packing
             { Warnings.Add(path + ": " + ex.Message); }
         }
 
+        public static List<(string Source, string Relative, bool Folder, long Size)> NumberTopLevel(
+            IEnumerable<(string Source, string Relative, bool Folder, long Size)> entries, IEnumerable<string> occupiedNames)
+        {
+            var occupied = new HashSet<string>(occupiedNames, StringComparer.OrdinalIgnoreCase);
+            var mapped = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var result = new List<(string, string, bool, long)>();
+            foreach (var entry in entries)
+            {
+                var parts = entry.Relative.Split(new[] { '\\', '/' }, 2);
+                if (!mapped.TryGetValue(parts[0], out var chosen))
+                {
+                    chosen = parts[0];
+                    for (int n = 1; !occupied.Add(chosen); n++) chosen = Path.GetFileNameWithoutExtension(parts[0]) + " (" + n + ")" + Path.GetExtension(parts[0]);
+                    mapped.Add(parts[0], chosen);
+                }
+                result.Add((entry.Source, parts.Length == 1 ? chosen : Path.Combine(chosen, parts[1]), entry.Folder, entry.Size));
+            }
+            return result;
+        }
+
         /// <summary>Rename on the same volume, atomically refusing every occupied destination.</summary>
         public static string Publish(string staged, string folder, string name, string extension)
         {
