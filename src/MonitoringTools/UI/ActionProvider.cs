@@ -291,6 +291,7 @@ namespace MonitoringTools.UI
                     Label = da.Label, Icon = Icons.Box, Primary = da.Primary && !item.HadQuotes, Tip = da.Explain, HandsOff = !da.InTerminal,
                     Run = () =>
                     {
+                        if (DockerActions.Detect(f) == DockerFileKind.Compose && da.Primary) { new MonitoringTools.UI.Dialogs.ComposeDialog(f).Show(); return; }
                         if (da.InTerminal) { DockerActions.OpenInTerminal(f, da); return; }
                         App.Toasts.ShowTask("docker " + da.Label.ToLowerInvariant(), Path.GetFileName(f), async () =>
                         {

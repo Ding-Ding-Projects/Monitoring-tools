@@ -50,6 +50,7 @@ namespace MonitoringTools.UI
         {
             dir = Path.GetFullPath(dir);
             Directory.CreateDirectory(dir);
+            if (Environment.GetEnvironmentVariable("MT_ONLY") == "compose") { await ComposeChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_WAVE6_ONLY") == "1") { await RunWave6Async(); Finish(dir); return; }   // quick loop while developing these checks
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "quickpack") { await QuickPackingChecksAsync(dir); Finish(dir); return; }
             if (Environment.GetEnvironmentVariable("MT_ONLY") == "lane4qr") { QrLane4Checks(); Finish(dir); return; }
