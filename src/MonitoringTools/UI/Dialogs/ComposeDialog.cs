@@ -36,7 +36,7 @@ namespace MonitoringTools.UI.Dialogs
             _controller = new ComposeController(file, process);
             _controller.Output += line => { if (Interlocked.Increment(ref _queued) <= 500) _pending.Enqueue(line); else Interlocked.Decrement(ref _queued); };
             var panel = new StackPanel();
-            panel.Children.Add(new TextBlock { Text = _controller.FilePath + "\n" + _controller.DirectoryPath, TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") });
+            panel.Children.Add(new TextBlock { Text = PathDisplay.Shown(_controller.FilePath) + "\n" + PathDisplay.Shown(_controller.DirectoryPath), TextWrapping = TextWrapping.Wrap, Foreground = Ui.Res("B.TextSoft") });
             panel.Children.Add(_context); panel.Children.Add(_stage); panel.Children.Add(_result); panel.Children.Add(_services);
             AutomationProperties.SetLiveSetting(_result, AutomationLiveSetting.Polite);
             panel.Children.Add(_output);
@@ -84,6 +84,7 @@ namespace MonitoringTools.UI.Dialogs
                 _preview.Text = operation == "startup"
                     ? "Will check CLI, Compose, engine and configuration, then run:" + "\n" + string.Join("\n", new[] { "build", "pull", "start", "inspect" }.Select(op => _controller.Preview(op)))
                     : _controller.Preview(operation == "recheck" ? "inspect" : operation, operation is "recheck" or "engine" or "build" or "pull" ? null : _selected);
+                _preview.Text = _preview.Text.Replace(_controller.FilePath, PathDisplay.Shown(_controller.FilePath), StringComparison.OrdinalIgnoreCase);
                 _preview.Text += "\n" + "Health observation: 120 seconds. No configuration edits, volume deletion or rollback. Published ports are not verified URLs.";
                 _confirm.IsEnabled = true;
             }
