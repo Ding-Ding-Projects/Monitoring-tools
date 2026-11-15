@@ -153,6 +153,68 @@ namespace MonitoringTools.UI
                 }
                 finally { VhdSession.TestDecline = false; }
             });
+            if (Environment.GetEnvironmentVariable("MT_PACK_LIVE_VHDX") == "1")
+            {
+                await CheckAsync("live VHDX packs verifies and detaches with native consent", async () =>
+                {
+                    var liveSource = Path.Combine(root, "Live disk sources");
+                    Directory.CreateDirectory(Path.Combine(liveSource, "Empty"));
+                    File.WriteAllText(Path.Combine(liveSource, "readme.txt"), "Native virtual disk verification fixture.");
+                    File.WriteAllBytes(Path.Combine(liveSource, "payload.bin"), System.Security.Cryptography.RandomNumberGenerator.GetBytes(1024 * 1024));
+                    string Hash(string path) => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path)));
+                    var originals = Directory.GetFiles(liveSource).ToDictionary(path => path, Hash);
+                    var started = DateTimeOffset.UtcNow;
+                    var savedLaunch = VhdSession.TestLaunch;
+                    var savedDecline = VhdSession.TestDecline;
+                    PackingJob live = null;
+                    VDiskInfo info = null;
+                    string failure = null;
+                    bool originalsUnchanged = false, absentFromAttachedList = false;
+                    int? attachedQueryError = null;
+                    try
+                    {
+                        // This explicit opt-in always uses the real native helper and its user-owned consent prompt.
+                        VhdSession.TestLaunch = null; VhdSession.TestDecline = false;
+                        live = PackingProgressDialog.Start(new[] { liveSource }, PackingFormat.Vhdx);
+                        await live.Completion;
+                        if (!live.Success || live.Output == null || !File.Exists(live.Output)) failure = live.Error ?? "The live disk did not complete.";
+                        else
+                        {
+                            info = VirtDisk.Read(live.Output);
+                            var attached = VirtDisk.Attached();
+                            attachedQueryError = VirtDisk.LastAttachedError;
+                            absentFromAttachedList = attachedQueryError == 0 && !attached.Any(path => string.Equals(Path.GetFullPath(path), Path.GetFullPath(live.Output), StringComparison.OrdinalIgnoreCase));
+                            originalsUnchanged = originals.All(pair => File.Exists(pair.Key) && Hash(pair.Key) == pair.Value);
+                            if (info.Error != null) failure = info.Error;
+                            else if (info.Attached || !absentFromAttachedList) failure = "Independent disk detachment could not be verified.";
+                            else if (info.Format != "VHDX" || info.Type != "dynamic") failure = "The live disk format or allocation type did not match the defaults.";
+                            else if (live.DiskResult == null || !live.DiskResult.Ok || live.DiskResult.Verified != originals.Count) failure = "Not every source file passed SHA-256 verification.";
+                            else if (!originalsUnchanged) failure = "An original source file changed.";
+                        }
+                        return failure;
+                    }
+                    catch (Exception ex) { failure = ex.Message; return failure; }
+                    finally
+                    {
+                        VhdSession.TestLaunch = savedLaunch; VhdSession.TestDecline = savedDecline;
+                        File.WriteAllText(Path.Combine(dir, "quickpack-live-vhdx.json"), System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            version = 1, kind = "native-vhdx", consent = "native-user-owned", startedAtUtc = started,
+                            finishedAtUtc = DateTimeOffset.UtcNow, success = failure == null && live?.Success == true,
+                            failure, stage = live?.Stage, output = live?.Output, retainedPath = live?.RetainedPath,
+                            outputExists = live?.Output != null && File.Exists(live.Output), format = info?.Format, allocationType = info?.Type,
+                            virtualBytes = info?.VirtualSize, physicalBytes = info?.PhysicalSize, diskReadError = info?.Error,
+                            attached = info?.Attached, absentFromAttachedList, attachedQueryError,
+                            expectedFiles = originals.Count, verifiedFiles = live?.DiskResult?.Verified, originalsUnchanged
+                        }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                        if (live != null)
+                        {
+                            if (finished != null) PackingProgressDialog.For(finished)?.Close();
+                            finished = live;
+                        }
+                    }
+                });
+            }
             // Optional real-result inspection seam for an isolated desktop driver. No fabricated progress state.
             if (finished != null && int.TryParse(Environment.GetEnvironmentVariable("MT_PACK_HOLD_MS"), out var hold))
             {
