@@ -88,6 +88,7 @@ namespace MonitoringTools.Core
         private readonly IComposeProcess _process;
         public string FilePath { get; }
         public string DirectoryPath => Path.GetDirectoryName(FilePath);
+        public bool ReadinessVerified { get; private set; }
         public string DockerContext { get; private set; } = "Not checked";
         public string FailureEvidence { get; private set; } = "No failure observed";
         public string PossibleCause { get; private set; } = "";
@@ -148,6 +149,7 @@ namespace MonitoringTools.Core
         {
             try
             {
+                ReadinessVerified = false;
                 Result = "In progress";
                 FailureEvidence = "No failure observed"; PossibleCause = "";
                 lock (_recent) _recent.Clear();
@@ -184,7 +186,7 @@ namespace MonitoringTools.Core
                     Services = ParseServices(response.Output); Changed?.Invoke();
                     bool complete = ExpectedServices.All(s => Services.Any(c => c.Service == s));
                     if (Services.Any(s => s.Failed)) { FailureEvidence = string.Join("; ", Services.Where(s => s.Failed).Select(s => s.Service + ": " + s.Verdict + ", exit=" + s.ExitCode)); PossibleCause = "Possible cause: the service process or its configured health check failed. Inspect selected-service logs; a failing health check does not establish the underlying cause."; Result = "Service failure observed; inspect the selected service logs"; return; }
-                    if (complete && Services.All(s => s.Ready)) { Result = "Services running; health checks passed where configured. URLs are unverified."; return; }
+                    if (complete && Services.All(s => s.Ready)) { ReadinessVerified = true; Result = "Services running; health checks passed where configured. URLs are unverified."; return; }
                     if (complete && Services.All(s => s.Ready || (s.State == "exited" && s.ExitCode == 0)))
                     { Result = "Exited service observed with code 0. Confirm intended one-shot behavior; stack readiness is unverified."; return; }
                     await Task.Delay(PollInterval, cancellation);
