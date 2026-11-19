@@ -5,6 +5,28 @@ checked; anything unchecked is labelled.
 
 ## Current state
 
+### Archive-backed branch cleanup (2026-11-19)
+
+- Fresh inspection found one clean checkout on `main`, no linked working trees, no local side
+  branches, no stashes and no nonignored untracked files. The fetched main matched
+  `cf1043866c74bf96992a94fd530f80320b3531e2`; no merge or source recovery was necessary.
+- Under the explicit cleanup request, removed remote branches `looks-and-sweep`
+  (`0585e5c8a321662bc0df87494be9b19714d5ecfb`) and `virtual-disks-and-more`
+  (`1cdb21f37d6505b11c0aeb430c2cfd5001c3452e`). Both tips were independently verified
+  ancestors of pushed main, with zero unique commits. Neither had active pull requests,
+  recent active workflows or branch-specific delivery wiring. Release tags remain intact.
+- Before deletion, tested and listed a private archive of all 1,229 tracked/nonignored files
+  plus the complete Git administration directory: 628,177,512 bytes, 1,446 entries, SHA-256
+  `be521fb022cfb6a08b7ee076be9b41815bd6e6d0179057701444ba6689110423`.
+  Excluded 17,323 ignored paths. Separately preserved and hash-verified all 3 announcement
+  variants still present in the primary checkout; the previous 14-variant archive remains intact.
+- Remote head readback after deletion listed only `main`. The installed application, releases,
+  release tags, settings and ignored build outputs were not changed. No application build or
+  runtime test was needed for this metadata/documentation-only pass. Historical runtime
+  verification below retains its original date and scope.
+- Tracking: issue #1 and General discussion #4. This record and `CLOSEOUT_PROMPT.md` are
+  published with the cleanup result; the final chat supplies their exact commit and remote proof.
+
 ### One-click packing and Compose operations (2026-11-15)
 
 - Delivered: normal release [v1.0.75](https://github.com/Ding-Ding-Projects/Monitoring-tools/releases/tag/v1.0.75).

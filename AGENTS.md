@@ -25,4 +25,4 @@ a step, not a habit.
 - `build.bat` builds the single-file app with every dependency bundled; `build-installer.bat` produces `dist/MonitoringTools-Setup.exe`.
 - `scripts/check-vocabulary.ps1` runs first in `build.bat` and in the `pre-push` hook (`git config core.hooksPath .githooks`).
 - Every push to `main` builds on Windows, renders screenshots of the real app, commits them back, publishes the next release and deploys the project site.
-- Commits use the author `Claude Fable 5.1 <noreply@anthropic.com>` with the matching `Co-Authored-By` trailer, and bilingual English and Cantonese messages.
+- Commits use the author `Claude Fable 5.2 <noreply@anthropic.com>` with the matching `Co-Authored-By` trailer, and bilingual English and Cantonese messages.

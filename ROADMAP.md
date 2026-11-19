@@ -7,6 +7,7 @@ finished (a dropped item would be struck through or moved to the last section wi
 
 ## Shipped
 
+- [x] Archive-backed cleanup of the two historical merged remote branches (2026-11-19); only main remains, with release tags preserved
 - [x] Clipboard toasts with tailored actions, rich file previews and drag-out
 - [x] Quick commands (`:mp4`, `:gif`, `:push`, folder batch conversion, custom script shortcuts)
 - [x] Internet watch with probe ladder, release and renew, DNS profiles
